@@ -8,6 +8,8 @@ using UnityEngine;
 /// </summary>
 public abstract class Context
 {
+    public string Id;
+
     public bool DebugEnabled => Manager.DebugModeEnabled && _debug;
 
     protected int _currentIterOffset = 0;
@@ -23,7 +25,7 @@ public abstract class Context
     [Serializable]
     public class LoadedContext
     {
-        public bool debug;
+        public string id;
 
         [Serializable]
         public class LoadedProperty
@@ -37,6 +39,7 @@ public abstract class Context
         }
 
         public LoadedProperty[] properties;
+        public bool debug;
     }
 
     /// <summary>
@@ -50,6 +53,13 @@ public abstract class Context
 
     public void Initialize(LoadedContext c)
     {
+        if (string.IsNullOrEmpty(c.id))
+        {
+            throw new ArgumentException("context 'id' can't be null or empty");
+        }
+
+        Id = c.id;
+
         if (c.properties != null)
         {
             foreach (LoadedContext.LoadedProperty lp in c.properties)

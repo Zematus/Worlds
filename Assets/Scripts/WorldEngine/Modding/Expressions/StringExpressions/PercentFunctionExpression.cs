@@ -9,7 +9,8 @@ public class PercentFunctionExpression : FunctionExpression, IValueExpression<st
 
     private readonly IValueExpression<float> _arg;
 
-    public PercentFunctionExpression(IExpression[] arguments) : base(FunctionId, 1, arguments)
+    public PercentFunctionExpression(Context c, IExpression[] arguments) :
+        base(c, FunctionId, 1, arguments)
     {
         _arg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[0]);
     }

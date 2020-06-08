@@ -9,7 +9,8 @@ public class MinFunctionExpression : FunctionExpression, IValueExpression<float>
 
     private readonly IValueExpression<float>[] _parameterExps;
 
-    public MinFunctionExpression(IExpression[] arguments) : base(FunctionId, 2, arguments)
+    public MinFunctionExpression(Context c, IExpression[] arguments) :
+        base(c, FunctionId, 2, arguments)
     {
         _parameterExps = new IValueExpression<float>[arguments.Length];
 

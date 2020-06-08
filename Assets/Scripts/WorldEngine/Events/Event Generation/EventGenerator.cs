@@ -31,10 +31,6 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public long UId;
 
     /// <summary>
-    /// String Id for events of this type
-    /// </summary>
-    public string Id;
-    /// <summary>
     /// Name to use in the UI for events of this type
     /// </summary>
     public string Name;

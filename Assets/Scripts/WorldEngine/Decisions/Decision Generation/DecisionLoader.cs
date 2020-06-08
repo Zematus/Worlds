@@ -27,7 +27,6 @@ public class DecisionLoader
         [Serializable]
         public class LoadedDescription : Context.LoadedContext
         {
-            public string id;
             public string text;
         }
 
@@ -50,7 +49,6 @@ public class DecisionLoader
             public LoadedEffect[] effects;
         }
 
-        public string id;
         public string name;
         public string target;
         public LoadedParameter[] parameters;
@@ -102,7 +100,6 @@ public class DecisionLoader
             throw new ArgumentException("description 'text' can't be null or empty");
         }
 
-        segment.Id = d.id;
         segment.Text = new ModText(segment, d.text);
     }
 

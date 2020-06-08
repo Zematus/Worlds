@@ -8,13 +8,19 @@ public abstract class FunctionExpression : IExpression
 {
     public readonly string Id;
 
+    protected Context _context;
+
     private IExpression[] _arguments;
 
-    public FunctionExpression(string id, int minArguments, IExpression[] arguments)
+    public FunctionExpression(Context context, string id, int minArguments, IExpression[] arguments)
     {
+        _context = context;
+
         if ((arguments == null) || (arguments.Length < minArguments))
         {
-            throw new System.ArgumentException(id + ": number of arguments given less than " + minArguments);
+            throw new System.ArgumentException(
+                context.Id + " - " +
+                id + ": number of arguments given less than " + minArguments);
         }
 
         Id = id;

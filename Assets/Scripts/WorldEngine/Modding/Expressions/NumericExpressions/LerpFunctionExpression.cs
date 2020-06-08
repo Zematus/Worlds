@@ -11,7 +11,8 @@ public class LerpFunctionExpression : FunctionExpression, IValueExpression<float
     private readonly IValueExpression<float> _endArg;
     private readonly IValueExpression<float> _percentArg;
 
-    public LerpFunctionExpression(IExpression[] arguments) : base (FunctionId, 3, arguments)
+    public LerpFunctionExpression(Context c, IExpression[] arguments) :
+        base (c, FunctionId, 3, arguments)
     {
         _startArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[0]);
         _endArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);

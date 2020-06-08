@@ -17,10 +17,6 @@ public class ModDecision : Context
     public static Dictionary<string, ModDecision> Decisions;
 
     /// <summary>
-    /// String Id for this decision
-    /// </summary>
-    public string Id;
-    /// <summary>
     /// Name to use in the UI for this decision
     /// </summary>
     public string Name;
@@ -40,7 +36,6 @@ public class ModDecision : Context
             throw new System.ArgumentException("Invalid target type: " + targetStr);
         }
 
-        Id = id;
         IdHash = id.GetHashCode();
 
         _randomOffset = IdHash;

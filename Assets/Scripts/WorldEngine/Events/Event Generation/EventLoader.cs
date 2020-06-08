@@ -24,7 +24,6 @@ public class EventLoader
     [Serializable]
     public class LoadedEvent : Context.LoadedContext
     {
-        public string id;
         public string name;
         public string target;
         public string[] assignOn;
@@ -136,7 +135,6 @@ public class EventLoader
         IEffectExpression[] effects =
             ExpressionBuilder.BuildEffectExpressions(generator, e.effects);
 
-        generator.Id = e.id;
         generator.IdHash = e.id.GetHashCode();
         generator.UId = EventGenerator.CurrentUId++;
         generator.Name = e.name;

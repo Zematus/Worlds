@@ -224,19 +224,19 @@ public static class ExpressionBuilder
         switch (identifier)
         {
             case LerpFunctionExpression.FunctionId:
-                return new LerpFunctionExpression(argExpressions);
+                return new LerpFunctionExpression(context, argExpressions);
             case PercentFunctionExpression.FunctionId:
-                return new PercentFunctionExpression(argExpressions);
+                return new PercentFunctionExpression(context, argExpressions);
             case SaturationFunctionExpression.FunctionId:
-                return new SaturationFunctionExpression(argExpressions);
+                return new SaturationFunctionExpression(context, argExpressions);
             case NormalizeFunctionExpression.FunctionId:
-                return new NormalizeFunctionExpression(argExpressions);
+                return new NormalizeFunctionExpression(context, argExpressions);
             case RandomFunctionExpression.FunctionId:
                 return new RandomFunctionExpression(context, argExpressions);
             case MaxFunctionExpression.FunctionId:
-                return new MaxFunctionExpression(argExpressions);
+                return new MaxFunctionExpression(context, argExpressions);
             case MinFunctionExpression.FunctionId:
-                return new MinFunctionExpression(argExpressions);
+                return new MinFunctionExpression(context, argExpressions);
         }
 
         if (string.IsNullOrWhiteSpace(arguments))

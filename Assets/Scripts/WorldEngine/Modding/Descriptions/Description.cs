@@ -3,11 +3,6 @@ using System.Collections.Generic;
 
 public class Description : Context
 {
-    /// <summary>
-    /// String Id for this description
-    /// </summary>
-    public string Id;
-
     public ModText Text;
 
     public Description(Context context) : base(context)

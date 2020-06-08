@@ -10,13 +10,11 @@ public class RandomFunctionExpression : FunctionExpression, IValueExpression<flo
     private readonly IValueExpression<float> _minMaxArg;
     private readonly IValueExpression<float> _maxArg = null;
 
-    private Context _context;
     private int _iterOffset;
 
     public RandomFunctionExpression(Context c, IExpression[] arguments) :
-        base(FunctionId, 1, arguments)
+        base(c, FunctionId, 1, arguments)
     {
-        _context = c;
         _iterOffset = c.GetNextIterOffset();
 
         _minMaxArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[0]);
@@ -53,6 +51,7 @@ public class RandomFunctionExpression : FunctionExpression, IValueExpression<flo
                 }
 
                 throw new System.ArgumentException(
+                    _context.Id + " - " +
                     FunctionId + ": max value can't be less than min value" +
                     "\n - expression: " + ToString() +
                     "\n - min value: " + minValueStr +

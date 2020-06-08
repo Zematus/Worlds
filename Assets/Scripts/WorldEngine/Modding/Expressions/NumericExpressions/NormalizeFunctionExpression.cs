@@ -11,7 +11,8 @@ public class NormalizeFunctionExpression : FunctionExpression, IValueExpression<
     private readonly IValueExpression<float> _minArg;
     private readonly IValueExpression<float> _maxArg;
 
-    public NormalizeFunctionExpression(IExpression[] arguments) : base(FunctionId, 3, arguments)
+    public NormalizeFunctionExpression(Context c, IExpression[] arguments) :
+        base(c, FunctionId, 3, arguments)
     {
         _valueArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[0]);
         _minArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
@@ -31,6 +32,7 @@ public class NormalizeFunctionExpression : FunctionExpression, IValueExpression<
                 string maxValueStr = _maxArg.ToPartiallyEvaluatedString();
 
                 throw new System.ArgumentException(
+                    _context.Id + " - " +
                     FunctionId + ": max value can't be equal or less than min value" +
                     "\n - expression: " + ToString() +
                     "\n - input value: " + inputValueStr +

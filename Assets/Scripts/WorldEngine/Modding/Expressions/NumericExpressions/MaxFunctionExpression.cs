@@ -9,7 +9,8 @@ public class MaxFunctionExpression : FunctionExpression, IValueExpression<float>
 
     private readonly IValueExpression<float>[] _parameterExps;
 
-    public MaxFunctionExpression(IExpression[] arguments) : base(FunctionId, 2, arguments)
+    public MaxFunctionExpression(Context c, IExpression[] arguments) :
+        base(c, FunctionId, 2, arguments)
     {
         _parameterExps = new IValueExpression<float>[arguments.Length];
 
