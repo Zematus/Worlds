@@ -321,6 +321,9 @@ public class Clan : Faction
         if (!CanBeClanCore(group))
             return 0;
 
+        if (group.FactionCores.Count > 0)
+            return 0;
+
         if (group.Population < MinCorePopulation)
             return 0;
 

@@ -10,18 +10,18 @@ public class SplitFactionAttribute : EffectEntityAttribute
     private ModDecision _decisionToTrigger = null;
 
     private readonly IValueExpression<Entity> _coreGroupArg;
-    private readonly IValueExpression<float> _influenceTransferArg;
+    private readonly IValueExpression<float> _influencePercentToTransferArg;
     private readonly IValueExpression<float> _relationshipValueArg;
     private readonly IValueExpression<string> _newFactionTypeArg = null;
 
     public SplitFactionAttribute(FactionEntity factionEntity, IExpression[] arguments)
-        : base(factionEntity.BuildAttributeId(FactionEntity.SplitFactionAttributeId), factionEntity, arguments, 1)
+        : base(factionEntity.BuildAttributeId(FactionEntity.SplitAttributeId), factionEntity, arguments, 1)
     {
         _factionEntity = factionEntity;
 
         _coreGroupArg =
             ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);
-        _influenceTransferArg =
+        _influencePercentToTransferArg =
             ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
         _relationshipValueArg =
             ValueExpressionBuilder.ValidateValueExpression<float>(arguments[2]);
@@ -53,19 +53,20 @@ public class SplitFactionAttribute : EffectEntityAttribute
             newFactionType = faction.Type;
         }
 
-        float influenceToTransfer = _influenceTransferArg.Value;
+        float influencePercentToTransfer = _influencePercentToTransferArg.Value;
 
-        if (influenceToTransfer >= faction.Influence)
+        if (influencePercentToTransfer >= 0.5)
         {
             throw new System.Exception(
-                "ERROR: SplitFactionAttribute.Apply - influence to transfer greater or equal to original faction influence" +
+                "ERROR: SplitFactionAttribute.Apply - influence percent to transfer can't be equal or greater than 0.5" +
                 "\n - attribute id: " + Id +
-                "\n - partial influence to transfer expression: " + _influenceTransferArg.ToPartiallyEvaluatedString(true) +
+                "\n - partial influence to transfer expression: " + _influencePercentToTransferArg.ToPartiallyEvaluatedString(true) +
                 "\n - world date: " + faction.World.CurrentDate +
                 "\n - faction id: " + faction.Id +
-                "\n - faction influence: " + faction.Influence +
-                "\n - expression result: " + influenceToTransfer);
+                "\n - expression result: " + influencePercentToTransfer);
         }
+
+        float influenceToTransfer = _influencePercentToTransferArg.Value * faction.Influence;
 
         faction.Split(
             newFactionType,

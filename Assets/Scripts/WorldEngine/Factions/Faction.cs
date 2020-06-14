@@ -467,6 +467,15 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
             throw new Exception("newFaction is null - Faction Id: " + Id);
         }
 
+#if DEBUG
+        Faction existingFaction = World.GetFaction(newFaction.Id);
+
+        if (existingFaction != null)
+        {
+            throw new Exception("faction Id already exists - new faction Id: " + newFaction.Id);
+        }
+#endif
+
         newFaction.Initialize(); // We can initialize right away since the containing polity is already initialized
 
         // set relationship within parent and child faction
@@ -494,6 +503,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public void PreUpdate()
     {
         if (!IsInitialized)
+        {
+            return;
+        }
+
+        if (_preupdated)
         {
             return;
         }
@@ -548,14 +562,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
             throw new System.Exception("Faction's polity is no longer present. Id: " + Id + " Polity Id: " + Polity.Id + ", Date: " + World.CurrentDate);
         }
 
-        if (_preupdated)
-        {
-            Profiler.EndSample();
-            return;
-        }
-
-        _preupdated = true;
-
         Profiler.BeginSample("RequestCurrentLeader");
 
         RequestCurrentLeader();
@@ -577,6 +583,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
             Profiler.EndSample();
         }
 
+        _preupdated = true;
+
         Profiler.EndSample();
     }
 
@@ -589,6 +597,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         PreUpdate();
 
+        _preupdated = false;
+
         UpdateInternal();
 
         ValidateStatusChange();
@@ -596,8 +606,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         LastUpdateDate = World.CurrentDate;
 
         World.AddPolityToUpdate(Polity);
-
-        _preupdated = false;
 
         IsBeingUpdated = false;
     }

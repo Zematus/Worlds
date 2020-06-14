@@ -13,8 +13,8 @@
         { "id": "low_administrative_load", "value": "target.administrative_load <= (0.6 + (target.leader.wisdom * 0.3))" },
         { "id": "can_prevent_split", "value": "enough_authority && enough_cohesion && low_administrative_load" },
         { "id": "influence_charisma_factor", "value": "2 - target.leader.charisma" },
-        { "id": "min_new_clan_influence", "value": "target.influence - lerp(target.influence, 0, (0.1 * influence_charisma_factor))" },
-        { "id": "max_new_clan_influence", "value": "target.influence - lerp(target.influence, 0, (0.25 * influence_charisma_factor))" },
+        { "id": "min_inf_percent_to_transfer", "value": "0.1 * influence_charisma_factor" },
+        { "id": "max_inf_percent_to_transfer", "value": "0.2 * influence_charisma_factor" },
         { "id": "min_new_clan_relationship", "value": "0.1 + (0.4 * target.leader.charisma)" },
         { "id": "max_new_clan_relationship", "value": "0.5 + (0.4 * target.leader.charisma)" }
       ],
@@ -53,8 +53,8 @@
           "effects": [
             {
               "id": "split",
-              "text": "A new clan splits from clan <<target>> taking from <<percent(min_new_clan_influence)>> to <<percent(max_new_clan_influence)>> influence from it",
-              "result": "target.split(new_core_group, random(min_new_clan_influence, max_new_clan_influence), random(min_new_clan_relationship, max_new_clan_relationship))"
+              "text": "A new clan splits from clan <<target>> taking from <<percent(min_inf_percent_to_transfer)>> to <<percent(max_inf_percent_to_transfer)>> of its influence from it",
+              "result": "target.split(new_core_group, random(min_inf_percent_to_transfer, max_inf_percent_to_transfer), random(min_new_clan_relationship, max_new_clan_relationship))"
             }
           ]
         },
@@ -93,8 +93,8 @@
           "effects": [
             {
               "id": "split",
-              "text": "A new clan splits from clan <<target>> taking from <<percent(min_new_clan_influence)>> to <<percent(max_new_clan_influence)>> influence from it",
-              "result": "target.split(new_core_group, random(min_new_clan_influence, max_new_clan_influence), random(min_new_clan_relationship, max_new_clan_relationship))"
+              "text": "A new clan splits from clan <<target>> taking from <<percent(min_inf_percent_to_transfer)>> to <<percent(max_inf_percent_to_transfer)>> of its influence from it",
+              "result": "target.split(new_core_group, random(min_inf_percent_to_transfer, max_inf_percent_to_transfer), random(min_new_clan_relationship, max_new_clan_relationship))"
             }
           ]
         }
