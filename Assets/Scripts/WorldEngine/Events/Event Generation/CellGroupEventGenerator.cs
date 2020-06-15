@@ -10,7 +10,7 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
 
     public CellGroupEventGenerator()
     {
-        _target = new GroupEntity(TargetEntityId);
+        _target = new GroupEntity(this, TargetEntityId);
 
         // Add the target to the context's entity map
         AddEntity(_target);
@@ -47,11 +47,13 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         _target.Set(group);
     }
 
-    public override float GetNextRandomInt(int iterOffset, int maxValue) =>
+    public override int GetNextRandomInt(int iterOffset, int maxValue) =>
         _target.Group.GetNextLocalRandomInt(iterOffset, maxValue);
 
     public override float GetNextRandomFloat(int iterOffset) =>
         _target.Group.GetNextLocalRandomFloat(iterOffset);
+
+    public override int GetBaseOffset() => (int)_target.Group.Id;
 
     public bool TryGenerateEventAndAssign(
         CellGroup group,

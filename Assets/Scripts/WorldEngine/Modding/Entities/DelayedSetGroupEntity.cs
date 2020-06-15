@@ -9,8 +9,8 @@ public class DelayedSetGroupEntity : GroupEntity
 
     private CellGroup _group = null;
 
-    public DelayedSetGroupEntity(ValueGetterMethod<CellGroup> getterMethod, string id)
-        : base(id)
+    public DelayedSetGroupEntity(ValueGetterMethod<CellGroup> getterMethod, Context c, string id)
+        : base(c, id)
     {
         _getterMethod = getterMethod;
     }

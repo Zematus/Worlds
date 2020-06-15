@@ -5,13 +5,15 @@ public abstract class Entity : IComparable<object>
 {
     public string Id;
 
+    public Context Context;
+
     protected abstract object _reference { get; }
 
     protected IValueExpression<Entity> _expression = null;
 
     private EntityAttribute _thisAttribute;
 
-    public Entity(string id)
+    public Entity(Context context, string id)
     {
         if (string.IsNullOrEmpty(id))
         {
@@ -19,6 +21,8 @@ public abstract class Entity : IComparable<object>
         }
 
         Id = id;
+
+        Context = context;
     }
 
     public string BuildAttributeId(string attrId)

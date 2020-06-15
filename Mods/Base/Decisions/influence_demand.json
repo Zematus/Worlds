@@ -59,8 +59,8 @@
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
                 { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
-                { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" },
-                { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" }
+                { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
+                { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
               ],
               "text": "Clan <<target>>: relationship with <<dominant_faction>> increases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
               "result": "target.set_relationship(dominant_faction, random(relationship_min, relationship_max))"

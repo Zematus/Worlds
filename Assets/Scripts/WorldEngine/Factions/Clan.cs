@@ -470,6 +470,7 @@ public class Clan : Faction
         return (randomValue > migrateCoreFactor);
     }
 
+    [Obsolete]
     public override void Split()
     {
         int randomOffset = unchecked((int)(RngOffsets.CLAN_SPLIT + Id));
@@ -545,8 +546,6 @@ public class Clan : Faction
         SetRelationship(this, newClan, relationshipValue);
 
         parentTribe.AddFaction(newClan);
-
-        parentTribe.UpdateDominantFaction();
 
         World.AddFactionToUpdate(this);
         World.AddFactionToUpdate(newClan);

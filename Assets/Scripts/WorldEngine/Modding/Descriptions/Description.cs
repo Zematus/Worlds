@@ -18,8 +18,13 @@ public class Description : Context
         return _parentContext.GetNextRandomFloat(iterOffset);
     }
 
-    public override float GetNextRandomInt(int iterOffset, int maxValue)
+    public override int GetNextRandomInt(int iterOffset, int maxValue)
     {
         return _parentContext.GetNextRandomInt(iterOffset, maxValue);
+    }
+
+    public override int GetBaseOffset()
+    {
+        return _parentContext.GetBaseOffset();
     }
 }

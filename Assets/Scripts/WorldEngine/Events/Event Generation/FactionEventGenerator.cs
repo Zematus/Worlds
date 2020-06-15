@@ -10,7 +10,7 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 
     public FactionEventGenerator()
     {
-        Target = new FactionEntity(TargetEntityId);
+        Target = new FactionEntity(this, TargetEntityId);
 
         // Add the target to the context's entity map
         AddEntity(Target);
@@ -46,11 +46,13 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         Target.Set(faction);
     }
 
-    public override float GetNextRandomInt(int iterOffset, int maxValue) =>
+    public override int GetNextRandomInt(int iterOffset, int maxValue) =>
         Target.Faction.GetNextLocalRandomInt(iterOffset, maxValue);
 
     public override float GetNextRandomFloat(int iterOffset) =>
         Target.Faction.GetNextLocalRandomFloat(iterOffset);
+
+    public override int GetBaseOffset() => (int)Target.Faction.Id;
 
     public bool TryGenerateEventAndAssign(
         Faction faction,

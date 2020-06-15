@@ -8,17 +8,19 @@ public class DivideExpression : BinaryOpExpressionWithOutput<float>
     protected IValueExpression<float> _numExpressionA;
     protected IValueExpression<float> _numExpressionB;
 
-    public DivideExpression(IExpression expressionA, IExpression expressionB)
+    public DivideExpression(IValueExpression<float> expressionA, IValueExpression<float> expressionB)
         : base("/", expressionA, expressionB)
     {
-        _numExpressionA = ValueExpressionBuilder.ValidateValueExpression<float>(expressionA);
-        _numExpressionB = ValueExpressionBuilder.ValidateValueExpression<float>(expressionB);
+        _numExpressionA = expressionA;
+        _numExpressionB = expressionB;
     }
 
     public static IExpression Build(Context context, string expressionAStr, string expressionBStr)
     {
-        IExpression expressionA = ExpressionBuilder.BuildExpression(context, expressionAStr);
-        IExpression expressionB = ExpressionBuilder.BuildExpression(context, expressionBStr);
+        IExpression expressionA =
+            ValueExpressionBuilder.BuildValueExpression<float>(context, expressionAStr);
+        IExpression expressionB =
+            ValueExpressionBuilder.BuildValueExpression<float>(context, expressionBStr);
 
         return new MultiplyExpression(expressionA, expressionB);
     }

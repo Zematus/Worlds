@@ -58,7 +58,8 @@ public class RandomFunctionExpression : FunctionExpression, IValueExpression<flo
                     "\n - max value: " + maxValueStr);
             }
 
-            return Mathf.Lerp(min, max, _context.GetNextRandomFloat(_iterOffset));
+            return Mathf.Lerp(
+                min, max, _context.GetNextRandomFloat(_iterOffset + _context.GetBaseOffset()));
         }
     }
 

@@ -44,7 +44,7 @@ public class FactionEntity : Entity
         return Faction.GetNameBold();
     }
 
-    public FactionEntity(string id) : base(id)
+    public FactionEntity(Context c, string id) : base(c, id)
     {
     }
 
@@ -52,6 +52,7 @@ public class FactionEntity : Entity
     {
         _preferencesEntity =
             _preferencesEntity ?? new CulturalPreferencesEntity(
+                Context,
                 BuildAttributeId(PreferencesAttributeId));
 
         return _preferencesEntity.GetThisEntityAttribute(this);
@@ -62,6 +63,7 @@ public class FactionEntity : Entity
         _leaderEntity =
             _leaderEntity ?? new DelayedSetAgentEntity(
                 GetLeader,
+                Context,
                 BuildAttributeId(LeaderAttributeId));
 
         return _leaderEntity.GetThisEntityAttribute(this);
@@ -72,6 +74,7 @@ public class FactionEntity : Entity
         _polityEntity =
             _polityEntity ?? new DelayedSetPolityEntity(
                 GetPolity,
+                Context,
                 BuildAttributeId(PolityAttributeId));
 
         return _polityEntity.GetThisEntityAttribute(this);
@@ -82,6 +85,7 @@ public class FactionEntity : Entity
         _coreGroupEntity =
             _coreGroupEntity ?? new DelayedSetGroupEntity(
                 GetCoreGroup,
+                Context,
                 BuildAttributeId(CoreGroupAttributeId));
 
         return _coreGroupEntity.GetThisEntityAttribute(this);

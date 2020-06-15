@@ -1740,6 +1740,7 @@ public class World : ISynchronizable
         return _factionInfos.ContainsKey(id);
     }
 
+    [System.Obsolete]
     public void AddFactionToSplit(Faction faction)
     {
         if (!faction.StillPresent)

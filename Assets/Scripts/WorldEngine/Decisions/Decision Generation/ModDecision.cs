@@ -8,11 +8,10 @@ public class ModDecision : Context
     public const string TargetEntityId = "target";
 
     private int _randomOffset;
-    private int _evalRandomOffset;
 
     private readonly FactionEntity _target;
 
-    private readonly Entity[] _parameterEntities;
+    private Entity[] _parameterEntities;
 
     public static Dictionary<string, ModDecision> Decisions;
 
@@ -29,7 +28,7 @@ public class ModDecision : Context
     public OptionalDescription[] DescriptionSegments;
     public DecisionOption[] Options;
 
-    public ModDecision(string id, string targetStr, Entity[] parameterEntities)
+    public ModDecision(string id, string targetStr)
     {
         if (targetStr != FactionTargetType)
         {
@@ -40,11 +39,14 @@ public class ModDecision : Context
 
         _randomOffset = IdHash;
 
-        _target = new FactionEntity(TargetEntityId);
+        _target = new FactionEntity(this, TargetEntityId);
 
         // Add the target to the context's entity map
         AddEntity(_target);
+    }
 
+    public void SetParameterEntities(Entity[] parameterEntities)
+    {
         _parameterEntities = parameterEntities;
 
         if (parameterEntities != null)
@@ -55,11 +57,6 @@ public class ModDecision : Context
                 AddEntity(p);
             }
         }
-    }
-
-    public void FinishInitialization()
-    {
-        _evalRandomOffset = _randomOffset;
     }
 
     public static void ResetDecisions()
@@ -82,11 +79,13 @@ public class ModDecision : Context
         }
     }
 
-    public override float GetNextRandomInt(int iterOffset, int maxValue) =>
+    public override int GetNextRandomInt(int iterOffset, int maxValue) =>
         _target.Faction.GetNextLocalRandomInt(iterOffset, maxValue);
 
     public override float GetNextRandomFloat(int iterOffset) =>
         _target.Faction.GetNextLocalRandomFloat(iterOffset);
+
+    public override int GetBaseOffset() => (int)_target.Faction.Id;
 
     public override void Reset()
     {
@@ -182,7 +181,7 @@ public class ModDecision : Context
                 "\n - total weight: " + totalWeight);
         }
 
-        float randValue = GetNextRandomFloat(_evalRandomOffset) * totalWeight;
+        float randValue = GetNextRandomFloat(_randomOffset) * totalWeight;
 
         // Figure out which option we should apply
         int chossenIndex = 0;

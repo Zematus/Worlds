@@ -1,7 +1,6 @@
 {
   "events": [
     {
-      "debug": true,
       "id": "clan_decide_split",
       "name": "clan decide split",
       "target": "faction",
@@ -28,7 +27,6 @@
       "repeatable" : true
     },
     {
-      "debug": true,
       "id": "clan_decide_performing_influence_demand",
       "name": "clan decide performing influence demand",
       "target": "faction",

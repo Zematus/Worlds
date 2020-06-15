@@ -8,7 +8,12 @@ public class TestContext : Context
         throw new NotImplementedException();
     }
 
-    public override float GetNextRandomInt(int iterOffset, int maxValue)
+    public override int GetNextRandomInt(int iterOffset, int maxValue)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override int GetBaseOffset()
     {
         throw new NotImplementedException();
     }
@@ -59,7 +64,7 @@ public class TestEntity : Entity
 
         private TestBooleanEntityAttribute _boolAttribute;
 
-        public InternalEntity() : base(TestId)
+        public InternalEntity(Context c) : base(c, TestId)
         {
             _boolAttribute = new TestBooleanEntityAttribute(this, true);
         }
@@ -93,7 +98,7 @@ public class TestEntity : Entity
         }
     }
 
-    private readonly InternalEntity _internalEntity = new InternalEntity();
+    private readonly InternalEntity _internalEntity;
 
     private readonly TestBooleanEntityAttribute _boolAttribute;
 
@@ -101,8 +106,10 @@ public class TestEntity : Entity
 
     protected override object _reference => this;
 
-    public TestEntity() : base("testEntity")
+    public TestEntity(Context c) : base(c, "testEntity")
     {
+        _internalEntity = new InternalEntity(Context);
+
         _boolAttribute =
             new TestBooleanEntityAttribute(this, false);
         _entityAttribute =
@@ -228,6 +235,7 @@ public class TestFaction : Faction
         return "<b>test faction " + _testId + "</b>";
     }
 
+    [Obsolete]
     public override void Split()
     {
         throw new NotImplementedException();

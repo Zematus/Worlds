@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 public abstract class BaseValueEntity : Entity
 {
-    public BaseValueEntity(string id) : base(id)
+    public BaseValueEntity(Context c, string id) : base(c, id)
     {
     }
 

@@ -60,7 +60,7 @@ public class CulturalPreferencesEntity : Entity
         }
     }
 
-    public CulturalPreferencesEntity(string id) : base(id)
+    public CulturalPreferencesEntity(Context c, string id) : base(c, id)
     {
     }
 

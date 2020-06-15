@@ -79,7 +79,7 @@ public class RandomRangePropertyEntity : PropertyEntity<float>
         _min = Min.Value;
         _max = Max.Value;
 
-        Value = Mathf.Lerp(_min, _max, _context.GetNextRandomFloat(_idHash));
+        Value = Mathf.Lerp(_min, _max, Context.GetNextRandomFloat(_idHash));
     }
 
     public override string GetDebugString()

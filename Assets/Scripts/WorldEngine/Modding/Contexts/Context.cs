@@ -104,7 +104,8 @@ public abstract class Context
     }
 
     public abstract float GetNextRandomFloat(int iterOffset);
-    public abstract float GetNextRandomInt(int iterOffset, int maxValue);
+    public abstract int GetNextRandomInt(int iterOffset, int maxValue);
+    public abstract int GetBaseOffset();
 
     public void AddEntity(Entity entity)
     {

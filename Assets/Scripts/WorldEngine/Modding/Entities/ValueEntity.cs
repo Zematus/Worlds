@@ -17,7 +17,7 @@ public class ValueEntity<T> : BaseValueEntity
 
     private IValueExpression<T> _valueExpression = null;
 
-    public ValueEntity(string id) : base(id)
+    public ValueEntity(Context c, string id) : base(c, id)
     {
     }
 

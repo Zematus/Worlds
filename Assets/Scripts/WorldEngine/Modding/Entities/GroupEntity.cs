@@ -11,7 +11,7 @@ public class GroupEntity : Entity
 
     private CellEntity _cellEntity = null;
 
-    public GroupEntity(string id) : base(id)
+    public GroupEntity(Context c, string id) : base(c, id)
     {
     }
 
@@ -19,6 +19,7 @@ public class GroupEntity : Entity
     {
         _cellEntity =
             _cellEntity ?? new CellEntity(
+                Context,
                 BuildAttributeId(CellAttributeId));
 
         return _cellEntity.GetThisEntityAttribute(this);

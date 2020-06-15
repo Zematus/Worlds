@@ -15,7 +15,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlAttribute("CGrpId")]
     public long CoreGroupId;
 
-#if DEBUG
     [XmlAttribute("Inf")]
     public float InfluenceInternal;
 
@@ -32,13 +31,14 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
                 throw new System.Exception("Influence set to less than zero: " + value);
             }
 
+            if (!Polity.IsBeingUpdated)
+            {
+                World.AddPolityToUpdate(Polity);
+            }
+
             InfluenceInternal = value;
         }
     }
-#else
-    [XmlAttribute("Inf")]
-    public float Influence;
-#endif
 
     [XmlAttribute("StilPres")]
     public bool StillPresent = true;
@@ -483,10 +483,10 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         newPolity.AddFaction(newFaction);
 
-        newPolity.UpdateDominantFaction();
-
         World.AddFactionToUpdate(this);
         World.AddFactionToUpdate(newFaction);
+
+        World.AddPolityToUpdate(newPolity);
         World.AddPolityToUpdate(Polity);
 
         newPolity.AddEventMessage(new FactionSplitEventMessage(this, newFaction, World.CurrentDate));

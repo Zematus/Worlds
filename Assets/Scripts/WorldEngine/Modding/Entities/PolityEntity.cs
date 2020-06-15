@@ -35,7 +35,7 @@ public class PolityEntity : Entity
         return Polity.Name.BoldText;
     }
 
-    public PolityEntity(string id) : base(id)
+    public PolityEntity(Context c, string id) : base(c, id)
     {
     }
 
@@ -44,6 +44,7 @@ public class PolityEntity : Entity
         _dominantFactionEntity =
             _dominantFactionEntity ?? new DelayedSetFactionEntity(
             GetDominantFaction,
+            Context,
             BuildAttributeId(DominantFactionAttributeId));
 
         return _dominantFactionEntity.GetThisEntityAttribute(this);
@@ -52,14 +53,16 @@ public class PolityEntity : Entity
     private class RandomGroupEntity : GroupEntity
     {
         private int _index;
+        private int _iterOffset;
         private PolityEntity _polityEntity;
 
         private CellGroup _group = null;
 
         public RandomGroupEntity(int index, PolityEntity entity)
-            : base(entity.Id + ".random_group_" + index)
+            : base(entity.Context, entity.Id + ".random_group_" + index)
         {
             _index = index;
+            _iterOffset = entity.Context.GetNextIterOffset() + index;
             _polityEntity = entity;
         }
 
@@ -76,9 +79,9 @@ public class PolityEntity : Entity
                 {
                     Polity polity = _polityEntity.Polity;
 
-                    int offset = (int)polity.Id;
+                    int offset = (int)polity.Id + _iterOffset + Context.GetBaseOffset();
 
-                    _group = polity.GetRandomGroup(offset + _index);
+                    _group = polity.GetRandomGroup(offset);
 
                     Set(_group);
                 }

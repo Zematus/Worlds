@@ -15,7 +15,7 @@ public class AgentEntity : Entity
 
     protected override object _reference => Agent;
 
-    public AgentEntity(string id) : base(id)
+    public AgentEntity(Context c, string id) : base(c, id)
     {
     }
 

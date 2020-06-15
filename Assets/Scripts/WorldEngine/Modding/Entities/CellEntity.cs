@@ -33,7 +33,7 @@ public class CellEntity : Entity
         public override float Value => _cellEntity.Cell.GetBiomeTraitPresence(_argument.Value);
     }
 
-    public CellEntity(string id) : base(id)
+    public CellEntity(Context c, string id) : base(c, id)
     {
     }
 

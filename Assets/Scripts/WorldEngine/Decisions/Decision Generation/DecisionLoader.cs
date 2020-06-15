@@ -196,48 +196,48 @@ public class DecisionLoader
         return option;
     }
 
-    private static Entity[] CreateParameterEntities(LoadedDecision.LoadedParameter[] ps)
+    private static Entity[] CreateParameterEntities(Context c, LoadedDecision.LoadedParameter[] ps)
     {
         Entity[] entities = new Entity[ps.Length];
 
         for (int i = 0; i < ps.Length; i++)
         {
-            entities[i] = CreateParameterEntity(ps[i]);
+            entities[i] = CreateParameterEntity(c, ps[i]);
         }
 
         return entities;
     }
 
-    private static Entity CreateParameterEntity(LoadedDecision.LoadedParameter p)
+    private static Entity CreateParameterEntity(Context c, LoadedDecision.LoadedParameter p)
     {
         switch (p.type)
         {
             case "group":
-                return new GroupEntity(p.id);
+                return new GroupEntity(c, p.id);
 
             case "faction":
-                return new FactionEntity(p.id);
+                return new FactionEntity(c, p.id);
 
             case "polity":
-                return new PolityEntity(p.id);
+                return new PolityEntity(c, p.id);
 
             case "cell":
-                return new CellEntity(p.id);
+                return new CellEntity(c, p.id);
 
             case "agent":
-                return new AgentEntity(p.id);
+                return new AgentEntity(c, p.id);
 
             case "string":
-                return new ValueEntity<string>(p.id);
+                return new ValueEntity<string>(c, p.id);
 
             case "text":
-                return new ValueEntity<string>(p.id);
+                return new ValueEntity<string>(c, p.id);
 
             case "number":
-                return new ValueEntity<float>(p.id);
+                return new ValueEntity<float>(c, p.id);
 
             case "boolean":
-                return new ValueEntity<bool>(p.id);
+                return new ValueEntity<bool>(c, p.id);
 
             default:
                 throw new Exception("Unhandled parameter type: " + p.type);
@@ -266,14 +266,17 @@ public class DecisionLoader
             throw new ArgumentException("decision 'description' list can't be empty");
         }
 
+        ModDecision decision = new ModDecision(d.id, d.target);
+
         Entity[] parameterEntities = null;
 
         if (d.parameters != null)
         {
-            parameterEntities = CreateParameterEntities(d.parameters);
+            parameterEntities = CreateParameterEntities(decision, d.parameters);
         }
 
-        ModDecision decision = new ModDecision(d.id, d.target, parameterEntities);
+        decision.SetParameterEntities(parameterEntities);
+
         decision.Initialize(d);
 
         OptionalDescription[] segments = new OptionalDescription[d.description.Length];
@@ -315,8 +318,6 @@ public class DecisionLoader
         decision.Name = d.name;
         decision.DescriptionSegments = segments;
         decision.Options = options;
-
-        decision.FinishInitialization();
 
         return decision;
     }

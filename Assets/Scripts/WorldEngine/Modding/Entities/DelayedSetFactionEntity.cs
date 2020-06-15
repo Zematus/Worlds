@@ -9,8 +9,8 @@ public class DelayedSetFactionEntity : FactionEntity
 
     private Faction _faction = null;
 
-    public DelayedSetFactionEntity(ValueGetterMethod<Faction> getterMethod, string id)
-        : base(id)
+    public DelayedSetFactionEntity(ValueGetterMethod<Faction> getterMethod, Context c, string id)
+        : base(c, id)
     {
         _getterMethod = getterMethod;
     }

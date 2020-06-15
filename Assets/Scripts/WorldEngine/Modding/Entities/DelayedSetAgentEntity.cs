@@ -9,8 +9,8 @@ public class DelayedSetAgentEntity : AgentEntity
 
     private Agent _agent = null;
 
-    public DelayedSetAgentEntity(ValueGetterMethod<Agent> getterMethod, string id)
-        : base(id)
+    public DelayedSetAgentEntity(ValueGetterMethod<Agent> getterMethod, Context c, string id)
+        : base(c, id)
     {
         _getterMethod = getterMethod;
     }

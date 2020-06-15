@@ -7,27 +7,21 @@ public abstract class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
 
     protected override object _reference => this;
 
-    protected readonly Context _context;
-
     protected readonly string _id;
     protected readonly int _idHash;
 
-    public PropertyEntity(Context context, Context.LoadedContext.LoadedProperty p)
-        : base(p.id)
+    public PropertyEntity(Context c, Context.LoadedContext.LoadedProperty p)
+        : base(c, p.id)
     {
-        _context = context;
-
         _id = p.id;
         _idHash = p.id.GetHashCode();
 
         _partialEvalStringConverter = ToPartiallyEvaluatedString;
     }
 
-    protected PropertyEntity(Context context, string id)
-        : base(id)
+    protected PropertyEntity(Context c, string id)
+        : base(c, id)
     {
-        _context = context;
-
         _id = id;
         _idHash = id.GetHashCode();
 

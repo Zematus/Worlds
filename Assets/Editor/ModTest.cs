@@ -35,7 +35,7 @@ public class ModTest
 
         TestContext testContext = new TestContext();
 
-        testContext.AddEntity(new TestEntity());
+        testContext.AddEntity(new TestEntity(testContext));
 
         Debug.Log("Test text " + (testCounter++));
         ModText text = new ModText(testContext, "normal string");
@@ -75,7 +75,7 @@ public class ModTest
 
         TestContext testContext = new TestContext();
 
-        testContext.AddEntity(new TestEntity());
+        testContext.AddEntity(new TestEntity(testContext));
 
         IExpression expression;
 
@@ -263,7 +263,7 @@ public class ModTest
 
         TestContext testContext = new TestContext();
 
-        GroupEntity testGroupEntity = new GroupEntity("target");
+        GroupEntity testGroupEntity = new GroupEntity(testContext, "target");
 
         testContext.AddEntity(testGroupEntity);
 
@@ -400,7 +400,7 @@ public class ModTest
 
         TestContext testContext = new TestContext();
 
-        FactionEntity testFactionEntity = new FactionEntity("target");
+        FactionEntity testFactionEntity = new FactionEntity(testContext, "target");
 
         testContext.AddEntity(testFactionEntity);
 

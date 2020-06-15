@@ -9,8 +9,8 @@ public class DelayedSetPolityEntity : PolityEntity
 
     private Polity _polity = null;
 
-    public DelayedSetPolityEntity(ValueGetterMethod<Polity> getterMethod, string id)
-        : base(id)
+    public DelayedSetPolityEntity(ValueGetterMethod<Polity> getterMethod, Context c, string id)
+        : base(c, id)
     {
         _getterMethod = getterMethod;
     }
