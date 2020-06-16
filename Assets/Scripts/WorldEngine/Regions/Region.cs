@@ -90,7 +90,7 @@ public abstract class Region : ISynchronizable
     }
 
     [XmlIgnore]
-    public List<Element.Instance> Elements
+    public virtual List<Element.Instance> Elements
     {
         get
         {

@@ -6,15 +6,17 @@ using System.Xml.Serialization;
 
 public class Discovery : ICellGroupEventGenerator
 {
-    public class Event : CellGroupEventGeneratorEvent
+    //TODO: Events that produce discoveries should be separated and use 0.3.4 Event Generators
+    [System.Obsolete]
+    public class DiscoveryEvent : CellGroupEventGeneratorEvent
     {
         private Discovery _discovery;
 
-        public Event()
+        public DiscoveryEvent()
         {
         }
 
-        public Event(
+        public DiscoveryEvent(
             Discovery discovery,
             CellGroup group,
             long triggerDate,
@@ -87,8 +89,9 @@ public class Discovery : ICellGroupEventGenerator
     public string EventGeneratorId;
 
     public int IdHash;
-    public int UId; // Do not use as seed or part of (no consistency guarantee after reload). TODO: Get rid of it if possible
-    public string EventSetFlag;
+    public int UId;
+
+    public string EventSetFlag { get; private set; }
 
     public Condition[] GainConditions = null;
     public Condition[] HoldConditions = null;
@@ -104,9 +107,10 @@ public class Discovery : ICellGroupEventGenerator
         Discoveries = new Dictionary<string, Discovery>();
     }
 
-    public static void LoadDiscoveriesFile(string filename)
+    [System.Obsolete]
+    public static void LoadDiscoveriesFile033(string filename)
     {
-        foreach (Discovery discovery in DiscoveryLoader.Load(filename))
+        foreach (Discovery discovery in DiscoveryLoader033.Load(filename))
         {
             if (Discoveries.ContainsKey(discovery.Id))
             {
@@ -141,10 +145,10 @@ public class Discovery : ICellGroupEventGenerator
 
     public void Initialize()
     {
-        string eventPrefix = Id + "_discovery_event";
+        string eventId = Id + "_discovery_event";
 
-        EventGeneratorId = eventPrefix + "_generator";
-        EventSetFlag = eventPrefix + "_set";
+        EventGeneratorId = eventId;
+        EventSetFlag = eventId + "_set";
 
         World.EventGenerators.Add(EventGeneratorId, this);
         CellGroup.OnSpawnEventGenerators.Add(this);
@@ -218,14 +222,6 @@ public class Discovery : ICellGroupEventGenerator
         return true;
     }
 
-    public bool CanAssignEventTypeToGroup(CellGroup group)
-    {
-        if (group.IsFlagSet(EventSetFlag))
-            return false;
-
-        return CanBeGained(group);
-    }
-
     private long CalculateTriggerDate(CellGroup group)
     {
         float randomFactor = group.GetNextLocalRandomFloat(IdHash);
@@ -257,23 +253,6 @@ public class Discovery : ICellGroupEventGenerator
         }
 
         return targetDate;
-    }
-
-    public CellGroupEvent GenerateAndAssignEvent(CellGroup group)
-    {
-        long triggerDate = CalculateTriggerDate(group);
-
-        if (triggerDate < 0)
-        {
-            // Do not generate an event. CalculateTriggerDate() should have logged a reason why
-            return null;
-        }
-
-        Event discoveryEvent = new Event(this, group, triggerDate, IdHash);
-
-        group.World.InsertEventToHappen(discoveryEvent);
-
-        return discoveryEvent;
     }
 
     public string GetEventGeneratorId()
@@ -317,14 +296,35 @@ public class Discovery : ICellGroupEventGenerator
 
     public void RetryAssignAfterLoss(CellGroup group)
     {
-        if (CanAssignEventTypeToGroup(group))
-        {
-            GenerateAndAssignEvent(group);
-        }
+        TryGenerateEventAndAssign(group);
     }
 
-    public string GetEventSetFlag()
+    public bool TryGenerateEventAndAssign(
+        CellGroup group,
+        WorldEvent originalEvent = null,
+        bool reassign = false)
     {
-        return EventSetFlag;
+        if (group.IsFlagSet(EventSetFlag))
+            return false;
+
+        if (!CanBeGained(group))
+            return false;
+
+        long triggerDate = CalculateTriggerDate(group);
+
+        if (triggerDate < 0)
+        {
+            // Do not generate an event. CalculateTriggerDate() should have
+            // logged more details...
+            Debug.LogWarning(
+                "Discovery.TryGenerateEventAndAssign - failed to generate a valid trigger date: " +
+                triggerDate);
+        }
+
+        originalEvent = new DiscoveryEvent(this, group, triggerDate, IdHash);
+
+        group.World.InsertEventToHappen(originalEvent);
+
+        return true;
     }
 }

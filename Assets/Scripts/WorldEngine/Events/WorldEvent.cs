@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using System;
 
 public abstract class WorldEvent : ISynchronizable
 {
@@ -14,7 +15,9 @@ public abstract class WorldEvent : ISynchronizable
     public const long BoatMakingDiscoveryEventId = 500;
     public const long PlantCultivationDiscoveryEventId = 600;
 
+    [Obsolete]
     public const long ClanSplitDecisionEventId = 7;
+    [Obsolete]
     public const long PreventClanSplitEventId = 8;
 
     public const long ExpandPolityProminenceEventId = 9;
@@ -176,5 +179,11 @@ public abstract class WorldEvent : ISynchronizable
         Id = newId;
 
         FailedToTrigger = false;
+    }
+
+    public virtual void Reset(long newTriggerDate)
+    {
+        throw new System.NotImplementedException(
+            "Needs to be implemented in children or call Reset(long newTriggerDate, long newId) instead...");
     }
 }

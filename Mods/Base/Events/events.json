@@ -1,40 +1,62 @@
 {
   "events": [
     {
-      "id": "boat_making",
-      "name": "boat making",
-      "target": "group",
+      "id": "clan_decide_split",
+      "name": "clan decide split",
+      "target": "faction",
+      "assignOn" : ["spawn"],
       "properties": [
         {
-          "id": "neighborhood_water_presence",
-          "type": "value",
-          "value": "(group.cell.biome_trait_presence(water) + group.cell.neighborhood.sum(member.biome_type_presence(water))) / 9"
+          "id": "new_core_group",
+          "value": "target.polity.get_random_group()"
         }
       ],
       "assignmentConditions": [
-        "!group.has_knowledge(shipbuilding)",
-        "group.cell.neighborhood.any(member.biome_type_presence(water) > 0)",
-        "group.cell.biome_trait_presence(wood) > 0.3"],
-      "timeToTrigger": "456250000 * lerp(1, 0.2, neighborhood_water_presence.value) * lerp(1, 0.2, group.cell.biome_trait_presence(wood))",
+        "target.type == clan"
+      ],
+      "triggerConditions": [
+        "target.administrative_load > 100000",
+        "!(target.preferences.cohesion > 0.7)",
+        "target.core_group != new_core_group",
+        "target.group_can_be_core(new_core_group)"
+      ],
+      "timeToTrigger": "9125 + random(91250 * (1 - saturation(400000, target.administrative_load)) * target.preferences.cohesion)",
       "effects": [
-        "group.add_discovery(boat_making)",
-        "group.add_knowledge(shipbuilding, 10)",
-        "group.add_skill(seafaring)"
-      ]
+        "target.trigger_decision(clan_decide_split, new_core_group)"
+      ],
+      "repeatable" : true
     },
     {
-      "id": "clan_split",
-      "name": "clan split",
+      "id": "clan_decide_performing_influence_demand",
+      "name": "clan decide performing influence demand",
       "target": "faction",
-      "assignmentConditions": ["faction.type == clan"],
-      "triggerConditions": [
-        "faction.administrative_load > 0.5",
-        "!faction.preference.cohesion > 0.7"
+      "assignOn" : ["spawn", "status_change"],
+      "properties": [
+        { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
+        { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
+        { "id": "influence_delta", "value": "max(0, dominant_faction.influence - target.influence)" },
+        { "id": "target_authority", "value": "target.preferences.authority" },
+        { "id": "admin_factors", "value": "relationship_value * influence_delta * target.preferences.authority" },
+        { "id": "min_admin_load", "value": "100000 * admin_factors" },
+        { "id": "max_admin_load", "value": "5000000 * admin_factors" },
+        { "id": "chance_of_making_demand", "value": "1 - normalize(target.administrative_load, min_admin_load, max_admin_load)" }
       ],
-      "timeToTrigger": "91250 * faction.administrative_load * faction.preference.cohesion",
+      "assignmentConditions": [
+        "target.type == clan",
+        "target.polity.type == tribe",
+        "dominant_faction.type == clan",
+        "target != dominant_faction",
+        "chance_of_making_demand > 0"
+      ],
+      "triggerConditions": [
+        "target_authority > 0.5",
+        "(target_authority > dominant_faction.preferences.authority) || (dominant_faction.administrative_load > 100000)"
+      ],
+      "timeToTrigger": "9125 + random(91250 * (1 - saturation(200000, target.administrative_load)) * target_authority)",
       "effects": [
-        "target.trigger_decision(clan_split)"
-      ]
+        "target.trigger_decision(clan_decide_performing_influence_demand, dominant_faction, chance_of_making_demand)"
+      ],
+      "repeatable" : true
     }
   ]
 }

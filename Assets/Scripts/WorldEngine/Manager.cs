@@ -1105,6 +1105,11 @@ public class Manager
         {
             TerrainUpdatedCells.Add(cell);
         }
+
+        if (CellShouldBeHighlighted(cell))
+        {
+            HighlightedCells.Add(cell);
+        }
     }
 
     public static void AddUpdatedCells(Polity polity, CellUpdateType updateType, CellUpdateSubType updateSubType)
@@ -1118,9 +1123,14 @@ public class Manager
         {
             TerrainUpdatedCells.UnionWith(polity.Territory.GetCells());
         }
+
+        if (polity.Territory.IsSelected)
+        {
+            HighlightedCells.UnionWith(polity.Territory.GetCells());
+        }
     }
 
-    public static void AddUpdatedCells(ICollection<TerrainCell> cells, CellUpdateType updateType, CellUpdateSubType updateSubType)
+    public static void AddUpdatedCells(ICollection<TerrainCell> cells, CellUpdateType updateType, CellUpdateSubType updateSubType, bool highlight)
     {
         if (!ValidUpdateTypeAndSubtype(updateType, updateSubType))
             return;
@@ -1130,6 +1140,11 @@ public class Manager
         if ((updateSubType & CellUpdateSubType.Terrain) == CellUpdateSubType.Terrain)
         {
             TerrainUpdatedCells.UnionWith(cells);
+        }
+
+        if (highlight)
+        {
+            HighlightedCells.UnionWith(cells);
         }
     }
 
@@ -4109,6 +4124,7 @@ public class Manager
 
         World.ResetStaticModData();
         CellGroup.ResetEventGenerators();
+        Faction.ResetEventGenerators();
 
         Layer.ResetLayers();
         Biome.ResetBiomes();
@@ -4119,6 +4135,13 @@ public class Manager
 
         Discovery.ResetDiscoveries();
         Knowledge.ResetKnowledges();
+
+        EventGenerator.ResetGenerators();
+        ModDecision.ResetDecisions();
+
+        // TODO: This should happend after mods are loaded. And preferences
+        // should be loaded from mods...
+        CulturalPreference.InitializePreferences();
 
         float progressPerMod = 0.1f / paths.Count;
 
@@ -4138,11 +4161,16 @@ public class Manager
 
         Knowledge.InitializeKnowledges();
         Discovery.InitializeDiscoveries();
+
+        EventGenerator.InitializeGenerators();
     }
 
     delegate void LoadModFileDelegate(string filename);
 
-    private static void TryLoadModFiles(LoadModFileDelegate loadModFile, string path, float progressPerModSegment)
+    private static void TryLoadModFiles(
+        LoadModFileDelegate loadModFile,
+        string path,
+        float progressPerModSegment)
     {
         if (!Directory.Exists(path))
             return;
@@ -4160,15 +4188,49 @@ public class Manager
 
                 accProgress += progressPerFile;
 
-                if (_manager._progressCastMethod != null)
-                {
-                    _manager._progressCastMethod(accProgress);
-                }
+                _manager._progressCastMethod?.Invoke(accProgress);
             }
         }
     }
 
     private static void LoadMod(string path, float progressPerMod)
+    {
+        string version = ModVersionReader.GetLoaderVersion(path);
+
+        if (version.StartsWith(ModVersionReader.LoaderVersion033))
+        {
+            LoadMod033(path, progressPerMod);
+        }
+        else if (version.StartsWith(ModVersionReader.LoaderVersion034))
+        {
+            LoadMod034(path, progressPerMod);
+        }
+        else
+        {
+            throw new System.Exception("Unsupported mod version: " + version);
+        }
+    }
+
+    private static void LoadMod034(string path, float progressPerMod)
+    {
+        if (!Directory.Exists(path))
+        {
+            throw new System.ArgumentException("Mod path '" + path + "' not found");
+        }
+
+        float progressPerSegment = progressPerMod / 8f;
+
+        TryLoadModFiles(Layer.LoadLayersFile, Path.Combine(path, @"Layers"), progressPerSegment);
+        TryLoadModFiles(Biome.LoadBiomesFile, Path.Combine(path, @"Biomes"), progressPerSegment);
+        TryLoadModFiles(Adjective.LoadAdjectivesFile, Path.Combine(path, @"Adjectives"), progressPerSegment);
+        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
+        TryLoadModFiles(Element.LoadElementsFile, Path.Combine(path, @"Elements"), progressPerSegment);
+        TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
+        TryLoadModFiles(EventGenerator.LoadEventFile, Path.Combine(path, @"Events"), progressPerSegment);
+        TryLoadModFiles(ModDecision.LoadDecisionFile, Path.Combine(path, @"Decisions"), progressPerSegment);
+    }
+
+    private static void LoadMod033(string path, float progressPerMod)
     {
         if (!Directory.Exists(path))
         {
@@ -4182,6 +4244,6 @@ public class Manager
         TryLoadModFiles(Adjective.LoadAdjectivesFile, Path.Combine(path, @"Adjectives"), progressPerSegment);
         TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
         TryLoadModFiles(Element.LoadElementsFile, Path.Combine(path, @"Elements"), progressPerSegment);
-        TryLoadModFiles(Discovery.LoadDiscoveriesFile, Path.Combine(path, @"Discoveries"), progressPerSegment);
+        TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
     }
 }

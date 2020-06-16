@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using System;
 
 // Clan Leadership:
 // -- Authority factors:
@@ -24,12 +25,13 @@ public class Clan : Faction
 
     public const int MinCorePopulation = 500;
     public const float MinCorePolityProminence = 0.3f;
+    public const float MinCoreDistance = 1000f;
 
     public const float AvgClanSplitRelationshipValue = 0.5f;
     public const float ClanSplitRelationshipValueSpread = 0.1f;
     public const float ClanSplitRelationshipValueCharismaFactor = 50f;
 
-    public const string FactionType = "Clan";
+    public const string FactionType = "clan";
     public const string FactionNameFormat = "clan {0}";
 
     public Clan()
@@ -37,7 +39,12 @@ public class Clan : Faction
 
     }
 
-    public Clan(Polity polity, CellGroup coreGroup, float influence, Clan parentClan = null) : base(FactionType, polity, coreGroup, influence, parentClan)
+    public Clan(
+        Polity polity,
+        CellGroup coreGroup,
+        float influence,
+        Faction parentFaction = null)
+        : base(FactionType, polity, coreGroup, influence, parentFaction)
     {
 
     }
@@ -59,31 +66,35 @@ public class Clan : Faction
             AddEvent(new ClanCoreMigrationEvent(this, triggerDate));
         }
 
-        triggerDate = ClanSplitDecisionEvent.CalculateTriggerDate(this);
-        if (triggerDate > 0)
-        {
-            if (triggerDate <= World.CurrentDate)
-            {
-                throw new System.Exception(
-                    "ClanSplitDecisionEvent Trigger Date (" + triggerDate +
-                    ") less or equal to current date: " + World.CurrentDate);
-            }
+        //
+        //TODO: cleanup commented code
+        //
 
-            AddEvent(new ClanSplitDecisionEvent(this, triggerDate));
-        }
+        //triggerDate = ClanSplitDecisionEvent.CalculateTriggerDate(this);
+        //if (triggerDate > 0)
+        //{
+        //    if (triggerDate <= World.CurrentDate)
+        //    {
+        //        throw new System.Exception(
+        //            "ClanSplitDecisionEvent Trigger Date (" + triggerDate +
+        //            ") less or equal to current date: " + World.CurrentDate);
+        //    }
 
-        triggerDate = ClanDemandsInfluenceDecisionEvent.CalculateTriggerDate(this);
-        if (triggerDate > 0)
-        {
-            if (triggerDate <= World.CurrentDate)
-            {
-                throw new System.Exception(
-                    "ClanDemandsInfluenceDecisionEvent Trigger Date (" + triggerDate +
-                    ") less or equal to current date: " + World.CurrentDate);
-            }
+        //    AddEvent(new ClanSplitDecisionEvent(this, triggerDate));
+        //}
 
-            AddEvent(new ClanDemandsInfluenceDecisionEvent(this, triggerDate));
-        }
+        //triggerDate = ClanDemandsInfluenceDecisionEvent.CalculateTriggerDate(this);
+        //if (triggerDate > 0)
+        //{
+        //    if (triggerDate <= World.CurrentDate)
+        //    {
+        //        throw new System.Exception(
+        //            "ClanDemandsInfluenceDecisionEvent Trigger Date (" + triggerDate +
+        //            ") less or equal to current date: " + World.CurrentDate);
+        //    }
+
+        //    AddEvent(new ClanDemandsInfluenceDecisionEvent(this, triggerDate));
+        //}
 
         triggerDate = TribeSplitDecisionEvent.CalculateTriggerDate(this);
         if (triggerDate > 0)
@@ -120,15 +131,16 @@ public class Clan : Faction
                 case WorldEvent.ClanCoreMigrationEventId:
                     AddEvent(new ClanCoreMigrationEvent(this, eData));
                     break;
-                case WorldEvent.ClanSplitDecisionEventId:
-                    AddEvent(new ClanSplitDecisionEvent(this, eData));
-                    break;
                 case WorldEvent.TribeSplitDecisionEventId:
                     AddEvent(new TribeSplitDecisionEvent(this, eData));
                     break;
-                case WorldEvent.ClanDemandsInfluenceDecisionEventId:
-                    AddEvent(new ClanDemandsInfluenceDecisionEvent(this, eData));
-                    break;
+                // TODO: cleanup
+                //case WorldEvent.ClanSplitDecisionEventId:
+                //    AddEvent(new ClanSplitDecisionEvent(this, eData));
+                //    break;
+                //case WorldEvent.ClanDemandsInfluenceDecisionEventId:
+                //    AddEvent(new ClanDemandsInfluenceDecisionEvent(this, eData));
+                //    break;
                 default:
                     throw new System.Exception("Unhandled faction event type id: " + eData.TypeId);
             }
@@ -139,7 +151,7 @@ public class Clan : Faction
     {
         if (NewCoreGroup != null)
         {
-            if (IsGroupValidCore(NewCoreGroup))
+            if (GroupCanBeCore(NewCoreGroup) && (NewCoreGroup != CoreGroup))
             {
                 MigrateToNewCoreGroup();
             }
@@ -162,6 +174,14 @@ public class Clan : Faction
 
         Language language = Polity.Culture.Language;
         Region region = CoreGroup.Cell.Region;
+
+#if DEBUG //TODO: Make sure we don't need this in unit tests
+        if (region is TestCellRegion)
+        {
+            // We are executing this within a test that doesn't care about names, so skip the rest
+            return;
+        }
+#endif
 
         string untranslatedName = "";
 
@@ -291,27 +311,55 @@ public class Clan : Faction
         return hasMinSocialOrg;
     }
 
-    public bool IsGroupValidCore(CellGroup group)
+    public override float GetGroupWeight(CellGroup group)
     {
-        if (!CanBeClanCore(group))
-            return false;
-
-        if (!group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
-            return false;
-
         PolityProminence pi = group.GetPolityProminence(Polity);
 
-        if (pi == null)
-            return false;
+        if (group.HighestPolityProminence != pi)
+            return 0;
 
-        if (pi.Value < MinCorePolityProminence)
-            return false;
+        if (!CanBeClanCore(group))
+            return 0;
+
+        if (group.FactionCores.Count > 0)
+            return 0;
 
         if (group.Population < MinCorePopulation)
-            return false;
+            return 0;
 
-        return true;
+        float coreDistance = pi.FactionCoreDistance - MinCoreDistance;
+
+        if (coreDistance <= 0)
+            return 0;
+
+        float coreDistanceFactor = MinCoreDistance / (MinCoreDistance + coreDistance);
+
+        float minCoreProminenceValue = Mathf.Max(coreDistanceFactor, MinCorePolityProminence);
+
+        return pi.Value - minCoreProminenceValue;
     }
+
+    //
+    // TODO: Make sure replacing the below function for the new version in Faction would work.
+    //
+    //public bool GroupCanBeCore(CellGroup group)
+    //{
+    //    if (!CanBeClanCore(group))
+    //        return false;
+
+    //    PolityProminence pi = group.GetPolityProminence(Polity);
+
+    //    if (pi == null)
+    //        return false;
+
+    //    if (pi.Value < MinCorePolityProminence)
+    //        return false;
+
+    //    if (group.Population < MinCorePopulation)
+    //        return false;
+
+    //    return true;
+    //}
 
     public override bool ShouldMigrateFactionCore(CellGroup sourceGroup, CellGroup targetGroup)
     {
@@ -422,6 +470,7 @@ public class Clan : Faction
         return (randomValue > migrateCoreFactor);
     }
 
+    [Obsolete]
     public override void Split()
     {
         int randomOffset = unchecked((int)(RngOffsets.CLAN_SPLIT + Id));
@@ -498,8 +547,6 @@ public class Clan : Faction
 
         parentTribe.AddFaction(newClan);
 
-        parentTribe.UpdateDominantFaction();
-
         World.AddFactionToUpdate(this);
         World.AddFactionToUpdate(newClan);
         World.AddPolityToUpdate(Polity);
@@ -507,7 +554,7 @@ public class Clan : Faction
         parentTribe.AddEventMessage(new ClanSplitEventMessage(this, newClan, World.CurrentDate));
     }
 
-    public float CalculateAdministrativeLoad()
+    protected override float CalculateAdministrativeLoad()
     {
         Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int socialOrganizationValue);
 

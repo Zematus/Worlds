@@ -63,6 +63,9 @@ public abstract class Polity : ISynchronizable
 
     public List<PolityEventData> EventDataList = new List<PolityEventData>();
 
+    [XmlIgnore]
+    public bool IsBeingUpdated = false;
+
 #if DEBUG
     [XmlIgnore]
     public long LastClusterAddedDate = -1;
@@ -250,7 +253,6 @@ public abstract class Polity : ISynchronizable
         {
             if (!faction.IsInitialized)
             {
-
                 faction.Initialize();
             }
         }
@@ -318,7 +320,7 @@ public abstract class Polity : ISynchronizable
 
             polity.Initialize();
 
-            world.AddPolityInfo(polity.Info);
+            world.AddPolityInfo(polity);
             world.AddPolityToUpdate(polity);
 
             TryGenerateNewPolityMessages(polity);
@@ -441,10 +443,7 @@ public abstract class Polity : ISynchronizable
             return;
         }
 
-        if (DominantFaction == faction)
-        {
-            UpdateDominantFaction();
-        }
+        World.AddPolityToUpdate(this);
 
         // There's no point in calling this here as this happens after factions have already been updated or after the polity was destroyed
         //World.AddFactionToUpdate(faction);
@@ -466,24 +465,26 @@ public abstract class Polity : ISynchronizable
         return _factions.Values;
     }
 
-    public void UpdateDominantFaction()
+    private void UpdateDominantFaction()
     {
-        Faction mostProminentFaction = null;
+        Faction mostInfluentFaction = null;
         float greatestInfluence = float.MinValue;
 
         foreach (Faction faction in _factions.Values)
         {
             if (faction.Influence > greatestInfluence)
             {
-                mostProminentFaction = faction;
+                mostInfluentFaction = faction;
                 greatestInfluence = faction.Influence;
             }
         }
 
-        if ((mostProminentFaction == null) || (!mostProminentFaction.StillPresent))
+        if ((mostInfluentFaction == null) || (!mostInfluentFaction.StillPresent))
+        {
             throw new System.Exception("Faction is null or not present");
+        }
 
-        SetDominantFaction(mostProminentFaction);
+        SetDominantFaction(mostInfluentFaction);
     }
 
     public void SetDominantFaction(Faction faction)
@@ -708,8 +709,6 @@ public abstract class Polity : ISynchronizable
         float influenceDelta = oldSourceInfluenceValue - sourceFaction.Influence;
 
         targetFaction.Influence += influenceDelta;
-
-        sourceFaction.Polity.UpdateDominantFaction();
     }
 
     public void PrepareToRemoveFromWorld()
@@ -757,9 +756,17 @@ public abstract class Polity : ISynchronizable
             return;
         }
 
+        IsBeingUpdated = true;
+
         Profiler.BeginSample("Normalize Faction Influences");
 
         NormalizeFactionInfluences();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Update Dominant Faction");
+
+        UpdateDominantFaction();
 
         Profiler.EndSample();
 
@@ -775,7 +782,9 @@ public abstract class Polity : ISynchronizable
 
         Profiler.EndSample();
 
-        Manager.AddUpdatedCells(Territory.GetCells(), CellUpdateType.Territory, CellUpdateSubType.Culture);
+        Manager.AddUpdatedCells(Territory.GetCells(), CellUpdateType.Territory, CellUpdateSubType.Culture, Territory.IsSelected);
+
+        IsBeingUpdated = false;
     }
 
     protected abstract void UpdateInternal();
@@ -1341,6 +1350,12 @@ public abstract class Polity : ISynchronizable
 
     public CellGroup GetRandomGroup(int rngOffset)
     {
+        if (ProminenceClusters.Count <= 0)
+        {
+            throw new System.Exception(
+                "Invalid number of prominence clusters in polity: " + ProminenceClusters.Count);
+        }
+
         // Pick a random cluster
         int clusterIndex = GetNextLocalRandomInt(rngOffset++, ProminenceClusters.Count);
         PolityProminenceCluster cluster = ProminenceClusters[clusterIndex];

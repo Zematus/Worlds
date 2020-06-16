@@ -41,7 +41,9 @@ public class GuiManagerScript : MonoBehaviour
 
     public TextInputDialogPanelScript SaveFileDialogPanelScript;
     public TextInputDialogPanelScript ExportMapDialogPanelScript;
+    [System.Obsolete]
     public DecisionDialogPanelScript DecisionDialogPanelScript;
+    public ModDecisionDialogPanelScript ModDecisionDialogPanelScript;
     public LoadFileDialogPanelScript LoadFileDialogPanelScript;
     public SelectFactionDialogPanelScript SelectFactionDialogPanelScript;
     public OverlayDialogPanelScript OverlayDialogPanelScript;
@@ -261,6 +263,7 @@ public class GuiManagerScript : MonoBehaviour
         SelectionPanelScript.SetVisible(false);
 
         DecisionDialogPanelScript.SetVisible(false);
+        ModDecisionDialogPanelScript.SetVisible(false);
         SelectFactionDialogPanelScript.SetVisible(false);
         MainMenuDialogPanelScript.SetVisible(false);
         ProgressDialogPanelScript.SetVisible(false);
@@ -513,6 +516,12 @@ public class GuiManagerScript : MonoBehaviour
                     if (world.HasDecisionsToResolve())
                     {
                         RequestDecisionResolution();
+                        break;
+                    }
+
+                    if (world.HasModDecisionsToResolve())
+                    {
+                        RequestModDecisionResolution();
                         break;
                     }
 
@@ -2152,6 +2161,7 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
+    [System.Obsolete]
     private void RequestDecisionResolution()
     {
         Decision decisionToResolve = Manager.CurrentWorld.PullDecisionToResolve();
@@ -2166,6 +2176,27 @@ public class GuiManagerScript : MonoBehaviour
         {
             // Hide the decision dialog until all menu panels are inactive
             HideInteractionPanel(DecisionDialogPanelScript);
+        }
+
+        InterruptSimulation(true);
+
+        _eventPauseActive = true;
+    }
+
+    private void RequestModDecisionResolution()
+    {
+        ModDecision decisionToResolve = Manager.CurrentWorld.PullModDecisionToResolve();
+
+        ModDecisionDialogPanelScript.Set(decisionToResolve, _selectedMaxSpeedLevelIndex);
+
+        if (!IsMenuPanelActive())
+        {
+            ModDecisionDialogPanelScript.SetVisible(true);
+        }
+        else
+        {
+            // Hide the decision dialog until all menu panels are inactive
+            HideInteractionPanel(ModDecisionDialogPanelScript);
         }
 
         InterruptSimulation(true);
@@ -2194,11 +2225,36 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
+    [System.Obsolete]
     public void ResolveDecision()
     {
         DecisionDialogPanelScript.SetVisible(false);
 
         int resumeSpeedLevelIndex = DecisionDialogPanelScript.ResumeSpeedLevelIndex;
+
+        if (resumeSpeedLevelIndex == -1)
+        {
+            PauseSimulation(true);
+        }
+        else
+        {
+            _selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
+
+            SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
+        }
+
+        InterruptSimulation(false);
+
+        _eventPauseActive = false;
+
+        _resolvedDecision = true;
+    }
+
+    public void ResolveModDecision()
+    {
+        ModDecisionDialogPanelScript.SetVisible(false);
+
+        int resumeSpeedLevelIndex = ModDecisionDialogPanelScript.ResumeSpeedLevelIndex;
 
         if (resumeSpeedLevelIndex == -1)
         {

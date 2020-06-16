@@ -1,0 +1,40 @@
+{
+  "events": [
+    {
+      "id": "boat_making",
+      "name": "boat making",
+      "target": "group",
+      "properties": [
+        {
+          "id": "neighborhood_water_presence",
+          "type": "value",
+          "value": "(target.cell.biome_trait_presence(water) + target.cell.neighborhood.sum(member.biome_type_presence(water))) / 9"
+        }
+      ],
+      "assignmentConditions": [
+        "!target.has_knowledge(shipbuilding)",
+        "target.cell.neighborhood.any(member.biome_type_presence(water) > 0)",
+        "target.cell.biome_trait_presence(wood) > 0.3"],
+      "timeToTrigger": "456250000 * lerp(1, 0.2, neighborhood_water_presence.value) * lerp(1, 0.2, target.cell.biome_trait_presence(wood))",
+      "effects": [
+        "target.add_discovery(boat_making)",
+        "target.add_knowledge(shipbuilding, 10)",
+        "target.add_skill(seafaring)"
+      ]
+    },
+    {
+      "id": "clan_split",
+      "name": "clan split",
+      "target": "faction",
+      "assignmentConditions": ["faction.type == clan"],
+      "triggerConditions": [
+        "target.administrative_load > 0.5",
+        "!target.preference.cohesion > 0.7"
+      ],
+      "timeToTrigger": "91250 * target.administrative_load * target.preference.cohesion",
+      "effects": [
+        "target.trigger_decision(clan_split)"
+      ]
+    }
+  ]
+}

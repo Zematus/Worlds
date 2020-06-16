@@ -5,7 +5,9 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System;
 
+[Obsolete]
 public class DecisionDialogPanelScript : ModalPanelScript
 {
     public Text DecisionText;

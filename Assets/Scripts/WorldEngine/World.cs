@@ -256,14 +256,17 @@ public class World : ISynchronizable
         XmlArrayItem(Type = typeof(MigrateGroupEvent)),
         XmlArrayItem(Type = typeof(ExpandPolityProminenceEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
-        XmlArrayItem(Type = typeof(ClanSplitDecisionEvent)),
+        // TODO: cleanup
+        //XmlArrayItem(Type = typeof(ClanSplitDecisionEvent)),
+        //XmlArrayItem(Type = typeof(ClanDemandsInfluenceDecisionEvent)),
         XmlArrayItem(Type = typeof(TribeSplitDecisionEvent)),
-        XmlArrayItem(Type = typeof(ClanDemandsInfluenceDecisionEvent)),
         XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
         XmlArrayItem(Type = typeof(FosterTribeRelationDecisionEvent)),
         XmlArrayItem(Type = typeof(MergeTribesDecisionEvent)),
         XmlArrayItem(Type = typeof(OpenTribeDecisionEvent)),
-        XmlArrayItem(Type = typeof(Discovery.Event))]
+        XmlArrayItem(Type = typeof(Discovery.DiscoveryEvent)),
+        XmlArrayItem(Type = typeof(FactionModEvent)),
+        XmlArrayItem(Type = typeof(CellGroupModEvent))]
     public List<WorldEvent> EventsToHappen;
 
     public List<TerrainCellAlteration> TerrainCellAlterationList = new List<TerrainCellAlteration>();
@@ -428,7 +431,9 @@ public class World : ISynchronizable
     private HashSet<long> _eventMessageIds = new HashSet<long>();
     private Queue<WorldEventMessage> _eventMessagesToShow = new Queue<WorldEventMessage>();
 
+    [System.Obsolete]
     private Queue<Decision> _decisionsToResolve = new Queue<Decision>();
+    private readonly Queue<ModDecision> _modDecisionsToResolve = new Queue<ModDecision>();
 
     private Vector2[] _continentOffsets;
     private float[] _continentWidths;
@@ -544,7 +549,7 @@ public class World : ISynchronizable
     {
         InitializeTerrainLimitsAndSettings(false);
 
-           _accumulatedProgress = accumulatedProgress;
+        _accumulatedProgress = accumulatedProgress;
         _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / TerrainGenerationSteps;
 
         Manager.EnqueueTaskAndWait(() =>
@@ -554,12 +559,11 @@ public class World : ISynchronizable
         });
     }
 
-    public void StartInitialization(float accumulatedProgress, float maxExpectedProgress, bool justLoaded = false)
+    /// <summary>
+    /// Initialize the world's terrain cells and other general parameters
+    /// </summary>
+    public void TerrainInitialization()
     {
-        //_openSimplexNoise = new OpenSimplexNoise(Seed);
-
-        InitializeTerrainLimitsAndSettings(justLoaded);
-
         MaxAltitude = float.MinValue;
         MinAltitude = float.MaxValue;
 
@@ -568,9 +572,6 @@ public class World : ISynchronizable
 
         MaxTemperature = float.MinValue;
         MinTemperature = float.MaxValue;
-
-        _accumulatedProgress = accumulatedProgress;
-        _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / TerrainGenerationSteps;
 
         _cellMaxSideLength = Circumference / Width;
         TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
@@ -612,6 +613,25 @@ public class World : ISynchronizable
         _continentHeights = new float[NumContinents];
         _continentWidths = new float[NumContinents];
         _continentAltitudeOffsets = new float[NumContinents];
+    }
+
+    /// <summary>
+    /// Performs the general initialization steps of a generated or loaded world
+    /// </summary>
+    /// <param name="accumulatedProgress">
+    /// How much progress has the world generation/load has already been carried out</param>
+    /// <param name="maxExpectedProgress">How much progress is expected to be completed by this process</param>
+    /// <param name="justLoaded">Has the world just been loaded from a save file?</param>
+    public void StartInitialization(float accumulatedProgress, float maxExpectedProgress, bool justLoaded = false)
+    {
+        //_openSimplexNoise = new OpenSimplexNoise(Seed);
+
+        InitializeTerrainLimitsAndSettings(justLoaded);
+
+        _accumulatedProgress = accumulatedProgress;
+        _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / TerrainGenerationSteps;
+
+        TerrainInitialization();
 
         // When it's a loaded world there might be already terrain modifications that we need to set
         foreach (TerrainCellAlteration changes in TerrainCellAlterationList)
@@ -646,9 +666,7 @@ public class World : ISynchronizable
 
     public static IWorldEventGenerator GetEventGenerator(string id)
     {
-        IWorldEventGenerator generator;
-
-        if (!EventGenerators.TryGetValue(id, out generator))
+        if (!EventGenerators.TryGetValue(id, out IWorldEventGenerator generator))
         {
             return null;
         }
@@ -942,7 +960,7 @@ public class World : ISynchronizable
         MaxTimeToSkip = (value > 1) ? value : 1;
 
         long maxDate = CurrentDate + MaxTimeToSkip;
-        
+
         if (maxDate >= MaxSupportedDate)
         {
             Debug.LogWarning("World.SetMaxTimeToSkip - 'maxDate' is greater than " + MaxSupportedDate + " (date = " + maxDate + ")");
@@ -1242,7 +1260,7 @@ public class World : ISynchronizable
 #endif
 
                 long maxDate = CurrentDate + MaxTimeToSkip;
-                
+
                 if (maxDate >= MaxSupportedDate)
                 {
                     Debug.LogWarning("World.EvaluateEventsToHappen - 'maxDate' is greater than " + MaxSupportedDate + " (date = " + maxDate + ")");
@@ -1453,7 +1471,7 @@ public class World : ISynchronizable
                 if (futureEventToHappen.TriggerDate <= 0)
                 {
                     throw new System.Exception(
-                        "Update - futureEventToHappen.TriggerDate less than or equal to 0: " + 
+                        "Update - futureEventToHappen.TriggerDate less than or equal to 0: " +
                         futureEventToHappen.TriggerDate + ", futureEventToHappen: " + futureEventToHappen);
                 }
             }
@@ -1722,6 +1740,7 @@ public class World : ISynchronizable
         return _factionInfos.ContainsKey(id);
     }
 
+    [System.Obsolete]
     public void AddFactionToSplit(Faction faction)
     {
         if (!faction.StillPresent)
@@ -1790,6 +1809,13 @@ public class World : ISynchronizable
     public void AddFactionToRemove(Faction faction)
     {
         _factionsToRemove.Add(faction);
+    }
+
+    public void AddPolityInfo(Polity polity)
+    {
+        _polityInfos.Add(polity.Id, polity.Info);
+
+        PolityCount++;
     }
 
     public void AddPolityInfo(PolityInfo polityInfo)
@@ -1891,19 +1917,37 @@ public class World : ISynchronizable
         _politiesToRemove.Add(polity);
     }
 
+    [System.Obsolete]
     public void AddDecisionToResolve(Decision decision)
     {
         _decisionsToResolve.Enqueue(decision);
     }
 
+    public void AddDecisionToResolve(ModDecision decision)
+    {
+        _modDecisionsToResolve.Enqueue(decision);
+    }
+
+    [System.Obsolete]
     public bool HasDecisionsToResolve()
     {
         return _decisionsToResolve.Count > 0;
     }
 
+    public bool HasModDecisionsToResolve()
+    {
+        return _modDecisionsToResolve.Count > 0;
+    }
+
+    [System.Obsolete]
     public Decision PullDecisionToResolve()
     {
         return _decisionsToResolve.Dequeue();
+    }
+
+    public ModDecision PullModDecisionToResolve()
+    {
+        return _modDecisionsToResolve.Dequeue();
     }
 
     public void AddEventMessage(WorldEventMessage eventMessage)
@@ -3383,7 +3427,7 @@ public class World : ISynchronizable
             for (int j = 0; j < sizeY; j++)
             {
                 TerrainCell cell = TerrainCells[i][j];
-                
+
                 cell.Altitude = cell.OriginalAltitude;
             }
 
@@ -3403,7 +3447,7 @@ public class World : ISynchronizable
             for (int j = 0; j < sizeY; j++)
             {
                 TerrainCell cell = TerrainCells[i][j];
-                
+
                 cell.Temperature = cell.OriginalTemperature;
             }
 
@@ -3516,7 +3560,7 @@ public class World : ISynchronizable
                 totalAltDifference -= diff;
                 continue;
             }
-            
+
             cellsToKeep.Add(nPair);
         }
 
@@ -3528,12 +3572,12 @@ public class World : ISynchronizable
             if (!redoDrainageForAll && nCell.DrainageDone)
                 continue;
 
-//#if DEBUG
-//            if (nCell == _lowestEvaluatedCell)
-//            {
-//                Debug.Log("_lowestEvaluatedCell (" + nCell.Position + ") being drained on again, now from " + cell.Position);
-//            }
-//#endif
+            //#if DEBUG
+            //            if (nCell == _lowestEvaluatedCell)
+            //            {
+            //                Debug.Log("_lowestEvaluatedCell (" + nCell.Position + ") being drained on again, now from " + cell.Position);
+            //            }
+            //#endif
 
             float nCellAltitude = nAltitudes[nCell];
 
@@ -3578,7 +3622,7 @@ public class World : ISynchronizable
             for (int j = 0; j < Height; j++)
             {
                 TerrainCell cell = TerrainCells[i][j];
-                
+
                 _cellsToDrain.Add(cell);
             }
         }
@@ -3811,7 +3855,7 @@ public class World : ISynchronizable
         }
 
         float temperature = CalculateTemperature(value + cell.BaseTemperatureOffset);
-        
+
         if (!temperature.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
         {
             Debug.LogWarning("CalculateAndSetTemperature - Invalid temperature: " + temperature);
@@ -3834,7 +3878,7 @@ public class World : ISynchronizable
         float offset = cell.BaseTemperatureOffset;
 
         float temperature = CalculateTemperature(value + offset);
-        
+
         if (!temperature.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
         {
             Debug.LogWarning("RecalculateAndSetTemperature - Invalid temperature: " + temperature);
