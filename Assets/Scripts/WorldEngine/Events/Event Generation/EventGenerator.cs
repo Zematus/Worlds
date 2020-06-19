@@ -156,24 +156,27 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     {
         OpenDebugOutput("Evaluating Assigment Conditions:");
 
-        foreach (IValueExpression<bool> exp in AssignmentConditions)
+        if (AssignmentConditions != null)
         {
-            bool value = exp.Value;
-
-            if (DebugEnabled)
+            foreach (IValueExpression<bool> exp in AssignmentConditions)
             {
-                string expStr = exp.ToString();
-                string expPartialStr = exp.ToPartiallyEvaluatedString(true);
+                bool value = exp.Value;
 
-                AddDebugOutput("  Condition: " + expStr +
-                 "\n   - Partial eval: " + expPartialStr +
-                 "\n   - Result: " + value);
-            }
+                if (DebugEnabled)
+                {
+                    string expStr = exp.ToString();
+                    string expPartialStr = exp.ToPartiallyEvaluatedString(true);
 
-            if (!value)
-            {
-                CloseDebugOutput("Assigment Result: False");
-                return false;
+                    AddDebugOutput("  Condition: " + expStr +
+                     "\n   - Partial eval: " + expPartialStr +
+                     "\n   - Result: " + value);
+                }
+
+                if (!value)
+                {
+                    CloseDebugOutput("Assigment Result: False");
+                    return false;
+                }
             }
         }
 
@@ -192,24 +195,27 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             return false;
         }
 
-        foreach (IValueExpression<bool> exp in TriggerConditions)
+        if (TriggerConditions != null)
         {
-            bool value = exp.Value;
-
-            if (DebugEnabled)
+            foreach (IValueExpression<bool> exp in TriggerConditions)
             {
-                string expStr = exp.ToString();
-                string expPartialStr = exp.ToPartiallyEvaluatedString(true);
+                bool value = exp.Value;
 
-                AddDebugOutput("  Condition: " + expStr +
-                 "\n   - Partial eval: " + expPartialStr +
-                 "\n   - Result: " + value);
-            }
+                if (DebugEnabled)
+                {
+                    string expStr = exp.ToString();
+                    string expPartialStr = exp.ToPartiallyEvaluatedString(true);
 
-            if (!value)
-            {
-                CloseDebugOutput("Trigger Result: False");
-                return false;
+                    AddDebugOutput("  Condition: " + expStr +
+                     "\n   - Partial eval: " + expPartialStr +
+                     "\n   - Result: " + value);
+                }
+
+                if (!value)
+                {
+                    CloseDebugOutput("Trigger Result: False");
+                    return false;
+                }
             }
         }
 
