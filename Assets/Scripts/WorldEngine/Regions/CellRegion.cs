@@ -401,67 +401,67 @@ public class CellRegion : Region
         public int RegionSize;
     }
 
-    private struct Border
-    {
-        public int Id;
+    //private struct Border
+    //{
+    //    public int Id;
 
-        public HashSet<TerrainCell> Cells;
+    //    public HashSet<TerrainCell> Cells;
 
-        public bool Encloses;
+    //    public bool Encloses;
 
-        public Stack<TerrainCell> NonEnclosedCells;
+    //    public Stack<TerrainCell> NonEnclosedCells;
 
-        public int Size;
+    //    public int Size;
 
-        public int Top;
-        public int Bottom;
-        public int Left;
-        public int Right;
+    //    public int Top;
+    //    public int Bottom;
+    //    public int Left;
+    //    public int Right;
 
-        public Border(TerrainCell startCell)
-        {
-            Id = _borderCount++;
-            Cells = new HashSet<TerrainCell>();
-            NonEnclosedCells = new Stack<TerrainCell>();
-            Encloses = false;
+    //    public Border(TerrainCell startCell)
+    //    {
+    //        Id = _borderCount++;
+    //        Cells = new HashSet<TerrainCell>();
+    //        NonEnclosedCells = new Stack<TerrainCell>();
+    //        Encloses = false;
 
-            Cells.Add(startCell);
+    //        Cells.Add(startCell);
 
-            Size = 0;
+    //        Size = 0;
 
-            Top = startCell.Latitude;
-            Bottom = startCell.Latitude;
-            Left = startCell.Longitude;
-            Right = startCell.Longitude;
+    //        Top = startCell.Latitude;
+    //        Bottom = startCell.Latitude;
+    //        Left = startCell.Longitude;
+    //        Right = startCell.Longitude;
 
-            NonEnclosedCells.Push(startCell);
-        }
+    //        NonEnclosedCells.Push(startCell);
+    //    }
 
-        public void AddCell(TerrainCell cell)
-        {
-            Cells.Add(cell);
+    //    public void AddCell(TerrainCell cell)
+    //    {
+    //        Cells.Add(cell);
 
 
-        }
-    }
+    //    }
+    //}
 
-    private static int _borderCount = 0;
-    private static Dictionary<int, Border> _borders;
+    //private static int _borderCount = 0;
+    //private static Dictionary<int, Border> _borders;
 
-    private static Border CreateBorder(TerrainCell startCell)
-    {
-        Border b = new Border(startCell);
+    //private static Border CreateBorder(TerrainCell startCell)
+    //{
+    //    Border b = new Border(startCell);
 
-        _borders.Add(b.Id, b);
+    //    _borders.Add(b.Id, b);
 
-        return b;
-    }
+    //    return b;
+    //}
 
     private static void ExploreBorder(
         TerrainCell startCell,
         RegionExplorationParameters p)
     {
-        Border border = CreateBorder(startCell);
+        //Border border = CreateBorder(startCell);
 
         HashSet<TerrainCell> borderExploredCells = new HashSet<TerrainCell>();
 
@@ -527,7 +527,7 @@ public class CellRegion : Region
                 }
             }
 
-            border.Cells.Add(cell);
+            //border.Cells.Add(cell);
             p.AcceptedCells.Add(cell);
             p.RegionSize++;
         }
@@ -550,8 +550,8 @@ public class CellRegion : Region
         p.CellsToExplore.Enqueue(startCell);
         p.ExploredCells.Add(startCell);
 
-        _borderCount = 0;
-        _borders = new Dictionary<int, Border>();
+        //_borderCount = 0;
+        //_borders = new Dictionary<int, Border>();
 
         while (p.CellsToExplore.Count > 0)
         {
