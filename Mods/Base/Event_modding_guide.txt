@@ -1,4 +1,4 @@
----- Decision Modding Guide ----
+---- Event Modding Guide ----
 
 Event modding files are located within the 'Events' folder. To be valid, mod files must have the .json extension and have the following file structure:
 
