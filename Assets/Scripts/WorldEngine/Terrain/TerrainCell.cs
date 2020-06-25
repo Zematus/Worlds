@@ -176,6 +176,7 @@ public class TerrainCell
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
     
     public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
+    public HashSet<TerrainCell> NeighborSet { get; private set; }
     public Dictionary<Direction, float> NeighborDistances { get; private set; }
 
     private Dictionary<string, float> _biomePresences = new Dictionary<string, float>();
@@ -655,6 +656,7 @@ public class TerrainCell
     private void SetNeighborCells()
     {
         Neighbors = new Dictionary<Direction, TerrainCell>(8);
+        NeighborSet = new HashSet<TerrainCell>();
 
         int wLongitude = (World.Width + Longitude - 1) % World.Width;
         int eLongitude = (Longitude + 1) % World.Width;
@@ -675,6 +677,8 @@ public class TerrainCell
             Neighbors.Add(Direction.South, World.TerrainCells[Longitude][Latitude - 1]);
             Neighbors.Add(Direction.Southeast, World.TerrainCells[eLongitude][Latitude - 1]);
         }
+
+        NeighborSet.UnionWith(Neighbors.Values);
     }
 
     private bool FindIfCoastline()

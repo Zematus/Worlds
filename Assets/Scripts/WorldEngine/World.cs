@@ -2665,6 +2665,7 @@ public class World : ISynchronizable
 
     /// <summary>
     /// Generates drainage basins within a set of cells.
+    /// TODO: unused function. Make it work or remove
     /// </summary>
     public void PerformTerrainAlterationDrainageRegen()
     {
@@ -3496,6 +3497,66 @@ public class World : ISynchronizable
         return 1;
     }
 
+    /// <summary>
+    /// Returns the altitude of the target cell or that of a neighbor with lower altitude than the source
+    /// cell. The idea is that drainage can channel through the target cell if it has no other option.
+    /// </summary>
+    /// <param name="targetCell"></param>
+    /// <param name="sourceCell"></param>
+    /// <returns></returns>
+    private float GetChannelledAltitude(TerrainCell targetCell, TerrainCell sourceCell)
+    {
+        float targetAltitude = targetCell.Altitude;
+        float sourceAltitude = sourceCell.Altitude;
+
+        if (targetAltitude < sourceAltitude)
+        {
+            return targetAltitude;
+        }
+
+        float minAltitude = targetAltitude;
+
+        foreach (TerrainCell nCell in targetCell.Neighbors.Values)
+        {
+            if (nCell == sourceCell)
+            {
+                continue;
+            }
+
+            // skip if the neighbor cell is also neighbor with the source
+            if (sourceCell.NeighborSet.Contains(nCell))
+            {
+                continue;
+            }
+
+            float nMinAltitude = nCell.Altitude;
+
+            if (nMinAltitude >= sourceAltitude)
+            {
+                foreach (TerrainCell nnCell in nCell.Neighbors.Values)
+                {
+                    if (nMinAltitude > nnCell.Altitude)
+                    {
+                        nMinAltitude = nnCell.Altitude;
+                    }
+                }
+            }
+
+            if (minAltitude > nMinAltitude)
+            {
+                minAltitude = nMinAltitude;
+            }
+        }
+
+        if (minAltitude >= sourceAltitude)
+        {
+            // no channelling can happen anyway
+            return targetAltitude;
+        }
+
+        return (sourceAltitude + minAltitude) / 2f;
+    }
+
     private delegate bool addToCellsToDrainDelegate(TerrainCell cell, bool resetDrainage, bool resetAltitude, bool callByBrush);
 
     private void DrainToNeighbors(TerrainCell cell, addToCellsToDrainDelegate addToCellsToDrain)
@@ -3527,6 +3588,63 @@ public class World : ISynchronizable
             diff = Mathf.Pow(diff, diffPow);
 
             totalAltDifference += diff;
+        }
+
+        //// try using altitude channelling
+        //if (totalAltDifference <= 0)
+        //{
+        //    totalAltDifference = 0;
+        //    foreach (TerrainCell nCell in cell.Neighbors.Values)
+        //    {
+        //        float nCellAltitude = Mathf.Max(0, GetChannelledAltitude(nCell, cell));
+        //        nAltitudes[nCell] = nCellAltitude;
+
+        //        float diff = Mathf.Max(0, cellAltitude - nCellAltitude);
+        //        diff = Mathf.Pow(diff, diffPow);
+
+        //        totalAltDifference += diff;
+        //    }
+        //}
+
+        // try using altitude channelling
+        if (totalAltDifference <= 0)
+        {
+            TerrainCell bestCell = cell;
+            float minAltitude = cell.Altitude;
+            float minMinAltitude = cell.Altitude;
+            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            {
+                float nCellAltitude = Mathf.Max(0, nCell.Altitude);
+                float nCellMinAltitude = Mathf.Max(0, GetChannelledAltitude(nCell, cell));
+
+                if (nCellMinAltitude < minMinAltitude)
+                {
+                    minAltitude = nCellAltitude;
+                    minMinAltitude = nCellMinAltitude;
+                    bestCell = nCell;
+                    continue;
+                }
+
+                // solve draws
+                if (nCellMinAltitude == minMinAltitude)
+                {
+                    if (nCellAltitude < minAltitude)
+                    {
+                        minAltitude = nCellAltitude;
+                        bestCell = nCell;
+                    }
+                }
+            }
+
+            if (bestCell != cell)
+            {
+                nAltitudes[bestCell] = minMinAltitude;
+
+                float diff = Mathf.Max(0, cellAltitude - minMinAltitude);
+                diff = Mathf.Pow(diff, diffPow);
+
+                totalAltDifference += diff;
+            }
         }
 
         if (totalAltDifference <= 0)
@@ -3597,6 +3715,11 @@ public class World : ISynchronizable
 
             nCell.Buffer += rainfallTransferMinusLoss;
             nCell.Buffer3 += cell.OriginalTemperature * rainfallTransferMinusLoss;
+
+            if (nCell.Altitude > nCellAltitude)
+            {
+                nCell.Altitude = nCellAltitude;
+            }
 
             float dirFactor = GetDirectionDistanceFactor(nPair.Key);
 
