@@ -16,10 +16,17 @@ The square bracket enclosed elements are optional, and an expression element (or
 - a function (min(), max(), normalize(), etc...)
 - a sub-expression ("1 + 1", "3 * (2 + 1)", etc...)
 
-There are two main types of expressions, VALUE expressions, and EFFECT expressions. Value expressions are expressions that upon being evaluated, return a value of a specific type such as a number, a boolean, a string, or an entity. Effect expressions, when evaluated, do not return anything, but instead, have an effect within the game, such as modifying an entity's attribute value, creating a new entity, or destroying it.
+There are two main types of expressions, VALUE expressions, and EFFECT expressions. Value expressions are expressions that upon being evaluated, return a value of a specific type such as a number, a boolean, a string, or an entity. Effect expressions, when evaluated, do not return anything, but instead, have an effect within the game, such as modifying an entity's attribute value, creating a new entity, or destroying it. More info below.
 
 Expressions assigned to a mod context attribute must be of the appropriate type. For example, an event's assignmentConditions expects a list of expressions that evaluate to boolean values like "2 > 3" or "target.core_group != new_core_group". Likewise, operators can only operate on specific types of expressions. For example, in, the boolean expression "expA >= expB", the operator '>=' expects 'expA' and 'expB' to be numeric expressions.
 
 Function expressions are a type of expression that expects a list of 0 or more parameters. There's only a limited set of valid function expressions. And a list of all of them can be found in function_expressions.txt
+
+-- VALUE TYPES --
+
+Each value expression is expected to return a value of a specific type. Here's a list of each value type and its properties.
+
+- Numeric Values:
+  Numeric value expressions are expressions that return a number as a result. This number can be an integer or a decimal value, and the range of values can go from -3.40282347E+38 to 3.40282347E+38. Though the expression system does not support fixed number representations larger than 10 digits. See expression_operators.txt for a list of operators to work with and/or return numeric values.
 
 Entities are a special kind of value that encapsulate in-game entities like polities, factions, agents, cells, groups, etc. Entities have properties that can be accessed using the dot operator '.'.

@@ -77,3 +77,4 @@ $RECYCLE.BIN/
 bug_output.txt
 *.log
 .vscode/launch.json
+mono_crash.*
