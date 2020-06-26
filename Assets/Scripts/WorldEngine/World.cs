@@ -3497,6 +3497,20 @@ public class World : ISynchronizable
         return 1;
     }
 
+    private struct CellDepth
+    {
+        public TerrainCell Cell;
+        public int Depth;
+    }
+
+    private int CompareCellDepthAltitudes(CellDepth a, CellDepth b)
+    {
+        if (a.Cell.Altitude > b.Cell.Altitude) return 1;
+        if (a.Cell.Altitude < b.Cell.Altitude) return -1; 
+
+        return 0;
+    }
+
     /// <summary>
     /// Returns the altitude of the target cell or that of a neighbor with lower altitude than the source
     /// cell. The idea is that drainage can channel through the target cell if it has no other option.
@@ -3504,57 +3518,81 @@ public class World : ISynchronizable
     /// <param name="targetCell"></param>
     /// <param name="sourceCell"></param>
     /// <returns></returns>
-    private float GetChannelledAltitude(TerrainCell targetCell, TerrainCell sourceCell)
+    private float GetChannelledAltitude(TerrainCell targetCell, TerrainCell sourceCell, int maxDepth)
     {
         float targetAltitude = targetCell.Altitude;
         float sourceAltitude = sourceCell.Altitude;
 
-        if (targetAltitude < sourceAltitude)
+        HashSet<TerrainCell> exploredCells = new HashSet<TerrainCell>();
+
+        exploredCells.Add(targetCell);
+
+        // Skip searching through the source cell
+        exploredCells.Add(sourceCell);
+
+        // Also skip cells that neighbor the source cell
+        foreach (TerrainCell cell in sourceCell.NeighborSet)
         {
-            return targetAltitude;
+            exploredCells.Add(cell);
         }
 
-        float minAltitude = targetAltitude;
+        int heapSize = (maxDepth * 2) + 1;
+        heapSize *= heapSize;
 
-        foreach (TerrainCell nCell in targetCell.Neighbors.Values)
+        BinaryHeap<CellDepth> cellsToExplore =
+            new BinaryHeap<CellDepth>(CompareCellDepthAltitudes, heapSize);
+
+        cellsToExplore.Insert(new CellDepth()
         {
-            if (nCell == sourceCell)
+            Cell = targetCell,
+            Depth = 1
+        });
+
+        float lowestAltitude = targetAltitude;
+        float lDepth = 1;
+
+        while (cellsToExplore.Count > 0)
+        {
+            CellDepth cd = cellsToExplore.Extract();
+            TerrainCell cell = cd.Cell;
+
+            if (cell.Altitude < lowestAltitude)
+            {
+                lowestAltitude = cell.Altitude;
+                lDepth = cd.Depth;
+            }
+
+            if (lowestAltitude < sourceAltitude)
+            {
+                break;
+            }
+
+            if (cd.Depth > maxDepth)
             {
                 continue;
             }
 
-            // skip if the neighbor cell is also neighbor with the source
-            if (sourceCell.NeighborSet.Contains(nCell))
+            foreach (TerrainCell nCell in cell.NeighborSet)
             {
-                continue;
-            }
-
-            float nMinAltitude = nCell.Altitude;
-
-            if (nMinAltitude >= sourceAltitude)
-            {
-                foreach (TerrainCell nnCell in nCell.Neighbors.Values)
+                if (exploredCells.Contains(nCell))
                 {
-                    if (nMinAltitude > nnCell.Altitude)
-                    {
-                        nMinAltitude = nnCell.Altitude;
-                    }
+                    continue;
                 }
-            }
 
-            if (minAltitude > nMinAltitude)
-            {
-                minAltitude = nMinAltitude;
+                cellsToExplore.Insert(new CellDepth()
+                {
+                    Cell = nCell,
+                    Depth = cd.Depth + 1
+                });
+
+                exploredCells.Add(nCell);
             }
         }
 
-        if (minAltitude >= sourceAltitude)
-        {
-            // no channelling can happen anyway
-            return targetAltitude;
-        }
+        float maxAltitude = Mathf.Min(sourceAltitude, targetAltitude);
+        float newAltitude = Mathf.Lerp(maxAltitude, lowestAltitude, 1f / (float)lDepth);
 
-        return (sourceAltitude + minAltitude) / 2f;
+        return newAltitude;
     }
 
     private delegate bool addToCellsToDrainDelegate(TerrainCell cell, bool resetDrainage, bool resetAltitude, bool callByBrush);
@@ -3578,6 +3616,13 @@ public class World : ISynchronizable
 
         Dictionary<TerrainCell, float> nAltitudes = new Dictionary<TerrainCell, float>();
 
+#if DEBUG
+        if ((cell.Longitude == 250) && (cell.Latitude == 125))
+        {
+            Debug.Log("Debugging drainage on cell " + cell.Position);
+        }
+#endif
+
         float totalAltDifference = 0;
         foreach (TerrainCell nCell in cell.Neighbors.Values)
         {
@@ -3590,22 +3635,6 @@ public class World : ISynchronizable
             totalAltDifference += diff;
         }
 
-        //// try using altitude channelling
-        //if (totalAltDifference <= 0)
-        //{
-        //    totalAltDifference = 0;
-        //    foreach (TerrainCell nCell in cell.Neighbors.Values)
-        //    {
-        //        float nCellAltitude = Mathf.Max(0, GetChannelledAltitude(nCell, cell));
-        //        nAltitudes[nCell] = nCellAltitude;
-
-        //        float diff = Mathf.Max(0, cellAltitude - nCellAltitude);
-        //        diff = Mathf.Pow(diff, diffPow);
-
-        //        totalAltDifference += diff;
-        //    }
-        //}
-
         // try using altitude channelling
         if (totalAltDifference <= 0)
         {
@@ -3615,7 +3644,7 @@ public class World : ISynchronizable
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
                 float nCellAltitude = Mathf.Max(0, nCell.Altitude);
-                float nCellMinAltitude = Mathf.Max(0, GetChannelledAltitude(nCell, cell));
+                float nCellMinAltitude = Mathf.Max(0, GetChannelledAltitude(nCell, cell, 5));
 
                 if (nCellMinAltitude < minMinAltitude)
                 {
@@ -3835,6 +3864,7 @@ public class World : ISynchronizable
         while (cellsToDrain.Count > 0)
         {
             TerrainCell cell = cellsToDrain.Extract(false);
+            queuedDrainCells.Remove(cell);
 
             cellsDrained++;
 
