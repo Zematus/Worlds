@@ -1,32 +1,87 @@
 ---- Expressions Guide ----
 
-Expressions are scripting elements within a mod that are evaluated during the game execution. They can be used to evaluate conditions, set parameters, and modify a game entity behavior through effects.
+Expressions are scripting elements within a mod that are evaluated during the game
+execution. They can be used to evaluate conditions, set parameters, and modify a
+game entity behavior through effects.
 
 An expression takes the form of a logical or mathematical statement like the following:
 
 "[unary-operator]exp-element-A [binary-operator exp-element-B]"
 
-The square bracket enclosed elements are optional, and an expression element (or exp-element) can be any of the following:
+The square bracket enclosed elements are optional, and an expression element (or exp-element)
+can be any of the following:
 
 - a numeric value (1, 3, 5.3442, 0.2332, etc...)
 - a boolean value (true, false)
 - a string value ("hello world!")
 - an entity value (polities, factions, agents, cells, groups, properties, etc...)
-- an entity attribute value (example: faction.leader, faction.core_group, polity.get_random_group())
+- an entity attribute value (example: faction.leader, faction.core_group,
+  polity.get_random_group())
 - a function (min(), max(), normalize(), etc...)
 - a sub-expression ("1 + 1", "3 * (2 + 1)", etc...)
 
-There are two main types of expressions, VALUE expressions, and EFFECT expressions. Value expressions are expressions that upon being evaluated, return a value of a specific type such as a number, a boolean, a string, or an entity. Effect expressions, when evaluated, do not return anything, but instead, have an effect within the game, such as modifying an entity's attribute value, creating a new entity, or destroying it. More info below.
+TODO: Move this to expression_operators.txt
+Multiple expressions can be chained together using binary operators. Any set of
+expressions to the right of a binary operator are considered to be a single sub-expression
+and sub-expressions are evaluated in right to left order. So, for example, the expression
+"5 * 1 + 1" will be interpreted as "5 * (1 + 1)", where the sub-expression "1 + 1"
+is evaluated first, and the whole expression evaluates to "10". Parenthesis can be
+inserted to change the order in which sub-expressions are evaluated. For example in
+"(5 * 1) + 1", "(5 * 1)" is evaluated first, so the whole expression now evaluates
+to "6".
 
-Expressions assigned to a mod context attribute must be of the appropriate type. For example, an event's assignmentConditions expects a list of expressions that evaluate to boolean values like "2 > 3" or "target.core_group != new_core_group". Likewise, operators can only operate on specific types of expressions. For example, in, the boolean expression "expA >= expB", the operator '>=' expects 'expA' and 'expB' to be numeric expressions.
+There are two main types of expressions, VALUE expressions, and EFFECT expressions.
+Value expressions are expressions that upon being evaluated, return a value of a
+specific type such as a number, a boolean, a string, or an entity. Effect expressions,
+when evaluated, do not return anything, but instead, have an effect within the game,
+such as modifying an entity's attribute value, creating a new entity, or destroying
+it. More info below.
 
-Function expressions are a type of expression that expects a list of 0 or more parameters. There's only a limited set of valid function expressions. And a list of all of them can be found in function_expressions.txt
+Function expressions are a special type of expression that are composed of a function
+id and a list of 0 or more parameters enclosed within parentheses. For example,
+"max(2,3)" is a function expression that returns the greater value within the list
+of inputs ('3' in this case). There's only a limited set of valid function expressions.
+A list of all currently available functions can be found in function_expressions.txt.
 
 -- VALUE TYPES --
 
-Each value expression is expected to return a value of a specific type. Here's a list of each value type and its properties.
+Each value expression is expected to return a value of a specific type. Here's a
+list of each value type and its properties.
 
 - Numeric Values:
-  Numeric value expressions are expressions that return a number as a result. This number can be an integer or a decimal value, and the range of values can go from -3.40282347E+38 to 3.40282347E+38. Though the expression system does not support fixed number representations larger than 10 digits. See expression_operators.txt for a list of operators to work with and/or return numeric values.
+  Numeric value expressions are expressions that return a number as a result. This
+  number can be an integer or a decimal value, and the range of values can go from
+  -3.40282347E+38 to 3.40282347E+38. Though the expression system does not support
+  fixed number representations larger than 10 digits. See expression_operators.txt
+  for a list of operators to work with and/or return numeric values.
 
-Entities are a special kind of value that encapsulate in-game entities like polities, factions, agents, cells, groups, etc. Entities have properties that can be accessed using the dot operator '.'.
+- Boolean Values:
+  Boolean value expressions are expressions that return a boolean value as a result.
+  The result of the expression has to resolve to either "true" or "false", uppercase
+  representations of boolean values will automatically be converted to lowercase
+  for parsing purposes. See expression_operators.txt for a list of operators to work
+  with and/or return boolean values.
+
+- String Values:
+  String value expressions are expressions that return a string of characters that
+  do not match any id assigned to an existing entity or property within a context.
+  strings composed of multiple words must be enclosed within single quotes when
+  used as sub-expressions. String values can embed expressions within them by enclosing
+  those expressions within '<<' '>>' blocks. Please read string_values.txt for more
+  details
+
+- Entity Values:
+  Entity value expressions are expressions that resolve into an entity. Entities
+  are a special kind of value that encapsulate in-game entities like polities, factions,
+  agents, cells, groups, etc. AN entity can have one more attributes that can be
+  accessed through the '.' operator. Entity attributes can have a value type (number,
+  boolean, string, entity) or return a function with resolves into a value or an
+  effect. See entities_guide.txt for more details on entities.
+
+-- EFFECTS --
+
+Effect expressions are a special kind of expression that do not resolve into a value.
+Instead, they produce an in-game effect which depends on the type of expression.
+Most effects are associated with with entity attributes. Some others are associated
+with function expressions. More details about specific effect expressions can be
+found in either entities_guide.txt, function_expressions.txt, or expression_operators.txt

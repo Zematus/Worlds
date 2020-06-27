@@ -9,7 +9,7 @@ public class FixedBooleanValueExpression : FixedValueExpression<bool>
 
     public static bool ParseExpression(string booleanStr)
     {
-        if (!bool.TryParse(booleanStr, out bool value))
+        if (!bool.TryParse(booleanStr.Trim().ToLower(), out bool value))
         {
             throw new System.ArgumentException("Not a valid boolean value: " + booleanStr);
         }
