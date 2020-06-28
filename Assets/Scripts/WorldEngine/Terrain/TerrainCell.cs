@@ -186,7 +186,7 @@ public class TerrainCell
     public WorldPosition Position;
     
     public Region Region = null;
-    
+
     public Territory EncompassingTerritory = null;
     
     public List<Route> CrossingRoutes = new List<Route>();

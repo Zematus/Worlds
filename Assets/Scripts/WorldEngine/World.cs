@@ -3757,6 +3757,19 @@ public class World : ISynchronizable
         }
     }
 
+    public IEnumerable<TerrainCell> GetCellsInRectangle(int longitude, int latitude, int width, int height)
+    {
+        TerrainCell[] cells = new TerrainCell[width * height];
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                yield return GetCellWithSphericalWrap(longitude + i, latitude + j);
+            }
+        }
+    }
+
     /// <summary>
     /// Sets the cells on which drainage is to be evaluated.
     /// </summary>
