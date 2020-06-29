@@ -24,8 +24,8 @@ public static class BiomeCellRegionBuilder
 
     public const float MaxClosedness = 0.5f;
 
-    public const int MaxEnclosedRectArea = 200;
-    public const int MaxEnclosedArea = 40;
+    public const int MaxEnclosedRectArea = 125;
+    public const int MaxEnclosedArea = 25;
 
     private static TerrainCell _startCell;
     private static int _rngOffset;
@@ -151,6 +151,9 @@ public static class BiomeCellRegionBuilder
             set = new HashSet<TerrainCell>();
             area = 0;
 
+            HashSet<TerrainCell> exploredSet = new HashSet<TerrainCell>();
+            exploredSet.UnionWith(outsideSet);
+
             Queue<TerrainCell> toAdd = new Queue<TerrainCell>();
 
             toAdd.Enqueue(Top);
@@ -169,15 +172,14 @@ public static class BiomeCellRegionBuilder
                 {
                     TerrainCell nCell = pair.Value;
 
-                    if (outsideSet.Contains(nCell)) continue;
-
-                    if (set.Contains(nCell)) continue;
+                    if (exploredSet.Contains(nCell)) continue;
 
                     if (TerrainCell.IsDiagonalDirection(pair.Key)) continue;
 
                     if (!IsCellEnclosed(nCell)) continue;
 
                     toAdd.Enqueue(nCell);
+                    exploredSet.Add(nCell);
                 }
             }
         }
