@@ -135,13 +135,13 @@ public class TerrainCell
     public float BaseAccessibility;
     public float BaseArability;
     public float Hilliness;
-    
+
     public bool IsPartOfCoastline;
-    
+
     public float FarmlandPercentage = 0;
     public float Arability = 0;
     public float Accessibility = 0;
-    
+
     public string BiomeWithMostPresence = null;
     public float MostBiomePresence = 0;
 
@@ -156,16 +156,16 @@ public class TerrainCell
     public List<CellLayerData> LayerData = new List<CellLayerData>();
 
     public CellGroup Group;
-    
+
     public float Alpha;
     public float Beta;
-    
+
     public List<string> PresentWaterBiomeIds = new List<string>();
-    
+
     public float WaterBiomePresence = 0;
 
     private float? _neighborhoodWaterBiomePresence = null;
-    
+
     public float NeighborhoodWaterBiomePresence
     {
         get {
@@ -184,24 +184,24 @@ public class TerrainCell
     }
 
     public WorldPosition Position;
-    
+
     public Region Region = null;
 
     public Territory EncompassingTerritory = null;
-    
+
     public List<Route> CrossingRoutes = new List<Route>();
-    
+
     public bool HasCrossingRoutes = false;
-    
+
     public float Area;
     public float MaxAreaPercent;
-    
+
     public World World;
-    
+
     public bool IsSelected = false;
-    
+
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
-    
+
     public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
     public HashSet<TerrainCell> NeighborSet { get; private set; }
     public Dictionary<Direction, float> NeighborDistances { get; private set; }
@@ -259,6 +259,16 @@ public class TerrainCell
 
         return Direction.Null;
     }
+
+    public static bool IsDiagonalDirection(Direction dir)
+    {
+        return ((dir == Direction.Northeast) ||
+            (dir == Direction.Northwest) ||
+            (dir == Direction.Southeast) ||
+            (dir == Direction.Southwest));
+    }
+
+    public bool IsBelowSeaLevel => Altitude <= 0;
 
     public Direction TryGetNeighborDirection(int offset)
     {

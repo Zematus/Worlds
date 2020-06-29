@@ -6,11 +6,6 @@ using System.Linq;
 [XmlInclude(typeof(CellRegion))]
 public abstract class Region : ISynchronizable
 {
-    public const float BaseMaxAltitudeDifference = 1000;
-    public const int AltitudeRoundnessTarget = 2000;
-
-    public const float MaxClosedness = 0.5f;
-
     [XmlIgnore]
     public RegionInfo Info;
 
@@ -108,9 +103,6 @@ public abstract class Region : ISynchronizable
 
     protected Dictionary<string, float> _biomePresences;
 
-    protected static TerrainCell _startCell;
-    protected static int _rngOffset;
-
     public Region()
     {
 
@@ -162,14 +154,9 @@ public abstract class Region : ISynchronizable
         if (startCell.Region != null)
             return null;
 
-        Region region = CellRegion.TryGenerateBiomeRegion(startCell, establishmentLanguage, startCell.BiomeWithMostPresence);
+        Region region = BiomeCellRegionBuilder.TryGenerateRegion(startCell, establishmentLanguage, startCell.BiomeWithMostPresence);
 
         return region;
-    }
-
-    protected static int GetRandomInt(int maxValue)
-    {
-        return _startCell.GetNextLocalRandomInt(_rngOffset++, maxValue);
     }
 
     public string GetRandomAttributeVariation(GetRandomIntDelegate getRandomInt)

@@ -2995,7 +2995,7 @@ public class Manager
             return _mapPalette[2];
         }
 
-        if (cell.Altitude > 0)
+        if (!cell.IsBelowSeaLevel)
         {
             if (cell.WaterBiomePresence >= 0.5f)
                 return _mapPalette[3];
