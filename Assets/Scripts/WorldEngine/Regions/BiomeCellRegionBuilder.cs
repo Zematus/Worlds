@@ -24,8 +24,8 @@ public static class BiomeCellRegionBuilder
 
     public const float MaxClosedness = 0.5f;
 
-    public const int MaxEnclosedRectArea = 125;
-    public const int MaxEnclosedArea = 25;
+    public const int MaxEnclosedRectArea = 25;
+    public const int MaxEnclosedArea = 16;
 
     private static TerrainCell _startCell;
     private static int _rngOffset;
@@ -35,16 +35,15 @@ public static class BiomeCellRegionBuilder
     private static HashSet<TerrainCell> _borderCells;
     private static int _largestBorderRectArea;
 
-    public static bool CanAddCellToBiomeRegion(TerrainCell cell, string biomeId)
+    private static HashSet<TerrainCell> _cellsThatCouldBeAdded;
+
+    private static bool CanAddCellToRegion(TerrainCell cell, string biomeId)
     {
-        if (cell.Region != null)
-        {
-            return false;
-        }
+        if (cell.Region != null) return false;
 
-        string cellBiomeId = cell.BiomeWithMostPresence;
+        if (cell.IsBelowSeaLevel) return false;
 
-        return cellBiomeId == biomeId;
+        return cell.GetLocalAndNeighborhoodMostPresentBiome(true) == biomeId;
     }
 
     public class Border
@@ -225,7 +224,7 @@ public static class BiomeCellRegionBuilder
                 Direction d = pair.Key;
                 TerrainCell nCell = pair.Value;
 
-                if (CanAddCellToBiomeRegion(nCell, biomeId))
+                if (CanAddCellToRegion(nCell, biomeId))
                 {
                     inBorderCells.Add(nCell);
                 }
@@ -301,14 +300,13 @@ public static class BiomeCellRegionBuilder
         {
             TerrainCell cell = cellsToExplore.Dequeue();
 
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.GetNonDiagonalNeighbors())
             {
-                if (exploredCells.Contains(nCell))
-                {
-                    continue;
-                }
+                TerrainCell nCell = pair.Value;
 
-                if (CanAddCellToBiomeRegion(nCell, biomeId))
+                if (exploredCells.Contains(nCell)) continue;
+
+                if (CanAddCellToRegion(nCell, biomeId))
                 {
                     cellsToExplore.Enqueue(nCell);
                 }
@@ -365,7 +363,8 @@ public static class BiomeCellRegionBuilder
 
     // older versions of
 
-    public static Region TryGenerateRegion_reduced(TerrainCell startCell, Language establishmentLanguage, string biomeId)
+    public static Region TryGenerateRegion_reduced(
+        TerrainCell startCell, Language establishmentLanguage, string biomeId)
     {
         int regionSize = 1;
 

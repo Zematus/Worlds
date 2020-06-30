@@ -270,6 +270,16 @@ public class TerrainCell
 
     public bool IsBelowSeaLevel => Altitude <= 0;
 
+    public IEnumerable<KeyValuePair<Direction, TerrainCell>> GetNonDiagonalNeighbors()
+    {
+        foreach (KeyValuePair<Direction, TerrainCell> pair in Neighbors)
+        {
+            if (IsDiagonalDirection(pair.Key)) continue;
+
+            yield return pair;
+        }
+    }
+
     public Direction TryGetNeighborDirection(int offset)
     {
         if (Neighbors.Count <= 0)
@@ -536,6 +546,70 @@ public class TerrainCell
             MostBiomePresence = relPresence;
             BiomeWithMostPresence = biome.Id;
         }
+    }
+
+    public IEnumerable<KeyValuePair<string, float>> GetBiomePresencePairs()
+    {
+        for (int i = 0; i < PresentBiomeIds.Count; i++)
+        {
+            yield return
+                new KeyValuePair<string, float>(
+                    PresentBiomeIds[i],
+                    BiomePresences[i]);
+        }
+    }
+
+    public Dictionary<string, float> GetLocalAndNeighborhoodBiomePresences(
+        bool ignoreWaterType = false)
+    {
+        Dictionary<string, float> biomePresences = new Dictionary<string, float>();
+
+        foreach (KeyValuePair<string, float> pair in GetBiomePresencePairs())
+        {
+            if (ignoreWaterType && (Biome.Biomes[pair.Key].TerrainType == BiomeTerrainType.Water))
+                continue;
+
+            biomePresences[pair.Key] = pair.Value;
+        }
+
+        foreach (TerrainCell nCell in Neighbors.Values)
+        {
+            foreach (KeyValuePair<string, float> pair in nCell.GetBiomePresencePairs())
+            {
+                if (ignoreWaterType && (Biome.Biomes[pair.Key].TerrainType == BiomeTerrainType.Water))
+                    continue;
+
+                if (biomePresences.ContainsKey(pair.Key))
+                {
+                    biomePresences[pair.Key] += pair.Value;
+                }
+                else
+                {
+                    biomePresences[pair.Key] = pair.Value;
+                }
+            }
+        }
+
+        return biomePresences;
+    }
+
+    public string GetLocalAndNeighborhoodMostPresentBiome(
+        bool ignoreWaterType = false)
+    {
+        string mostPresent = null;
+        float maxPresence = -1;
+
+        foreach (KeyValuePair<string, float> pair in
+            GetLocalAndNeighborhoodBiomePresences(ignoreWaterType))
+        {
+            if (pair.Value > maxPresence)
+            {
+                maxPresence = pair.Value;
+                mostPresent = pair.Key;
+            }
+        }
+
+        return mostPresent;
     }
 
     public float GetBiomeTypePresence(BiomeTerrainType type)
