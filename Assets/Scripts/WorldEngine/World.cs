@@ -178,8 +178,6 @@ public class World : ISynchronizable
     public const float RainfallToHeightConversionFactor = 1f / HeightToRainfallConversionFactor;
     public const float MinRiverFlow = HeightToRainfallConversionFactor / 50f;
 
-    public const float TemperatureHoldOffFactor = 0.35f;
-
     public const float StartPopulationDensity = 0.5f;
 
     public const int MinStartingPopulation = 100;
@@ -2284,7 +2282,7 @@ public class World : ISynchronizable
         SetCellsToEvalForDrainange();
 
         GenerateDrainageBasins();
-        GenerateDrainageBasins(false); // repeat to simulate geological scale erosion
+        //GenerateDrainageBasins(false); // repeat to simulate geological scale erosion
 
         _cellsToDrain.Clear();
         NeedsDrainageRegeneration = false;
@@ -2654,16 +2652,6 @@ public class World : ISynchronizable
     }
 
     /// <summary>
-    /// Adds the current buffer value to the cell's water accumulation and recalculates global maximum.
-    /// </summary>
-    public void UpdateWater(TerrainCell cell)
-    {
-        cell.WaterAccumulation += cell.Buffer;
-
-        MaxWaterAccumulation = Mathf.Max(MaxWaterAccumulation, cell.WaterAccumulation);
-    }
-
-    /// <summary>
     /// Generates drainage basins within a set of cells.
     /// TODO: unused function. Make it work or remove
     /// </summary>
@@ -2695,7 +2683,7 @@ public class World : ISynchronizable
                     continue;
                 }
 
-                UpdateWater(cell);
+                cell.UpdateDrainage();
             }
 
             DrainToNeighbors(cell, AddToDrainageRegen);
@@ -2784,7 +2772,7 @@ public class World : ISynchronizable
             {
                 // Rainfall could have been altered after this cell had already been added to the drainageHeap,
                 // so we need to update the cell's water acc accordingly.
-                cell.WaterAccumulation = cell.Rainfall;
+                cell.UpdateDrainage();
             }
         }
 
@@ -3465,9 +3453,8 @@ public class World : ISynchronizable
     /// <param name="resetTerrain"> Indicates if terrain alterations due to drainage should be reset on cell.</param>
     private void ResetDrainage(TerrainCell cell, bool resetTerrain)
     {
-        cell.Buffer = 0;
-        cell.Buffer2 = 0;
-        cell.Buffer3 = 0;
+        cell.FeedingCells.Clear();
+
         cell.RiverId = -1;
         cell.RiverLength = 0;
         cell.DrainageDone = false;
@@ -3556,9 +3543,11 @@ public class World : ISynchronizable
             CellDepth cd = cellsToExplore.Extract();
             TerrainCell cell = cd.Cell;
 
-            if (cell.Altitude < lowestAltitude)
+            float cellAltitude = Mathf.Max(0, cell.Altitude);
+
+            if (cellAltitude < lowestAltitude)
             {
-                lowestAltitude = cell.Altitude;
+                lowestAltitude = cellAltitude;
                 lDepth = cd.Depth;
             }
 
@@ -3736,28 +3725,33 @@ public class World : ISynchronizable
             if (percent == 0)
                 continue;
 
-            float rainfallTransfer = cell.WaterAccumulation * percent;
-            float rainfallTransferMinusLoss = rainfallTransfer - CalculateWaterLoss(nCell, rainfallTransfer);
+            float dirFactor = GetDirectionDistanceFactor(nPair.Key);
 
-            if (rainfallTransferMinusLoss <= 0)
+            float drainageTransfer = cell.WaterAccumulation * percent;
+            float waterLoss = CalculateWaterLoss(nCell, drainageTransfer) * dirFactor;
+            float drainageTransferMinusLoss = drainageTransfer - waterLoss;
+
+            if (drainageTransferMinusLoss <= 0)
                 continue;
 
-            nCell.Buffer += rainfallTransferMinusLoss;
-            nCell.Buffer3 += cell.OriginalTemperature * rainfallTransferMinusLoss;
+#if DEBUG
+            if ((nCell.Longitude == 229) && (nCell.Latitude == 133))
+            {
+                Debug.Log("Debugging nCell " + nCell.Position);
+            }
+#endif
 
             if (nCell.Altitude > nCellAltitude)
             {
                 nCell.Altitude = nCellAltitude;
             }
 
-            float dirFactor = GetDirectionDistanceFactor(nPair.Key);
-
-            if (nCell.Buffer2 < rainfallTransferMinusLoss)
+            nCell.FeedingCells[cell] = new TerrainCell.RiverBuffers
             {
-                nCell.Buffer2 = rainfallTransferMinusLoss;
-                nCell.RiverId = cell.RiverId;
-                nCell.RiverLength = cell.RiverLength + dirFactor;
-            }
+                DrainageTransfer = drainageTransferMinusLoss,
+                TemperatureTransfer = cell.OriginalTemperature * drainageTransferMinusLoss,
+                DirectionFactor = dirFactor
+            };
 
             addToCellsToDrain(nCell, true, true, false);
         }
@@ -3822,9 +3816,7 @@ public class World : ISynchronizable
             if (cell.Altitude <= 0)
                 continue;
 
-            cell.WaterAccumulation = cell.Rainfall;
-
-            MaxWaterAccumulation = Mathf.Max(MaxWaterAccumulation, cell.WaterAccumulation);
+            cell.UpdateDrainage();
 
             if (cell.WaterAccumulation <= 0)
             {
@@ -3863,12 +3855,12 @@ public class World : ISynchronizable
         int drainedCells = 0;
         while (cellsToDrain.Count > 0)
         {
-            TerrainCell cell = cellsToDrain.Extract(false);
+            TerrainCell cell = cellsToDrain.Extract();
             queuedDrainCells.Remove(cell);
 
             cellsDrained++;
 
-            UpdateWater(cell);
+            cell.UpdateDrainage();
 
             drainedCells++;
 
@@ -3976,20 +3968,6 @@ public class World : ISynchronizable
             float waterAccFactor = cell.WaterAccumulation / (cell.WaterAccumulation + rainfallScalingFactor);
 
             cell.Altitude -= WaterErosionFactor * waterAccFactor * rainfallFactor;
-
-            // 'drag' temperature
-
-            float tempAcc = cell.Buffer3 + ((cell.OriginalAltitude > 0) ? (cell.OriginalTemperature * cell.Rainfall) : 0);
-            float newTemp = Mathf.Lerp(cell.OriginalTemperature, tempAcc / cell.WaterAccumulation, TemperatureHoldOffFactor);
-
-#if DEBUG
-            if (!newTemp.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
-            {
-                Debug.LogWarning("DrainModifyCell - Invalid newTemp: " + newTemp + ", position: " + cell.Position);
-            }
-#endif
-
-            cell.Temperature = Mathf.Clamp(newTemp, MinPossibleTemperatureWithOffset, MaxPossibleTemperatureWithOffset);
         }
     }
 
@@ -4245,6 +4223,13 @@ public class World : ISynchronizable
 
     private void GenerateTerrainBiomes(TerrainCell cell)
     {
+#if DEBUG
+        if ((cell.Longitude == 229) && (cell.Latitude == 133))
+        {
+            Debug.Log("Debugging cell " + cell.Position);
+        }
+#endif
+
         float totalBiomePresence = 0;
 
         Dictionary<string, float> biomePresences = new Dictionary<string, float>();
