@@ -274,7 +274,7 @@ public static class ExpressionBuilder
             case "+":
                 return SumExpression.Build(context, expressionAStr, expressionBStr);
             case "-":
-                return SubstractExpression.Build(context, expressionAStr, expressionBStr);
+                return SubtractExpression.Build(context, expressionAStr, expressionBStr);
             case "*":
                 return MultiplyExpression.Build(context, expressionAStr, expressionBStr);
             case "/":

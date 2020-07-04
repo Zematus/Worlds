@@ -20,7 +20,7 @@ can be any of the following:
 - a function (min(), max(), normalize(), etc...)
 - a sub-expression ("1 + 1", "3 * (2 + 1)", etc...)
 
-TODO: Move this to expression_operators.txt
+TODO: Move this to expression_operators_guide.txt
 Multiple expressions can be chained together using binary operators. Any set of
 expressions to the right of a binary operator are considered to be a single sub-expression
 and sub-expressions are evaluated in right to left order. So, for example, the expression
@@ -41,7 +41,7 @@ Function expressions are a special type of expression that are composed of a fun
 id and a list of 0 or more parameters enclosed within parentheses. For example,
 "max(2,3)" is a function expression that returns the greater value within the list
 of inputs ('3' in this case). There's only a limited set of valid function expressions.
-A list of all currently available functions can be found in function_expressions.txt.
+A list of all currently available functions can be found in function_expressions_guide.txt.
 
 -- VALUE TYPES --
 
@@ -52,14 +52,14 @@ list of each value type and its properties.
   Numeric value expressions are expressions that return a number as a result. This
   number can be an integer or a decimal value, and the range of values can go from
   -3.40282347E+38 to 3.40282347E+38. Though the expression system does not support
-  fixed number representations larger than 10 digits. See expression_operators.txt
+  fixed number representations larger than 10 digits. See expression_operators_guide.txt
   for a list of operators to work with and/or return numeric values.
 
 - Boolean Values:
   Boolean value expressions are expressions that return a boolean value as a result.
   The result of the expression has to resolve to either "true" or "false", uppercase
   representations of boolean values will automatically be converted to lowercase
-  for parsing purposes. See expression_operators.txt for a list of operators to work
+  for parsing purposes. See expression_operators_guide.txt for a list of operators to work
   with and/or return boolean values.
 
 - String Values:
@@ -84,4 +84,4 @@ Effect expressions are a special kind of expression that do not resolve into a v
 Instead, they produce an in-game effect which depends on the type of expression.
 Most effects are associated with with entity attributes. Some others are associated
 with function expressions. More details about specific effect expressions can be
-found in either entities_guide.txt, function_expressions.txt, or expression_operators.txt
+found in either entities_guide.txt, function_expressions_guide.txt, or expression_operators_guide.txt

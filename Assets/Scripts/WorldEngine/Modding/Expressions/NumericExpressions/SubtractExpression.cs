@@ -3,12 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class SubstractExpression : BinaryOpExpressionWithOutput<float>
+public class SubtractExpression : BinaryOpExpressionWithOutput<float>
 {
     protected IValueExpression<float> _numExpressionA;
     protected IValueExpression<float> _numExpressionB;
 
-    public SubstractExpression(IExpression expressionA, IExpression expressionB)
+    public SubtractExpression(IExpression expressionA, IExpression expressionB)
         : base("-", expressionA, expressionB)
     {
         _numExpressionA = ValueExpressionBuilder.ValidateValueExpression<float>(expressionA);
@@ -20,7 +20,7 @@ public class SubstractExpression : BinaryOpExpressionWithOutput<float>
         IExpression expressionA = ExpressionBuilder.BuildExpression(context, expressionAStr);
         IExpression expressionB = ExpressionBuilder.BuildExpression(context, expressionBStr);
 
-        return new SubstractExpression(expressionA, expressionB);
+        return new SubtractExpression(expressionA, expressionB);
     }
 
     public override float Value => _numExpressionA.Value - _numExpressionB.Value;
