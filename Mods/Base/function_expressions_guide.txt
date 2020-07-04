@@ -1,0 +1,41 @@
+---- Function Expressions Guide ----
+
+Following is a a list of all function expressions currently supported within the
+game:
+
+- 'lerp(start, end, factor)':
+  This function returns a NUMERIC value interpolated between a 'start' value and an
+  'end' value using an interpolation 'factor' where an interpolation factor of '0'
+  makes the function return the 'start' value, and and interpolation factor of '1'
+  makes the function return the 'end' value.
+  Parameters:
+  - start: a NUMERIC expression that gives the initial value
+  - end: a numeric expression that gives the end value
+  - factor: a numeric expression that gives the interpolation factor
+  Examples: "lerp(1, 2, 0.4)" returns 1.4,
+            "lerp(3, 2, 0.5)" returns 1.5,
+            "lerp(3.5, 4.2, 0)" returns 3.5,
+            "lerp(5.2, 7.1, 1)" returns 7.1
+
+- 'saturation(saturation_level, value)':
+  This function returns a NUMERIC value between 0 and 1 depending on how 'saturated'
+  or 'unsaturated' the input 'value' is. Where a 'value' of 0 returns 0,  a 'value'
+  equals to 'saturation_level' returns 0.5. And an 'value' above of 'saturation_level'
+  will return outputs closer to 1 as 'value' approaches positive infinity.
+  Parameters:
+  - saturation_level: a NUMERIC expression that gives the half-way level of saturation
+  - value: the input numeric expression to test saturation against
+  Examples: "saturation(100, 0)" returns 0,
+            "saturation(100, 50)" returns 0.33,
+            "saturation(100, 100)" returns 0.5,
+            "saturation(100, 10000)" returns 0.99
+
+- 'percent(value)':
+  This function converts the 'value' input into a STRING percentage representation
+  of that value.
+  Parameters:
+  - value: a NUMERIC expression that gives the value to convert
+  Examples: "percent(0.5)" returns "50 %",
+            "percent(0.63)" returns "63 %",
+            "percent(0)" returns "0 %",
+            "percent(1)" returns "100 %"

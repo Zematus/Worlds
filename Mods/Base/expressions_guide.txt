@@ -20,16 +20,6 @@ can be any of the following:
 - a function (min(), max(), normalize(), etc...)
 - a sub-expression ("1 + 1", "3 * (2 + 1)", etc...)
 
-TODO: Move this to expression_operators_guide.txt
-Multiple expressions can be chained together using binary operators. Any set of
-expressions to the right of a binary operator are considered to be a single sub-expression
-and sub-expressions are evaluated in right to left order. So, for example, the expression
-"5 * 1 + 1" will be interpreted as "5 * (1 + 1)", where the sub-expression "1 + 1"
-is evaluated first, and the whole expression evaluates to "10". Parenthesis can be
-inserted to change the order in which sub-expressions are evaluated. For example in
-"(5 * 1) + 1", "(5 * 1)" is evaluated first, so the whole expression now evaluates
-to "6".
-
 There are two main types of expressions, VALUE expressions, and EFFECT expressions.
 Value expressions are expressions that upon being evaluated, return a value of a
 specific type such as a number, a boolean, a string, or an entity. Effect expressions,
