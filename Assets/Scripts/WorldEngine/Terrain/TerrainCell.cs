@@ -270,6 +270,16 @@ public class TerrainCell
 
     public bool IsBelowSeaLevel => Altitude <= 0;
 
+    public bool IsLiquidSea
+    {
+        get
+        {
+            if (!IsBelowSeaLevel) return false;
+
+            return GetBiomeTypePresence(BiomeTerrainType.Water) >= 1;
+        }
+    }
+
     public IEnumerable<KeyValuePair<Direction, TerrainCell>> GetNonDiagonalNeighbors()
     {
         foreach (KeyValuePair<Direction, TerrainCell> pair in Neighbors)

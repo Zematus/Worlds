@@ -118,4 +118,38 @@ public static class CollectionUtility
 
         return collection.ElementAt(index);
     }
+
+    public static T ReturnNBest<T>(this ICollection<T> collection, int n, Comparison<T> comp)
+    {
+        T[] tArray = new T[n];
+        int existing = 0;
+
+        if (collection.Count <= 0)
+        {
+            throw new System.ArgumentException("Collection has 0 or less elements");
+        }
+
+        foreach (T item in collection)
+        {
+            T current = item;
+
+            int i;
+            for (i = 0; i < existing; i++)
+            {
+                if (comp(current, tArray[i]) <= 0) continue;
+
+                T temp = current;
+                current = tArray[i];
+                tArray[i] = temp;
+            }
+
+            if (existing < n)
+            {
+                tArray[existing] = current;
+                existing++;
+            }
+        }
+
+        return tArray[existing];
+    }
 }

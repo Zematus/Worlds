@@ -24,16 +24,17 @@ public static class BiomeCellRegionBuilder
 
     public const float MaxClosedness = 0.5f;
 
-    public const int MaxEnclosedRectArea = 25;
-    public const int MaxEnclosedArea = 16;
+    public const int MaxEnclosedRectArea = 125;
+    public const int MinAreaSize = 8;
 
     private static TerrainCell _startCell;
     private static int _rngOffset;
 
     private static int _borderCount;
     private static List<Border> _borders;
-    private static HashSet<TerrainCell> _borderCells;
+    private static HashSet<TerrainCell> _exploredBorderCells;
     private static int _largestBorderRectArea;
+    private static Border _largestBorder;
 
     private static HashSet<TerrainCell> _cellsThatCouldBeAdded;
 
@@ -41,7 +42,7 @@ public static class BiomeCellRegionBuilder
     {
         if (cell.Region != null) return false;
 
-        if (cell.IsBelowSeaLevel) return false;
+        if (cell.IsLiquidSea) return false;
 
         return cell.GetLocalAndNeighborhoodMostPresentBiome(true) == biomeId;
     }
@@ -127,9 +128,7 @@ public static class BiomeCellRegionBuilder
             // adjust for world wrap
             if (right < left) right += Manager.WorldWidth;
 
-            if (cell.Latitude < top) return false;
-
-            if (cell.Latitude > bottom) return false;
+            if (!cell.Latitude.IsInsideRange(top, bottom)) return false;
 
             int longitude = cell.Longitude;
 
@@ -161,7 +160,7 @@ public static class BiomeCellRegionBuilder
             {
                 TerrainCell cell = toAdd.Dequeue();
 
-                if (!cell.IsBelowSeaLevel)
+                if (!cell.IsLiquidSea)
                 {
                     set.Add(cell);
                     area++;
@@ -182,6 +181,83 @@ public static class BiomeCellRegionBuilder
                 }
             }
         }
+
+        public void Merge(Border border)
+        {
+            Cells.UnionWith(border.Cells);
+
+            if (Top.Latitude > border.Top.Latitude)
+            {
+                Top = border.Top;
+            }
+
+            if (Bottom.Latitude < border.Bottom.Latitude)
+            {
+                Bottom = border.Bottom;
+            }
+
+            bool offsetNeeded = false;
+            bool rightOffsetDone = false;
+            bool borderRightOffsetDone = false;
+
+            int rigthLongitude = Right.Longitude;
+            if (Left.Longitude >= Right.Longitude)
+            {
+                rigthLongitude += Manager.WorldWidth;
+                offsetNeeded = true;
+                rightOffsetDone = true;
+            }
+
+            int borderRigthLongitude = border.Right.Longitude;
+            if (border.Left.Longitude >= border.Right.Longitude)
+            {
+                borderRigthLongitude += Manager.WorldWidth;
+                offsetNeeded = true;
+                borderRightOffsetDone = true;
+            }
+
+            int leftLongitude = Left.Longitude;
+            if (offsetNeeded && !rightOffsetDone)
+            {
+                rigthLongitude += Manager.WorldWidth;
+                leftLongitude += Manager.WorldWidth;
+            }
+
+            int borderLeftLongitude = border.Left.Longitude;
+            if (offsetNeeded && !borderRightOffsetDone)
+            {
+                borderRigthLongitude += Manager.WorldWidth;
+                borderLeftLongitude += Manager.WorldWidth;
+            }
+
+            if (leftLongitude > borderLeftLongitude)
+            {
+                Left = border.Left;
+            }
+
+            if (rigthLongitude < borderRigthLongitude)
+            {
+                Right = border.Right;
+            }
+        }
+
+        public void Consolidate(HashSet<TerrainCell> mergedArea)
+        {
+            HashSet<TerrainCell> cellsWithinArea = new HashSet<TerrainCell>();
+
+            foreach (TerrainCell cell in Cells)
+            {
+                if (mergedArea.Contains(cell))
+                {
+                    cellsWithinArea.Add(cell);
+                }
+            }
+
+            foreach (TerrainCell cell in cellsWithinArea)
+            {
+                Cells.Remove(cell);
+            }
+        }
     }
 
     private static Border CreateBorder(TerrainCell startCell)
@@ -195,78 +271,34 @@ public static class BiomeCellRegionBuilder
 
     private static void TryExploreBorder(
         TerrainCell startCell,
-        string biomeId)
+        HashSet<TerrainCell> borderCells)
     {
-        if (_borderCells.Contains(startCell)) return;
+        if (_exploredBorderCells.Contains(startCell)) return;
 
         Border border = CreateBorder(startCell);
 
-        HashSet<TerrainCell> borderExploredCells = new HashSet<TerrainCell>();
-
         Queue<TerrainCell> borderCellsToExplore = new Queue<TerrainCell>();
 
-        HashSet<TerrainCell> inBorderCells = new HashSet<TerrainCell>();
-        HashSet<TerrainCell> outBorderCells = new HashSet<TerrainCell>();
-
         borderCellsToExplore.Enqueue(startCell);
-        borderExploredCells.Add(startCell);
+        _exploredBorderCells.Add(startCell);
 
         while (borderCellsToExplore.Count > 0)
         {
             TerrainCell cell = borderCellsToExplore.Dequeue();
 
-            inBorderCells.Clear();
-            outBorderCells.Clear();
-
             // first separate neighbor cells that are inside and outside border
-            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.Neighbors)
+            foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
-                Direction d = pair.Key;
-                TerrainCell nCell = pair.Value;
-
-                if (CanAddCellToRegion(nCell, biomeId))
+                if (borderCells.Contains(nCell))
                 {
-                    inBorderCells.Add(nCell);
-                }
-                else
-                {
-                    // ignore diagonal directions
-                    if (!TerrainCell.IsDiagonalDirection(d))
-                    {
-                        outBorderCells.Add(nCell);
-                    }
-                }
-            }
+                    if (_exploredBorderCells.Contains(nCell)) continue;
 
-            // now find which neighbor cells are exactly in the border
-            foreach (TerrainCell cellIn in outBorderCells)
-            {
-                bool isBorder = false;
-
-                // find if any of the neighbor to the neighbor is an cell outside
-                foreach (TerrainCell nc in cellIn.Neighbors.Values)
-                {
-                    if (inBorderCells.Contains(nc))
-                    {
-                        isBorder = true;
-                        break;
-                    }
-                }
-
-                if (isBorder)
-                {
-                    if (borderExploredCells.Contains(cellIn))
-                    {
-                        continue;
-                    }
-
-                    borderCellsToExplore.Enqueue(cellIn);
-                    borderExploredCells.Add(cellIn);
+                    borderCellsToExplore.Enqueue(nCell);
+                    _exploredBorderCells.Add(nCell);
                 }
             }
 
             border.AddCell(cell);
-            _borderCells.Add(cell);
         }
 
         border.CalcRectangle();
@@ -274,31 +306,41 @@ public static class BiomeCellRegionBuilder
         if (_largestBorderRectArea < border.RectArea)
         {
             _largestBorderRectArea = border.RectArea;
+            _largestBorder = border;
         }
     }
 
-    public static Region TryGenerateRegion(
+    public static bool AddCellsWithinBiome(
         TerrainCell startCell,
-        Language language,
-        string biomeId)
+        string biomeId,
+        out HashSet<TerrainCell> addedCells,
+        out Border outsideBorder,
+        int abortSize = -1)
     {
+        outsideBorder = null;
+        addedCells = new HashSet<TerrainCell>();
+
         Queue<TerrainCell> cellsToExplore = new Queue<TerrainCell>();
         HashSet<TerrainCell> exploredCells = new HashSet<TerrainCell>();
-        HashSet<TerrainCell> acceptedCells = new HashSet<TerrainCell>();
 
         HashSet<TerrainCell> borderCellsToExplore = new HashSet<TerrainCell>();
+
+        int addedCount = 0;
 
         cellsToExplore.Enqueue(startCell);
         exploredCells.Add(startCell);
 
         _borderCount = 0;
         _borders = new List<Border>();
-        _borderCells = new HashSet<TerrainCell>();
+        _exploredBorderCells = new HashSet<TerrainCell>();
         _largestBorderRectArea = 0;
+        _largestBorder = null;
 
         while (cellsToExplore.Count > 0)
         {
             TerrainCell cell = cellsToExplore.Dequeue();
+
+            if ((abortSize > 0) && (addedCount >= abortSize)) return false;
 
             foreach (KeyValuePair<Direction, TerrainCell> pair in cell.GetNonDiagonalNeighbors())
             {
@@ -318,39 +360,136 @@ public static class BiomeCellRegionBuilder
                 exploredCells.Add(nCell);
             }
 
-            acceptedCells.Add(cell);
+            addedCells.Add(cell);
+            addedCount++;
         }
 
         foreach (TerrainCell cell in borderCellsToExplore)
         {
-            TryExploreBorder(cell, biomeId);
+            TryExploreBorder(cell, borderCellsToExplore);
         }
+
+        outsideBorder = _largestBorder;
 
         foreach (Border border in _borders)
         {
-            if (border.RectArea < _largestBorderRectArea)
-            {
-                if (border.RectArea <= MaxEnclosedRectArea)
-                {
-                    border.GetEnclosedCellSet(
-                        acceptedCells,
-                        out HashSet<TerrainCell> cellSet,
-                        out int area);
+            if (border == outsideBorder) continue;
 
-                    if (area <= MaxEnclosedArea)
-                    {
-                        acceptedCells.UnionWith(cellSet);
-                    }
+            if (border.RectArea <= MaxEnclosedRectArea)
+            {
+                border.GetEnclosedCellSet(
+                    addedCells,
+                    out HashSet<TerrainCell> cellSet,
+                    out int area);
+
+                if (area <= MinAreaSize)
+                {
+                    addedCells.UnionWith(cellSet);
                 }
             }
+        }
+
+        return true;
+    }
+
+    public static Region TryGenerateRegion(
+        TerrainCell startCell,
+        Language language)
+    {
+        if (startCell.WaterBiomePresence >= 1)
+            return null;
+
+        if (startCell.Region != null)
+            return null;
+
+        string biomeId = startCell.GetLocalAndNeighborhoodMostPresentBiome(true);
+
+        AddCellsWithinBiome(startCell, biomeId,
+            out HashSet<TerrainCell> acceptedCells,
+            out Border outsideBorder);
+
+        HashSet<TerrainCell> cellsToSkip = new HashSet<TerrainCell>();
+
+        int minAreaSizeToUse = MinAreaSize;
+        int maxAttempts = 2;
+        int attempt = 0;
+
+        // Add neighboring areas that are too small to be regions of their own
+        while (attempt < maxAttempts)
+        {
+            List<HashSet<TerrainCell>> areasToMerge = new List<HashSet<TerrainCell>>();
+            List<Border> bordersToMerge = new List<Border>();
+
+            bool hasAddedCells = false;
+
+            foreach (TerrainCell borderCell in outsideBorder.Cells)
+            {
+#if DEBUG
+                Manager.AddUpdatedCell(borderCell, CellUpdateType.Region, CellUpdateSubType.Membership);
+#endif
+                if (cellsToSkip.Contains(borderCell)) continue;
+                if (borderCell.IsLiquidSea) continue;
+                if (borderCell.Region != null) continue;
+
+                string borderBiomeId = borderCell.GetLocalAndNeighborhoodMostPresentBiome(true);
+
+                bool addedArea =
+                    AddCellsWithinBiome(
+                        borderCell,
+                        borderBiomeId,
+                        out HashSet<TerrainCell> newCells,
+                        out Border newBorder,
+                        minAreaSizeToUse);
+
+                cellsToSkip.UnionWith(newCells);
+
+                if (addedArea)
+                {
+                    areasToMerge.Add(newCells);
+                    bordersToMerge.Add(newBorder);
+
+                    // reset min area to use
+                    minAreaSizeToUse = MinAreaSize;
+                }
+
+                hasAddedCells |= addedArea;
+            }
+
+            bool bigEnough = acceptedCells.Count > MinAreaSize;
+
+            if (!hasAddedCells)
+            {
+                // Stop if couldn't add any more cells to region and it is big enough,
+                // or it is the second time it fails to add
+                if (bigEnough) break;
+
+                // next area to add can be any size. Don't abort.
+                minAreaSizeToUse = -1;
+                attempt++;
+
+                cellsToSkip.Clear();
+                continue;
+            }
+
+            attempt = 0;
+
+            foreach (HashSet<TerrainCell> area in areasToMerge)
+            {
+                acceptedCells.UnionWith(area);
+            }
+
+            foreach (Border border in bordersToMerge)
+            {
+                outsideBorder.Merge(border);
+            }
+
+            outsideBorder.Consolidate(acceptedCells);
         }
 
         CellRegion region = new CellRegion(startCell, language);
 
         region.AddCells(acceptedCells);
-
         region.EvaluateAttributes();
-
         region.Update();
 
         return region;
@@ -361,7 +500,7 @@ public static class BiomeCellRegionBuilder
         return _startCell.GetNextLocalRandomInt(_rngOffset++, maxValue);
     }
 
-    // older versions of
+    // older versions of Generate Region (TODO: remove them)
 
     public static Region TryGenerateRegion_reduced(
         TerrainCell startCell, Language establishmentLanguage, string biomeId)
