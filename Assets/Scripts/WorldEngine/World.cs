@@ -3913,64 +3913,13 @@ public class World : ISynchronizable
         }
         else
         {
-            float scaleDistortionFactor = 0.3f;
-            float scaleDistortionOffset = 0.5f;
+            float maxTransferProtected = 1500f;
 
-            float scaledStrength = RiverStrength;
+            float protectedTransfer = Mathf.Min(maxTransferProtected * RiverStrength, rainfallTransfer);
+            float unprotectedTransfer = Mathf.Max(0, rainfallTransfer - protectedTransfer) * RiverStrength;
+            float preservedTransfer = protectedTransfer + unprotectedTransfer;
 
-            if (RiverStrength > scaleDistortionOffset)
-            {
-                float offsetFactor = 1 - scaleDistortionOffset;
-                scaledStrength = (1 - scaleDistortionFactor) +
-                    scaleDistortionFactor * (RiverStrength - scaleDistortionOffset) / offsetFactor;
-            }
-            else
-            {
-                scaledStrength = (1 - scaleDistortionFactor) * RiverStrength / scaleDistortionOffset;
-            }
-
-            return rainfallTransfer * (1 - scaledStrength);
-
-            //float baseRiverStrength = 0.60f;
-            //float bottomLossFactor = 0.25f;
-            //float topLossFactor = 0.4f;
-
-            //float adjRainTransfer = rainfallTransfer;
-            //float baseWaterLoss = 0;
-
-            //if (RiverStrength < baseRiverStrength)
-            //{
-            //    adjRainTransfer *= RiverStrength / baseRiverStrength;
-            //    baseWaterLoss = rainfallTransfer - adjRainTransfer;
-            //}
-            //else
-            //{
-            //    float riverStrengthFactor = Mathf.Max(0, 1 - (RiverStrength - baseRiverStrength));
-            //    bottomLossFactor *= riverStrengthFactor;
-            //    topLossFactor *= riverStrengthFactor;
-            //}
-
-            //float bottomMinRiverFlow = 500.0f;
-            //float topMinRiverFlow = 2000.0f;
-            //float bottomMaxRiverLoss = 400.0f;
-            //float topMaxRiverLoss = 18000.0f;
-            //float minTemp = 20.0f;
-            //float maxTemp = 60.0f;
-            //float maxRain = 5000.0f;
-            //float maxAlt = 5000.0f;
-
-            //float tempFactor = Mathf.Clamp01((cell.Temperature - minTemp) / (maxTemp - minTemp));
-            //float lossFactor = ((1 - tempFactor) * (topLossFactor - bottomLossFactor)) + bottomLossFactor;
-
-            //float rainFactor = Mathf.Clamp01(cell.Rainfall / maxRain);
-            //float rainTempFactor = Mathf.Min(1 - rainFactor, tempFactor);
-            //float minRiverFlow = rainTempFactor * (topMinRiverFlow - bottomMinRiverFlow) + bottomMinRiverFlow;
-            //float transferMinusMinLevel = Mathf.Max(0, adjRainTransfer - minRiverFlow);
-
-            //float altFactor = Mathf.Clamp01(cell.Altitude / maxAlt);
-            //float maxRiverLoss = altFactor * (topMaxRiverLoss - bottomMaxRiverLoss) + bottomMaxRiverLoss;
-
-            //return baseWaterLoss + Mathf.Min(transferMinusMinLevel * lossFactor, maxRiverLoss);
+            return rainfallTransfer - preservedTransfer;
         }
     }
 
