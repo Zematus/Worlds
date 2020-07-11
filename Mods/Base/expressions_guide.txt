@@ -57,7 +57,7 @@ list of each value type and its properties.
   do not match any id assigned to an existing entity or property within a context.
   strings composed of multiple words must be enclosed within single quotes when
   used as sub-expressions. String values can embed expressions within them by enclosing
-  those expressions within '<<' '>>' blocks. Please read string_values.txt for more
+  those expressions within '<<' '>>' blocks. Please read string_values_guide.txt for more
   details
 
 - Entity Values:
