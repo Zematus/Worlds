@@ -6,17 +6,17 @@ using System.Xml.Serialization;
 using System;
 
 [Obsolete]
-public class ClanSplitEventMessage : FactionEventMessage {
-
-	[XmlAttribute]
-	public long OldClanId;
+public class ClanSplitEventMessage : FactionEventMessage
+{
+    public Identifier OldClanId;
 
     public ClanSplitEventMessage()
     {
 
     }
 
-    public ClanSplitEventMessage(Clan oldClan, Clan newClan, long date) : base(newClan, WorldEvent.ClanSplitDecisionEventId, date)
+    public ClanSplitEventMessage(Clan oldClan, Clan newClan, long date) :
+        base(newClan, WorldEvent.ClanSplitDecisionEventId, date)
     {
         OldClanId = oldClan.Id;
     }
@@ -25,6 +25,7 @@ public class ClanSplitEventMessage : FactionEventMessage {
     {
         FactionInfo oldClanInfo = World.GetFactionInfo(OldClanId);
 
-        return "A new clan, " + FactionInfo.Name.BoldText + ", has split from " + oldClanInfo.GetNameAndTypeStringBold();
+        return "A new clan, " + FactionInfo.Name.BoldText + ", has split from " +
+            oldClanInfo.GetNameAndTypeStringBold();
     }
 }

@@ -1076,7 +1076,7 @@ public class GuiManagerScript : MonoBehaviour
         return Manager.GetDateString(eventMessage.Date) + " - " + eventMessage.Message;
     }
 
-    private void ShowEventMessageForPolity(WorldEventMessage eventMessage, long polityId)
+    private void ShowEventMessageForPolity(WorldEventMessage eventMessage, Identifier polityId)
     {
         Polity polity = Manager.CurrentWorld.GetPolity(polityId);
 

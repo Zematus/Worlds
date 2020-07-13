@@ -4,29 +4,25 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class RejectedMergeTribesOfferEventMessage : PolityEventMessage {
+public class RejectedMergeTribesOfferEventMessage : PolityEventMessage
+{
+    public Identifier AgentId;
+    public Identifier SourceTribeId;
+    public Identifier TargetTribeId;
 
-	[XmlAttribute]
-	public long AgentId;
+    public RejectedMergeTribesOfferEventMessage()
+    {
 
-	[XmlAttribute]
-	public long SourceTribeId;
+    }
 
-	[XmlAttribute]
-	public long TargetTribeId;
+    public RejectedMergeTribesOfferEventMessage(Tribe sourceTribe, Tribe targetTribe, Agent agent, long date) : base(sourceTribe, WorldEvent.RejectInfluenceDemandDecisionEventId, date)
+    {
+        sourceTribe.World.AddMemorableAgent(agent);
 
-	public RejectedMergeTribesOfferEventMessage () {
-
-	}
-
-	public RejectedMergeTribesOfferEventMessage (Tribe sourceTribe, Tribe targetTribe, Agent agent, long date) : base (sourceTribe, WorldEvent.RejectInfluenceDemandDecisionEventId, date) {
-
-		sourceTribe.World.AddMemorableAgent (agent);
-
-		AgentId = agent.Id;
-		SourceTribeId = sourceTribe.Id;
-		TargetTribeId = targetTribe.Id;
-	}
+        AgentId = agent.Id;
+        SourceTribeId = sourceTribe.Id;
+        TargetTribeId = targetTribe.Id;
+    }
 
     protected override string GenerateMessage()
     {
@@ -34,7 +30,8 @@ public class RejectedMergeTribesOfferEventMessage : PolityEventMessage {
         PolityInfo sourceTribeInfo = World.GetPolityInfo(SourceTribeId);
         PolityInfo targetTribeInfo = World.GetPolityInfo(TargetTribeId);
 
-        return leader.Name.BoldText + ", leader of " + targetTribeInfo.GetNameAndTypeStringBold() + ", has rejected the offer from " +
-            sourceTribeInfo.GetNameAndTypeStringBold() + " for " + leader.PossessiveNoun + " tribe to merge into theirs";
+        return leader.Name.BoldText + ", leader of " + targetTribeInfo.GetNameAndTypeStringBold() +
+            ", has rejected the offer from " + sourceTribeInfo.GetNameAndTypeStringBold() + " for " +
+            leader.PossessiveNoun + " tribe to merge into theirs";
     }
 }

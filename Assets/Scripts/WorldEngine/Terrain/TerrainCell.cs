@@ -311,19 +311,13 @@ public class TerrainCell
         return Neighbors[TryGetNeighborDirection(offset)];
     }
 
-    public long GenerateUniqueIdentifier(long date, long oom = 1L, long offset = 0L)
+    public long GenerateInitId(long idOffset = 0L)
     {
-        if (oom > 1000L)
-        {
-            Debug.LogWarning("'oom' shouldn't be greater than 1000 (oom = " + oom + ")");
-        }
+        long id =
+            (((Longitude * (long)Manager.WorldHeight) + Latitude) * Manager.PosIdOffset) +
+            (idOffset % Manager.PosIdOffset);
 
-        if (date >= World.MaxSupportedDate)
-        {
-            Debug.LogWarning("TerrainCell.GenerateUniqueIdentifier - 'date' is greater than " + World.MaxSupportedDate + " (date = " + date + ")");
-        }
-
-        return (((date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
+        return id;
     }
 
     /// <summary>

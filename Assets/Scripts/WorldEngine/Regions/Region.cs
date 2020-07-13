@@ -61,58 +61,26 @@ public abstract class Region : ISynchronizable
     [XmlIgnore]
     public float WaterPercentage;
 
-    public Identifier UniqueIndentifier
-    {
-        get
-        {
-            return Info.UniqueIdentifier;
-        }
-    }
+    public Identifier Id => Info.Id;
 
-    public Name Name
-    {
-        get
-        {
-            return Info.Name;
-        }
-    }
+    public Name Name => Info.Name;
 
-    public Dictionary<string, RegionAttribute.Instance> Attributes
-    {
-        get
-        {
-            return Info.Attributes;
-        }
-    }
+    public Dictionary<string, RegionAttribute.Instance> Attributes => Info.Attributes;
 
-    public virtual List<Element.Instance> Elements
-    {
-        get
-        {
-            return Info.Elements;
-        }
-    }
+    public virtual List<Element.Instance> Elements => Info.Elements;
 
-    public World World
-    {
-        get
-        {
-            return Info.World;
-        }
-    }
+    public World World => Info.World;
 
     protected Dictionary<string, float> _biomePresences;
-
-    private HashSet<Region> _subRegions = new HashSet<Region>();
 
     public Region()
     {
 
     }
 
-    public Region(long date, long id, TerrainCell originCell, Language language)
+    public Region(TerrainCell originCell, long idOffset, Language language)
     {
-        Info = new RegionInfo(date, id, this, originCell, language);
+        Info = new RegionInfo(this, originCell, idOffset, language);
     }
 
     [System.Obsolete]
@@ -176,6 +144,11 @@ public abstract class Region : ISynchronizable
         //    startCell, establishmentLanguage, startCell.BiomeWithMostPresence);
 
         return region;
+    }
+
+    public override int GetHashCode()
+    {
+        return Info.GetHashCode();
     }
 
     public string GetRandomUnstranslatedAreaName(GetRandomIntDelegate getRandomInt, bool isNounAdjunct)

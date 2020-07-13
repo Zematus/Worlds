@@ -4,25 +4,24 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class OpenTribeEventMessage : PolityEventMessage {
+public class OpenTribeEventMessage : PolityEventMessage
+{
+    public Identifier AgentId;
+    public Identifier TribeId;
 
-	[XmlAttribute]
-	public long AgentId;
+    public OpenTribeEventMessage()
+    {
 
-	[XmlAttribute]
-	public long TribeId;
+    }
 
-	public OpenTribeEventMessage () {
+    public OpenTribeEventMessage(Tribe tribe, Agent agent, long date) :
+        base(tribe, WorldEvent.OpenTribeDecisionEventId, date)
+    {
+        tribe.World.AddMemorableAgent(agent);
 
-	}
-
-	public OpenTribeEventMessage (Tribe tribe, Agent agent, long date) : base (tribe, WorldEvent.OpenTribeDecisionEventId, date) {
-
-		tribe.World.AddMemorableAgent (agent);
-
-		AgentId = agent.Id;
-		TribeId = tribe.Id;
-	}
+        AgentId = agent.Id;
+        TribeId = tribe.Id;
+    }
 
     protected override string GenerateMessage()
     {

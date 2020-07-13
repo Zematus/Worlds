@@ -5,7 +5,7 @@ using System.Linq;
 
 public abstract class SuperRegion : Region
 {
-    public List<long> SubRegionIds;
+    public List<Identifier> SubRegionIds;
 
     private HashSet<Region> _subRegions = new HashSet<Region>();
 
@@ -20,9 +20,9 @@ public abstract class SuperRegion : Region
 
     }
 
-    public SuperRegion(TerrainCell originCell, Language language)
+    public SuperRegion(TerrainCell originCell, Region startRegion, Language language)
     {
-        Info = new RegionInfo(this, originCell, language);
+        Info = new RegionInfo(this, originCell, startRegion.GetHashCode(), language);
     }
 
     private void RefreshCells()
@@ -82,7 +82,7 @@ public abstract class SuperRegion : Region
 
     public override void Synchronize()
     {
-        SubRegionIds = new List<long>();
+        SubRegionIds = new List<Identifier>(_subRegions.Count);
 
         foreach (Region region in _subRegions)
         {
@@ -92,7 +92,7 @@ public abstract class SuperRegion : Region
 
     public override void FinalizeLoad()
     {
-        foreach (long id in SubRegionIds)
+        foreach (Identifier id in SubRegionIds)
         {
             RegionInfo info = World.GetRegionInfo(id);
 

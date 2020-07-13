@@ -20,7 +20,7 @@ public class CellRegion : Region
 
     }
 
-    public CellRegion(TerrainCell originCell, Language language) : base(originCell, language)
+    public CellRegion(TerrainCell originCell, Language language) : base(originCell, 0, language)
     {
 
     }

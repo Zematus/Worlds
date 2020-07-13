@@ -4,20 +4,18 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class PreventTribeSplitEventMessage : PolityEventMessage {
+public class PreventTribeSplitEventMessage : PolityEventMessage
+{
+    public Identifier AgentId;
+    public Identifier SplitClanId;
 
-	[XmlAttribute]
-	public long AgentId;
-
-	[XmlAttribute]
-	public long SplitClanId;
-
-	public PreventTribeSplitEventMessage()
+    public PreventTribeSplitEventMessage()
     {
 
     }
 
-    public PreventTribeSplitEventMessage(Tribe tribe, Clan splitClan, Agent agent, long date) : base(tribe, WorldEvent.PreventTribeSplitEventId, date)
+    public PreventTribeSplitEventMessage(Tribe tribe, Clan splitClan, Agent agent, long date) :
+        base(tribe, WorldEvent.PreventTribeSplitEventId, date)
     {
         tribe.World.AddMemorableAgent(agent);
 
@@ -30,6 +28,7 @@ public class PreventTribeSplitEventMessage : PolityEventMessage {
         Agent leader = World.GetMemorableAgent(AgentId);
         FactionInfo splitClan = World.GetFactionInfo(SplitClanId);
 
-        return leader.Name.BoldText + ", leader of " + PolityInfo.GetNameAndTypeStringBold() + ", has prevented " + splitClan.GetNameAndTypeString() + " from leaving the tribe";
+        return leader.Name.BoldText + ", leader of " + PolityInfo.GetNameAndTypeStringBold() +
+            ", has prevented " + splitClan.GetNameAndTypeString() + " from leaving the tribe";
     }
 }

@@ -12,7 +12,7 @@ using System.Xml.Serialization;
 // -- Strength
 using UnityEngine.Profiling;
 
-public class Agent : ISynchronizable
+public class Agent : Identifiable
 {
     [System.Obsolete] //TODO: attributes now should be values between 0 and 1 instead of max 30
     public const int MaxAttributeValue = 30;
@@ -28,12 +28,6 @@ public class Agent : ISynchronizable
     [System.Obsolete] //TODO: attributes now should be values between 0 and 1 instead of max 30
     public const int WisdomAgeFactor = 5 * World.YearLength;
 
-    [XmlAttribute]
-    public long Id;
-
-    [XmlAttribute("Birth")]
-    public long BirthDate;
-
     [XmlAttribute("Fem")]
     public bool IsFemale;
 
@@ -47,12 +41,14 @@ public class Agent : ISynchronizable
     public bool StillPresent = true;
 
     [XmlAttribute("LanId")]
-    public long LanguageId;
+    public Identifier LanguageId;
 
     [XmlAttribute("RenId")]
-    public long BirthRegionInfoId;
+    public Identifier BirthRegionInfoId;
 
     public WorldPosition BirthCellPosition;
+
+    public long BirthDate => InitDate;
 
     [XmlIgnore]
     public World World;
@@ -84,23 +80,9 @@ public class Agent : ISynchronizable
         }
     }
 
-    [XmlIgnore]
-    public long Age
-    {
-        get
-        {
-            return World.CurrentDate - BirthDate;
-        }
-    }
+    public long Age => World.CurrentDate - BirthDate;
 
-    [XmlIgnore]
-    public int Charisma
-    {
-        get
-        {
-            return BaseCharisma;
-        }
-    }
+    public int Charisma => BaseCharisma;
 
     [XmlIgnore]
     public int Wisdom
@@ -135,13 +117,13 @@ public class Agent : ISynchronizable
         Language = birthGroup.Culture.Language;
         LanguageId = Language.Id;
 
-        BirthDate = birthDate;
-
-        idOffset += birthGroup.Id;
+        idOffset += birthGroup.GetHashCode();
 
         Profiler.BeginSample("new Agent - GenerateUniqueIdentifier");
 
-        Id = birthGroup.GenerateUniqueIdentifier(birthDate, 1000L, idOffset);
+        long initId = birthGroup.GenerateInitId(idOffset);
+
+        Init(birthDate, initId);
 
         Profiler.EndSample();
 
@@ -159,7 +141,7 @@ public class Agent : ISynchronizable
 
     private void GenerateBio(CellGroup birthGroup)
     {
-        int rngOffset = RngOffsets.AGENT_GENERATE_BIO + unchecked((int)Id);
+        int rngOffset = RngOffsets.AGENT_GENERATE_BIO + unchecked(GetHashCode());
 
         IsFemale = birthGroup.GetLocalRandomFloat(BirthDate, rngOffset++) > 0.5f;
         BaseCharisma = MinAttributeValue + birthGroup.GetLocalRandomInt(BirthDate, rngOffset++, AttributeGenMax);
@@ -189,10 +171,10 @@ public class Agent : ISynchronizable
         }
         else
         {
-            string article = 
+            string article =
                 ((association.Form == AssociationForms.DefiniteSingular) ||
                 (association.Form == AssociationForms.DefinitePlural) ||
-                (association.Form == AssociationForms.NameSingular)) ? 
+                (association.Form == AssociationForms.NameSingular)) ?
                 "the " : "";
 
             string uncountableProp = (association.Form == AssociationForms.Uncountable) ? "[un]" : "";
@@ -238,10 +220,10 @@ public class Agent : ISynchronizable
         }
         else
         {
-            string article = 
+            string article =
                 ((association.Form == AssociationForms.DefiniteSingular) ||
                 (association.Form == AssociationForms.DefinitePlural) ||
-                (association.Form == AssociationForms.NameSingular)) ? 
+                (association.Form == AssociationForms.NameSingular)) ?
                 "the " : "";
 
             string uncountableProp = (association.Form == AssociationForms.Uncountable) ? "[un]" : "";
@@ -273,7 +255,7 @@ public class Agent : ISynchronizable
 
     private void GenerateName()
     {
-        _rngOffset = RngOffsets.AGENT_GENERATE_NAME + unchecked((int)Id);
+        _rngOffset = RngOffsets.AGENT_GENERATE_NAME + unchecked(GetHashCode());
 
         Profiler.BeginSample("region.Elements.Where");
 
@@ -328,12 +310,10 @@ public class Agent : ISynchronizable
         Profiler.EndSample();
     }
 
-    public virtual void Synchronize()
+    public override void FinalizeLoad()
     {
-    }
+        base.FinalizeLoad();
 
-    public virtual void FinalizeLoad()
-    {
         BirthRegionInfo = World.GetRegionInfo(BirthRegionInfoId);
 
         if (BirthRegionInfo == null)
@@ -354,6 +334,10 @@ public class Agent : ISynchronizable
         {
             throw new System.Exception("Missing World Cell at Position " + BirthCellPosition);
         }
+    }
+
+    public override void Synchronize()
+    {
     }
 
     public string PossessiveNoun

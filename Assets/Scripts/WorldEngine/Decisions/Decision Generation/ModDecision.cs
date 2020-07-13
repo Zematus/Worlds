@@ -85,7 +85,7 @@ public class ModDecision : Context
     public override float GetNextRandomFloat(int iterOffset) =>
         _target.Faction.GetNextLocalRandomFloat(iterOffset);
 
-    public override int GetBaseOffset() => (int)_target.Faction.Id;
+    public override int GetBaseOffset() => _target.Faction.GetHashCode();
 
     public override void Reset()
     {

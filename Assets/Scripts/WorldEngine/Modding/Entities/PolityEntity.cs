@@ -79,7 +79,7 @@ public class PolityEntity : Entity
                 {
                     Polity polity = _polityEntity.Polity;
 
-                    int offset = (int)polity.Id + _iterOffset + Context.GetBaseOffset();
+                    int offset = polity.GetHashCode() + _iterOffset + Context.GetBaseOffset();
 
                     _group = polity.GetRandomGroup(offset);
 

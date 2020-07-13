@@ -89,14 +89,18 @@ public class CellCulturalPreference : CulturalPreference
         _newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
     }
 
-    public void AddPolityProminenceEffect(CulturalPreference polityPreference, PolityProminence polityProminence, long timeSpan)
+    public void AddPolityProminenceEffect(
+        CulturalPreference polityPreference, PolityProminence polityProminence, long timeSpan)
     {
         float targetValue = polityPreference.Value;
         float prominenceEffect = polityProminence.Value;
 
         TerrainCell groupCell = Group.Cell;
 
-        float randomEffect = groupCell.GetNextLocalRandomFloat(RngOffsets.PREFERENCE_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId));
+        int rngOffset = RngOffsets.PREFERENCE_POLITY_PROMINENCE + RngOffset +
+            unchecked(polityProminence.Polity.GetHashCode());
+
+        float randomEffect = groupCell.GetNextLocalRandomFloat(rngOffset);
 
         float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 

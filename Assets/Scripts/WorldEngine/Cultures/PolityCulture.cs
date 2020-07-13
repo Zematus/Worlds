@@ -41,7 +41,7 @@ public class PolityCulture : Culture
 
     private void GenerateNewLanguage()
     {
-        Language = new Language(Polity.GenerateUniqueIdentifier(World.CurrentDate, 100L, Polity.Id));
+        Language = new Language(World.CurrentDate, Polity.GenerateInitId(Polity.GetHashCode()));
 
         // Generate Articles
 

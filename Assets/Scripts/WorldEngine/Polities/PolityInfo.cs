@@ -13,20 +13,16 @@ public enum PolityType
     Tribe
 }
 
-public class PolityInfo : ISynchronizable, IKeyedValue<long>
+public class PolityInfo : Identifiable
 {
-    [XmlAttribute("D")]
-    public long FormationDate = -1;
-
     [XmlAttribute("T")]
 	public string Type;
 
-	[XmlAttribute]
-	public long Id;
-    
     public Name Name;
     
     public Polity Polity;
+
+    public long FormationDate => InitDate;
 
     private string _nameFormat;
 
@@ -37,12 +33,9 @@ public class PolityInfo : ISynchronizable, IKeyedValue<long>
 	
 	}
 
-	public PolityInfo(string type, long id, Polity polity)
+	public PolityInfo(Polity polity, string type, long initDate, long initId) :
+        base(initDate, initId)
     {
-        Id = id;
-
-        FormationDate = polity.World.CurrentDate;
-
         Polity = polity;
 
         SetType(type);
@@ -86,20 +79,17 @@ public class PolityInfo : ISynchronizable, IKeyedValue<long>
         return string.Format(_nameFormat, Name.BoldText);
     }
 
-    public long GetKey()
+    public override void FinalizeLoad()
     {
-        return Id;
-    }
+        base.FinalizeLoad();
 
-    public void FinalizeLoad()
-    {
         if (Polity != null)
             Polity.FinalizeLoad();
         
         SetType(Type);
     }
 
-    public void Synchronize()
+    public override void Synchronize()
     {
         if (Polity != null)
             Polity.Synchronize();

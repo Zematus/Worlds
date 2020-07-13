@@ -87,7 +87,8 @@ public class Tribe : Polity
         SetDominantFaction(clan);
     }
 
-    public Tribe(Clan triggerClan, Polity parentPolity) : base(PolityTypeStr, triggerClan.CoreGroup, triggerClan.Id)
+    public Tribe(Clan triggerClan, Polity parentPolity) :
+        base(PolityTypeStr, triggerClan.CoreGroup, triggerClan.GetHashCode())
     {
         triggerClan.ChangePolity(this, triggerClan.Influence);
 
@@ -349,7 +350,7 @@ public class Tribe : Polity
     {
         Region coreRegion = CoreGroup.Cell.Region;
 
-        _rngOffset = RngOffsets.TRIBE_GENERATE_NAME + unchecked((int)Id);
+        _rngOffset = RngOffsets.TRIBE_GENERATE_NAME + unchecked(GetHashCode());
 
         string tribeNoun = TribeNounVariations.RandomSelect(GetRandomInt).Text;
 

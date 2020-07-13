@@ -6,11 +6,8 @@ using System.Xml.Serialization;
 
 public abstract class PolityEvent : WorldEvent
 {
-    [XmlAttribute("PolId")]
-    public long PolityId;
-
-    [XmlAttribute("OFactId")]
-    public long OriginalDominantFactionId;
+    public Identifier PolityId;
+    public Identifier OriginalDominantFactionId;
 
     [XmlIgnore]
     public Polity Polity;
@@ -58,7 +55,7 @@ public abstract class PolityEvent : WorldEvent
             Debug.LogWarning("PolityEvent.GenerateUniqueIdentifier - 'triggerDate' is greater than " + World.MaxSupportedDate + " (triggerDate = " + triggerDate + ")");
         }
 
-        return (triggerDate * 1000000000L) + ((polity.Id % 1000000L) * 1000L) + eventTypeId;
+        return (triggerDate * 1000000000L) + ((polity.GetHashCode() % 1000000L) * 1000L) + eventTypeId;
     }
 
     public override bool IsStillValid()

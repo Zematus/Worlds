@@ -3,32 +3,32 @@ using System.Collections;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class HumanGroup : ISynchronizable {
+public abstract class HumanGroup : Identifiable
+{
+    [XmlAttribute("MT")]
+    public bool MigrationTagged;
 
-	[XmlAttribute("MT")]
-	public bool MigrationTagged;
+    [XmlIgnore]
+    public World World;
 
-	[XmlIgnore]
-	public World World;
+    public HumanGroup()
+    {
+    }
 
-	public HumanGroup () {
-	}
+    public HumanGroup(World world)
+    {
+        MigrationTagged = false;
 
-	public HumanGroup (World world) {
+        World = world;
+    }
 
-		MigrationTagged = false;
+    public override void FinalizeLoad()
+    {
+        base.FinalizeLoad();
 
-		World = world;
-	}
-
-	public virtual void Synchronize () {
-	}
-
-	public virtual void FinalizeLoad () {
-
-		if (MigrationTagged) {
-		
-			World.MigrationTagGroup (this);
-		}
-	}
+        if (MigrationTagged)
+        {
+            World.MigrationTagGroup(this);
+        }
+    }
 }

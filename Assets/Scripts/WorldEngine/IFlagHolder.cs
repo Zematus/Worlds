@@ -1,6 +1,4 @@
-﻿using System;
-
-public interface IFlagHolder
+﻿public interface IFlagHolder
 {
     void SetFlag(string flag);
     void UnsetFlag(string flag);

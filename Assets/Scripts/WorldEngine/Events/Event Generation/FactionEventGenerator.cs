@@ -52,7 +52,7 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
     public override float GetNextRandomFloat(int iterOffset) =>
         Target.Faction.GetNextLocalRandomFloat(iterOffset);
 
-    public override int GetBaseOffset() => (int)Target.Faction.Id;
+    public override int GetBaseOffset() => Target.Faction.GetHashCode();
 
     public bool TryGenerateEventAndAssign(
         Faction faction,

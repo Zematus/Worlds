@@ -5,26 +5,28 @@ using System.Xml;
 using System.Xml.Serialization;
 
 [System.Obsolete]
-public class PreventClanSplitEventMessage : FactionEventMessage {
+public class PreventClanSplitEventMessage : FactionEventMessage
+{
+    public Identifier AgentId;
 
-	[XmlAttribute]
-	public long AgentId;
+    public PreventClanSplitEventMessage()
+    {
 
-	public PreventClanSplitEventMessage () {
+    }
 
-	}
+    public PreventClanSplitEventMessage(Faction faction, Agent agent, long date) :
+        base(faction, WorldEvent.PreventClanSplitEventId, date)
+    {
+        faction.World.AddMemorableAgent(agent);
 
-	public PreventClanSplitEventMessage (Faction faction, Agent agent, long date) : base (faction, WorldEvent.PreventClanSplitEventId, date) {
+        AgentId = agent.Id;
+    }
 
-		faction.World.AddMemorableAgent (agent);
+    protected override string GenerateMessage()
+    {
+        Agent leader = World.GetMemorableAgent(AgentId);
 
-		AgentId = agent.Id;
-	}
-
-	protected override string GenerateMessage ()
-	{
-		Agent leader = World.GetMemorableAgent (AgentId);
-
-		return leader.Name.BoldText + " has prevented clan " +  FactionInfo.Name.BoldText + " from splitting";
-	}
+        return leader.Name.BoldText + " has prevented clan " +
+            FactionInfo.Name.BoldText + " from splitting";
+    }
 }

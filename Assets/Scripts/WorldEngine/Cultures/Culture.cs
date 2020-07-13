@@ -7,9 +7,8 @@ using UnityEngine.Profiling;
 
 public class Culture : ISynchronizable
 {
-    [XmlAttribute("LId")]
-    public long LanguageId = -1;
-    
+    public Identifier LanguageId;
+
     public List<CulturalPreference> Preferences = null;
     public List<CulturalActivity> Activities = null;
     public List<CulturalSkill> Skills = null;
@@ -80,7 +79,7 @@ public class Culture : ISynchronizable
             return;
 
         World.AddExistingCulturalPreferenceInfo(preference);
-        
+
         _preferences.Add(preference.Id, preference);
     }
 
@@ -92,7 +91,7 @@ public class Culture : ISynchronizable
     {
         if (!_preferences.ContainsKey(preference.Id))
             return;
-        
+
         _preferences.Remove(preference.Id);
     }
 
@@ -120,7 +119,7 @@ public class Culture : ISynchronizable
             return;
 
         World.AddExistingCulturalActivityInfo(activity);
-        
+
         _activities.Add(activity.Id, activity);
     }
 
@@ -128,7 +127,7 @@ public class Culture : ISynchronizable
     {
         if (!_activities.ContainsKey(activity.Id))
             return;
-        
+
         _activities.Remove(activity.Id);
     }
 
@@ -146,7 +145,7 @@ public class Culture : ISynchronizable
             return;
 
         World.AddExistingCulturalSkillInfo(skill);
-        
+
         _skills.Add(skill.Id, skill);
     }
 
@@ -154,7 +153,7 @@ public class Culture : ISynchronizable
     {
         if (!_skills.ContainsKey(skill.Id))
             return;
-        
+
         _skills.Remove(skill.Id);
     }
 
@@ -293,7 +292,7 @@ public class Culture : ISynchronizable
         value = 0;
 
         CulturalKnowledge knowledge = GetKnowledge(id);
-        
+
         if (knowledge != null)
         {
             value = knowledge.Value;
@@ -309,7 +308,7 @@ public class Culture : ISynchronizable
         scaledValue = 0;
 
         CulturalKnowledge knowledge = GetKnowledge(id);
-        
+
         if (knowledge != null)
         {
             scaledValue = knowledge.ScaledValue;
@@ -323,7 +322,7 @@ public class Culture : ISynchronizable
     public bool HasKnowledge(string id)
     {
         CulturalKnowledge knowledge = GetKnowledge(id);
-        
+
         if (knowledge != null)
             return true;
 
@@ -341,7 +340,7 @@ public class Culture : ISynchronizable
     public bool HasDiscovery(string id)
     {
         Discovery discovery = GetDiscovery(id);
-        
+
         if (discovery != null)
             return true;
 
@@ -383,7 +382,7 @@ public class Culture : ISynchronizable
 
     public virtual void FinalizeLoad()
     {
-        if (LanguageId != -1)
+        if (LanguageId != null)
         {
             Language = World.GetLanguage(LanguageId);
         }
