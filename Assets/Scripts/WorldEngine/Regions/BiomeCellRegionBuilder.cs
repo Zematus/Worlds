@@ -501,7 +501,7 @@ public static class BiomeCellRegionBuilder
     }
 
     // older versions of Generate Region (TODO: remove them)
-
+    [System.Obsolete]
     public static Region TryGenerateRegion_reduced(
         TerrainCell startCell, Language establishmentLanguage, string biomeId)
     {
@@ -600,6 +600,7 @@ public static class BiomeCellRegionBuilder
         return region;
     }
 
+    [System.Obsolete]
     public static Region TryGenerateRegion_original(TerrainCell startCell, Language establishmentLanguage, string biomeId)
     {
         int regionSize = 1;

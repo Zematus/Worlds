@@ -250,14 +250,10 @@ public class CellRegion : Region
         {
             CellPositions.Add(cell.Position);
         }
-
-        base.Synchronize();
     }
 
     public override void FinalizeLoad()
     {
-        base.FinalizeLoad();
-
         foreach (WorldPosition position in CellPositions)
         {
             TerrainCell cell = World.GetCell(position);
@@ -364,5 +360,10 @@ public class CellRegion : Region
     public override TerrainCell GetMostCenteredCell()
     {
         return _mostCenteredCell;
+    }
+
+    public override bool IsWithinRegion(TerrainCell cell)
+    {
+        return cell.Region == this;
     }
 }

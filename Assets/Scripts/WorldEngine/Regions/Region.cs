@@ -4,6 +4,7 @@ using System.Xml.Serialization;
 using System.Linq;
 
 [XmlInclude(typeof(CellRegion))]
+[XmlInclude(typeof(SuperRegion))]
 public abstract class Region : ISynchronizable
 {
     [XmlIgnore]
@@ -11,6 +12,9 @@ public abstract class Region : ISynchronizable
 
     [XmlIgnore]
     public bool IsSelected = false;
+
+    [XmlIgnore]
+    public Region Parent = null;
 
     [XmlIgnore]
     public float AverageAltitude;
@@ -57,16 +61,14 @@ public abstract class Region : ISynchronizable
     [XmlIgnore]
     public float WaterPercentage;
 
-    [XmlIgnore]
-    public long Id
+    public Identifier UniqueIndentifier
     {
         get
         {
-            return Info.Id;
+            return Info.UniqueIdentifier;
         }
     }
 
-    [XmlIgnore]
     public Name Name
     {
         get
@@ -75,7 +77,6 @@ public abstract class Region : ISynchronizable
         }
     }
 
-    [XmlIgnore]
     public Dictionary<string, RegionAttribute.Instance> Attributes
     {
         get
@@ -84,7 +85,6 @@ public abstract class Region : ISynchronizable
         }
     }
 
-    [XmlIgnore]
     public virtual List<Element.Instance> Elements
     {
         get
@@ -103,36 +103,51 @@ public abstract class Region : ISynchronizable
 
     protected Dictionary<string, float> _biomePresences;
 
+    private HashSet<Region> _subRegions = new HashSet<Region>();
+
     public Region()
     {
 
     }
 
-    public Region(TerrainCell originCell, Language language)
+    public Region(long date, long id, TerrainCell originCell, Language language)
     {
-        Info = new RegionInfo(this, originCell, language);
+        Info = new RegionInfo(date, id, this, originCell, language);
     }
 
+    [System.Obsolete]
     public void ResetInfo()
     {
-        RegionInfo newInfo = new RegionInfo(this, Info.OriginCell, Info.Language);
+        //RegionInfo newInfo = new RegionInfo(this, Info.OriginCell, Info.Language);
 
-        Info.Region = null; // Old region info object should no longer point to this region but remain in memory for further references
+        //Info.Region = null; // Old region info object should no longer point to this region but remain in memory for further references
 
-        Info = newInfo; // Replace info object with new one
+        //Info = newInfo; // Replace info object with new one
+    }
+
+    public bool IsEqualToOrDescentantFrom(Region region)
+    {
+        Region p = this;
+
+        while (p != null)
+        {
+            if (p == region) return true;
+
+            p = p.Parent;
+        }
+
+        return false;
     }
 
     public abstract ICollection<TerrainCell> GetCells();
 
     public abstract bool IsInnerBorderCell(TerrainCell cell);
 
-    public virtual void Synchronize()
-    {
-    }
+    public abstract bool IsWithinRegion(TerrainCell cell);
 
-    public virtual void FinalizeLoad()
-    {
-    }
+    public abstract void Synchronize();
+
+    public abstract void FinalizeLoad();
 
     public float GetBiomePresence(string biomeId)
     {
@@ -161,11 +176,6 @@ public abstract class Region : ISynchronizable
         //    startCell, establishmentLanguage, startCell.BiomeWithMostPresence);
 
         return region;
-    }
-
-    public string GetRandomAttributeVariation(GetRandomIntDelegate getRandomInt)
-    {
-        return Info.GetRandomAttributeVariation(getRandomInt);
     }
 
     public string GetRandomUnstranslatedAreaName(GetRandomIntDelegate getRandomInt, bool isNounAdjunct)
