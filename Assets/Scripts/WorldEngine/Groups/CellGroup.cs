@@ -2190,7 +2190,7 @@ public class CellGroup : HumanGroup, IFlagHolder
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         {
-            if (this == Manager.TracingData.GroupId)
+            if (Id == Manager.TracingData.GroupId)
             {
                 System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
@@ -2662,7 +2662,7 @@ public class CellGroup : HumanGroup, IFlagHolder
         {
             foreach (Faction faction in FactionCores.Values)
             {
-                if (faction.CoreGroupId != this)
+                if (faction.CoreGroupId != Id)
                 {
                     throw new System.Exception(
                         "Group identifies as faction core when it no longer is. Id: " + this +
@@ -2714,7 +2714,7 @@ public class CellGroup : HumanGroup, IFlagHolder
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         {
-            if (this == Manager.TracingData.GroupId)
+            if (Id == Manager.TracingData.GroupId)
             {
                 string groupId = "Id: " + this + " Pos: " + Position;
 

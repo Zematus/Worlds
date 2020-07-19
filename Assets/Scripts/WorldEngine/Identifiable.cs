@@ -48,24 +48,6 @@ public abstract class Identifiable : ISynchronizable
         return InitDate.ToString("D19") + ":" + InitId.ToString("D19");
     }
 
-    public override bool Equals(object obj)
-    {
-        return obj is Identifiable ident &&
-               InitDate == ident.InitDate &&
-               InitId == ident.InitId;
-    }
-
-    public bool Equals(string idString)
-    {
-        string[] parts = idString.Split(':');
-
-        if (!long.TryParse(parts[0], out long date)) return false;
-
-        if (!long.TryParse(parts[1], out long id)) return false;
-
-        return (InitDate == date) && (InitId == id);
-    }
-
     public override int GetHashCode()
     {
         int hashCode = 1805739105;
@@ -79,16 +61,6 @@ public abstract class Identifiable : ISynchronizable
     public virtual void FinalizeLoad()
     {
         _id = new Identifier(InitDate, InitId);
-    }
-
-    public static bool operator ==(Identifiable left, Identifiable right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(Identifiable left, Identifiable right)
-    {
-        return !(left == right);
     }
 
     public Identifier Id => _id;

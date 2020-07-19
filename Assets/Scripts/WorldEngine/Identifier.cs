@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-public class Identifier : Identifiable
+public class Identifier : Identifiable, System.IComparable
 {
     public Identifier()
     {
@@ -41,11 +41,48 @@ public class Identifier : Identifiable
         _id = this;
     }
 
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
     protected override void Init(long date, long id)
     {
         InitDate = date;
         InitId = id;
 
         _id = this;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null) return false;
+
+        return obj is Identifier ident &&
+               InitDate == ident.InitDate &&
+               InitId == ident.InitId;
+    }
+
+    public int CompareTo(object obj)
+    {
+        Identifier ident = obj as Identifier;
+
+        if (ident == null) throw new System.ArgumentNullException("identifier to compare can't be null");
+
+        int dateCompare = InitDate.CompareTo(ident.InitDate);
+
+        if (dateCompare != 0) return dateCompare;
+
+        return InitId.CompareTo(ident.InitId);
+    }
+
+    public static bool operator ==(Identifier left, Identifier right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Identifier left, Identifier right)
+    {
+        return !(left == right);
     }
 }

@@ -1594,7 +1594,7 @@ public class World : ISynchronizable
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
         {
-            if (group == Manager.TracingData.GroupId)
+            if (group.Id == Manager.TracingData.GroupId)
             {
                 System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
