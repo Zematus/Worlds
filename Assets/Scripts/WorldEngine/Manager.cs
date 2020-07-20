@@ -3317,6 +3317,10 @@ public class Manager
     private static Color GenerateColorFromId(Identifier id)
     {
         int mId = id.GetHashCode();
+        if (mId < 0)
+        {
+            mId = int.MaxValue + mId + 1;
+        }
 
         int primaryColor = mId % 3;
         float secondaryColorIntensity = ((mId / 3) % 4) / 3f;
@@ -3376,7 +3380,9 @@ public class Manager
                 break;
         }
 
-        return new Color(red, green, blue, 1.0f);
+        Color color = new Color(red, green, blue, 1.0f);
+
+        return color;
     }
 
     private static Color SetPolityContactsOverlayColor(TerrainCell cell, Color color)

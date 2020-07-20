@@ -67,7 +67,8 @@ public class Identifier : Identifiable, System.IComparable
     {
         Identifier ident = obj as Identifier;
 
-        if (ident == null) throw new System.ArgumentNullException("identifier to compare can't be null");
+        if (ident == null)
+            throw new System.ArgumentNullException("identifier to compare can't be null");
 
         int dateCompare = InitDate.CompareTo(ident.InitDate);
 
