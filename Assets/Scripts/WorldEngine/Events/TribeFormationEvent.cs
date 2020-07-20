@@ -136,11 +136,6 @@ public class TribeFormationEvent : CellGroupEvent
 
     protected override void DestroyInternal()
     {
-        //if (Group != null)
-        //{
-        //    Group.UnsetFlag(EventSetFlag);
-        //}
-
         if (Group != null)
         {
             Group.HasTribeFormationEvent = false;

@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
+﻿using System.Xml;
 using System.Xml.Serialization;
 
 public class CellGroupModEvent : CellGroupEvent
@@ -13,6 +10,10 @@ public class CellGroupModEvent : CellGroupEvent
 
     [XmlIgnore]
     public string EventSetFlag;
+
+    public CellGroupModEvent()
+    {
+    }
 
     public CellGroupModEvent(
         CellGroupEventGenerator generator,
@@ -74,6 +75,7 @@ public class CellGroupModEvent : CellGroupEvent
         base.FinalizeLoad();
 
         _generator = EventGenerator.GetGenerator(GeneratorId) as CellGroupEventGenerator;
+        EventSetFlag = _generator.EventSetFlag;
 
         if (_generator == null)
         {

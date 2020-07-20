@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
+﻿using System.Xml;
 using System.Xml.Serialization;
 
 public class FactionModEvent : FactionEvent
@@ -14,6 +11,10 @@ public class FactionModEvent : FactionEvent
 
     [XmlIgnore]
     public string EventSetFlag;
+
+    public FactionModEvent()
+    {
+    }
 
     public FactionModEvent(
         FactionEventGenerator generator,
@@ -75,6 +76,7 @@ public class FactionModEvent : FactionEvent
         base.FinalizeLoad();
 
         Generator = EventGenerator.GetGenerator(GeneratorId) as FactionEventGenerator;
+        EventSetFlag = Generator.EventSetFlag;
 
         if (Generator == null)
         {
