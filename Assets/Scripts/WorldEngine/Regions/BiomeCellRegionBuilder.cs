@@ -315,10 +315,12 @@ public static class BiomeCellRegionBuilder
         string biomeId,
         out HashSet<TerrainCell> addedCells,
         out Border outsideBorder,
+        out List<HashSet<TerrainCell>> unincorporatedEnclosedAreas,
         int abortSize = -1)
     {
         outsideBorder = null;
         addedCells = new HashSet<TerrainCell>();
+        unincorporatedEnclosedAreas = new List<HashSet<TerrainCell>>();
 
         Queue<TerrainCell> cellsToExplore = new Queue<TerrainCell>();
         HashSet<TerrainCell> exploredCells = new HashSet<TerrainCell>();
@@ -375,17 +377,18 @@ public static class BiomeCellRegionBuilder
         {
             if (border == outsideBorder) continue;
 
-            if (border.RectArea <= MaxEnclosedRectArea)
-            {
-                border.GetEnclosedCellSet(
-                    addedCells,
-                    out HashSet<TerrainCell> cellSet,
-                    out int area);
+            border.GetEnclosedCellSet(
+                addedCells,
+                out HashSet<TerrainCell> cellSet,
+                out int area);
 
-                if (area <= MinAreaSize)
-                {
-                    addedCells.UnionWith(cellSet);
-                }
+            if (area <= MinAreaSize)
+            {
+                addedCells.UnionWith(cellSet);
+            }
+            else
+            {
+                unincorporatedEnclosedAreas.Add(cellSet);
             }
         }
 
@@ -406,7 +409,8 @@ public static class BiomeCellRegionBuilder
 
         AddCellsWithinBiome(startCell, biomeId,
             out HashSet<TerrainCell> acceptedCells,
-            out Border outsideBorder);
+            out Border outsideBorder,
+            out List<HashSet<TerrainCell>> unincorporatedEnclosedAreas);
 
         HashSet<TerrainCell> cellsToSkip = new HashSet<TerrainCell>();
 
@@ -439,6 +443,7 @@ public static class BiomeCellRegionBuilder
                         borderBiomeId,
                         out HashSet<TerrainCell> newCells,
                         out Border newBorder,
+                        out List<HashSet<TerrainCell>> extraAreas,
                         minAreaSizeToUse);
 
                 cellsToSkip.UnionWith(newCells);
