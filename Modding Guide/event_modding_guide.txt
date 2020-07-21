@@ -6,7 +6,7 @@ must have the .json extension and have the following file structure:
 -- File Structure --
 
 {
-  "events": [ -- list of events --
+  "events": [                       -- list of events --
     {
       "id":                         -- (required) Unique event identifier (see note 2).
 
@@ -69,7 +69,7 @@ must have the .json extension and have the following file structure:
                                        to this event will be logged during the game
                                        execution.
     },
-    ... -- additional events --
+    ...                             -- additional events --
   ]
 }
 

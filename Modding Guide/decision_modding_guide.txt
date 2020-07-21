@@ -6,9 +6,9 @@ files must have the .json extension and have the following file structure:
 -- File Structure --
 
 {
-  "decisions": [ -- list of decisions --
+  "decisions": [                    -- list of decisions --
     {
-      "id":                         -- (required) Unique event identifier (see note 2).
+      "id":                         -- (required) Unique decision identifier (see note 2).
 
       "name":                       -- (required) Name of event.
 
@@ -34,11 +34,11 @@ files must have the .json extension and have the following file structure:
                                        - "boolean": a boolean value
 
       "properties":                 -- (optional) List of PROPERTIES that are available
-                                       to the event definition. Properties are predefined
-                                       values and expressions that can be reused in
-                                       different places within the definition. Please
-                                       read properties_guide.txt for more details on
-                                       how to define valid properties.
+                                       to the decision definition. Properties are
+                                       predefined values and expressions that can be
+                                       reused in different places within the definition.
+                                       Please read properties_guide.txt for more details
+                                       on how to define valid properties.
 
       "description":                -- (required) List of DESCRIPTION objects. These
                                        will be evaluated before a decision dialog is
@@ -57,7 +57,7 @@ files must have the .json extension and have the following file structure:
                                        read options_modding_guide.txt for more details
                                        on how to define decision option objects.
     },
-    ... -- additional decisions --
+    ...                             -- additional decisions --
   ]
 }
 
@@ -65,5 +65,5 @@ files must have the .json extension and have the following file structure:
 1. List of values must be enclosed within square brackets and separated by commas.
    Remove any trailing commas on any list enclosed by square brackets, or you'll
    get a JSON parsing error.
-2. Do not duplicate event ids unless you want to specifically replace another event
+2. Do not duplicate decision ids unless you want to specifically replace another decision
    already loaded.
