@@ -1,33 +1,69 @@
 ---- Decision Modding Guide ----
 
-Decision modding files are located within the 'Decisions' folder. To be valid, mod files must have the .json extension and have the following file structure:
+Decision modding files are located within the 'Decisions' folder. To be valid, mod
+files must have the .json extension and have the following file structure:
 
 -- File Structure --
 
 {
   "decisions": [ -- list of decisions --
     {
-      "id":                         -- (required) Unique decision identifier, if more than one definition share ids, only the last one loaded will be used
-      "name":                       -- (required) Name of decision
+      "id":                         -- (required) Unique event identifier (see note 2).
 
-      "gainConditions":             -- (optional) List of all conditions a cell group must meet to gain this discovery, separated by commas (see note #2)
-      "holdConditions":             -- (optional) List of all conditions a cell group must meet to hold onto this discovery, separated by commas (see note #2 and note #4)
+      "name":                       -- (required) Name of event.
 
-      "gainEffects":                -- (optional) List of all effects triggered on cell group upon gaining this discovery (see note #3)
-      "lossEffects":                -- (optional) List of all effects triggered on cell group upon losing this discovery (see note #3)
+      "target":                     -- (required) Target entity type for the event.
+                                       For now, the only acceptable value is "faction".
 
-      "eventTimeToTrigger":         -- (required) The base maximum amount of time that can pass before the related discovery event happens (value between 1 and 9,223,372,036,854,775,807 days).
-      "eventTimeToTriggerFactors":  -- (optional) List of factors that influence how long it will take for this discovery's event to trigger (see note #5)
+      "parameters":                 -- (optional) List of parameters that are required
+                                       by the decision to take place and which will
+                                       be supplied by the event triggering the decision.
+                                       Each parameter is a JSON object with an 'id'
+                                       and a 'type' attributes. 'id' has to be
+                                       unique within the decision and will be used
+                                       to obtain the parameter value. 'type' indicates
+                                       the type of value and can be any of the following:
+                                       - "group": a group entity value
+                                       - "faction": a faction entity value
+                                       - "polity": a polity entity value
+                                       - "cell": a cell entity value
+                                       - "agent": a agent entity value
+                                       - "string": a single word string value
+                                       - "text": a multi-word string value
+                                       - "number": a numeric value
+                                       - "boolean": a boolean value
+
+      "properties":                 -- (optional) List of PROPERTIES that are available
+                                       to the event definition. Properties are predefined
+                                       values and expressions that can be reused in
+                                       different places within the definition. Please
+                                       read properties_guide.txt for more details on
+                                       how to define valid properties.
+
+      "description":                -- (required) List of DESCRIPTION objects. These
+                                       will be evaluated before a decision dialog is
+                                       loaded to generate the body text within the
+                                       dialog. The texts extracted will be presented
+                                       in the same order as they appear on this list.
+                                       Please read description_modding_guide.txt for
+                                       more details on how to define decision description
+                                       objects.
+
+      "options":                    -- (required) List of OPTION objects. These will
+                                       be evaluated before a decision dialog is loaded
+                                       to generate the list of options to present to
+                                       the player. The options will appear in the
+                                       order they are defined on this list. Please
+                                       read options_modding_guide.txt for more details
+                                       on how to define decision option objects.
     },
-    ... -- additional discoveries --
+    ... -- additional decisions --
   ]
 }
 
 -- Notes --
-1. Remove any trailing commas or the file won't be parsed
-2. Refer to conditions_guide.txt for more details on how to define and use conditions
-3. Refer to effects_guide.txt for more details on how to define and use effects
-4. If a discovery no longer meets its hold conditions then it will be removed from the cell group. In which case, the gain conditions might get reevaluated and a subsequent discovery event reassigned to the group if possible
-5. Factors, once calculated, will be multiplied against the time-to-trigger base value of a discovery to calculate that maximum amount of time that can pass between the inception of an event and when it finally triggers. If a factor is zero, the time-to-trigger will be set to a minimum value (e.g. 1 day). Refer to factors_guide.txt for more details on how to define and use factors.
-
---
+1. List of values must be enclosed within square brackets and separated by commas.
+   Remove any trailing commas on any list enclosed by square brackets, or you'll
+   get a JSON parsing error.
+2. Do not duplicate event ids unless you want to specifically replace another event
+   already loaded.

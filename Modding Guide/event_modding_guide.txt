@@ -8,9 +8,9 @@ must have the .json extension and have the following file structure:
 {
   "events": [ -- list of events --
     {
-      "id":                         -- (required) Unique event identifier (see note 2)
+      "id":                         -- (required) Unique event identifier (see note 2).
 
-      "name":                       -- (required) Name of event
+      "name":                       -- (required) Name of event.
 
       "target":                     -- (required) Target entity type for the event.
                                        Has to be either "group" or "faction".
