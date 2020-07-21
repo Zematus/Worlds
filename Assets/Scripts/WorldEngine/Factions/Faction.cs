@@ -18,6 +18,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlAttribute("Inf")]
     public float InfluenceInternal;
 
+    [XmlIgnore]
     public float Influence
     {
         get
