@@ -45,7 +45,7 @@ files must have the .json extension and have the following file structure:
                                        loaded to generate the body text within the
                                        dialog. The texts extracted will be presented
                                        in the same order as they appear on this list.
-                                       Please read description_modding_guide.txt for
+                                       Please read descriptions_modding_guide.txt for
                                        more details on how to define decision description
                                        objects.
 
