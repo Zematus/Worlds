@@ -34,7 +34,7 @@
             {
               "id": "demand",
               "text": "The current leader of clan <<dominant_faction>> will receive a demand for infuence from clan <<target>>",
-              "result": "dominant_faction.trigger_decision(clan_decide_on_influence_demand_response, target)"
+              "result": "dominant_faction.trigger_decision(influence_demanded_from_clan, target)"
             }
           ]
         },
