@@ -395,6 +395,30 @@ public static class BiomeCellRegionBuilder
         return true;
     }
 
+    private static IEnumerable<Region> GenerateEnclosedRegions(
+        HashSet<TerrainCell> enclosedArea,
+        Language language)
+    {
+        HashSet<TerrainCell> testedCells = new HashSet<TerrainCell>();
+
+        foreach (TerrainCell cell in enclosedArea)
+        {
+            if (testedCells.Contains(cell)) continue;
+
+            Region region = TryGenerateRegion(cell, language);
+
+            if (region == null)
+            {
+                testedCells.Add(cell);
+                continue;
+            }
+
+            testedCells.UnionWith(region.GetCells());
+
+            yield return region;
+        }
+    }
+
     public static Region TryGenerateRegion(
         TerrainCell startCell,
         Language language)
@@ -410,7 +434,7 @@ public static class BiomeCellRegionBuilder
         AddCellsWithinBiome(startCell, biomeId,
             out HashSet<TerrainCell> acceptedCells,
             out Border outsideBorder,
-            out List<HashSet<TerrainCell>> unincorporatedEnclosedAreas);
+            out List<HashSet<TerrainCell>> enclosedAreas);
 
         HashSet<TerrainCell> cellsToSkip = new HashSet<TerrainCell>();
 
@@ -443,7 +467,7 @@ public static class BiomeCellRegionBuilder
                         borderBiomeId,
                         out HashSet<TerrainCell> newCells,
                         out Border newBorder,
-                        out List<HashSet<TerrainCell>> extraAreas,
+                        out List<HashSet<TerrainCell>> extraEnclosedAreas,
                         minAreaSizeToUse);
 
                 cellsToSkip.UnionWith(newCells);
@@ -452,6 +476,8 @@ public static class BiomeCellRegionBuilder
                 {
                     areasToMerge.Add(newCells);
                     bordersToMerge.Add(newBorder);
+
+                    enclosedAreas.AddRange(extraEnclosedAreas);
 
                     // reset min area to use
                     minAreaSizeToUse = MinAreaSize;
@@ -491,11 +517,34 @@ public static class BiomeCellRegionBuilder
             outsideBorder.Consolidate(acceptedCells);
         }
 
+        List<Region> innerRegions = new List<Region>();
+
+        foreach (HashSet<TerrainCell> enclosedArea in enclosedAreas)
+        {
+            foreach (Region innerRegion in GenerateEnclosedRegions(enclosedArea, language))
+            {
+                innerRegions.Add(innerRegion);
+            }
+        }
+
         CellRegion region = new CellRegion(startCell, language);
 
         region.AddCells(acceptedCells);
         region.EvaluateAttributes();
         region.Update();
+
+        // create a super region instead if there are inner regions
+        if (innerRegions.Count > 0)
+        {
+            SuperRegion superRegion = new SuperRegion(startCell, region, language);
+
+            foreach (Region innerRegion in innerRegions)
+            {
+                superRegion.Add(innerRegion);
+            }
+
+            return superRegion;
+        }
 
         return region;
     }

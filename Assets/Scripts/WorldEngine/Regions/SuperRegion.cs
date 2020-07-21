@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.Linq;
 
-public abstract class SuperRegion : Region
+public class SuperRegion : Region
 {
     public List<Identifier> SubRegionIds;
 
@@ -20,9 +20,18 @@ public abstract class SuperRegion : Region
 
     }
 
-    public SuperRegion(TerrainCell originCell, Region startRegion, Language language)
+    public SuperRegion(TerrainCell originCell, Region startSubRegion, Language language)
     {
-        Info = new RegionInfo(this, originCell, startRegion.GetHashCode(), language);
+        Info = new RegionInfo(this, originCell, startSubRegion.GetHashCode(), language);
+    }
+
+    public void Add(Region subRegion)
+    {
+        _subRegions.Add(subRegion);
+
+        _cells = null;
+        _innerBorderCells = null;
+        _mostCenteredCell = null;
     }
 
     private void RefreshCells()
