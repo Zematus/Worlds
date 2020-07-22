@@ -1689,7 +1689,7 @@ public class GuiManagerScript : MonoBehaviour
 
         string path = Path.Combine(Manager.ExportPath, imageName + ".png");
 
-        Manager.ExportMapTextureToFileAsync(path, MapScript.MapImage.uvRect);
+        Manager.ExportMapTextureToFileAsync(path, MapScript);
 
         _postProgressOp += PostProgressOp_ExportAction;
 
