@@ -105,6 +105,40 @@ public class MapScript : MonoBehaviour
         }
     }
 
+    public void RenderToTexture2D(Texture2D targetTexture)
+    {
+        Texture mapTexture = MapImage.texture;
+        Texture overlayTexture = MapOverlayImage.texture;
+
+        Rect uvRect = MapImage.uvRect;
+
+        RenderTexture renderTexture =
+            RenderTexture.GetTemporary(mapTexture.width, mapTexture.height);
+
+        // Material blit pass
+
+        Graphics.Blit(mapTexture, renderTexture, MapImage.material);
+        Graphics.Blit(overlayTexture, renderTexture, DefaultMaterial);
+
+        targetTexture.ReadPixels(
+            new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+        targetTexture.Apply();
+
+        // scale and offset blit pass
+
+        Graphics.Blit(
+            targetTexture,
+            renderTexture,
+            new Vector2(uvRect.width, uvRect.height),
+            new Vector2(uvRect.x, uvRect.y));
+
+        targetTexture.ReadPixels(
+            new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+        targetTexture.Apply();
+
+        RenderTexture.ReleaseTemporary(renderTexture);
+    }
+
     public void EnablePointerOverlay(bool state)
     {
         PointerOverlayImage.enabled = state;

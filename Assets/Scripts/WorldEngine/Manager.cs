@@ -934,13 +934,13 @@ public class Manager
 
     /// <summary>Generates a texture based on the current map and overlay and exports it to an image file.</summary>
     /// <param name="path">The target path and file to write the image to.</param>
-    /// <param name="uvRect">The texture offset to use when reading pixels from the map and overlay textures.</param>
-    public static void ExportMapTextureToFile(string path, Rect uvRect)
+    /// <param name="mapScript">The map script to use to generate the texture.</param>
+    public static void ExportMapTextureToFile(string path, MapScript mapScript)
     {
         Texture2D mapTexture = _manager._currentMapTexture;
         Texture2D overlayTexture = _manager._currentMapOverlayTexture;
         Texture2D exportTexture = null;
-        
+
         // Enqueue (and wait for) the operations that need to be executed in the 3D engine's main thread
         EnqueueTaskAndWait(() =>
         {
@@ -953,27 +953,7 @@ public class Manager
                     mapTexture.format,
                     false);
 
-            Debug.Log("ExportMapTextureToFile part 2, width: " + width);
-
-            int xOffset = (int)Mathf.Floor(uvRect.x * width);
-
-            for (int i = 0; i < width; i++)
-            {
-                for (int j = 0; j < height; j++)
-                {
-                    int finalX = (i + xOffset) % width;
-
-                    Color mapPixelColor = mapTexture.GetPixel(finalX, j);
-                    Color overlayPixelColor = overlayTexture.GetPixel(finalX, j);
-                    float overlayAlpha = overlayPixelColor.a;
-
-                    // paint overlay pixel color on top of map pixel color
-                    Color mixedColor = Color.Lerp(mapPixelColor, overlayPixelColor, overlayAlpha);
-                    mixedColor.a = 1; // make sure final color is not transparent
-
-                    exportTexture.SetPixel(i, j, mixedColor);
-                }
-            }
+            mapScript.RenderToTexture2D(exportTexture);
         });
 
         ManagerTask<byte[]> bytes = EnqueueTask(() => exportTexture.EncodeToPNG());
@@ -989,9 +969,9 @@ public class Manager
 
     /// <summary>Initializes a job to start an export map texture to image operation</summary>
     /// <param name="path">The target path and file to write the image to.</param>
-    /// <param name="uvRect">The texture offset to use when reading pixels from the map and overlay textures.</param>
+    /// <param name="mapScript">The map script to use to generate the texture.</param>
     /// <param name="progressCastMethod">handler for tracking the job's progress.</param>
-    public static void ExportMapTextureToFileAsync(string path, Rect uvRect, ProgressCastDelegate progressCastMethod = null)
+    public static void ExportMapTextureToFileAsync(string path, MapScript mapScript, ProgressCastDelegate progressCastMethod = null)
     {
         _manager._simulationRunning = false;
         _manager._performingAsyncTask = true;
@@ -1010,7 +990,7 @@ public class Manager
         {
             try
             {
-                ExportMapTextureToFile(path, uvRect);
+                ExportMapTextureToFile(path, mapScript);
             }
             catch (System.Exception e)
             {
