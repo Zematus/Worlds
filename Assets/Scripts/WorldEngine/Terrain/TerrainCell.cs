@@ -65,6 +65,8 @@ public class TerrainCell
 
     public const float HillinessSlopeFactor = 0.01f;
 
+    public const float TemperatureHoldOffFactor = 0.35f;
+
     public bool Modified = false; // This will be true if the cell has been modified after/during generation by using a heighmap, using the map editor, or by running the simulation
 
     public int Longitude;
@@ -86,10 +88,16 @@ public class TerrainCell
     public float Temperature;
     public float OriginalTemperature;
 
-    public float WaterAccumulation = 0;
-    public float Buffer = 0;
-    public float Buffer2 = 0;
-    public float Buffer3 = 0;
+    public struct RiverBuffers
+    {
+        public float DrainageTransfer;
+        public float TemperatureTransfer;
+        public float DirectionFactor;
+    }
+
+    public Dictionary<TerrainCell, RiverBuffers> FeedingCells =
+        new Dictionary<TerrainCell, RiverBuffers>();
+
     public int RiverId = -1;
     public float RiverLength = 0;
     public bool DrainageDone = true;
@@ -100,6 +108,25 @@ public class TerrainCell
         get
         {
             return WaterAccumulation - Rainfall;
+        }
+    }
+
+    public float WaterAccumulation
+    {
+        get
+        {
+            return _waterAccumulation;
+        }
+        set
+        {
+#if DEBUG
+            if (value > Biome.MaxBiomeFlowingWater)
+            {
+                Debug.LogWarning("Water accumulation at " + Position + " above max supported maximum: " + value);
+            }
+#endif
+
+            _waterAccumulation = Mathf.Min(Biome.MaxBiomeFlowingWater, value);
         }
     }
 
@@ -176,7 +203,10 @@ public class TerrainCell
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
     
     public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
+    public HashSet<TerrainCell> NeighborSet { get; private set; }
     public Dictionary<Direction, float> NeighborDistances { get; private set; }
+
+    private float _waterAccumulation = 0;
 
     private Dictionary<string, float> _biomePresences = new Dictionary<string, float>();
     private Dictionary<string, CellLayerData> _layerData = new Dictionary<string, CellLayerData>();
@@ -264,6 +294,68 @@ public class TerrainCell
         }
 
         return (((date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
+    }
+
+    /// <summary>
+    /// Adds the current buffer value to the cell's water accumulation and recalculates global maximum.
+    /// </summary>
+    public void UpdateDrainage()
+    {
+#if DEBUG
+        if ((Longitude == 229) && (Latitude == 133))
+        {
+            Debug.Log("Debugging cell " + Position);
+        }
+#endif
+
+        WaterAccumulation = Rainfall;
+
+        float tempAcc = 0;
+        float maxDrainTransfer = 0;
+
+        foreach (KeyValuePair<TerrainCell, RiverBuffers> pair in FeedingCells)
+        {
+            TerrainCell dCell = pair.Key;
+            RiverBuffers buffers = pair.Value;
+
+            WaterAccumulation += buffers.DrainageTransfer;
+            tempAcc += buffers.TemperatureTransfer;
+
+            if (maxDrainTransfer < buffers.DrainageTransfer)
+            {
+                maxDrainTransfer = buffers.DrainageTransfer;
+                RiverLength = dCell.RiverLength + buffers.DirectionFactor;
+                RiverId = dCell.RiverId;
+            }
+        }
+
+        World.MaxWaterAccumulation = Mathf.Max(World.MaxWaterAccumulation, WaterAccumulation);
+
+        if ((WaterAccumulation <= Rainfall) || (WaterAccumulation <= 0))
+        {
+            return;
+        }
+
+        // 'drain' temperature
+
+        tempAcc += OriginalTemperature * Rainfall;
+
+        float newTemp =
+            Mathf.Lerp(OriginalTemperature, tempAcc / WaterAccumulation, TemperatureHoldOffFactor);
+
+#if DEBUG
+        if (!newTemp.IsInsideRange(
+            World.MinPossibleTemperatureWithOffset - 0.5f,
+            World.MaxPossibleTemperatureWithOffset + 0.5f))
+        {
+            Debug.LogWarning("DrainModifyCell - Invalid newTemp: " + newTemp + ", position: " + Position);
+        }
+#endif
+
+        Temperature = Mathf.Clamp(
+            newTemp,
+            World.MinPossibleTemperatureWithOffset,
+            World.MaxPossibleTemperatureWithOffset);
     }
 
     public TerrainCellAlteration GetAlteration(bool regardless = false, bool addLayerData = true)
@@ -655,6 +747,7 @@ public class TerrainCell
     private void SetNeighborCells()
     {
         Neighbors = new Dictionary<Direction, TerrainCell>(8);
+        NeighborSet = new HashSet<TerrainCell>();
 
         int wLongitude = (World.Width + Longitude - 1) % World.Width;
         int eLongitude = (Longitude + 1) % World.Width;
@@ -675,6 +768,8 @@ public class TerrainCell
             Neighbors.Add(Direction.South, World.TerrainCells[Longitude][Latitude - 1]);
             Neighbors.Add(Direction.Southeast, World.TerrainCells[eLongitude][Latitude - 1]);
         }
+
+        NeighborSet.UnionWith(Neighbors.Values);
     }
 
     private bool FindIfCoastline()
