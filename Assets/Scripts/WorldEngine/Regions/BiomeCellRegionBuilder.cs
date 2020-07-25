@@ -419,6 +419,49 @@ public static class BiomeCellRegionBuilder
         }
     }
 
+    private struct BorderedArea
+    {
+        public HashSet<TerrainCell> EnclosedCells;
+        public Border EnclosingBorder;
+    }
+
+    private static List<BorderedArea> SplitArea(
+        HashSet<TerrainCell> cells,
+        Border border,
+        int maxAllowedLength)
+    {
+        List<BorderedArea> borderedAreas = new List<BorderedArea>();
+
+        int maxLength = Mathf.Max(border.RectHeight, border.RectWidth);
+
+        if (maxLength <= maxAllowedLength)
+        {
+            borderedAreas.Add(new BorderedArea()
+            {
+                EnclosedCells = cells,
+                EnclosingBorder = border
+            });
+
+            return borderedAreas;
+        }
+
+        if (maxLength == border.RectHeight)
+        {
+            int middleHeight = (border.Top.Latitude + border.Bottom.Latitude) / 2;
+
+            HashSet<TerrainCell> topCells = new HashSet<TerrainCell>();
+            HashSet<TerrainCell> bottomCells = new HashSet<TerrainCell>();
+
+            foreach (TerrainCell cell in cells)
+            {
+                if (cell.Latitude > middleHeight)   bottomCells.Add(cell);
+                else                                topCells.Add(cell);
+            }
+        }
+
+        return borderedAreas;
+    }
+
     public static Region TryGenerateRegion(
         TerrainCell startCell,
         Language language)
@@ -517,6 +560,7 @@ public static class BiomeCellRegionBuilder
             outsideBorder.Consolidate(acceptedCells);
         }
 
+        // Generate all inner regions
         List<Region> innerRegions = new List<Region>();
 
         foreach (HashSet<TerrainCell> enclosedArea in enclosedAreas)
@@ -527,6 +571,7 @@ public static class BiomeCellRegionBuilder
             }
         }
 
+        // Create main region
         CellRegion region = new CellRegion(startCell, language);
 
         region.AddCells(acceptedCells);
