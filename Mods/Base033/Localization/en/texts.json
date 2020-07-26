@@ -1,0 +1,10 @@
+{
+  "boat_making": "boat making",
+  "clan_demands_influence": "clan demands influence",
+  "clan_split": "clan split",
+  "clan_split_description_intro": "Several minor bands within clan <faction.name> have been distancing themselves from the rest of the clan, and now they desire to form their own clan.\n",
+  "clan_split_description_can_not_prevent_split_low_authority": "Unfortunately, <faction.leader.name> can't do anything about it as <faction.name> has not enough respect for authority.",
+  "clan_split_description_can_not_prevent_split_low_cohesion": "Unfortunately, <faction.leader.name> can't do anything about it as <faction.name> has not enough cohesion.",
+  "clan_split_description_can_not_prevent_split_high_administrative_load": "Unfortunately, <faction.leader.name> can't do anything about it as <faction.name> as the clan has grown too big.",
+  "clan_split_description_can_prevent_split": "Should the clan leader, <faction.leader.name>, try to reach out to them to keep them from splitting into their own clan?"
+}

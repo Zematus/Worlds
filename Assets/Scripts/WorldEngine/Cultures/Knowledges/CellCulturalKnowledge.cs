@@ -220,10 +220,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         foreach (ICellGroupEventGenerator generator in _referenceKnowledge.OnUpdateEventGenerators)
         {
-            if (generator.CanAssignEventTypeToGroup(Group))
-            {
-                generator.GenerateAndAssignEvent(Group);
-            }
+            generator.TryGenerateEventAndAssign(Group);
         }
     }
 

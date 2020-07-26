@@ -28,7 +28,7 @@ public abstract class CellGroupEventGeneratorEvent : CellGroupEvent
     {
         Generator = generator;
         GeneratorId = generator.GetEventGeneratorId();
-        EventSetFlag = generator.GetEventSetFlag();
+        EventSetFlag = generator.EventSetFlag;
 
         group.SetFlag(EventSetFlag);
     }

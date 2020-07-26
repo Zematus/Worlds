@@ -115,7 +115,7 @@ public class TribeFormationEvent : CellGroupEvent
         Tribe tribe = new Tribe(Group);
         tribe.Initialize();
 
-        World.AddPolityInfo(tribe.Info);
+        World.AddPolityInfo(tribe);
         World.AddPolityToUpdate(tribe);
 
         World.AddGroupToUpdate(Group);
@@ -136,11 +136,6 @@ public class TribeFormationEvent : CellGroupEvent
 
     protected override void DestroyInternal()
     {
-        //if (Group != null)
-        //{
-        //    Group.UnsetFlag(EventSetFlag);
-        //}
-
         if (Group != null)
         {
             Group.HasTribeFormationEvent = false;

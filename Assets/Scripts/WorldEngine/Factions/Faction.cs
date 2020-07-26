@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
+using System;
 
 [XmlInclude(typeof(Clan))]
-public abstract class Faction : ISynchronizable
+public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 {
     [XmlAttribute("PolId")]
     public long PolityId;
@@ -14,8 +15,31 @@ public abstract class Faction : ISynchronizable
     [XmlAttribute("CGrpId")]
     public long CoreGroupId;
 
-    [XmlAttribute("Prom")]
-    public float Influence;
+    [XmlAttribute("Inf")]
+    public float InfluenceInternal;
+
+    [XmlIgnore]
+    public float Influence
+    {
+        get
+        {
+            return InfluenceInternal;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                throw new System.Exception("Influence set to less than zero: " + value);
+            }
+
+            if (!Polity.IsBeingUpdated)
+            {
+                World.AddPolityToUpdate(Polity);
+            }
+
+            InfluenceInternal = value;
+        }
+    }
 
     [XmlAttribute("StilPres")]
     public bool StillPresent = true;
@@ -34,6 +58,11 @@ public abstract class Faction : ISynchronizable
 
     [XmlIgnore]
     public bool IsBeingUpdated = false;
+
+    public static List<IFactionEventGenerator> OnSpawnEventGenerators;
+    public static List<IFactionEventGenerator> OnStatusChangeEventGenerators;
+
+    public List<string> Flags;
 
     public FactionCulture Culture;
 
@@ -62,54 +91,60 @@ public abstract class Faction : ISynchronizable
     public CellGroup NewCoreGroup = null;
 
     [XmlIgnore]
-    public bool IsInitialized = true;
+    public bool IsInitialized = false;
+
+    [XmlIgnore]
+    public float AdministrativeLoad => _administrativeLoad.Value;
 
     // Use this instead to get the leader
-    public Agent CurrentLeader
-    {
-        get
-        {
-            return RequestCurrentLeader();
-        }
-    }
+    [XmlIgnore]
+    public Agent CurrentLeader => _currentLeader.Value;
 
-    public string Type
-    {
-        get { return Info.Type; }
-    }
+    public string Type => Info.Type;
 
-    public long Id
-    {
-        get { return Info.Id; }
-    }
+    public long Id => Info.Id;
 
-    public long FormationDate
-    {
-        get { return Info.FormationDate; }
-    }
+    public long FormationDate => Info.FormationDate;
 
-    public Name Name
-    {
-        get { return Info.Name; }
-    }
+    public Name Name => Info.Name;
 
+    public long CurrentDate => World.CurrentDate;
+
+    [Obsolete]
     protected long _splitFactionEventId;
+    [Obsolete]
     protected CellGroup _splitFactionCoreGroup;
+    [Obsolete]
     protected float _splitFactionMinInfluence;
+    [Obsolete]
     protected float _splitFactionMaxInfluence;
 
     protected Dictionary<long, FactionRelationship> _relationships = new Dictionary<long, FactionRelationship>();
 
     protected Dictionary<long, FactionEvent> _events = new Dictionary<long, FactionEvent>();
 
+    private readonly DatedValue<float> _administrativeLoad;
+    private readonly DatedValue<Agent> _currentLeader;
+
+    private HashSet<string> _flags = new HashSet<string>();
+
     private bool _preupdated = false;
+
+    private bool _statusChanged = false;
 
     public Faction()
     {
-
+        _administrativeLoad = new DatedValue<float>(this, CalculateAdministrativeLoad);
+        _currentLeader = new DatedValue<Agent>(this, RequestCurrentLeader);
     }
 
-    public Faction(string type, Polity polity, CellGroup coreGroup, float influence, Faction parentFaction = null)
+    public Faction(
+        string type,
+        Polity polity,
+        CellGroup coreGroup,
+        float influence,
+        Faction parentFaction = null)
+        : this()
     {
         World = polity.World;
 
@@ -139,13 +174,13 @@ public abstract class Faction : ISynchronizable
         Influence = influence;
 
         GenerateName(parentFaction);
-
-        IsInitialized = false;
     }
 
     public void Initialize()
     {
         InitializeInternal();
+
+        InitializeDefaultEvents();
 
         IsInitialized = true;
     }
@@ -153,6 +188,18 @@ public abstract class Faction : ISynchronizable
     protected virtual void InitializeInternal()
     {
 
+    }
+
+    protected abstract float CalculateAdministrativeLoad();
+
+    public virtual string GetName()
+    {
+        return Info.Name.Text;
+    }
+
+    public virtual string GetNameBold()
+    {
+        return Info.Name.BoldText;
     }
 
     public string GetNameAndTypeString()
@@ -268,6 +315,7 @@ public abstract class Faction : ISynchronizable
         return _relationships.ContainsKey(faction.Id);
     }
 
+    [Obsolete]
     public void SetToSplit(CellGroup splitFactionCoreGroup, float splitFactionMinInfluence, float splitFactionMaxInfluence, long eventId)
     {
         _splitFactionEventId = eventId;
@@ -329,6 +377,123 @@ public abstract class Faction : ISynchronizable
     protected abstract Agent RequestCurrentLeader();
     protected abstract Agent RequestNewLeader();
 
+    public static Faction CreateFaction(
+        string type,
+        Polity polity,
+        CellGroup coreGroup,
+        float influence,
+        Faction parentFaction = null)
+    {
+
+#if DEBUG //TODO: Make sure we don't need this in unit tests
+        if (parentFaction is TestFaction)
+        {
+            TestFaction testFaction =
+                new TestFaction(
+                    "clan",
+                    polity,
+                    coreGroup,
+                    influence,
+                    parentFaction,
+                    parentFaction.AdministrativeLoad);
+
+            testFaction.Culture.GetPreference("authority").Value =
+                parentFaction.Culture.GetPreference("authority").Value;
+            testFaction.Culture.GetPreference("cohesion").Value =
+                parentFaction.Culture.GetPreference("cohesion").Value;
+
+            return testFaction;
+        }
+#endif
+
+        switch (type)
+        {
+            case Clan.FactionType:
+                return new Clan(polity, coreGroup, influence, parentFaction);
+            default:
+                throw new Exception("Unhandled faction type: " + type);
+        }
+    }
+
+    public void Split(
+        string factionType,
+        CellGroup newFactionCoreGroup,
+        float influenceToTransfer,
+        float initialRelationshipValue)
+    {
+        Influence -= influenceToTransfer;
+
+        newFactionCoreGroup.SetToUpdate();
+        newFactionCoreGroup.SetToBecomeFactionCore();
+
+        if (newFactionCoreGroup == null)
+        {
+            throw new Exception("_splitFactionCoreGroup is null - Faction Id: " + Id);
+        }
+
+        float polityProminenceValue = newFactionCoreGroup.GetPolityProminenceValue(Polity);
+        PolityProminence highestPolityProminence = newFactionCoreGroup.HighestPolityProminence;
+
+        if (highestPolityProminence == null)
+        {
+            throw new Exception(
+                "highestPolityProminence is null - Faction Id: " + Id +
+                ", Group Id: " + newFactionCoreGroup.Id);
+        }
+
+        if (CurrentLeader == null)
+        {
+            throw new Exception("CurrentLeader is null - Faction Id: " + Id);
+        }
+
+        Polity newPolity = Polity;
+
+        if (newPolity == null)
+        {
+            throw new Exception("newPolity is null - Faction Id: " + Id);
+        }
+
+        // If the polity with the highest prominence is different than the source faction's polity and it's value is twice greater switch the new clan's polity to this one.
+        // NOTE: This is sort of a hack to avoid issues with faction/polity split coincidences (issue #8 github). Try finding a better solution...
+        if (highestPolityProminence.Value > (polityProminenceValue * 2))
+        {
+            newPolity = highestPolityProminence.Polity;
+        }
+
+        Faction newFaction =
+            CreateFaction(factionType, newPolity, newFactionCoreGroup, influenceToTransfer, this);
+
+        if (newFaction == null)
+        {
+            throw new Exception("newFaction is null - Faction Id: " + Id);
+        }
+
+#if DEBUG
+        Faction existingFaction = World.GetFaction(newFaction.Id);
+
+        if (existingFaction != null)
+        {
+            throw new Exception("faction Id already exists - new faction Id: " + newFaction.Id);
+        }
+#endif
+
+        newFaction.Initialize(); // We can initialize right away since the containing polity is already initialized
+
+        // set relationship within parent and child faction
+        SetRelationship(this, newFaction, initialRelationshipValue);
+
+        newPolity.AddFaction(newFaction);
+
+        World.AddFactionToUpdate(this);
+        World.AddFactionToUpdate(newFaction);
+
+        World.AddPolityToUpdate(newPolity);
+        World.AddPolityToUpdate(Polity);
+
+        newPolity.AddEventMessage(new FactionSplitEventMessage(this, newFaction, World.CurrentDate));
+    }
+
+    [Obsolete]
     public abstract void Split();
 
     public virtual void HandleUpdateEvent()
@@ -338,6 +503,16 @@ public abstract class Faction : ISynchronizable
 
     public void PreUpdate()
     {
+        if (!IsInitialized)
+        {
+            return;
+        }
+
+        if (_preupdated)
+        {
+            return;
+        }
+
         Profiler.BeginSample("Faction - PreUpdate");
 
 //#if DEBUG
@@ -371,7 +546,11 @@ public abstract class Faction : ISynchronizable
 
         if (World.FactionsHaveBeenUpdated && !IsBeingUpdated)
         {
-            Debug.LogWarning("Trying to  preupdate faction after factions have already been updated this iteration. Id: " + Id);
+            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+            Debug.LogWarning(
+                "Trying to  preupdate faction after or during faction update. Id: " +
+                Id + ", stackTrace:\n" + stackTrace);
         }
 
         if (!StillPresent)
@@ -383,14 +562,6 @@ public abstract class Faction : ISynchronizable
         {
             throw new System.Exception("Faction's polity is no longer present. Id: " + Id + " Polity Id: " + Polity.Id + ", Date: " + World.CurrentDate);
         }
-
-        if (_preupdated)
-        {
-            Profiler.EndSample();
-            return;
-        }
-
-        _preupdated = true;
 
         Profiler.BeginSample("RequestCurrentLeader");
 
@@ -413,6 +584,8 @@ public abstract class Faction : ISynchronizable
             Profiler.EndSample();
         }
 
+        _preupdated = true;
+
         Profiler.EndSample();
     }
 
@@ -425,13 +598,15 @@ public abstract class Faction : ISynchronizable
 
         PreUpdate();
 
+        _preupdated = false;
+
         UpdateInternal();
+
+        ValidateStatusChange();
 
         LastUpdateDate = World.CurrentDate;
 
         World.AddPolityToUpdate(Polity);
-
-        _preupdated = false;
 
         IsBeingUpdated = false;
     }
@@ -460,6 +635,8 @@ public abstract class Faction : ISynchronizable
 
     public virtual void Synchronize()
     {
+        Flags = new List<string>(_flags);
+
         EventDataList.Clear();
 
         foreach (FactionEvent e in _events.Values)
@@ -476,6 +653,11 @@ public abstract class Faction : ISynchronizable
     {
         Name.World = World;
         Name.FinalizeLoad();
+
+        foreach (string f in Flags)
+        {
+            _flags.Add(f);
+        }
 
         CoreGroup = World.GetGroup(CoreGroupId);
 
@@ -557,6 +739,8 @@ public abstract class Faction : ISynchronizable
     public virtual void SetDominant(bool state)
     {
         IsDominant = state;
+
+        SetStatusChange(true);
     }
 
     public void SetUnderPlayerGuidance(bool state)
@@ -620,5 +804,75 @@ public abstract class Faction : ISynchronizable
             return preference.Value;
 
         return 0;
+    }
+
+    public abstract float GetGroupWeight(CellGroup group);
+
+    public bool GroupCanBeCore(CellGroup group)
+    {
+        return GetGroupWeight(group) > 0;
+    }
+
+    public void SetFlag(string flag)
+    {
+        _flags.Add(flag);
+    }
+
+    public bool IsFlagSet(string flag)
+    {
+        return _flags.Contains(flag);
+    }
+
+    public void UnsetFlag(string flag)
+    {
+        _flags.Remove(flag);
+    }
+
+    public static void ResetEventGenerators()
+    {
+        OnSpawnEventGenerators = new List<IFactionEventGenerator>();
+        OnStatusChangeEventGenerators = new List<IFactionEventGenerator>();
+    }
+
+    private void InitializeOnSpawnEvents()
+    {
+        foreach (IFactionEventGenerator generator in OnSpawnEventGenerators)
+        {
+            generator.TryGenerateEventAndAssign(this);
+        }
+    }
+
+    public void SetStatusChange(bool state)
+    {
+        if (World.FactionsHaveBeenUpdated && !IsBeingUpdated)
+        {
+            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+            Debug.LogWarning(
+                "Trying to set faction's status change after or during faction update. Id: " +
+                Id + ", stackTrace:\n" + stackTrace);
+        }
+
+        _statusChanged = state;
+    }
+
+    private void ValidateStatusChange()
+    {
+        if (!_statusChanged)
+        {
+            return;
+        }
+
+        foreach (IFactionEventGenerator generator in OnStatusChangeEventGenerators)
+        {
+            generator.TryGenerateEventAndAssign(this);
+        }
+
+        _statusChanged = false;
+    }
+
+    public void InitializeDefaultEvents()
+    {
+        InitializeOnSpawnEvents();
     }
 }
