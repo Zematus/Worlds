@@ -12,13 +12,32 @@ public class CellSet
     public TerrainCell Left;
     public TerrainCell Right;
 
-    public int RectArea = 1;
-    public int RectWidth = 1;
-    public int RectHeight = 1;
+    public int RectArea = 0;
+    public int RectWidth = 0;
+    public int RectHeight = 0;
+
+    public int Area = 0;
+
+    public bool NeedsUpdate = false;
+
+    private bool _initialCellAdded = false;
 
     public void AddCell(TerrainCell cell)
     {
-        Cells.Add(cell);
+        if (!Cells.Add(cell)) return; // cell already present
+
+        Area++;
+
+        if (!_initialCellAdded)
+        {
+            Top = cell;
+            Bottom = cell;
+            Left = cell;
+            Right = cell;
+
+            _initialCellAdded = true;
+            return;
+        }
 
         if (((cell.Longitude - Left.Longitude) == -1) ||
             ((cell.Longitude - Left.Longitude - Manager.WorldWidth) == -1))
@@ -41,9 +60,11 @@ public class CellSet
         {
             Bottom = cell;
         }
+
+        NeedsUpdate = true;
     }
 
-    public void CalcRectangle()
+    public void Update()
     {
         int top = Top.Latitude;
         int bottom = Bottom.Latitude;
@@ -57,6 +78,10 @@ public class CellSet
         RectWidth = right - left + 1;
 
         RectArea = RectWidth * RectHeight;
+
+        Area = Cells.Count;
+
+        NeedsUpdate = false;
     }
 
     public bool IsCellEnclosed(TerrainCell cell)
@@ -139,5 +164,7 @@ public class CellSet
         {
             Right = sourceSet.Right;
         }
+
+        NeedsUpdate = true;
     }
 }

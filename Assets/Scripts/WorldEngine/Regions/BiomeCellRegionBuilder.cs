@@ -88,7 +88,7 @@ public static class BiomeCellRegionBuilder
             border.AddCell(cell);
         }
 
-        border.CalcRectangle();
+        border.Update();
 
         if (_largestBorderRectArea < border.RectArea)
         {
@@ -166,16 +166,15 @@ public static class BiomeCellRegionBuilder
 
             border.GetEnclosedCellSet(
                 addedCells,
-                out HashSet<TerrainCell> cellSet,
-                out int area);
+                out CellSet cellSet);
 
-            if (area <= MinAreaSize)
+            if (cellSet.Area <= MinAreaSize)
             {
-                addedCells.UnionWith(cellSet);
+                addedCells.UnionWith(cellSet.Cells);
             }
             else
             {
-                unincorporatedEnclosedAreas.Add(cellSet);
+                unincorporatedEnclosedAreas.Add(cellSet.Cells);
             }
         }
 

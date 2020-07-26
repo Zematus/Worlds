@@ -12,21 +12,14 @@ public class Border : CellSet
         Id = id;
         Cells = new HashSet<TerrainCell>();
 
-        Cells.Add(startCell);
-
-        Top = startCell;
-        Bottom = startCell;
-        Left = startCell;
-        Right = startCell;
+        AddCell(startCell);
     }
 
     public void GetEnclosedCellSet(
         HashSet<TerrainCell> outsideSet,
-        out HashSet<TerrainCell> set,
-        out int area)
+        out CellSet set)
     {
-        set = new HashSet<TerrainCell>();
-        area = 0;
+        set = new CellSet();
 
         HashSet<TerrainCell> exploredSet = new HashSet<TerrainCell>();
         exploredSet.UnionWith(outsideSet);
@@ -35,22 +28,18 @@ public class Border : CellSet
 
         toAdd.Enqueue(Top);
 
-        bool warn = true;
-
         while (toAdd.Count > 0)
         {
             TerrainCell cell = toAdd.Dequeue();
 
             if (!cell.IsLiquidSea)
             {
-                set.Add(cell);
-                area++;
+                set.AddCell(cell);
             }
 
-            if (warn && (area > RectArea))
+            if (cell.Area > RectArea)
             {
-                Debug.LogWarning("enclosed set greater than rect area");
-                warn = false;
+                throw new System.Exception("Border does not fully enclose inner area");
             }
 
             foreach (KeyValuePair<Direction, TerrainCell> pair in cell.Neighbors)
@@ -67,6 +56,8 @@ public class Border : CellSet
                 exploredSet.Add(nCell);
             }
         }
+
+        set.Update();
     }
 
     public void Consolidate(HashSet<TerrainCell> innerArea)
@@ -85,5 +76,7 @@ public class Border : CellSet
         {
             Cells.Remove(cell);
         }
+
+        Update();
     }
 }
