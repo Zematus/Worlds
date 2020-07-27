@@ -5,20 +5,6 @@ using System.Linq;
 
 public static class BiomeCellRegionBuilder
 {
-    // Notes:
-    // - find borders
-    // - after adding all possible cells to region check areas enclosed by borders
-    // --- if area smaller than a percentage of region, add to region
-    // ------ if the area contained a region, merge that region into larger region
-    // - neighbors are associated to borders
-    // - mark regions that are too small to be added to bigger bordering regions
-    // - jump over one cell wide areas
-    // - do not add to region one cell wide areas unless surrounded by ocean
-    // - create regions for areas adjacent to cell groups even if unhabited
-    // - a region size should be limited by the discovering polity exploration range
-    // - if a polity expands beyond a region border into unexplored ares then the new
-    //   areas should be added to the region if they are similar
-
     public const float BaseMaxAltitudeDifference = 1000;
     public const int AltitudeRoundnessTarget = 2000;
 
@@ -100,14 +86,14 @@ public static class BiomeCellRegionBuilder
     public static bool AddCellsWithinBiome(
         TerrainCell startCell,
         string biomeId,
-        out HashSet<TerrainCell> addedCells,
+        out CellSet addedCellSet,
         out Border outsideBorder,
-        out List<HashSet<TerrainCell>> unincorporatedEnclosedAreas,
+        out List<CellSet> unincorporatedEnclosedAreas,
         int abortSize = -1)
     {
         outsideBorder = null;
-        addedCells = new HashSet<TerrainCell>();
-        unincorporatedEnclosedAreas = new List<HashSet<TerrainCell>>();
+        addedCellSet = new CellSet();
+        unincorporatedEnclosedAreas = new List<CellSet>();
 
         Queue<TerrainCell> cellsToExplore = new Queue<TerrainCell>();
         HashSet<TerrainCell> exploredCells = new HashSet<TerrainCell>();
@@ -149,7 +135,7 @@ public static class BiomeCellRegionBuilder
                 exploredCells.Add(nCell);
             }
 
-            addedCells.Add(cell);
+            addedCellSet.AddCell(cell);
             addedCount++;
         }
 
@@ -165,18 +151,20 @@ public static class BiomeCellRegionBuilder
             if (border == outsideBorder) continue;
 
             border.GetEnclosedCellSet(
-                addedCells,
+                addedCellSet.Cells,
                 out CellSet cellSet);
 
             if (cellSet.Area <= MinAreaSize)
             {
-                addedCells.UnionWith(cellSet.Cells);
+                addedCellSet.Merge(cellSet);
             }
             else
             {
-                unincorporatedEnclosedAreas.Add(cellSet.Cells);
+                unincorporatedEnclosedAreas.Add(cellSet);
             }
         }
+
+        addedCellSet.Update();
 
         return true;
     }
@@ -206,43 +194,6 @@ public static class BiomeCellRegionBuilder
         }
     }
 
-    //private static List<BorderedArea> SplitArea(
-    //    HashSet<TerrainCell> cells,
-    //    Border border,
-    //    int maxAllowedLength)
-    //{
-    //    List<BorderedArea> borderedAreas = new List<BorderedArea>();
-
-    //    int maxLength = Mathf.Max(border.RectHeight, border.RectWidth);
-
-    //    if (maxLength <= maxAllowedLength)
-    //    {
-    //        borderedAreas.Add(new BorderedArea()
-    //        {
-    //            EnclosedCells = cells,
-    //            EnclosingBorder = border
-    //        });
-
-    //        return borderedAreas;
-    //    }
-
-    //    if (maxLength == border.RectHeight)
-    //    {
-    //        int middleHeight = (border.Top.Latitude + border.Bottom.Latitude) / 2;
-
-    //        HashSet<TerrainCell> topCells = new HashSet<TerrainCell>();
-    //        HashSet<TerrainCell> bottomCells = new HashSet<TerrainCell>();
-
-    //        foreach (TerrainCell cell in cells)
-    //        {
-    //            if (cell.Latitude > middleHeight)   bottomCells.Add(cell);
-    //            else                                topCells.Add(cell);
-    //        }
-    //    }
-
-    //    return borderedAreas;
-    //}
-
     public static Region TryGenerateRegion(
         TerrainCell startCell,
         Language language,
@@ -266,9 +217,9 @@ public static class BiomeCellRegionBuilder
         string biomeId = startCell.GetLocalAndNeighborhoodMostPresentBiome(true);
 
         AddCellsWithinBiome(startCell, biomeId,
-            out HashSet<TerrainCell> acceptedCells,
+            out CellSet acceptedCellSet,
             out Border outsideBorder,
-            out List<HashSet<TerrainCell>> enclosedAreas);
+            out List<CellSet> enclosedAreas);
 
         HashSet<TerrainCell> cellsToSkip = new HashSet<TerrainCell>();
 
@@ -284,7 +235,7 @@ public static class BiomeCellRegionBuilder
         // Add neighboring areas that are too small to be regions of their own
         while (attempt < maxAttempts)
         {
-            List<HashSet<TerrainCell>> areasToMerge = new List<HashSet<TerrainCell>>();
+            List<CellSet> areasToMerge = new List<CellSet>();
             List<Border> bordersToMerge = new List<Border>();
 
             bool hasAddedCells = false;
@@ -304,16 +255,16 @@ public static class BiomeCellRegionBuilder
                     AddCellsWithinBiome(
                         borderCell,
                         borderBiomeId,
-                        out HashSet<TerrainCell> newCells,
+                        out CellSet newCellSet,
                         out Border newBorder,
-                        out List<HashSet<TerrainCell>> extraEnclosedAreas,
+                        out List<CellSet> extraEnclosedAreas,
                         minAreaSizeToUse);
 
-                cellsToSkip.UnionWith(newCells);
+                cellsToSkip.UnionWith(newCellSet.Cells);
 
                 if (addedArea)
                 {
-                    areasToMerge.Add(newCells);
+                    areasToMerge.Add(newCellSet);
                     bordersToMerge.Add(newBorder);
 
                     enclosedAreas.AddRange(extraEnclosedAreas);
@@ -325,7 +276,7 @@ public static class BiomeCellRegionBuilder
                 hasAddedCells |= addedArea;
             }
 
-            bool bigEnough = acceptedCells.Count > MinAreaSize;
+            bool bigEnough = acceptedCellSet.Area > MinAreaSize;
 
             if (!hasAddedCells)
             {
@@ -349,9 +300,9 @@ public static class BiomeCellRegionBuilder
 
             attempt = 0;
 
-            foreach (HashSet<TerrainCell> area in areasToMerge)
+            foreach (CellSet area in areasToMerge)
             {
-                acceptedCells.UnionWith(area);
+                acceptedCellSet.Merge(area);
             }
 
             foreach (Border border in bordersToMerge)
@@ -359,36 +310,60 @@ public static class BiomeCellRegionBuilder
                 outsideBorder.Merge(border);
             }
 
-            outsideBorder.Consolidate(acceptedCells);
+            outsideBorder.Consolidate(acceptedCellSet.Cells);
         }
 
-        // Generate all inner regions
-        List<Region> innerRegions = new List<Region>();
+        // Generate all enclosed regions
+        List<Region> enclosedRegions = new List<Region>();
 
-        foreach (HashSet<TerrainCell> enclosedArea in enclosedAreas)
+        foreach (CellSet enclosedArea in enclosedAreas)
         {
-            foreach (Region innerRegion in
-                GenerateEnclosedRegions(enclosedArea, language, acceptedCells))
+            foreach (Region enclosedRegion in
+                GenerateEnclosedRegions(enclosedArea.Cells, language, acceptedCellSet.Cells))
             {
-                innerRegions.Add(innerRegion);
+                enclosedRegions.Add(enclosedRegion);
             }
         }
 
-        // Create main region
-        CellRegion region = new CellRegion(startCell, language);
+        _rngOffset = RngOffsets.REGION_SELECT_SUBSET_CELL;
+        _startCell = startCell;
 
-        region.AddCells(acceptedCells);
-        region.EvaluateAttributes();
-        region.Update();
+        Region region;
+        List<CellRegion> subRegions = new List<CellRegion>();
 
-        // create a super region instead if there are inner regions
-        if (innerRegions.Count > 0)
+        subRegions.AddRange(CellSubRegionSetBuilder.TryGenerateSubRegions(
+            GetRandomInt,
+            acceptedCellSet,
+            language));
+
+        if (subRegions.Count < 0)
+        {
+            throw new System.Exception("CellSubRegionSetBuilder generated 0 subregions");
+        }
+
+        region = subRegions[0];
+
+        // replace the region with a super region if there are more than one subregions
+        if (subRegions.Count > 0)
+        {
+            SuperRegion superRegion = new SuperRegion(startCell, subRegions[0], language);
+
+            for (int i = 1; i < subRegions.Count; i++)
+            {
+                superRegion.Add(subRegions[i]);
+            }
+
+            region = superRegion;
+        }
+
+        // create a super region if there are enclosed regions
+        if (enclosedRegions.Count > 0)
         {
             SuperRegion superRegion = new SuperRegion(startCell, region, language);
 
-            foreach (Region innerRegion in innerRegions)
+            foreach (Region enclosedRegion in enclosedRegions)
             {
-                superRegion.Add(innerRegion);
+                superRegion.Add(enclosedRegion);
             }
 
 #if DEBUG

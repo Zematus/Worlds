@@ -50,6 +50,7 @@ public static class RngOffsets
 
     public const int REGION_GENERATE_NAME = 60000;
     public const int REGION_SELECT_BORDER_REGION_TO_REPLACE_WITH = 61000;
+    public const int REGION_SELECT_SUBSET_CELL = 62000;
 
     public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
     public const int TRIBE_GENERATE_NAME = 71000;
@@ -3818,7 +3819,8 @@ public class World : ISynchronizable
         float thirdPartLength = 0.1f;
 
         HashSet<TerrainCell> queuedDrainCells = new HashSet<TerrainCell>();
-        BinaryHeap<TerrainCell> cellsToDrain = new BinaryHeap<TerrainCell>(TerrainCell.CompareOriginalAltitude, 500000);
+        BinaryHeap<TerrainCell> cellsToDrain =
+            new BinaryHeap<TerrainCell>(TerrainCell.CompareOriginalAltitude, 500000);
 
         int i = 0;
         int evalCount = _cellsToDrain.Count;

@@ -17,9 +17,9 @@ public class Border : CellSet
 
     public void GetEnclosedCellSet(
         HashSet<TerrainCell> outsideSet,
-        out CellSet set)
+        out CellSet cellSet)
     {
-        set = new CellSet();
+        cellSet = new CellSet();
 
         HashSet<TerrainCell> exploredSet = new HashSet<TerrainCell>();
         exploredSet.UnionWith(outsideSet);
@@ -34,7 +34,7 @@ public class Border : CellSet
 
             if (!cell.IsLiquidSea)
             {
-                set.AddCell(cell);
+                cellSet.AddCell(cell);
             }
 
             if (cell.Area > RectArea)
@@ -57,7 +57,7 @@ public class Border : CellSet
             }
         }
 
-        set.Update();
+        cellSet.Update();
     }
 
     public void Consolidate(HashSet<TerrainCell> innerArea)

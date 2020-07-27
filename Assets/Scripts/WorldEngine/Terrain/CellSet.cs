@@ -20,7 +20,7 @@ public class CellSet
 
     public bool NeedsUpdate = false;
 
-    private bool _initialCellAdded = false;
+    private bool _initialized = false;
 
     public void AddCell(TerrainCell cell)
     {
@@ -28,14 +28,14 @@ public class CellSet
 
         Area++;
 
-        if (!_initialCellAdded)
+        if (!_initialized)
         {
             Top = cell;
             Bottom = cell;
             Left = cell;
             Right = cell;
 
-            _initialCellAdded = true;
+            _initialized = true;
             return;
         }
 
@@ -166,5 +166,73 @@ public class CellSet
         }
 
         NeedsUpdate = true;
+    }
+
+    public static IEnumerable<CellSet> SplitIntoSubsets(
+        CellSet set,
+        int maxSetSideLength)
+    {
+        int maxLength = Mathf.Max(set.RectHeight, set.RectWidth);
+
+        if (maxLength <= maxSetSideLength)
+        {
+            yield return set;
+        }
+        else if (maxLength == set.RectHeight)
+        {
+            int middleHeight = (set.Top.Latitude + set.Bottom.Latitude) / 2;
+
+            CellSet topCellSet = new CellSet();
+            CellSet bottomCellSet = new CellSet();
+
+            foreach (TerrainCell cell in set.Cells)
+            {
+                if (cell.Latitude > middleHeight)
+                    bottomCellSet.AddCell(cell);
+                else
+                    topCellSet.AddCell(cell);
+            }
+
+            topCellSet.Update();
+            bottomCellSet.Update();
+
+            foreach (CellSet subset in SplitIntoSubsets(topCellSet, maxSetSideLength))
+            {
+                yield return subset;
+            }
+
+            foreach (CellSet subset in SplitIntoSubsets(bottomCellSet, maxSetSideLength))
+            {
+                yield return subset;
+            }
+        }
+        else
+        {
+            int middleWidth = (set.Left.Longitude + set.Right.Longitude) / 2;
+
+            CellSet leftCellSet = new CellSet();
+            CellSet rightCellSet = new CellSet();
+
+            foreach (TerrainCell cell in set.Cells)
+            {
+                if (cell.Longitude > middleWidth)
+                    rightCellSet.AddCell(cell);
+                else
+                    leftCellSet.AddCell(cell);
+            }
+
+            leftCellSet.Update();
+            rightCellSet.Update();
+
+            foreach (CellSet subset in SplitIntoSubsets(leftCellSet, maxSetSideLength))
+            {
+                yield return subset;
+            }
+
+            foreach (CellSet subset in SplitIntoSubsets(rightCellSet, maxSetSideLength))
+            {
+                yield return subset;
+            }
+        }
     }
 }
