@@ -5,7 +5,9 @@ using System.Linq;
 
 public class CellSet
 {
-    public HashSet<TerrainCell> Cells;
+    public World World;
+
+    public HashSet<TerrainCell> Cells = new HashSet<TerrainCell>();
 
     public TerrainCell Top;
     public TerrainCell Bottom;
@@ -18,6 +20,8 @@ public class CellSet
 
     public int Area = 0;
 
+    public bool WrapsAround = false;
+
     public bool NeedsUpdate = false;
 
     private bool _initialized = false;
@@ -28,8 +32,12 @@ public class CellSet
 
         Area++;
 
+        NeedsUpdate = true;
+
         if (!_initialized)
         {
+            World = cell.World;
+
             Top = cell;
             Bottom = cell;
             Left = cell;
@@ -39,16 +47,24 @@ public class CellSet
             return;
         }
 
-        if (((cell.Longitude - Left.Longitude) == -1) ||
-            ((cell.Longitude - Left.Longitude - Manager.WorldWidth) == -1))
+        if ((cell.Longitude - Left.Longitude) == -1)
         {
             Left = cell;
         }
+        else if ((cell.Longitude - Left.Longitude - Manager.WorldWidth) == -1)
+        {
+            Left = cell;
+            WrapsAround = true;
+        }
 
-        if (((cell.Longitude - Right.Longitude) == 1) ||
-            ((cell.Longitude - Right.Longitude + Manager.WorldWidth) == 1))
+        if ((cell.Longitude - Right.Longitude) == 1)
         {
             Right = cell;
+        }
+        else if ((cell.Longitude - Right.Longitude + Manager.WorldWidth) == 1)
+        {
+            Right = cell;
+            WrapsAround = true;
         }
 
         if ((cell.Latitude - Top.Latitude) == -1)
@@ -60,8 +76,6 @@ public class CellSet
         {
             Bottom = cell;
         }
-
-        NeedsUpdate = true;
     }
 
     public void Update()
@@ -72,7 +86,7 @@ public class CellSet
         int right = Right.Longitude;
 
         // adjust for world wrap
-        if (right < left) right += Manager.WorldWidth;
+        if (WrapsAround) right += Manager.WorldWidth;
 
         RectHeight = bottom - top + 1;
         RectWidth = right - left + 1;
@@ -92,7 +106,7 @@ public class CellSet
         int right = Right.Longitude;
 
         // adjust for world wrap
-        if (right < left) right += Manager.WorldWidth;
+        if (WrapsAround) right += Manager.WorldWidth;
 
         if (!cell.Latitude.IsInsideRange(top, bottom)) return false;
 
@@ -111,6 +125,8 @@ public class CellSet
     {
         Cells.UnionWith(sourceSet.Cells);
 
+        WrapsAround |= sourceSet.WrapsAround;
+
         if (Top.Latitude > sourceSet.Top.Latitude)
         {
             Top = sourceSet.Top;
@@ -126,7 +142,7 @@ public class CellSet
         bool sourceSetRightOffsetDone = false;
 
         int rigthLongitude = Right.Longitude;
-        if (Left.Longitude >= Right.Longitude)
+        if (WrapsAround)
         {
             rigthLongitude += Manager.WorldWidth;
             offsetNeeded = true;
@@ -134,7 +150,7 @@ public class CellSet
         }
 
         int sourceSetRigthLongitude = sourceSet.Right.Longitude;
-        if (sourceSet.Left.Longitude >= sourceSet.Right.Longitude)
+        if (sourceSet.WrapsAround)
         {
             sourceSetRigthLongitude += Manager.WorldWidth;
             offsetNeeded = true;
@@ -169,23 +185,39 @@ public class CellSet
     }
 
     public static IEnumerable<CellSet> SplitIntoSubsets(
-        CellSet set,
-        int maxSetSideLength)
+        CellSet cellSet,
+        int maxMajorLength,
+        int minMajorLength,
+        float maxScaleDiff,
+        float minRectAreaPercent)
     {
-        int maxLength = Mathf.Max(set.RectHeight, set.RectWidth);
+        Debug.Log("Spliting set with area: " + cellSet.Area + ", width: " +
+            cellSet.RectWidth + ", height: " + cellSet.RectHeight);
 
-        if (maxLength <= maxSetSideLength)
+        int majorLength = Mathf.Max(cellSet.RectHeight, cellSet.RectWidth);
+        int minorLength = Mathf.Min(cellSet.RectHeight, cellSet.RectWidth);
+        float scaleDiff = majorLength / (float)minorLength;
+        float rectAreaPercent = cellSet.Area / (float)cellSet.RectArea;
+        float percentFactor = Mathf.Max(0, rectAreaPercent - minRectAreaPercent) / (1 - minRectAreaPercent);
+
+        float acceptableMajorLength = Mathf.Lerp(minMajorLength, maxMajorLength, percentFactor);
+
+        if ((majorLength <= acceptableMajorLength) ||
+            ((majorLength <= maxMajorLength) &&
+            (scaleDiff < maxScaleDiff)))
         {
-            yield return set;
+            Debug.Log("Returning set with area: " + cellSet.Area);
+
+            yield return cellSet;
         }
-        else if (maxLength == set.RectHeight)
+        else if (majorLength == cellSet.RectHeight)
         {
-            int middleHeight = (set.Top.Latitude + set.Bottom.Latitude) / 2;
+            int middleHeight = (cellSet.Top.Latitude + cellSet.Bottom.Latitude) / 2;
 
             CellSet topCellSet = new CellSet();
             CellSet bottomCellSet = new CellSet();
 
-            foreach (TerrainCell cell in set.Cells)
+            foreach (TerrainCell cell in cellSet.Cells)
             {
                 if (cell.Latitude > middleHeight)
                     bottomCellSet.AddCell(cell);
@@ -196,24 +228,29 @@ public class CellSet
             topCellSet.Update();
             bottomCellSet.Update();
 
-            foreach (CellSet subset in SplitIntoSubsets(topCellSet, maxSetSideLength))
+            Debug.Log("topCellSet area: " + topCellSet.Area);
+            Debug.Log("bottomCellSet area: " + bottomCellSet.Area);
+
+            foreach (CellSet subset in SplitIntoSubsets(
+                topCellSet, maxMajorLength, minMajorLength, maxScaleDiff, minRectAreaPercent))
             {
                 yield return subset;
             }
 
-            foreach (CellSet subset in SplitIntoSubsets(bottomCellSet, maxSetSideLength))
+            foreach (CellSet subset in SplitIntoSubsets(
+                bottomCellSet, maxMajorLength, minMajorLength, maxScaleDiff, minRectAreaPercent))
             {
                 yield return subset;
             }
         }
         else
         {
-            int middleWidth = (set.Left.Longitude + set.Right.Longitude) / 2;
+            int middleWidth = (cellSet.Left.Longitude + cellSet.Right.Longitude) / 2;
 
             CellSet leftCellSet = new CellSet();
             CellSet rightCellSet = new CellSet();
 
-            foreach (TerrainCell cell in set.Cells)
+            foreach (TerrainCell cell in cellSet.Cells)
             {
                 if (cell.Longitude > middleWidth)
                     rightCellSet.AddCell(cell);
@@ -224,15 +261,59 @@ public class CellSet
             leftCellSet.Update();
             rightCellSet.Update();
 
-            foreach (CellSet subset in SplitIntoSubsets(leftCellSet, maxSetSideLength))
+            Debug.Log("leftCellSet area: " + leftCellSet.Area);
+            Debug.Log("rightCellSet area: " + rightCellSet.Area);
+
+            foreach (CellSet subset in SplitIntoSubsets(
+                leftCellSet, maxMajorLength, minMajorLength, maxScaleDiff, minRectAreaPercent))
             {
                 yield return subset;
             }
 
-            foreach (CellSet subset in SplitIntoSubsets(rightCellSet, maxSetSideLength))
+            foreach (CellSet subset in SplitIntoSubsets(
+                rightCellSet, maxMajorLength, minMajorLength, maxScaleDiff, minRectAreaPercent))
             {
                 yield return subset;
             }
         }
+    }
+
+    public WorldPosition GetCentroid()
+    {
+        int centroidLongitude = 0, centroidLatitude = 0;
+
+        foreach (TerrainCell cell in Cells)
+        {
+            centroidLongitude += cell.Longitude;
+            centroidLatitude += cell.Latitude;
+        }
+
+        centroidLongitude /= Cells.Count;
+        centroidLatitude /= Cells.Count;
+
+        return new WorldPosition(centroidLongitude, centroidLatitude);
+    }
+
+    public TerrainCell GetMostCenteredCell()
+    {
+        WorldPosition centroid = GetCentroid();
+
+        TerrainCell closestCell = null;
+        int closestDistCenter = int.MaxValue;
+
+        foreach (TerrainCell cell in Cells)
+        {
+            int distCenter =
+                Mathf.Abs(cell.Longitude - centroid.Longitude) +
+                Mathf.Abs(cell.Latitude - centroid.Latitude);
+
+            if ((closestCell == null) || (distCenter < closestDistCenter))
+            {
+                closestDistCenter = distCenter;
+                closestCell = cell;
+            }
+        }
+
+        return closestCell;
     }
 }

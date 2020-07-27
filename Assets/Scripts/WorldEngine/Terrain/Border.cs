@@ -10,16 +10,13 @@ public class Border : CellSet
     public Border(int id, TerrainCell startCell)
     {
         Id = id;
-        Cells = new HashSet<TerrainCell>();
 
         AddCell(startCell);
     }
 
-    public void GetEnclosedCellSet(
-        HashSet<TerrainCell> outsideSet,
-        out CellSet cellSet)
+    public CellSet GetEnclosedCellSet(HashSet<TerrainCell> outsideSet)
     {
-        cellSet = new CellSet();
+        CellSet cellSet = new CellSet();
 
         HashSet<TerrainCell> exploredSet = new HashSet<TerrainCell>();
         exploredSet.UnionWith(outsideSet);
@@ -37,7 +34,7 @@ public class Border : CellSet
                 cellSet.AddCell(cell);
             }
 
-            if (cell.Area > RectArea)
+            if (cellSet.Area > RectArea)
             {
                 throw new System.Exception("Border does not fully enclose inner area");
             }
@@ -57,7 +54,14 @@ public class Border : CellSet
             }
         }
 
+        if (cellSet.Area == 0)
+        {
+            return null;
+        }
+
         cellSet.Update();
+
+        return cellSet;
     }
 
     public void Consolidate(HashSet<TerrainCell> innerArea)

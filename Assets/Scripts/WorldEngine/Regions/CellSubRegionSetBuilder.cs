@@ -5,8 +5,16 @@ using System.Linq;
 
 public static class CellSubRegionSetBuilder
 {
-    public const int MaxSideLength = 25;
-    public const float AltitudeFactor = 5;
+    private static TerrainCell _startCell;
+    private static int _rngOffset;
+
+    public const int MaxMajorLength = 40;
+    public const int MinMajorLength = 5;
+    public const float MaxScaleDiff = 1.618f;
+    public const float MinRectAreaPercent = 0.4f;
+
+    public const float HillinessEffect = 50;
+    public const float AccessibilityPower = 4;
 
     public static int DistanceComparison(TerrainCell a, TerrainCell b)
     {
@@ -16,18 +24,26 @@ public static class CellSubRegionSetBuilder
         return 0;
     }
 
-    public static IEnumerable<CellRegion> TryGenerateSubRegions(
-        GetRandomIntDelegate getRandomInt,
+    private static IEnumerable<CellRegion> TryGenerateSubRegions(
         CellSet startingSet,
         Language language)
     {
         List<TerrainCell> startCells = new List<TerrainCell>();
 
+        // initialize temp buffers
+        foreach (TerrainCell cell in startingSet.Cells)
+        {
+            cell.DistanceBuffer = -1;
+            cell.ObjectBuffer = null;
+        }
+
         // first subdivide the starting set and obtain a random starting point
         // from each subset
-        foreach (CellSet subset in CellSet.SplitIntoSubsets(startingSet, MaxSideLength))
+        foreach (CellSet subset in CellSet.SplitIntoSubsets(
+            startingSet, MaxMajorLength, MinMajorLength, MaxScaleDiff, MinRectAreaPercent))
         {
-            startCells.Add(subset.Cells.RandomSelect(getRandomInt));
+            //startCells.Add(subset.Cells.RandomSelect(GetRandomInt));
+            startCells.Add(subset.GetMostCenteredCell());
         }
 
         HashSet<TerrainCell> addedCells = new HashSet<TerrainCell>();
@@ -41,7 +57,6 @@ public static class CellSubRegionSetBuilder
             CellSet subset = new CellSet();
 
             distHeap.Insert(startCell);
-            addedCells.Add(startCell);
 
             startCell.ObjectBuffer = subset;
         }
@@ -51,26 +66,42 @@ public static class CellSubRegionSetBuilder
         {
             TerrainCell cell = distHeap.Extract(false);
 
+            // skip cells that have already been added
+            if (addedCells.Contains(cell)) continue;
+
+            addedCells.Add(cell);
+
+            CellSet cellSet = cell.ObjectBuffer as CellSet;
+            cellSet.AddCell(cell);
+
             foreach (KeyValuePair<Direction, TerrainCell> pair in cell.Neighbors)
             {
                 TerrainCell nCell = pair.Value;
 
+                // dont add cells that are outside of starting set
+                if (!startingSet.Cells.Contains(nCell)) continue;
+
+                // skip cells that have already been added
                 if (addedCells.Contains(nCell)) continue;
 
-                float accessibilityFactor = 1 / (0.001f + nCell.BaseAccessibility);
+                float accessibilityEffect = (cell.Accessibility + nCell.BaseAccessibility) / 2f;
+                accessibilityEffect = Mathf.Pow(accessibilityEffect, AccessibilityPower);
+                float accessibilityFactor = 1 / (0.001f + accessibilityEffect);
 
-                float altitudeEffect = 1 + AltitudeFactor * Mathf.Abs(nCell.Altitude - cell.Altitude);
-                float cellDistance =
-                    nCell.NeighborDistances[pair.Key] * altitudeEffect * accessibilityFactor;
+                float avgHilliness = (cell.Hilliness + nCell.Hilliness) / 2f;
+                float hillinessFactor = 1 + HillinessEffect * avgHilliness;
 
-                nCell.DistanceBuffer = cell.DistanceBuffer + cellDistance;
+                float nCellDistance = cell.DistanceBuffer + 
+                    cell.NeighborDistances[pair.Key] * hillinessFactor * accessibilityFactor;
+
+                if ((nCell.DistanceBuffer != -1) && (nCell.DistanceBuffer <= nCellDistance))
+                    continue;
+
+                nCell.DistanceBuffer = nCellDistance;
                 distHeap.Insert(nCell);
-                addedCells.Add(nCell);
 
-                CellSet cellSet = cell.ObjectBuffer as CellSet;
-                cellSet.AddCell(nCell);
-
-                nCell.ObjectBuffer = cellSet;
+                // set nCell to become part of of the set to which cell belongs
+                nCell.ObjectBuffer = cell.ObjectBuffer;
             }
         }
 
@@ -87,5 +118,48 @@ public static class CellSubRegionSetBuilder
 
             yield return region;
         }
+    }
+
+    public static Region GenerateRegionFromCellSet(
+        TerrainCell startCell,
+        GetRandomIntDelegate getRandomInt,
+        CellSet cellSet,
+        Language language)
+    {
+        Region region;
+        List<CellRegion> subRegions = new List<CellRegion>();
+
+        _rngOffset = RngOffsets.REGION_SELECT_SUBSET_CELL;
+        _startCell = startCell;
+
+        // generate subregions
+        subRegions.AddRange(TryGenerateSubRegions(cellSet, language));
+
+        if (subRegions.Count < 0)
+        {
+            throw new System.Exception("CellSubRegionSetBuilder generated 0 subregions");
+        }
+
+        region = subRegions[0];
+
+        // replace the region with a super region if there are more than one subregions
+        if (subRegions.Count > 0)
+        {
+            SuperRegion superRegion = new SuperRegion(startCell, subRegions[0], language);
+
+            for (int i = 1; i < subRegions.Count; i++)
+            {
+                superRegion.Add(subRegions[i]);
+            }
+
+            region = superRegion;
+        }
+
+        return region;
+    }
+
+    private static int GetRandomInt(int maxValue)
+    {
+        return _startCell.GetNextLocalRandomInt(_rngOffset++, maxValue);
     }
 }

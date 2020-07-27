@@ -150,9 +150,9 @@ public static class BiomeCellRegionBuilder
         {
             if (border == outsideBorder) continue;
 
-            border.GetEnclosedCellSet(
-                addedCellSet.Cells,
-                out CellSet cellSet);
+            CellSet cellSet = border.GetEnclosedCellSet(addedCellSet.Cells);
+
+            if (cellSet == null) continue;
 
             if (cellSet.Area <= MinAreaSize)
             {
@@ -199,10 +199,6 @@ public static class BiomeCellRegionBuilder
         Language language,
         HashSet<TerrainCell> cellsToIgnore = null)
     {
-#if DEBUG
-        Debug.Log("Generating region from cell " + startCell.Position);
-#endif
-
         //if ((startCell.Latitude == 141) && (startCell.Longitude == 318))
         //{
         //    Debug.Log("Debugging TryGenerateRegion...");
@@ -213,6 +209,17 @@ public static class BiomeCellRegionBuilder
 
         if (startCell.Region != null)
             return null;
+
+#if DEBUG
+        string debugRegionStr = "region";
+
+        if (cellsToIgnore != null)
+        {
+            debugRegionStr = "enclosed region";
+        }
+
+        Debug.Log("Generating " + debugRegionStr + " from cell " + startCell.Position);
+#endif
 
         string biomeId = startCell.GetLocalAndNeighborhoodMostPresentBiome(true);
 
@@ -310,8 +317,22 @@ public static class BiomeCellRegionBuilder
                 outsideBorder.Merge(border);
             }
 
+            acceptedCellSet.Update();
             outsideBorder.Consolidate(acceptedCellSet.Cells);
         }
+
+        //// Create main region
+        //CellRegion region = new CellRegion(startCell, language);
+
+        //region.AddCells(acceptedCellSet.Cells);
+        //region.EvaluateAttributes();
+        //region.Update();
+
+        Region region = CellSubRegionSetBuilder.GenerateRegionFromCellSet(
+            startCell,
+            GetRandomInt,
+            acceptedCellSet,
+            language);
 
         // Generate all enclosed regions
         List<Region> enclosedRegions = new List<Region>();
@@ -325,37 +346,6 @@ public static class BiomeCellRegionBuilder
             }
         }
 
-        _rngOffset = RngOffsets.REGION_SELECT_SUBSET_CELL;
-        _startCell = startCell;
-
-        Region region;
-        List<CellRegion> subRegions = new List<CellRegion>();
-
-        subRegions.AddRange(CellSubRegionSetBuilder.TryGenerateSubRegions(
-            GetRandomInt,
-            acceptedCellSet,
-            language));
-
-        if (subRegions.Count < 0)
-        {
-            throw new System.Exception("CellSubRegionSetBuilder generated 0 subregions");
-        }
-
-        region = subRegions[0];
-
-        // replace the region with a super region if there are more than one subregions
-        if (subRegions.Count > 0)
-        {
-            SuperRegion superRegion = new SuperRegion(startCell, subRegions[0], language);
-
-            for (int i = 1; i < subRegions.Count; i++)
-            {
-                superRegion.Add(subRegions[i]);
-            }
-
-            region = superRegion;
-        }
-
         // create a super region if there are enclosed regions
         if (enclosedRegions.Count > 0)
         {
@@ -367,14 +357,14 @@ public static class BiomeCellRegionBuilder
             }
 
 #if DEBUG
-            Debug.Log("Finished generating super region from cell " + startCell.Position);
+            Debug.Log("Finished generating super " + debugRegionStr + " from cell " + startCell.Position);
 #endif
 
             return superRegion;
         }
 
 #if DEBUG
-        Debug.Log("Finished generating region from cell " + startCell.Position);
+        Debug.Log("Finished generating " + debugRegionStr + " from cell " + startCell.Position);
 #endif
 
         return region;
