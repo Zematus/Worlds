@@ -134,15 +134,6 @@ public abstract class Region : ISynchronizable
         Region region =
             BiomeCellRegionBuilder.TryGenerateRegion(startCell, establishmentLanguage);
 
-        //if (startCell.WaterBiomePresence >= 1)
-        //    return null;
-
-        //if (startCell.Region != null)
-        //    return null;
-
-        //Region region = BiomeCellRegionBuilder.TryGenerateRegion_original(
-        //    startCell, establishmentLanguage, startCell.BiomeWithMostPresence);
-
         return region;
     }
 

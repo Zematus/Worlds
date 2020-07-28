@@ -8,10 +8,10 @@ public static class CellSubRegionSetBuilder
     private static TerrainCell _startCell;
     private static int _rngOffset;
 
-    public const int MaxMajorLength = 40;
-    public const int MinMajorLength = 5;
+    public const int MaxMajorLength = 30;
+    public const int MinMajorLength = 20;
     public const float MaxScaleDiff = 1.618f;
-    public const float MinRectAreaPercent = 0.4f;
+    public const float MinRectAreaPercent = 0.6f;
 
     public const float HillinessEffect = 50;
     public const float AccessibilityPower = 4;
