@@ -36,9 +36,6 @@ public class CellGroup : HumanGroup, IFlagHolder
 
     public static List<ICellGroupEventGenerator> OnSpawnEventGenerators;
 
-    [XmlAttribute]
-    public long Id;
-
     [XmlAttribute("PMD")]
     public int PreferredMigrationDirectionInt;
 
@@ -50,9 +47,6 @@ public class CellGroup : HumanGroup, IFlagHolder
 
     [XmlAttribute("P")]
     public bool StillPresent = true;
-
-    [XmlAttribute("ID")]
-    public long InitDate;
 
     [XmlAttribute("LUD")]
     public long LastUpdateDate;
@@ -106,10 +100,6 @@ public class CellGroup : HumanGroup, IFlagHolder
     public bool HasPolityExpansionEvent = false;
     [XmlAttribute("PED")]
     public long PolityExpansionEventDate;
-    [XmlAttribute("EGId")]
-    public long ExpansionTargetGroupId;
-    [XmlAttribute("EPId")]
-    public long ExpandingPolityId;
 
     [XmlAttribute("TFEv")]
     public bool HasTribeFormationEvent = false;
@@ -123,6 +113,9 @@ public class CellGroup : HumanGroup, IFlagHolder
     [XmlAttribute("NvM")]
     public int NavigationRangeModifier = 0;
 
+    public Identifier ExpansionTargetGroupId;
+    public Identifier ExpandingPolityId;
+
     public Route SeaMigrationRoute = null;
 
     public List<string> Flags;
@@ -131,7 +124,7 @@ public class CellGroup : HumanGroup, IFlagHolder
 
     public List<string> Properties;
 
-    public List<long> FactionCoreIds;
+    public List<Identifier> FactionCoreIds;
 
     public List<PolityProminence> PolityProminences = null;
 
@@ -179,7 +172,7 @@ public class CellGroup : HumanGroup, IFlagHolder
     public Direction PreferredMigrationDirection;
 
     [XmlIgnore]
-    public Dictionary<long, Faction> FactionCores = new Dictionary<long, Faction>();
+    public Dictionary<Identifier, Faction> FactionCores = new Dictionary<Identifier, Faction>();
 
     [XmlIgnore]
     public UpdateCellGroupEvent UpdateEvent;
@@ -241,13 +234,16 @@ public class CellGroup : HumanGroup, IFlagHolder
     public PolityProminence HighestPolityProminence = null;
     //#endif
 
-    private Dictionary<long, PolityProminence> _polityProminences = new Dictionary<long, PolityProminence>();
+    private Dictionary<Identifier, PolityProminence> _polityProminences =
+        new Dictionary<Identifier, PolityProminence>();
 
     private CellUpdateType _cellUpdateType = CellUpdateType.None;
     private CellUpdateSubType _cellUpdateSubtype = CellUpdateSubType.None;
 
-    private HashSet<long> _polityProminencesToRemove = new HashSet<long>();
-    private Dictionary<long, PolityProminence> _polityProminencesToAdd = new Dictionary<long, PolityProminence>();
+    private HashSet<Identifier> _polityProminencesToRemove =
+        new HashSet<Identifier>();
+    private Dictionary<Identifier, PolityProminence> _polityProminencesToAdd =
+        new Dictionary<Identifier, PolityProminence>();
 
     private HashSet<string> _flags = new HashSet<string>();
 
@@ -278,7 +274,7 @@ public class CellGroup : HumanGroup, IFlagHolder
 
             if (population < 0)
             {
-                throw new System.Exception("Negative Population: " + population + ", Id: " + Id);
+                throw new System.Exception("Negative Population: " + population + ", Id: " + this);
             }
 
             return population;
@@ -305,10 +301,15 @@ public class CellGroup : HumanGroup, IFlagHolder
         }
     }
 
-    public CellGroup(World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null, Direction migrationDirection = Direction.Null) : base(world)
+    public CellGroup(
+        World world,
+        TerrainCell cell,
+        int initialPopulation,
+        Culture baseCulture = null,
+        Direction migrationDirection = Direction.Null) :
+        base(world)
     {
-        InitDate = World.CurrentDate;
-        LastUpdateDate = InitDate;
+        LastUpdateDate = World.CurrentDate;
 
         PreviousExactPopulation = 0;
         ExactPopulation = initialPopulation;
@@ -319,7 +320,7 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         Cell.Group = this;
 
-        Id = Cell.GenerateUniqueIdentifier(World.CurrentDate, 1L, 0);
+        Init(World.CurrentDate, Cell.GenerateInitId());
 
         if (migrationDirection == Direction.Null)
         {
@@ -523,9 +524,9 @@ public class CellGroup : HumanGroup, IFlagHolder
         return new CellGroupSnapshot(this);
     }
 
-    public long GenerateUniqueIdentifier(long date, long oom = 1L, long offset = 0L)
+    public long GenerateInitId(long idOffset = 0L)
     {
-        return Cell.GenerateUniqueIdentifier(date, oom, offset);
+        return Cell.GenerateInitId(idOffset);
     }
 
     public void SetHighestPolityProminence(PolityProminence prominence)
@@ -762,7 +763,8 @@ public class CellGroup : HumanGroup, IFlagHolder
 
     public void MergePolityProminence(PolityProminence sourcePolityProminence, float percentOfTarget)
     {
-        Dictionary<long, PolityProminence> targetPolityProminences = new Dictionary<long, PolityProminence>(_polityProminences);
+        Dictionary<Identifier, PolityProminence> targetPolityProminences =
+            new Dictionary<Identifier, PolityProminence>(_polityProminences);
 
         foreach (PolityProminence pi in _polityProminencesToAdd.Values)
         {
@@ -777,7 +779,8 @@ public class CellGroup : HumanGroup, IFlagHolder
 
     public void MergePolityProminences(List<PolityProminence> sourcePolityProminences, int sourceProminencesCount, float percentOfTarget)
     {
-        Dictionary<long, PolityProminence> targetPolityProminences = new Dictionary<long, PolityProminence>(_polityProminences);
+        Dictionary<Identifier, PolityProminence> targetPolityProminences =
+            new Dictionary<Identifier, PolityProminence>(_polityProminences);
 
         foreach (PolityProminence pi in _polityProminencesToAdd.Values)
         {
@@ -797,7 +800,10 @@ public class CellGroup : HumanGroup, IFlagHolder
         MergePolityProminencesInternal_Finalize(targetPolityProminences, percentOfTarget);
     }
 
-    private void MergePolityProminenceInternal_Add(PolityProminence sourcePolityProminence, Dictionary<long, PolityProminence> targetPolityProminences, float percentOfTarget)
+    private void MergePolityProminenceInternal_Add(
+        PolityProminence sourcePolityProminence,
+        Dictionary<Identifier, PolityProminence> targetPolityProminences,
+        float percentOfTarget)
     {
         Polity polity = sourcePolityProminence.Polity;
         float prominenceValue = sourcePolityProminence.Value;
@@ -838,7 +844,9 @@ public class CellGroup : HumanGroup, IFlagHolder
         SetPolityProminence(polity, newValue);
     }
 
-    private void MergePolityProminencesInternal_Finalize(Dictionary<long, PolityProminence> targetPolityProminences, float percentOfTarget)
+    private void MergePolityProminencesInternal_Finalize(
+        Dictionary<Identifier, PolityProminence> targetPolityProminences,
+        float percentOfTarget)
     {
         foreach (PolityProminence pProminence in targetPolityProminences.Values)
         {
@@ -2088,7 +2096,7 @@ public class CellGroup : HumanGroup, IFlagHolder
     {
         if (!StillPresent)
         {
-            Debug.LogWarning("Group is no longer present. Id: " + Id);
+            Debug.LogWarning("Group is no longer present. Id: " + this);
             return;
         }
 
@@ -2200,7 +2208,7 @@ public class CellGroup : HumanGroup, IFlagHolder
                 string callingClass = method.DeclaringType.ToString();
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "SetPolityUpdate - Group:" + Id,
+                    "SetPolityUpdate - Group Id: " + this,
                     "CurrentDate: " + World.CurrentDate +
                     ", forceUpdate: " + forceUpdate +
                     ", polity Id: " + p.Id +
@@ -2231,7 +2239,9 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         float chanceFactor = 1f / (float)groupCount;
 
-        float rollValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_SET_POLITY_UPDATE + unchecked((int)p.Id), registerForTesting: false);
+        int offset = RngOffsets.CELL_GROUP_SET_POLITY_UPDATE + unchecked(p.GetHashCode());
+
+        float rollValue = Cell.GetNextLocalRandomFloat(offset, registerForTesting: false);
 
         //#if DEBUG
         //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -2654,7 +2664,9 @@ public class CellGroup : HumanGroup, IFlagHolder
             {
                 if (faction.CoreGroupId != Id)
                 {
-                    Debug.LogError("Group identifies as faction core when it no longer is. Id: " + Id + ", CoreId: " + faction.CoreGroupId + ", current date: " + World.CurrentDate);
+                    throw new System.Exception(
+                        "Group identifies as faction core when it no longer is. Id: " + this +
+                        ", CoreId: " + faction.CoreGroupId + ", current date: " + World.CurrentDate);
                 }
             }
         }
@@ -2704,10 +2716,10 @@ public class CellGroup : HumanGroup, IFlagHolder
         {
             if (Id == Manager.TracingData.GroupId)
             {
-                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+                string groupId = "Id: " + this + " Pos: " + Position;
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "CalculateNextUpdateDate - Group:" + groupId,
+                    "CalculateNextUpdateDate - Group: " + groupId,
                     "CurrentDate: " + World.CurrentDate +
                     ", MigrationValue: " + MigrationValue +
                     ", TotalMigrationValue: " + TotalMigrationValue +
@@ -2984,7 +2996,7 @@ public class CellGroup : HumanGroup, IFlagHolder
     {
         TotalPolityProminenceValue = 0;
 
-        foreach (long polityId in _polityProminencesToRemove)
+        foreach (Identifier polityId in _polityProminencesToRemove)
         {
             PolityProminence polityProminence;
 
@@ -2992,7 +3004,9 @@ public class CellGroup : HumanGroup, IFlagHolder
             {
                 if (!_polityProminencesToAdd.TryGetValue(polityId, out polityProminence))
                 {
-                    Debug.LogWarning("Trying to remove nonexisting PolityProminence with id: " + polityId + " from group with id: " + Id);
+                    Debug.LogWarning(
+                        "Trying to remove nonexisting PolityProminence with id: " +
+                        polityId + " from group with id: " + this);
                 }
 
                 _polityProminencesToAdd.Remove(polityProminence.PolityId);
@@ -3104,7 +3118,8 @@ public class CellGroup : HumanGroup, IFlagHolder
 #if DEBUG
         if (TotalPolityProminenceValue > 1.0)
         {
-            Debug.LogWarning("Total Polity Prominence Value greater than 1: " + TotalPolityProminenceValue + ", Group Id: " + Id);
+            Debug.LogWarning("Total Polity Prominence Value greater than 1: " +
+                TotalPolityProminenceValue + ", Group Id: " + this);
         }
 #endif
 
@@ -3113,7 +3128,7 @@ public class CellGroup : HumanGroup, IFlagHolder
         {
             if (GetFactionCores().Count > 0)
             {
-                Debug.LogWarning("Group with no polity prominence has faction cores. Id: " + Id);
+                Debug.LogWarning("Group with no polity prominence has faction cores. Id: " + this);
             }
         }
 #endif
@@ -3129,7 +3144,7 @@ public class CellGroup : HumanGroup, IFlagHolder
     {
         TotalPolityProminenceValue = 0;
 
-        foreach (long polityId in _polityProminencesToRemove)
+        foreach (Identifier polityId in _polityProminencesToRemove)
         {
             PolityProminence pi;
 
@@ -3137,7 +3152,9 @@ public class CellGroup : HumanGroup, IFlagHolder
             {
                 if (!_polityProminencesToAdd.TryGetValue(polityId, out pi))
                 {
-                    Debug.LogWarning("Trying to remove nonexisting PolityProminence with id: " + polityId + " from group with id: " + Id);
+                    Debug.LogWarning(
+                        "Trying to remove nonexisting PolityProminence with id: " + polityId +
+                        " from group with id: " + this);
                 }
             }
             else
@@ -3165,7 +3182,9 @@ public class CellGroup : HumanGroup, IFlagHolder
 #if DEBUG
         if (TotalPolityProminenceValue > 1.0)
         {
-            Debug.LogWarning("Total Polity Prominence Value greater than 1: " + TotalPolityProminenceValue + ", Group Id: " + Id);
+            Debug.LogWarning(
+                "Total Polity Prominence Value greater than 1: " +
+                TotalPolityProminenceValue + ", Group Id: " + this);
         }
 #endif
 
@@ -3174,7 +3193,8 @@ public class CellGroup : HumanGroup, IFlagHolder
         {
             if (GetFactionCores().Count > 0)
             {
-                Debug.LogWarning("Group with no polity prominence has faction cores. Id: " + Id);
+                Debug.LogWarning(
+                    "Group with no polity prominence has faction cores. Id: " + this);
             }
         }
 #endif
@@ -3258,7 +3278,9 @@ public class CellGroup : HumanGroup, IFlagHolder
 
             if (WillBecomeFactionCore)
             {
-                throw new System.Exception("Group is set to become a faction core - group Id: " + Id + " - polity Id: " + polityProminence.PolityId + ", Date:" + World.CurrentDate);
+                throw new System.Exception(
+                    "Group is set to become a faction core - group Id: " + this +
+                    " - polity Id: " + polityProminence.PolityId + ", Date:" + World.CurrentDate);
             }
 
             _polityProminencesToRemove.Add(polityProminence.PolityId);
@@ -3434,11 +3456,9 @@ public class CellGroup : HumanGroup, IFlagHolder
             }
         }
 
-        FactionCoreIds = new List<long>(FactionCores.Keys);
+        FactionCoreIds = new List<Identifier>(FactionCores.Keys);
 
         PreferredMigrationDirectionInt = (int)PreferredMigrationDirection;
-
-        base.Synchronize();
     }
 
 #if DEBUG
@@ -3464,7 +3484,7 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         PreferredMigrationDirection = (Direction)PreferredMigrationDirectionInt;
 
-        foreach (long id in FactionCoreIds)
+        foreach (Identifier id in FactionCoreIds)
         {
             Faction faction = World.GetFaction(id);
 

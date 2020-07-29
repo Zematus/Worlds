@@ -82,12 +82,16 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         {
             if (Group.GetFactionCores().Count > 0)
             {
-                Debug.LogWarning("Group with low social organization has faction cores - Id: " + Group.Id + ", _newValue:" + _newValue);
+                Debug.LogWarning(
+                    "Group with low social organization has faction cores - Id: " +
+                    Group + ", _newValue:" + _newValue);
             }
 
             if (Group.WillBecomeFactionCore)
             {
-                Debug.LogWarning("Group with low social organization will become a faction core - Id: " + Group.Id + ", _newValue:" + _newValue);
+                Debug.LogWarning(
+                    "Group with low social organization will become a faction core - Id: " +
+                    Group + ", _newValue:" + _newValue);
             }
         }
 #endif

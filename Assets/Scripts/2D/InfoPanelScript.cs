@@ -45,7 +45,8 @@ public class InfoPanelScript : MonoBehaviour
                 (Manager.CurrentWorld.SelectedTerritory != null))
             {
                 InfoText.text += "\n";
-                InfoText.text += "\nSelected Territory's Polity Id: " + Manager.CurrentWorld.SelectedTerritory.Polity.Id;
+                InfoText.text += "\nSelected Territory's Polity Id: " +
+                    Manager.CurrentWorld.SelectedTerritory.Polity.Id;
             }
 
             InfoText.text += "\n";
@@ -85,7 +86,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\n";
         InfoText.text += "\n -- Cell Terrain Data -- ";
         InfoText.text += "\n";
-        
+
         InfoText.text += "\nArea: " + cellArea + " Km^2";
         InfoText.text += "\nAltitude: " + cell.Altitude + " meters";
         InfoText.text += "\nRainfall: " + cell.Rainfall + " mm / year";
@@ -150,7 +151,7 @@ public class InfoPanelScript : MonoBehaviour
         }
         else
         {
-            InfoText.text += "\nCell is part of Region #" + region.Id + ": " + region.Name;
+            InfoText.text += "\nCell is part of Region Id: " + region.Id + ", Name: " + region.Name;
         }
     }
 
@@ -170,7 +171,7 @@ public class InfoPanelScript : MonoBehaviour
         }
         else
         {
-            InfoText.text += "\nRegion #" + region.Id + ": " + region.Name;
+            InfoText.text += "\nRegion Id: " + region.Id + ", Name: " + region.Name;
         }
         InfoText.text += "\n";
         InfoText.text += "\nAttributes: ";
@@ -227,7 +228,7 @@ public class InfoPanelScript : MonoBehaviour
     {
         float cellArea = cell.Area;
         float farmlandPercentage = cell.FarmlandPercentage;
-        
+
         InfoText.text += "\n";
         InfoText.text += "\n -- Cell Farmland Distribution Data -- ";
         InfoText.text += "\n";
@@ -333,7 +334,7 @@ public class InfoPanelScript : MonoBehaviour
             return;
         }
 
-        InfoText.text += "\n\tPredominant language at location: " + groupLanguage.Id;
+        InfoText.text += "\n\tPredominant language at location: " + groupLanguage;
     }
 
     private void AddCellDataToInfoPanel_UpdateSpan(TerrainCell cell)
@@ -448,7 +449,7 @@ public class InfoPanelScript : MonoBehaviour
         }
 
         Territory territory = cell.EncompassingTerritory;
-        
+
         if (territory == null)
         {
             InfoText.text += "\n\tGroup not part of a polity's territory";
@@ -721,7 +722,7 @@ public class InfoPanelScript : MonoBehaviour
 
                 if (prominenceCluster != null)
                 {
-                    InfoText.text += "\n\t\tCluster: " + prominenceCluster.Id.ToString();
+                    InfoText.text += "\n\t\tCluster: " + prominenceCluster;
                 }
                 else
                 {

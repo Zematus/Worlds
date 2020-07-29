@@ -5,23 +5,20 @@ using System.Xml;
 using System.Xml.Serialization;
 
 [System.Obsolete]
-public class AcceptedClanInlfuenceDemandEventMessage : PolityEventMessage {
-
-	[XmlAttribute]
-	public long AgentId;
-
-	[XmlAttribute]
-	public long DemandClanId;
-
-	[XmlAttribute]
-	public long DominantClanId;
+public class AcceptedClanInlfuenceDemandEventMessage : PolityEventMessage
+{
+    public Identifier AgentId;
+    public Identifier DemandClanId;
+    public Identifier DominantClanId;
 
     public AcceptedClanInlfuenceDemandEventMessage()
     {
 
     }
 
-    public AcceptedClanInlfuenceDemandEventMessage(Tribe tribe, Clan dominantClan, Clan demandClan, Agent agent, long date) : base(tribe, WorldEvent.AcceptInfluenceDemandDecisionEventId, date)
+    public AcceptedClanInlfuenceDemandEventMessage(
+        Tribe tribe, Clan dominantClan, Clan demandClan, Agent agent, long date) :
+        base(tribe, WorldEvent.AcceptInfluenceDemandDecisionEventId, date)
     {
         tribe.World.AddMemorableAgent(agent);
 
@@ -36,6 +33,7 @@ public class AcceptedClanInlfuenceDemandEventMessage : PolityEventMessage {
         FactionInfo demandClanInfo = World.GetFactionInfo(DemandClanId);
         FactionInfo dominantClanInfo = World.GetFactionInfo(DominantClanId);
 
-        return leader.Name.BoldText + ", leader of " + dominantClanInfo.GetNameAndTypeStringBold() + ", has accepted the demand for influence from " + demandClanInfo.GetNameAndTypeStringBold();
+        return leader.Name.BoldText + ", leader of " + dominantClanInfo.GetNameAndTypeStringBold() +
+            ", has accepted the demand for influence from " + demandClanInfo.GetNameAndTypeStringBold();
     }
 }

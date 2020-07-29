@@ -20,7 +20,7 @@ public class CellRegion : Region
 
     }
 
-    public CellRegion(TerrainCell originCell, Language language) : base(originCell, language)
+    public CellRegion(TerrainCell originCell, Language language) : base(originCell, 0, language)
     {
 
     }
@@ -28,6 +28,14 @@ public class CellRegion : Region
     public void Update()
     {
         Manager.AddUpdatedCells(_cells, CellUpdateType.Region, CellUpdateSubType.Membership, IsSelected);
+    }
+
+    public void AddCells(IEnumerable<TerrainCell> cells)
+    {
+        foreach (TerrainCell cell in cells)
+        {
+            AddCell(cell);
+        }
     }
 
     public bool AddCell(TerrainCell cell)
@@ -151,7 +159,7 @@ public class CellRegion : Region
                     biomePresences.Add(biomeId, presenceArea);
                 }
             }
-            
+
             foreach (string biomeId in cell.PresentWaterBiomeIds)
             {
                 waterArea += cell.GetBiomePresence(biomeId) * cellArea;
@@ -242,14 +250,10 @@ public class CellRegion : Region
         {
             CellPositions.Add(cell.Position);
         }
-
-        base.Synchronize();
     }
 
     public override void FinalizeLoad()
     {
-        base.FinalizeLoad();
-
         foreach (WorldPosition position in CellPositions)
         {
             TerrainCell cell = World.GetCell(position);
@@ -356,5 +360,10 @@ public class CellRegion : Region
     public override TerrainCell GetMostCenteredCell()
     {
         return _mostCenteredCell;
+    }
+
+    public override bool IsWithinRegion(TerrainCell cell)
+    {
+        return cell.Region == this;
     }
 }

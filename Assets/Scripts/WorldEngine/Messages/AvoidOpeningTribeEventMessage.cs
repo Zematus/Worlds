@@ -6,17 +6,16 @@ using System.Xml.Serialization;
 
 public class AvoidOpeningTribeEventMessage : PolityEventMessage {
 
-	[XmlAttribute]
-	public long AgentId;
+	public Identifier AgentId;
 
-	[XmlAttribute]
-	public long TribeId;
+	public Identifier TribeId;
 
 	public AvoidOpeningTribeEventMessage () {
 
 	}
 
-	public AvoidOpeningTribeEventMessage (Tribe tribe, Agent agent, long date) : base (tribe, WorldEvent.AvoidOpenTribeDecisionEventId, date) {
+	public AvoidOpeningTribeEventMessage (Tribe tribe, Agent agent, long date) :
+		base (tribe, WorldEvent.AvoidOpenTribeDecisionEventId, date) {
 
 		tribe.World.AddMemorableAgent (agent);
 

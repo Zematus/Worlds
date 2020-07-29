@@ -110,7 +110,10 @@ public class CellCulturalActivity : CulturalActivity
 
         TerrainCell groupCell = Group.Cell;
 
-        float randomEffect = groupCell.GetNextLocalRandomFloat(RngOffsets.ACTIVITY_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId));
+        int rngOffset = RngOffsets.ACTIVITY_POLITY_PROMINENCE + RngOffset +
+            unchecked(polityProminence.Polity.GetHashCode());
+
+        float randomEffect = groupCell.GetNextLocalRandomFloat(rngOffset);
 
         float timeEffect = timeSpan / (timeSpan + TimeEffectConstant);
 

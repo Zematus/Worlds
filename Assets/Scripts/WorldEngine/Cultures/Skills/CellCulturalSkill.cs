@@ -182,7 +182,9 @@ public abstract class CellCulturalSkill : CulturalSkill
 
         TerrainCell groupCell = Group.Cell;
 
-        float randomEffect = groupCell.GetNextLocalRandomFloat(RngOffsets.SKILL_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId));
+        int randomOffset = RngOffsets.SKILL_POLITY_PROMINENCE + RngOffset + unchecked(polityProminence.Polity.GetHashCode());
+
+        float randomEffect = groupCell.GetNextLocalRandomFloat(randomOffset);
 
         float timeEffect = timeSpan / (timeSpan + timeEffectFactor);
 

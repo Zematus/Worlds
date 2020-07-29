@@ -8,12 +8,6 @@ using UnityEngine.Profiling;
 
 public delegate void ProgressCastDelegate(float value, string message = null, bool reset = false);
 
-public interface ISynchronizable
-{
-    void Synchronize();
-    void FinalizeLoad();
-}
-
 public static class RngOffsets
 {
     //public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET = 0;
@@ -56,6 +50,7 @@ public static class RngOffsets
 
     public const int REGION_GENERATE_NAME = 60000;
     public const int REGION_SELECT_BORDER_REGION_TO_REPLACE_WITH = 61000;
+    public const int REGION_SELECT_SUBSET_CELL = 62000;
 
     public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
     public const int TRIBE_GENERATE_NAME = 71000;
@@ -142,7 +137,8 @@ public enum GenerationType
 [XmlRoot]
 public class World : ISynchronizable
 {
-    public const long MaxSupportedDate = 9223372036L;
+    //public const long MaxSupportedDate = 9223372036L;
+    public const long MaxSupportedDate = long.MaxValue;
 
     public const int YearLength = 365;
 
@@ -390,9 +386,12 @@ public class World : ISynchronizable
     [XmlIgnore]
     public Dictionary<string, Discovery> ExistingDiscoveries = new Dictionary<string, Discovery>();
 
-    private Dictionary<long, FactionInfo> _factionInfos = new Dictionary<long, FactionInfo>();
-    private Dictionary<long, PolityInfo> _polityInfos = new Dictionary<long, PolityInfo>();
-    private Dictionary<long, RegionInfo> _regionInfos = new Dictionary<long, RegionInfo>();
+    private Dictionary<Identifier, FactionInfo> _factionInfos =
+        new Dictionary<Identifier, FactionInfo>();
+    private Dictionary<Identifier, PolityInfo> _polityInfos =
+        new Dictionary<Identifier, PolityInfo>();
+    private Dictionary<Identifier, RegionInfo> _regionInfos =
+        new Dictionary<Identifier, RegionInfo>();
 
     private BinaryTree<long, WorldEvent> _eventsToHappen = new BinaryTree<long, WorldEvent>();
 
@@ -403,7 +402,8 @@ public class World : ISynchronizable
     private HashSet<string> _culturalSkillIdList = new HashSet<string>();
     private HashSet<string> _culturalKnowledgeIdList = new HashSet<string>();
 
-    private Dictionary<long, CellGroup> _cellGroups = new Dictionary<long, CellGroup>();
+    private Dictionary<Identifier, CellGroup> _cellGroups =
+        new Dictionary<Identifier, CellGroup>();
 
     private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
@@ -414,7 +414,8 @@ public class World : ISynchronizable
 
     private List<MigratingGroup> _migratingGroups = new List<MigratingGroup>();
 
-    private Dictionary<long, Agent> _memorableAgents = new Dictionary<long, Agent>();
+    private Dictionary<Identifier, Agent> _memorableAgents =
+        new Dictionary<Identifier, Agent>();
 
     private HashSet<Faction> _factionsToSplit = new HashSet<Faction>();
     private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
@@ -424,7 +425,8 @@ public class World : ISynchronizable
     private HashSet<Polity> _politiesThatNeedClusterUpdate = new HashSet<Polity>();
     private HashSet<Polity> _politiesToRemove = new HashSet<Polity>();
 
-    private Dictionary<long, Language> _languages = new Dictionary<long, Language>();
+    private Dictionary<Identifier, Language> _languages =
+        new Dictionary<Identifier, Language>();
 
     private HashSet<long> _eventMessageIds = new HashSet<long>();
     private Queue<WorldEventMessage> _eventMessagesToShow = new Queue<WorldEventMessage>();
@@ -1542,7 +1544,7 @@ public class World : ISynchronizable
 
         if (!group.SourceGroup.StillPresent)
         {
-            Debug.LogWarning("Sourcegroup is no longer present. Group Id: " + group.SourceGroup.Id);
+            Debug.LogWarning("Sourcegroup is no longer present. Group Id: " + group.SourceGroup);
         }
 
         // Source Group needs to be updated
@@ -1573,7 +1575,7 @@ public class World : ISynchronizable
         CellGroupCount--;
     }
 
-    public CellGroup GetGroup(long id)
+    public CellGroup GetGroup(Identifier id)
     {
         CellGroup group;
 
@@ -1605,7 +1607,7 @@ public class World : ISynchronizable
                 string callingMethod2 = method.Name;
                 string callingClass2 = method.DeclaringType.ToString();
 
-                string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
+                string groupId = "Id: " + group + " Pos: " + group.Position;
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
                     "AddGroupToUpdate - Group:" + groupId,
@@ -1633,12 +1635,14 @@ public class World : ISynchronizable
 
         if (GroupsHaveBeenUpdated)
         {
-            Debug.LogWarning("Trying to add group to update after groups have already been updated this iteration. Id: " + group.Id);
+            Debug.LogWarning(
+                "Trying to add group to update after groups have already been updated this iteration. Id: " +
+                group);
         }
 
         if (!group.StillPresent)
         {
-            Debug.LogWarning("Group to update is no longer present. Id: " + group.Id);
+            Debug.LogWarning("Group to update is no longer present. Id: " + group);
         }
 
         _groupsToUpdate.Add(group);
@@ -1656,14 +1660,14 @@ public class World : ISynchronizable
         LanguageCount++;
     }
 
-    public void RemoveLanguage(Region language)
+    public void RemoveLanguage(Language language)
     {
         _languages.Remove(language.Id);
 
         LanguageCount--;
     }
 
-    public Language GetLanguage(long id)
+    public Language GetLanguage(Identifier id)
     {
         _languages.TryGetValue(id, out Language language);
 
@@ -1677,7 +1681,7 @@ public class World : ISynchronizable
         RegionCount++;
     }
 
-    public RegionInfo GetRegionInfo(long id)
+    public RegionInfo GetRegionInfo(Identifier id)
     {
         RegionInfo regionInfo;
 
@@ -1696,7 +1700,7 @@ public class World : ISynchronizable
         }
     }
 
-    public Agent GetMemorableAgent(long id)
+    public Agent GetMemorableAgent(Identifier id)
     {
         Agent agent;
 
@@ -1712,7 +1716,7 @@ public class World : ISynchronizable
         FactionCount++;
     }
 
-    public FactionInfo GetFactionInfo(long id)
+    public FactionInfo GetFactionInfo(Identifier id)
     {
         FactionInfo factionInfo = null;
 
@@ -1721,7 +1725,7 @@ public class World : ISynchronizable
         return factionInfo;
     }
 
-    public Faction GetFaction(long id)
+    public Faction GetFaction(Identifier id)
     {
         FactionInfo factionInfo;
 
@@ -1733,7 +1737,7 @@ public class World : ISynchronizable
         return factionInfo.Faction;
     }
 
-    public bool ContainsFactionInfo(long id)
+    public bool ContainsFactionInfo(Identifier id)
     {
         return _factionInfos.ContainsKey(id);
     }
@@ -1816,9 +1820,9 @@ public class World : ISynchronizable
         PolityCount++;
     }
 
-    public void AddPolityInfo(PolityInfo polityInfo)
+    public void AddPolityInfo(PolityInfo info)
     {
-        _polityInfos.Add(polityInfo.Id, polityInfo);
+        _polityInfos.Add(info.Id, info);
 
         PolityCount++;
     }
@@ -1828,7 +1832,7 @@ public class World : ISynchronizable
         return _polityInfos.Values;
     }
 
-    public PolityInfo GetPolityInfo(long id)
+    public PolityInfo GetPolityInfo(Identifier id)
     {
         if (!_polityInfos.TryGetValue(id, out PolityInfo polityInfo))
         {
@@ -1838,7 +1842,7 @@ public class World : ISynchronizable
         return polityInfo;
     }
 
-    public Polity GetPolity(long id)
+    public Polity GetPolity(Identifier id)
     {
         if (!_polityInfos.TryGetValue(id, out PolityInfo polityInfo))
         {
@@ -1980,9 +1984,9 @@ public class World : ISynchronizable
 
     private void LoadRegionInfos()
     {
-        foreach (RegionInfo r in RegionInfos)
+        foreach (RegionInfo rInfo in RegionInfos)
         {
-            _regionInfos.Add(r.Id, r);
+            _regionInfos.Add(rInfo.Id, rInfo);
         }
 
 #if DEBUG
@@ -2016,9 +2020,9 @@ public class World : ISynchronizable
 
     private void LoadLanguages()
     {
-        foreach (Language l in Languages)
+        foreach (Language language in Languages)
         {
-            _languages.Add(l.Id, l);
+            _languages.Add(language.Id, language);
         }
 
 #if DEBUG
@@ -2078,12 +2082,12 @@ public class World : ISynchronizable
             }
         }
 
-        foreach (CellGroup g in CellGroups)
+        foreach (CellGroup group in CellGroups)
         {
-            g.World = this;
-            g.PrefinalizeLoad();
+            group.World = this;
+            group.PrefinalizeLoad();
 
-            _cellGroups.Add(g.Id, g);
+            _cellGroups.Add(group.Id, group);
         }
 
         // Segment 2
@@ -2768,7 +2772,7 @@ public class World : ISynchronizable
 
         if ((justAdded || callByBrush) && resetDrainage)
         {
-            if (cell.Altitude > 0)
+            if (!cell.IsBelowSeaLevel)
             {
                 // Rainfall could have been altered after this cell had already been added to the drainageHeap,
                 // so we need to update the cell's water acc accordingly.
@@ -2795,7 +2799,7 @@ public class World : ISynchronizable
             GenerateTerrainBiomes(cell);
             CalculateTerrainArability(cell);
 
-            if (cell.Altitude > 0)
+            if (!cell.IsBelowSeaLevel)
             {
                 //AddToDrainageRegen(cell, callByBrush: true);
                 ResetDrainage(cell, false);
@@ -2836,7 +2840,7 @@ public class World : ISynchronizable
         GenerateTerrainBiomes(cell);
         CalculateTerrainArability(cell);
 
-        if (cell.Altitude > 0)
+        if (!cell.IsBelowSeaLevel)
         {
             //AddToDrainageRegen(cell, callByBrush: true);
             ResetDrainage(cell, false);
@@ -2867,7 +2871,7 @@ public class World : ISynchronizable
         GenerateTerrainBiomes(cell);
         CalculateTerrainArability(cell);
 
-        if (cell.Altitude > 0)
+        if (!cell.IsBelowSeaLevel)
         {
             //AddToDrainageRegen(cell, callByBrush: true);
             ResetDrainage(cell, false);
@@ -3757,6 +3761,19 @@ public class World : ISynchronizable
         }
     }
 
+    public IEnumerable<TerrainCell> GetCellsInRectangle(int longitude, int latitude, int width, int height)
+    {
+        TerrainCell[] cells = new TerrainCell[width * height];
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                yield return GetCellWithSphericalWrap(longitude + i, latitude + j);
+            }
+        }
+    }
+
     /// <summary>
     /// Sets the cells on which drainage is to be evaluated.
     /// </summary>
@@ -3802,7 +3819,8 @@ public class World : ISynchronizable
         float thirdPartLength = 0.1f;
 
         HashSet<TerrainCell> queuedDrainCells = new HashSet<TerrainCell>();
-        BinaryHeap<TerrainCell> cellsToDrain = new BinaryHeap<TerrainCell>(TerrainCell.CompareOriginalAltitude, 500000);
+        BinaryHeap<TerrainCell> cellsToDrain =
+            new BinaryHeap<TerrainCell>(TerrainCell.CompareOriginalAltitude, 500000);
 
         int i = 0;
         int evalCount = _cellsToDrain.Count;
@@ -3813,7 +3831,7 @@ public class World : ISynchronizable
         {
             cell.RiverId = cell.Latitude * Width + cell.Longitude;
 
-            if (cell.Altitude <= 0)
+            if (cell.IsBelowSeaLevel)
                 continue;
 
             cell.UpdateDrainage();
@@ -3907,7 +3925,7 @@ public class World : ISynchronizable
         if (rainfallTransfer <= 0)
             return 0;
 
-        if (cell.Altitude <= 0)
+        if (cell.IsBelowSeaLevel)
         {
             return Mathf.Max(rainfallTransfer * OceanDispersalFactor, MinOceanDispersal);
         }

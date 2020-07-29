@@ -51,7 +51,10 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
 
     public static long CalculateTriggerDate(Clan clan)
     {
-        float randomFactor = clan.GetNextLocalRandomFloat(RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_CALCULATE_TRIGGER_DATE + unchecked((int)clan.Id));
+        int rngOffset = RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_CALCULATE_TRIGGER_DATE +
+            unchecked(clan.GetHashCode());
+
+        float randomFactor = clan.GetNextLocalRandomFloat(rngOffset);
         randomFactor = Mathf.Pow(randomFactor, 2);
 
         float administrativeLoad = clan.AdministrativeLoad;

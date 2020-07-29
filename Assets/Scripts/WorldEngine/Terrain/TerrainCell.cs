@@ -103,6 +103,9 @@ public class TerrainCell
     public bool DrainageDone = true;
     public bool TerrainAlteredBeforeDrainageRegen = false;
 
+    public float DistanceBuffer;
+    public object ObjectBuffer;
+
     public float FlowingWater
     {
         get
@@ -135,13 +138,13 @@ public class TerrainCell
     public float BaseAccessibility;
     public float BaseArability;
     public float Hilliness;
-    
+
     public bool IsPartOfCoastline;
-    
+
     public float FarmlandPercentage = 0;
     public float Arability = 0;
     public float Accessibility = 0;
-    
+
     public string BiomeWithMostPresence = null;
     public float MostBiomePresence = 0;
 
@@ -156,16 +159,16 @@ public class TerrainCell
     public List<CellLayerData> LayerData = new List<CellLayerData>();
 
     public CellGroup Group;
-    
+
     public float Alpha;
     public float Beta;
-    
+
     public List<string> PresentWaterBiomeIds = new List<string>();
-    
+
     public float WaterBiomePresence = 0;
 
     private float? _neighborhoodWaterBiomePresence = null;
-    
+
     public float NeighborhoodWaterBiomePresence
     {
         get {
@@ -184,24 +187,24 @@ public class TerrainCell
     }
 
     public WorldPosition Position;
-    
+
     public Region Region = null;
-    
+
     public Territory EncompassingTerritory = null;
-    
+
     public List<Route> CrossingRoutes = new List<Route>();
-    
+
     public bool HasCrossingRoutes = false;
-    
+
     public float Area;
     public float MaxAreaPercent;
-    
+
     public World World;
-    
+
     public bool IsSelected = false;
-    
+
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
-    
+
     public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
     public HashSet<TerrainCell> NeighborSet { get; private set; }
     public Dictionary<Direction, float> NeighborDistances { get; private set; }
@@ -260,6 +263,36 @@ public class TerrainCell
         return Direction.Null;
     }
 
+    public static bool IsDiagonalDirection(Direction dir)
+    {
+        return ((dir == Direction.Northeast) ||
+            (dir == Direction.Northwest) ||
+            (dir == Direction.Southeast) ||
+            (dir == Direction.Southwest));
+    }
+
+    public bool IsBelowSeaLevel => Altitude <= 0;
+
+    public bool IsLiquidSea
+    {
+        get
+        {
+            if (!IsBelowSeaLevel) return false;
+
+            return GetBiomeTypePresence(BiomeTerrainType.Water) >= 1;
+        }
+    }
+
+    public IEnumerable<KeyValuePair<Direction, TerrainCell>> GetNonDiagonalNeighbors()
+    {
+        foreach (KeyValuePair<Direction, TerrainCell> pair in Neighbors)
+        {
+            if (IsDiagonalDirection(pair.Key)) continue;
+
+            yield return pair;
+        }
+    }
+
     public Direction TryGetNeighborDirection(int offset)
     {
         if (Neighbors.Count <= 0)
@@ -281,19 +314,13 @@ public class TerrainCell
         return Neighbors[TryGetNeighborDirection(offset)];
     }
 
-    public long GenerateUniqueIdentifier(long date, long oom = 1L, long offset = 0L)
+    public long GenerateInitId(long idOffset = 0L)
     {
-        if (oom > 1000L)
-        {
-            Debug.LogWarning("'oom' shouldn't be greater than 1000 (oom = " + oom + ")");
-        }
+        long id =
+            (((Longitude * (long)Manager.WorldHeight) + Latitude) * Manager.PosIdOffset) +
+            (idOffset % Manager.PosIdOffset);
 
-        if (date >= World.MaxSupportedDate)
-        {
-            Debug.LogWarning("TerrainCell.GenerateUniqueIdentifier - 'date' is greater than " + World.MaxSupportedDate + " (date = " + date + ")");
-        }
-
-        return (((date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
+        return id;
     }
 
     /// <summary>
@@ -526,6 +553,70 @@ public class TerrainCell
             MostBiomePresence = relPresence;
             BiomeWithMostPresence = biome.Id;
         }
+    }
+
+    public IEnumerable<KeyValuePair<string, float>> GetBiomePresencePairs()
+    {
+        for (int i = 0; i < PresentBiomeIds.Count; i++)
+        {
+            yield return
+                new KeyValuePair<string, float>(
+                    PresentBiomeIds[i],
+                    BiomePresences[i]);
+        }
+    }
+
+    public Dictionary<string, float> GetLocalAndNeighborhoodBiomePresences(
+        bool ignoreWaterType = false)
+    {
+        Dictionary<string, float> biomePresences = new Dictionary<string, float>();
+
+        foreach (KeyValuePair<string, float> pair in GetBiomePresencePairs())
+        {
+            if (ignoreWaterType && (Biome.Biomes[pair.Key].TerrainType == BiomeTerrainType.Water))
+                continue;
+
+            biomePresences[pair.Key] = pair.Value;
+        }
+
+        foreach (TerrainCell nCell in Neighbors.Values)
+        {
+            foreach (KeyValuePair<string, float> pair in nCell.GetBiomePresencePairs())
+            {
+                if (ignoreWaterType && (Biome.Biomes[pair.Key].TerrainType == BiomeTerrainType.Water))
+                    continue;
+
+                if (biomePresences.ContainsKey(pair.Key))
+                {
+                    biomePresences[pair.Key] += pair.Value;
+                }
+                else
+                {
+                    biomePresences[pair.Key] = pair.Value;
+                }
+            }
+        }
+
+        return biomePresences;
+    }
+
+    public string GetLocalAndNeighborhoodMostPresentBiome(
+        bool ignoreWaterType = false)
+    {
+        string mostPresent = null;
+        float maxPresence = -1;
+
+        foreach (KeyValuePair<string, float> pair in
+            GetLocalAndNeighborhoodBiomePresences(ignoreWaterType))
+        {
+            if (pair.Value > maxPresence)
+            {
+                maxPresence = pair.Value;
+                mostPresent = pair.Key;
+            }
+        }
+
+        return mostPresent;
     }
 
     public float GetBiomeTypePresence(BiomeTerrainType type)

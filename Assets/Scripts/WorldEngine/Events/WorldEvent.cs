@@ -68,6 +68,7 @@ public abstract class WorldEvent : ISynchronizable
     [XmlAttribute("SD")]
     public long SpawnDate;
 
+    // This Id doesn't need to be unique. but it helps if it is.
     [XmlAttribute]
     public long Id;
 

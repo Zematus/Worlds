@@ -5,10 +5,8 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class PolityProminence : IKeyedValue<long>
+public class PolityProminence// : IKeyedValue<Identifier>
 {
-    [XmlAttribute("PId")]
-    public long PolityId;
     [XmlAttribute("V")]
     public float Value;
     [XmlAttribute("FCT")]
@@ -17,6 +15,8 @@ public class PolityProminence : IKeyedValue<long>
     public float PolityCoreDistance;
     [XmlAttribute("AC")]
     public float AdministrativeCost;
+
+    public Identifier PolityId;
 
     [XmlIgnore]
     public float NewValue;
@@ -28,21 +28,13 @@ public class PolityProminence : IKeyedValue<long>
     [XmlIgnore]
     public PolityProminenceCluster Cluster;
 
-    //private bool _isMigratingGroup;
-
     [XmlIgnore]
     public Polity Polity;
 
     [XmlIgnore]
     public CellGroup Group;
 
-    public long Id
-    {
-        get
-        {
-            return Group.Id;
-        }
-    }
+    public Identifier Id => Group.Id;
 
     public PolityProminence()
     {
@@ -88,7 +80,7 @@ public class PolityProminence : IKeyedValue<long>
 
     public void Set(Polity polity, float value)
     {
-        PolityId = polity.Id;
+        PolityId = polity.Info.Id;
         Polity = polity;
         Value = MathUtility.RoundToSixDecimals(value);
         NewValue = Value;
@@ -119,8 +111,8 @@ public class PolityProminence : IKeyedValue<long>
         }
     }
 
-    public long GetKey()
-    {
-        return PolityId;
-    }
+    //public Identifier GetKey()
+    //{
+    //    return PolityId;
+    //}
 }

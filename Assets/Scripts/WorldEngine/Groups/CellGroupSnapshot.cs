@@ -8,7 +8,7 @@ using UnityEngine.Profiling;
 
 public class CellGroupSnapshot
 {
-    public long Id;
+    public Identifier Id;
 
     public bool HasMigrationEvent;
     public long MigrationEventDate;
@@ -17,27 +17,27 @@ public class CellGroupSnapshot
 
     public bool HasPolityExpansionEvent;
     public long PolityExpansionEventDate;
-    public long ExpansionTargetGroupId;
-    public long ExpandingPolityId;
+    public Identifier ExpansionTargetGroupId;
+    public Identifier ExpandingPolityId;
 
     public bool HasTribeFormationEvent;
     public long TribeFormationEventDate;
 
-    public CellGroupSnapshot(CellGroup c)
+    public CellGroupSnapshot(CellGroup group)
     {
-        Id = c.Id;
+        Id = group.Id;
 
-        HasMigrationEvent = c.HasMigrationEvent;
-        MigrationEventDate = c.MigrationEventDate;
-        MigrationTargetLongitude = c.MigrationTargetLongitude;
-        MigrationTargetLatitude = c.MigrationTargetLatitude;
+        HasMigrationEvent = group.HasMigrationEvent;
+        MigrationEventDate = group.MigrationEventDate;
+        MigrationTargetLongitude = group.MigrationTargetLongitude;
+        MigrationTargetLatitude = group.MigrationTargetLatitude;
 
-        HasPolityExpansionEvent = c.HasPolityExpansionEvent;
-        PolityExpansionEventDate = c.PolityExpansionEventDate;
-        ExpansionTargetGroupId = c.ExpansionTargetGroupId;
-        ExpandingPolityId = c.ExpandingPolityId;
+        HasPolityExpansionEvent = group.HasPolityExpansionEvent;
+        PolityExpansionEventDate = group.PolityExpansionEventDate;
+        ExpansionTargetGroupId = group.ExpansionTargetGroupId;
+        ExpandingPolityId = group.ExpandingPolityId;
 
-        HasTribeFormationEvent = c.HasTribeFormationEvent;
-        TribeFormationEventDate = c.TribeFormationEventDate;
+        HasTribeFormationEvent = group.HasTribeFormationEvent;
+        TribeFormationEventDate = group.TribeFormationEventDate;
     }
 }

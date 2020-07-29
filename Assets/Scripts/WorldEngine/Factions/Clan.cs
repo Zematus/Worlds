@@ -164,10 +164,10 @@ public class Clan : Faction
 
     protected override void GenerateName(Faction parentFaction)
     {
-        int rngOffset = RngOffsets.CLAN_GENERATE_NAME + unchecked((int)Polity.Id);
+        int rngOffset = RngOffsets.CLAN_GENERATE_NAME + unchecked(Polity.GetHashCode());
 
         if (parentFaction != null)
-            rngOffset += unchecked((int)parentFaction.Id);
+            rngOffset += unchecked(parentFaction.GetHashCode());
 
         GetRandomIntDelegate getRandomInt = (int maxValue) => Polity.GetNextLocalRandomInt(rngOffset++, maxValue);
         GetRandomFloatDelegate getRandomFloat = () => Polity.GetNextLocalRandomFloat(rngOffset++);
@@ -381,22 +381,22 @@ public class Clan : Faction
 
     public override bool ShouldMigrateFactionCore(CellGroup sourceGroup, TerrainCell targetCell, float targetProminence, int targetPopulation)
     {
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (sourceGroup.Id == Manager.TracingData.GroupId)
-//            {
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", targetPopulation: " + targetPopulation +
-//                    ", targetProminence: " + targetProminence +
-//                    "");
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (sourceGroup.Id == Manager.TracingData.GroupId)
+        //            {
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", targetPopulation: " + targetPopulation +
+        //                    ", targetProminence: " + targetProminence +
+        //                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
         float targetProminenceFactor = Mathf.Max(0, targetProminence - MinCorePolityProminence);
 
@@ -424,22 +424,22 @@ public class Clan : Faction
 
         float sourceFactor = sourceProminenceFactor * sourcePopulationFactor;
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (sourceGroup.Id == Manager.TracingData.GroupId)
-//            {
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", sourceProminence: " + sourceProminence +
-//                    ", sourcePopulation: " + sourcePopulation +
-//                    "");
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (sourceGroup.Id == Manager.TracingData.GroupId)
+        //            {
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", sourceProminence: " + sourceProminence +
+        //                    ", sourcePopulation: " + sourcePopulation +
+        //                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
         if (sourceFactor <= 0)
             return true;
@@ -448,24 +448,26 @@ public class Clan : Faction
 
         float migrateCoreFactor = sourceFactor / (sourceFactor + targetFactor);
 
-        float randomValue = sourceGroup.GetNextLocalRandomFloat(RngOffsets.MIGRATING_GROUP_MOVE_FACTION_CORE + unchecked((int)Id));
+        int offset = RngOffsets.MIGRATING_GROUP_MOVE_FACTION_CORE + unchecked(GetHashCode());
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (sourceGroup.Id == Manager.TracingData.GroupId)
-//            {
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", randomValue: " + randomValue +
-//                    ", migrateCoreFactor: " + migrateCoreFactor +
-//                    "");
+        float randomValue = sourceGroup.GetNextLocalRandomFloat(offset);
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (sourceGroup.Id == Manager.TracingData.GroupId)
+        //            {
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", randomValue: " + randomValue +
+        //                    ", migrateCoreFactor: " + migrateCoreFactor +
+        //                    "");
+
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
         return (randomValue > migrateCoreFactor);
     }
@@ -473,7 +475,7 @@ public class Clan : Faction
     [Obsolete]
     public override void Split()
     {
-        int randomOffset = unchecked((int)(RngOffsets.CLAN_SPLIT + Id));
+        int randomOffset = unchecked(RngOffsets.CLAN_SPLIT + GetHashCode());
 
         float randomValue = GetNextLocalRandomFloat(randomOffset++);
         float splitFactionInfluence = _splitFactionMinInfluence + (randomValue * (_splitFactionMaxInfluence - _splitFactionMinInfluence));
@@ -492,7 +494,7 @@ public class Clan : Faction
         {
             throw new System.Exception(
                 "highestPolityProminence is null - Clan Id: " + Id +
-                ", Group Id: " + _splitFactionCoreGroup.Id +
+                ", Group Id: " + _splitFactionCoreGroup +
                 ", Event Id: " + _splitFactionEventId);
         }
 
@@ -574,23 +576,23 @@ public class Clan : Faction
             return Mathf.Infinity;
         }
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (Manager.TracingData.FactionId == Id)
-//            {
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "Clan:CalculateAdministrativeLoad - ClanId:" + Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", socialOrganizationValue: " + socialOrganizationValue +
-//                    ", Influence: " + Influence +
-//                    ", Polity.TotalAdministrativeCost: " + Polity.TotalAdministrativeCost +
-//                    "");
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (Manager.TracingData.FactionId == Id)
+        //            {
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "Clan:CalculateAdministrativeLoad - ClanId:" + Id,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", socialOrganizationValue: " + socialOrganizationValue +
+        //                    ", Influence: " + Influence +
+        //                    ", Polity.TotalAdministrativeCost: " + Polity.TotalAdministrativeCost +
+        //                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
         return administrativeLoad;
     }

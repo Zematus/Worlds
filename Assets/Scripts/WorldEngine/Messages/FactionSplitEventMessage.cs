@@ -3,8 +3,7 @@ using System.Xml.Serialization;
 
 public class FactionSplitEventMessage : FactionEventMessage
 {
-    [XmlAttribute]
-    public long OldFactionId;
+    public Identifier OldFactionId;
 
     public FactionSplitEventMessage()
     {

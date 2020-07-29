@@ -50,7 +50,9 @@ public class TribeSplitDecisionEvent : FactionEvent
 
     public static long CalculateTriggerDate(Clan clan)
     {
-        float randomFactor = clan.GetNextLocalRandomFloat(RngOffsets.TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE + unchecked((int)clan.Id));
+        int rngOffset = RngOffsets.TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE + unchecked(clan.GetHashCode());
+
+        float randomFactor = clan.GetNextLocalRandomFloat(rngOffset);
         randomFactor = Mathf.Pow(randomFactor, 2);
 
         Clan dominantClan = clan.Polity.DominantFaction as Clan;

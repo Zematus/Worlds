@@ -371,6 +371,7 @@ public class GuiManagerScript : MonoBehaviour
             //GenerateWorld(false, 1137426545);
             //GenerateWorld(false, 1277025723);
             GenerateWorld(false, 1602826489);
+            //GenerateWorld(false, 1251521690);
         }
         else
         {
@@ -1076,7 +1077,7 @@ public class GuiManagerScript : MonoBehaviour
         return Manager.GetDateString(eventMessage.Date) + " - " + eventMessage.Message;
     }
 
-    private void ShowEventMessageForPolity(WorldEventMessage eventMessage, long polityId)
+    private void ShowEventMessageForPolity(WorldEventMessage eventMessage, Identifier polityId)
     {
         Polity polity = Manager.CurrentWorld.GetPolity(polityId);
 
@@ -1580,7 +1581,7 @@ public class GuiManagerScript : MonoBehaviour
 
         TerrainCell cell = world.GetCell(longitude, latitude);
 
-        if (cell.Altitude <= 0)
+        if (cell.IsLiquidSea)
             return false;
 
         Manager.GenerateHumanGroup(longitude, latitude, population);
