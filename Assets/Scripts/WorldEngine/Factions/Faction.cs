@@ -316,7 +316,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         _splitFactionMinInfluence = splitFactionMinInfluence;
         _splitFactionMaxInfluence = splitFactionMaxInfluence;
 
-        _splitFactionCoreGroup.SetToBecomeFactionCore();
+        // obsolete call
+        //_splitFactionCoreGroup.SetToBecomeFactionCore();
 
         World.AddFactionToSplit(this);
     }
@@ -416,9 +417,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     {
         Influence -= influenceToTransfer;
 
-        newFactionCoreGroup.SetToUpdate();
-        newFactionCoreGroup.SetToBecomeFactionCore();
-
         if (newFactionCoreGroup == null)
         {
             throw new Exception("_splitFactionCoreGroup is null - Faction Id: " + Id);
@@ -482,6 +480,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         World.AddPolityToUpdate(newPolity);
         World.AddPolityToUpdate(Polity);
+
+        newFactionCoreGroup.SetToUpdate();
+        newFactionCoreGroup.SetToBecomeFactionCore(newFaction);
 
         newPolity.AddEventMessage(new FactionSplitEventMessage(this, newFaction, World.CurrentDate));
     }

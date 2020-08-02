@@ -193,7 +193,7 @@ public class CellGroup : HumanGroup, IFlagHolder
     public MigratingGroup MigratingGroup = null;
 
     [XmlIgnore]
-    public bool WillBecomeFactionCore = false;
+    public Faction WillBecoreCoreOfFaction = null;
 
 #if DEBUG
     [XmlIgnore]
@@ -256,7 +256,12 @@ public class CellGroup : HumanGroup, IFlagHolder
     private HashSet<string> _propertiesToAquire = new HashSet<string>();
     private HashSet<string> _propertiesToLose = new HashSet<string>();
 
-    [XmlIgnore]
+    private float _unorgBandsProminenceValue = 1;
+    private float _unorgBandsPromDelta = 0;
+
+    private Dictionary<Identifier, float> _polityPromDeltas =
+        new Dictionary<Identifier, float>();
+
     public int PreviousPopulation
     {
         get
@@ -265,7 +270,6 @@ public class CellGroup : HumanGroup, IFlagHolder
         }
     }
 
-    [XmlIgnore]
     public int Population
     {
         get
@@ -1041,16 +1045,16 @@ public class CellGroup : HumanGroup, IFlagHolder
         PostUpdatePolityProminences_AfterPolityUpdates();
     }
 
-    public void SetToBecomeFactionCore()
+    public void SetToBecomeFactionCore(Faction faction)
     {
-        WillBecomeFactionCore = true;
+        WillBecoreCoreOfFaction = faction;
 
         World.AddGroupToCleanupAfterUpdate(this);
     }
 
     public void AfterUpdateCleanup()
     {
-        WillBecomeFactionCore = false;
+        WillBecoreCoreOfFaction = null;
     }
 
     public bool InfluencingPolityHasKnowledge(string id)
@@ -2048,7 +2052,7 @@ public class CellGroup : HumanGroup, IFlagHolder
             World.AddFactionToRemove(faction);
         }
 
-        RemovePolityProminences();
+        Destroy_RemovePolityProminences();
 
         Cell.Group = null;
         World.RemoveGroup(this);
@@ -2068,7 +2072,7 @@ public class CellGroup : HumanGroup, IFlagHolder
         _cellUpdateSubtype |= CellUpdateSubType.Terrain;
     }
 
-    public void RemovePolityProminences() // This should be called only when destroying a group
+    public void Destroy_RemovePolityProminences() // This should be called only when destroying a group
     {
         // Make sure all influencing polities get updated
         SetPolityUpdates(true);
@@ -3205,31 +3209,50 @@ public class CellGroup : HumanGroup, IFlagHolder
         FindHighestPolityProminence();
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-
     // New prominence update process:
     // 1. add all new prominences
     // 2. remove prominences that need to be explicitly removed
     // 3. update prominence values
     // 4. remove prominences with value of 0 after value update
 
-    private float _unorgBandsProminenceValue = 1;
-    public float _unorgBandsPromDelta = 0;
+    /// <summary>
+    /// Updates all polity prominences in this group (should be called in group PostUpdate
+    /// </summary>
+    public void UpdatePolityProminences()
+    {
+        RemovePolityProminences();
 
+        AddPolityProminences();
+
+        UpdatePolityProminenceValues();
+    }
+
+    /// <summary>
+    /// Adds a delta to apply to the unorganized bands' prominence value in this group
+    /// </summary>
+    /// <param name="delta">value delta to apply</param>
     public void AddUBProminenceDelta(float delta)
     {
+        // round value to six decimals to avoid hidden bit serialization issues
         delta = MathUtility.RoundToSixDecimals(delta);
 
         _unorgBandsPromDelta += delta;
     }
 
-    public Dictionary<Identifier, float> _polityPromDeltas =
-        new Dictionary<Identifier, float>();
-
+    /// <summary>
+    /// Adds a delta to apply to a polity's prominence value in this group
+    /// </summary>
+    /// <param name="polity">polity to apply prominence value delta</param>
+    /// <param name="delta">value delta to apply</param>
     public void AddPolityProminenceDelta(Polity polity, float delta)
     {
+        // if this polity had no prominence then we need to add it to the group
+        if (!_polityProminences.ContainsKey(polity.Id))
+        {
+            SetPolityProminenceToAdd(polity);
+        }
+
+        // round value to six decimals to avoid hidden bit serialization issues
         delta = MathUtility.RoundToSixDecimals(delta);
 
         if (_polityPromDeltas.ContainsKey(polity.Id))
@@ -3242,7 +3265,10 @@ public class CellGroup : HumanGroup, IFlagHolder
         }
     }
 
-    public void UpdatePolityProminences()
+    /// <summary>
+    /// Update all prominence values using all the applied value deltas so far
+    /// </summary>
+    public void UpdatePolityProminenceValues()
     {
         // add to the prominence deltas the current prominence values
         AddUBProminenceDelta(_unorgBandsProminenceValue);
@@ -3299,15 +3325,34 @@ public class CellGroup : HumanGroup, IFlagHolder
         {
             prom.Value /= totalValue;
         }
+
+        // remove any prominences set to be removed above
+        RemovePolityProminences();
     }
 
+    /// <summary>
+    /// Set a new polity prominence to add to the group
+    /// </summary>
+    /// <param name="polity">polity to add prominence for</param>
+    /// <param name="newProminenceValue">initial prominence value</param>
+    /// <param name="polityCoreDistance">polity core distance to use (autocalculated if set to -1)</param>
+    /// <param name="factionCoreDistance">faction core distance to use (autocalculated if set to -1)</param>
     public void SetPolityProminenceToAdd(
         Polity polity,
-        float newProminenceValue,
+        float newProminenceValue = 0,
         float polityCoreDistance = -1,
         float factionCoreDistance = -1)
     {
+        if (_polityProminences.ContainsKey(polity.Id))
+        {
+            throw new System.ArgumentException(
+                "Prominence of polity " + polity.Id +
+                " already present in " + Id);
+        }
+
         PolityProminence polityProminence = new PolityProminence(this, polity, newProminenceValue);
+        
+        // update core distances if necessary
 
         if (polityCoreDistance == -1)
             polityCoreDistance = CalculateShortestPolityCoreDistance(polity);
@@ -3324,13 +3369,37 @@ public class CellGroup : HumanGroup, IFlagHolder
         _polityProminencesToAdd.Add(polity.Id, polityProminence);
     }
 
+    /// <summary>
+    /// add a polity prominence to remove
+    /// </summary>
+    /// <param name="polityId">id of polity to remove</param>
+    /// <returns></returns>
     public bool SetPolityProminenceToRemove(Identifier polityId)
     {
-        if (WillBecomeFactionCore)
+        if (!_polityProminences.ContainsKey(polityId))
+        {
+            throw new System.ArgumentException(
+                "Prominence of polity " + polityId +
+                " not present in " + Id);
+        }
+
+        if (_polityProminencesToRemove.Contains(polityId))
         {
             Debug.LogWarning(
-                "Group is set to become a faction core - group Id: " + this +
-                " - polity Id: " + polityId + ", Date:" + World.CurrentDate);
+                "Prominence of polity " + polityId +
+                " already going to be removed from " + Id);
+
+            return true;
+        }
+
+        // can't remove prominence if polity is set to become core
+        if ((WillBecoreCoreOfFaction != null) &&
+            (WillBecoreCoreOfFaction.PolityId == polityId))
+        {
+            Debug.LogWarning(
+                "Group is set to become a faction core - group: " + Id +
+                " - faction: " + WillBecoreCoreOfFaction.Id +
+                " - polity: " + polityId + " - Date:" + World.CurrentDate);
 
             return false;
         }
@@ -3340,8 +3409,70 @@ public class CellGroup : HumanGroup, IFlagHolder
     }
 
     /// <summary>
-    /// 
+    /// Add all prominences that where se to be added
     /// </summary>
+    public void AddPolityProminences()
+    {
+        foreach (PolityProminence prominenceToAdd in _polityProminencesToAdd.Values)
+        {
+            // Increase polity contacts
+            foreach (PolityProminence otherProminence in _polityProminences.Values)
+            {
+                Polity.IncreaseContactGroupCount(prominenceToAdd.Polity, otherProminence.Polity);
+            }
+
+            _polityProminences.Add(prominenceToAdd.PolityId, prominenceToAdd);
+
+            // We want to update the polity if a group is added.
+            SetPolityUpdate(prominenceToAdd, true);
+
+            prominenceToAdd.Polity.AddGroup(prominenceToAdd);
+        }
+
+        _polityProminencesToAdd.Clear();
+    }
+
+    /// <summary>
+    /// Remove all polities that where set to be removed
+    /// </summary>
+    public void RemovePolityProminences()
+    {
+        foreach (Identifier polityId in _polityProminencesToRemove)
+        {
+            PolityProminence polityProminence = _polityProminences[polityId];
+
+            _polityProminences.Remove(polityProminence.PolityId);
+
+            // Decrease polity contacts
+            foreach (PolityProminence epi in _polityProminences.Values)
+            {
+                Polity.DecreaseContactGroupCount(polityProminence.Polity, epi.Polity);
+            }
+
+            // Remove all polity faction cores from group
+            foreach (Faction faction in GetFactionCores())
+            {
+                if (faction.PolityId == polityProminence.PolityId)
+                {
+                    Debug.LogWarning(
+                        "Removing polity prominence of faction that had core in group " + Id +
+                        ", removing faction " + WillBecoreCoreOfFaction.Id +
+                        " - polity: " + polityId + " - Date:" + World.CurrentDate);
+
+                    World.AddFactionToRemove(faction);
+                }
+            }
+
+            polityProminence.Polity.RemoveGroup(polityProminence);
+
+            // We want to update the polity if a group is removed.
+            SetPolityUpdate(polityProminence, true);
+
+            Profiler.EndSample();
+        }
+
+        _polityProminencesToRemove.Clear();
+    }
 
     [System.Obsolete]
     public PolityProminence SetPolityProminence(Polity polity, float newProminenceValue, float polityCoreDistance = -1, float factionCoreDistance = -1)
@@ -3418,7 +3549,7 @@ public class CellGroup : HumanGroup, IFlagHolder
             //            }
             //#endif
 
-            if (WillBecomeFactionCore)
+            if (WillBecoreCoreOfFaction != null)
             {
                 throw new System.Exception(
                     "Group is set to become a faction core - group Id: " + this +
