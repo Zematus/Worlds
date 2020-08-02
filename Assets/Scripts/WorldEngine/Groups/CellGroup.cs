@@ -286,7 +286,13 @@ public class CellGroup : HumanGroup, IFlagHolder
         Manager.UpdateWorldLoadTrackEventCount();
     }
 
-    public CellGroup(MigratingGroup migratingGroup, int splitPopulation) : this(migratingGroup.World, migratingGroup.TargetCell, splitPopulation, migratingGroup.Culture, migratingGroup.MigrationDirection)
+    public CellGroup(MigratingGroup migratingGroup, int splitPopulation) :
+        this(
+            migratingGroup.World,
+            migratingGroup.TargetCell,
+            splitPopulation,
+            migratingGroup.Culture,
+            migratingGroup.MigrationDirection)
     {
         for (int i = 0; i < migratingGroup.PolityProminencesCount; i++)
         {
@@ -768,7 +774,6 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         foreach (PolityProminence pi in _polityProminencesToAdd.Values)
         {
-
             targetPolityProminences.Add(pi.PolityId, pi);
         }
 
@@ -1901,7 +1906,8 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         //		Profiler.BeginSample ("Calculate Polity Expansion Value");
 
-        float groupValue = selectedPi.Polity.CalculateGroupProminenceExpansionValue(this, targetGroup, selectedPi.Value);
+        float groupValue = selectedPi.Polity.CalculateGroupProminenceExpansionValue(
+            this, targetGroup, selectedPi.Value);
 
         if (groupValue <= 0)
             return;
@@ -1944,7 +1950,7 @@ public class CellGroup : HumanGroup, IFlagHolder
         if (rollValue > expansionChance)
             return;
 
-        CalculateAdaptionToCell(targetGroup.Cell, out float cellForagingCapacity, out float cellSurvivability);
+        CalculateAdaptionToCell(targetGroup.Cell, out _, out float cellSurvivability);
 
         if (cellSurvivability <= 0)
             return;
@@ -2304,9 +2310,6 @@ public class CellGroup : HumanGroup, IFlagHolder
     {
         foreach (PolityProminence polityProminence in _polityProminences.Values)
         {
-            if (_polityProminencesToRemove.Contains(polityProminence.PolityId))
-                continue;
-
             Polity polity = polityProminence.Polity;
             float prominenceValue = polityProminence.NewValue;
 
@@ -3202,6 +3205,145 @@ public class CellGroup : HumanGroup, IFlagHolder
         FindHighestPolityProminence();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+
+    // New prominence update process:
+    // 1. add all new prominences
+    // 2. remove prominences that need to be explicitly removed
+    // 3. update prominence values
+    // 4. remove prominences with value of 0 after value update
+
+    private float _unorgBandsProminenceValue = 1;
+    public float _unorgBandsPromDelta = 0;
+
+    public void AddUBProminenceDelta(float delta)
+    {
+        delta = MathUtility.RoundToSixDecimals(delta);
+
+        _unorgBandsPromDelta += delta;
+    }
+
+    public Dictionary<Identifier, float> _polityPromDeltas =
+        new Dictionary<Identifier, float>();
+
+    public void AddPolityProminenceDelta(Polity polity, float delta)
+    {
+        delta = MathUtility.RoundToSixDecimals(delta);
+
+        if (_polityPromDeltas.ContainsKey(polity.Id))
+        {
+            _polityPromDeltas[polity.Id] += delta;
+        }
+        else
+        {
+            _polityPromDeltas.Add(polity.Id, delta);
+        }
+    }
+
+    public void UpdatePolityProminences()
+    {
+        // add to the prominence deltas the current prominence values
+        AddUBProminenceDelta(_unorgBandsProminenceValue);
+        foreach (PolityProminence p in _polityProminences.Values)
+        {
+            AddPolityProminenceDelta(p.Polity, p.Value);
+        }
+
+        // get the offset to apply to all deltas so that there are no negative values
+        float polPromDeltaOffset = Mathf.Min(0, _unorgBandsPromDelta);
+        foreach (float delta in _polityPromDeltas.Values)
+        {
+            polPromDeltaOffset = Mathf.Min(polPromDeltaOffset, delta);
+        }
+
+        // replace prom values with deltas minus offset, and get the total sum
+        _unorgBandsProminenceValue = _unorgBandsPromDelta - polPromDeltaOffset;
+        float totalValue = _unorgBandsProminenceValue;
+        foreach (KeyValuePair<Identifier, float> pair in _polityPromDeltas)
+        {
+            float newValue = pair.Value - polPromDeltaOffset;
+
+            if (newValue <= 0)
+            {
+                if (newValue < 0)
+                {
+                    Debug.LogWarning("Unexpected new prominence value of: " + newValue);
+                }
+
+                if (!SetPolityProminenceToRemove(pair.Key))
+                {
+                    // if not possible to remove this prominence, set it to a min value
+                    newValue = Polity.MinPolityProminence;
+                }
+                else
+                {
+                    continue;
+                }
+            }
+
+            _polityProminences[pair.Key].Value = newValue;
+            totalValue += newValue;
+        }
+
+        if (totalValue <= 0)
+        {
+            Debug.LogWarning("Unexpected total prominence value of: " + totalValue);
+            return;
+        }
+
+        // normalize values
+        _unorgBandsProminenceValue /= totalValue;
+        foreach (PolityProminence prom in _polityProminences.Values)
+        {
+            prom.Value /= totalValue;
+        }
+    }
+
+    public void SetPolityProminenceToAdd(
+        Polity polity,
+        float newProminenceValue,
+        float polityCoreDistance = -1,
+        float factionCoreDistance = -1)
+    {
+        PolityProminence polityProminence = new PolityProminence(this, polity, newProminenceValue);
+
+        if (polityCoreDistance == -1)
+            polityCoreDistance = CalculateShortestPolityCoreDistance(polity);
+
+        if (factionCoreDistance == -1)
+            factionCoreDistance = CalculateShortestFactionCoreDistance(polity);
+
+        polityProminence.PolityCoreDistance = polityCoreDistance;
+        polityProminence.NewPolityCoreDistance = polityCoreDistance;
+
+        polityProminence.FactionCoreDistance = factionCoreDistance;
+        polityProminence.NewFactionCoreDistance = factionCoreDistance;
+
+        _polityProminencesToAdd.Add(polity.Id, polityProminence);
+    }
+
+    public bool SetPolityProminenceToRemove(Identifier polityId)
+    {
+        if (WillBecomeFactionCore)
+        {
+            Debug.LogWarning(
+                "Group is set to become a faction core - group Id: " + this +
+                " - polity Id: " + polityId + ", Date:" + World.CurrentDate);
+
+            return false;
+        }
+
+        _polityProminencesToRemove.Add(polityId);
+        return true;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+
+    [System.Obsolete]
     public PolityProminence SetPolityProminence(Polity polity, float newProminenceValue, float polityCoreDistance = -1, float factionCoreDistance = -1)
     {
         newProminenceValue = MathUtility.RoundToSixDecimals(newProminenceValue);

@@ -414,10 +414,7 @@ public class Tribe : Polity
         float prominenceFactor = sourceGroupTotalPolityProminenceValue / (targetGroupTotalPolityProminenceValue + sourceGroupTotalPolityProminenceValue);
         prominenceFactor = Mathf.Pow(prominenceFactor, 4);
 
-        float modifiedForagingCapacity = 0;
-        float modifiedSurvivability = 0;
-
-        CalculateAdaptionToCell(targetGroup.Cell, out modifiedForagingCapacity, out modifiedSurvivability);
+        CalculateAdaptionToCell(targetGroup.Cell, out _, out float modifiedSurvivability);
 
         float survivabilityFactor = Mathf.Pow(modifiedSurvivability, 2);
 

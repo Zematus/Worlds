@@ -18,7 +18,7 @@ public abstract class Polity : ISynchronizable
 
     public const float CoreDistanceEffectConstant = 10000;
 
-    public const float MinPolityProminence = 0.001f;
+    public const float MinPolityProminence = 0.01f;
 
     public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
 
