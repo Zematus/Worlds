@@ -1230,7 +1230,7 @@ public abstract class Polity : ISynchronizable
 
         if (!group.HasProperty(CanFormPolityAttribute + "tribe"))
         {
-            group.SetPolityProminence(this, 0);
+            group.SetPolityProminenceToRemove(Id);
 
             return;
         }
@@ -1261,35 +1261,10 @@ public abstract class Polity : ISynchronizable
 
         float timeFactor = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
-        prominenceValue = (prominenceValue * (1 - timeFactor)) + (targetValue * timeFactor);
+        float prominenceValueDelta =
+            (prominenceValue * -timeFactor) + (targetValue * timeFactor);
 
-        prominenceValue = Mathf.Clamp01(prominenceValue);
-
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (group.Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "UpdateEffects - Group:" + groupId +
-        //                    ", Polity.Id: " + Id,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", randomFactor: " + randomFactor +
-        //                    ", groupTotalPolityProminenceValue: " + groupTotalPolityProminenceValue +
-        //                    ", Polity.TotalGroupProminenceValue: " + TotalGroupProminenceValue +
-        //                    ", unmodInflueceValue: " + unmodInflueceValue +
-        //                    ", prominenceValue: " + prominenceValue +
-        //                    ", group.LastUpdateDate: " + group.LastUpdateDate +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
-
-        group.SetPolityProminence(this, prominenceValue);
+        group.AddPolityProminenceValueDelta(this, prominenceValueDelta);
     }
 
     public void CalculateAdaptionToCell(TerrainCell cell, out float foragingCapacity, out float survivability)
@@ -1639,10 +1614,9 @@ public abstract class Polity : ISynchronizable
         foreach (CellGroup group in polity.Groups.Values)
         {
             float ppValue = group.GetPolityProminenceValue(polity);
-            float localPpValue = group.GetPolityProminenceValue(this);
 
-            group.SetPolityProminence(polity, 0);
-            group.SetPolityProminence(this, localPpValue + ppValue);
+            group.SetPolityProminenceToRemove(polity.Id);
+            group.AddPolityProminenceValueDelta(this, ppValue);
 
             World.AddGroupToUpdate(group);
         }

@@ -335,12 +335,12 @@ public class ModTest
         _testWorld.AddPolityInfo(_testPolity1);
         _testWorld.AddPolityInfo(_testPolity2);
 
-        _testGroup1.SetPolityProminence(_testPolity1, 1);
-        _testGroup2.SetPolityProminence(_testPolity1, 1);
-        _testGroup3.SetPolityProminence(_testPolity1, 1);
-        _testGroup4.SetPolityProminence(_testPolity1, 1);
-        _testGroup5.SetPolityProminence(_testPolity2, 1);
-        _testGroup6.SetPolityProminence(_testPolity2, 1);
+        _testGroup1.AddPolityProminenceValueDelta(_testPolity1, 1);
+        _testGroup2.AddPolityProminenceValueDelta(_testPolity1, 1);
+        _testGroup3.AddPolityProminenceValueDelta(_testPolity1, 1);
+        _testGroup4.AddPolityProminenceValueDelta(_testPolity1, 1);
+        _testGroup5.AddPolityProminenceValueDelta(_testPolity2, 1);
+        _testGroup6.AddPolityProminenceValueDelta(_testPolity2, 1);
 
         _testGroup1.Culture.Language = _testPolity1.Culture.Language;
         _testGroup2.Culture.Language = _testPolity1.Culture.Language;
@@ -380,12 +380,12 @@ public class ModTest
         _testFaction4.Culture.GetPreference("authority").Value = 0.6f;
         _testFaction4.Culture.GetPreference("cohesion").Value = 0.6f;
 
-        _testGroup1.PostUpdatePolityProminences_BeforePolityUpdates();
-        _testGroup2.PostUpdatePolityProminences_BeforePolityUpdates();
-        _testGroup3.PostUpdatePolityProminences_BeforePolityUpdates();
-        _testGroup4.PostUpdatePolityProminences_BeforePolityUpdates();
-        _testGroup5.PostUpdatePolityProminences_BeforePolityUpdates();
-        _testGroup6.PostUpdatePolityProminences_BeforePolityUpdates();
+        _testGroup1.UpdatePolityProminences_test();
+        _testGroup2.UpdatePolityProminences_test();
+        _testGroup3.UpdatePolityProminences_test();
+        _testGroup4.UpdatePolityProminences_test();
+        _testGroup5.UpdatePolityProminences_test();
+        _testGroup6.UpdatePolityProminences_test();
 
         _testPolity1.ClusterUpdate();
         _testPolity2.ClusterUpdate();
