@@ -70,9 +70,22 @@ public class Tribe : Polity
         ////
 
         float randomValue = coreGroup.Cell.GetNextLocalRandomFloat(RngOffsets.TRIBE_GENERATE_NEW_TRIBE);
-        float coreProminence = BaseCoreProminence + randomValue * (1 - BaseCoreProminence);
+        float coreProminenceFactor = BaseCoreProminence + randomValue * (1 - BaseCoreProminence);
 
-        coreGroup.AddPolityProminenceValueDelta(this, coreProminence);
+        // the initial prominence can only be taken from the unorganized bands in the core group
+        float ubProminence = 1f - coreGroup.TotalPolityProminenceValue;
+        coreProminenceFactor *= ubProminence;
+
+        if (coreProminenceFactor == 0)
+        {
+            throw new System.Exception(
+                "Unable to assign a core prominence bigger than zero. Group: " + coreGroup);
+        }
+
+        coreGroup.AddPolityProminenceValueDelta(this, coreProminenceFactor);
+
+        // substract the new tribe prominence from the unorganized bands prominence
+        coreGroup.AddUBProminenceValueDelta(-coreProminenceFactor);
 
         GenerateName();
 
@@ -262,9 +275,10 @@ public class Tribe : Polity
 
             float prominenceValue = pi.Value;
 
-            group.SetPolityProminence(sourcePolity, prominenceValue * (1 - percentProminence));
+            float sourceProminenceValueDelta = prominenceValue * percentProminence;
 
-            group.SetPolityProminence(this, prominenceValue * percentProminence, distanceToTargetPolityCore, distanceToTargetPolityCore);
+            group.AddPolityProminenceValueDelta(sourcePolity, -sourceProminenceValueDelta);
+            group.AddPolityProminenceValueDelta(this, sourceProminenceValueDelta);
 
             World.AddGroupToUpdate(group);
 

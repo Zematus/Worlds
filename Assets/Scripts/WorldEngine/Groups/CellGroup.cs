@@ -2155,9 +2155,8 @@ public class CellGroup : HumanGroup, IFlagHolder
         foreach (PolityProminence polityProminence in _polityProminences.Values)
         {
             Polity polity = polityProminence.Polity;
-            float prominenceValue = polityProminence.Value;
 
-            polity.GroupUpdateEffects(this, prominenceValue, TotalPolityProminenceValue, timeSpan);
+            polity.GroupUpdateEffects(this, polityProminence.Value, TotalPolityProminenceValue, timeSpan);
         }
 
         if (HasTribeFormationEvent)
@@ -2831,10 +2830,18 @@ public class CellGroup : HumanGroup, IFlagHolder
     }
 
     /// <summary>
-    /// Prepares polity prominence updates
-    /// (should be called in group PostUpdate)
+    /// Updates polity prominences and values (for unit tests only)
+    /// TODO: try get rid of this function without making UpdatePolityProminences public
     /// </summary>
-    public void UpdatePolityProminences()
+    public void UpdatePolityProminences_test()
+    {
+        UpdatePolityProminences();
+    }
+
+    /// <summary>
+    /// Updates polity prominences and values
+    /// </summary>
+    private void UpdatePolityProminences()
     {
         AddPolityProminences();
 
@@ -2849,7 +2856,7 @@ public class CellGroup : HumanGroup, IFlagHolder
     /// Calculates new prominence core distances
     /// (should be called in group PostUpdate)
     /// </summary>
-    public void CalculatePolityPromCoreDistances()
+    private void CalculatePolityPromCoreDistances()
     {
         foreach (PolityProminence prominence in _polityProminences.Values)
         {
