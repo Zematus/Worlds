@@ -1077,9 +1077,18 @@ public class World : ISynchronizable
 
     private void PostUpdateGroups_BeforePolityUpdates()
     {
+        // ops in step 1 need to be executed for all updated groups before
+        // any op in step 2 is made
         foreach (CellGroup group in _updatedGroups)
         {
-            group.PostUpdate_BeforePolityUpdates();
+            group.PostUpdate_BeforePolityUpdates_Step1();
+        }
+
+        // ops in step 2 need to be executed after all ops in step 1
+        // have been made for all updated groups
+        foreach (CellGroup group in _updatedGroups)
+        {
+            group.PostUpdate_BeforePolityUpdates_Step2();
         }
     }
 

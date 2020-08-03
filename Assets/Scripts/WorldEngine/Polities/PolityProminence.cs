@@ -8,25 +8,23 @@ using UnityEngine.Profiling;
 public class PolityProminence// : IKeyedValue<Identifier>
 {
     [XmlAttribute("V")]
-    public float Value;
+    public float Value = 0;
     [XmlAttribute("FCT")]
-    public float FactionCoreDistance;
+    public float FactionCoreDistance = -1;
     [XmlAttribute("PD")]
-    public float PolityCoreDistance;
+    public float PolityCoreDistance = -1;
     [XmlAttribute("AC")]
-    public float AdministrativeCost;
+    public float AdministrativeCost = 0;
 
     public Identifier PolityId;
 
     [XmlIgnore]
-    public float NewValue;
+    public float NewFactionCoreDistance = -1;
     [XmlIgnore]
-    public float NewFactionCoreDistance;
-    [XmlIgnore]
-    public float NewPolityCoreDistance;
+    public float NewPolityCoreDistance = -1;
 
     [XmlIgnore]
-    public PolityProminenceCluster Cluster;
+    public PolityProminenceCluster Cluster = null;
 
     [XmlIgnore]
     public Polity Polity;
@@ -36,70 +34,41 @@ public class PolityProminence// : IKeyedValue<Identifier>
 
     public Identifier Id => Group.Id;
 
+    /// <summary>
+    /// Constructs a new polity prominence object (only used by XML deserializer)
+    /// </summary>
     public PolityProminence()
     {
 
     }
 
-    public PolityProminence(PolityProminence polityProminence)
-    {
-        Group = polityProminence.Group;
-
-        //_isMigratingGroup = true;
-
-        Set(polityProminence);
-    }
-
-    public PolityProminence(CellGroup group, PolityProminence polityProminence)
+    /// <summary>
+    /// Constructs a new polity prominence object (only used by XML deserializer)
+    /// </summary>
+    /// <param name="group">group associated with this prominence</param>
+    /// <param name="polity">polity associated with this prominence</param>
+    public PolityProminence(CellGroup group, Polity polity)
     {
         Group = group;
-
-        //_isMigratingGroup = false;
-
-        Set(polityProminence);
     }
 
-    public void Set(PolityProminence polityProminence)
+    /// <summary>
+    /// Define the new core distances to update this prominence with
+    /// </summary>
+    public void CalculateNewCoreDistances()
     {
-        PolityId = polityProminence.PolityId;
-        Polity = polityProminence.Polity;
-        Value = polityProminence.Value;
-        NewValue = Value;
-
-        AdministrativeCost = 0;
+        NewFactionCoreDistance = Group.CalculateShortestFactionCoreDistance(Polity);
+        NewPolityCoreDistance = Group.CalculateShortestPolityCoreDistance(Polity);
     }
 
-    public PolityProminence(CellGroup group, Polity polity, float value, bool isMigratingGroup = false)
-    {
-        Group = group;
-
-        //_isMigratingGroup = isMigratingGroup;
-
-        Set(polity, value);
-    }
-
-    public void Set(Polity polity, float value)
-    {
-        PolityId = polity.Info.Id;
-        Polity = polity;
-        Value = MathUtility.RoundToSixDecimals(value);
-        NewValue = Value;
-
-        AdministrativeCost = 0;
-    }
-
+    /// <summary>
+    /// Replace the old values and distances with the new ones and recalculated admin cost
+    /// </summary>
     public void PostUpdate()
     {
-        Value = NewValue;
-
         PolityCoreDistance = NewPolityCoreDistance;
         FactionCoreDistance = NewFactionCoreDistance;
 
-        if (Cluster != null)
-        {
-            Cluster.RequireNewCensus(true);
-        }
-        
         if (FactionCoreDistance == -1)
         {
             throw new System.Exception("Core distance is not properly initialized");
@@ -108,6 +77,13 @@ public class PolityProminence// : IKeyedValue<Identifier>
         if (PolityCoreDistance == -1)
         {
             throw new System.Exception("Core distance is not properly initialized");
+        }
+
+        AdministrativeCost = Group.CalculateAdministrativeCost(this);
+
+        if (Cluster != null)
+        {
+            Cluster.RequireNewCensus(true);
         }
     }
 
