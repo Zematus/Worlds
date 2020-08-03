@@ -72,7 +72,7 @@ public class Tribe : Polity
         float randomValue = coreGroup.Cell.GetNextLocalRandomFloat(RngOffsets.TRIBE_GENERATE_NEW_TRIBE);
         float coreProminence = BaseCoreProminence + randomValue * (1 - BaseCoreProminence);
 
-        coreGroup.SetPolityProminence(this, coreProminence, 0, 0);
+        coreGroup.AddPolityProminenceValueDelta(this, coreProminence);
 
         GenerateName();
 

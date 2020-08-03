@@ -274,7 +274,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
                 Debug.LogWarning("Group with low social organization has faction cores - Id: " + Group + ", newValue:" + newValue);
             }
 
-            if (Group.WillBecoreCoreOfFaction != null)
+            if (Group.WillBecomeCoreOfFaction != null)
             {
                 Debug.LogWarning("Group with low social organization will become a faction core - Id: " + Group + ", newValue:" + newValue);
             }

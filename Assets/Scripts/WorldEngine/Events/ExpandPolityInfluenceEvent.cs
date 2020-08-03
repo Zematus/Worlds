@@ -95,10 +95,11 @@ public class ExpandPolityProminenceEvent : CellGroupEvent
         float populationFactor = Group.Population / (float)(Group.Population + TargetGroup.Population);
         percentToExpand *= populationFactor;
 
-        PolityProminence sourcePi = Group.GetPolityProminence(Polity);
+        float value = Group.GetPolityProminenceValue(Polity);
 
         TargetGroup.Culture.MergeCulture(Group.Culture, percentToExpand);
-        TargetGroup.MergePolityProminence(sourcePi, percentToExpand);
+
+        TargetGroup.MergePolityProminence(Polity, value, percentToExpand);
 
         TryMigrateFactionCores();
 

@@ -87,7 +87,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
                     Group + ", _newValue:" + _newValue);
             }
 
-            if (Group.WillBecoreCoreOfFaction != null)
+            if (Group.WillBecomeCoreOfFaction != null)
             {
                 Debug.LogWarning(
                     "Group with low social organization will become a faction core - Id: " +
