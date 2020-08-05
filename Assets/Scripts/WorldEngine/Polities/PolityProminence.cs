@@ -50,6 +50,8 @@ public class PolityProminence// : IKeyedValue<Identifier>
     public PolityProminence(CellGroup group, Polity polity)
     {
         Group = group;
+        Polity = polity;
+        PolityId = polity.Id;
     }
 
     /// <summary>
