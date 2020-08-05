@@ -1664,26 +1664,6 @@ public class CellGroup : HumanGroup, IFlagHolder
 
     public void ConsiderPolityProminenceExpansion()
     {
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "ConsiderPolityProminenceExpansion Part 1 - Group:" + groupId,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", Neighbors.Count: " + Neighbors.Count +
-        //                    ", PolityProminences.Count: " + PolityProminences.Count +
-        //                    ", LastUpdateDate: " + LastUpdateDate +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
-
         PolityExpansionValue = 0;
         TotalPolityExpansionValue = 0;
 
@@ -1696,57 +1676,19 @@ public class CellGroup : HumanGroup, IFlagHolder
         if (HasPolityExpansionEvent)
             return;
 
-        //		Profiler.BeginSample ("Select Random Polity Prominence");
-
         List<PolityProminenceWeight> polityProminenceWeights = new List<PolityProminenceWeight>(_polityProminences.Count);
-
-        //#if DEBUG
-        //        string polityProminencesStr = "";
-        //#endif
 
         foreach (PolityProminence pi in _polityProminences.Values)
         {
             polityProminenceWeights.Add(new PolityProminenceWeight(pi, pi.Value));
-
-            //#if DEBUG
-            //            polityProminencesStr += "[" + pi.PolityId + "|" + pi.Value + "],";
-            //#endif
         }
 
         float selectionValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY);
 
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "ConsiderPolityProminenceExpansion Part 2 - Group:" + groupId,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", Neighbors.Count: " + Neighbors.Count +
-        //                    ", polityProminencesStr: " + polityProminencesStr +
-        //                    ", selectionValue: " + selectionValue +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
-
         PolityProminence selectedPi = CollectionUtility.WeightedSelection(polityProminenceWeights.ToArray(), TotalPolityProminenceValue, selectionValue);
-
-        //		Profiler.EndSample ();
 
         PolityExpansionValue = 1;
         TotalPolityExpansionValue = 1;
-
-        //		Profiler.BeginSample ("Select Random Target Group for Polity Expansion");
-
-        //		int targetGroupIndex = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_TARGET, TerrainCell.MaxNeighborDirections);
-        //
-        //		CellGroup targetGroup = GetNeighborGroup (targetGroupIndex);
 
         Direction expansionDirection = GeneratePolityExpansionDirection();
 
@@ -1755,12 +1697,8 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         CellGroup targetGroup = Neighbors[expansionDirection];
 
-        //		Profiler.EndSample ();
-
         if (!targetGroup.StillPresent)
             return;
-
-        //		Profiler.BeginSample ("Calculate Polity Expansion Value");
 
         float groupValue = selectedPi.Polity.CalculateGroupProminenceExpansionValue(
             this, targetGroup, selectedPi.Value);
@@ -1770,38 +1708,9 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         TotalPolityExpansionValue += groupValue;
 
-        //		Profiler.EndSample ();
-
         float expansionChance = groupValue / TotalPolityExpansionValue;
 
         float rollValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_CHANCE);
-
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-        //                string targetGroupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "ConsiderPolityProminenceExpansion Part 3 - Group:" + groupId,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", Neighbors.Count: " + Neighbors.Count +
-        //                    //", groupValue: " + groupValue +
-        //                    //", PolityExpansionValue: " + PolityExpansionValue +
-        //                    //", TotalPolityExpansionValue: " + TotalPolityExpansionValue +
-        //                    ", rollValue: " + rollValue +
-        //                    ", selectedPi.PolityId: " + selectedPi.PolityId +
-        //                    ", targetGroup: " + targetGroupId +
-        //                    ", rollValue: " + rollValue +
-        //                    //", expansionChance: " + expansionChance +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
 
         if (rollValue > expansionChance)
             return;
@@ -1845,33 +1754,6 @@ public class CellGroup : HumanGroup, IFlagHolder
             // Do not generate event
             return;
         }
-
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-        //                string targetGroupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "ConsiderPolityProminenceExpansion Part 4 - Group:" + groupId,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", Neighbors.Count: " + Neighbors.Count +
-        //                    ", groupValue: " + groupValue +
-        //                    ", PolityExpansionValue: " + PolityExpansionValue +
-        //                    ", TotalPolityExpansionValue: " + TotalPolityExpansionValue +
-        //                    ", rollValue: " + rollValue +
-        //                    ", travelFactor: " + travelFactor +
-        //                    ", nextDate: " + nextDate +
-        //                    ", selectedPi.PolityId: " + selectedPi.PolityId +
-        //                    ", targetGroup: " + targetGroupId +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
 
         if (PolityExpansionEvent == null)
         {
@@ -2999,6 +2881,12 @@ public class CellGroup : HumanGroup, IFlagHolder
         {
             prom.Value /= totalValue;
         }
+
+        // reset delta for unorganized bands
+        _unorgBandsPromDelta = 0;
+
+        // reset all prominence deltas
+        _polityPromDeltas.Clear();
 
         // remove any prominences set to be removed above
         RemovePolityProminences();
