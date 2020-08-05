@@ -256,8 +256,8 @@ public class CellGroup : HumanGroup, IFlagHolder
     private HashSet<string> _propertiesToAquire = new HashSet<string>();
     private HashSet<string> _propertiesToLose = new HashSet<string>();
 
+    private bool _hasPromValueDeltas = false;
     private float _unorgBandsPromDelta = 0;
-
     private Dictionary<Identifier, float> _polityPromDeltas =
         new Dictionary<Identifier, float>();
 
@@ -2820,6 +2820,8 @@ public class CellGroup : HumanGroup, IFlagHolder
         {
             _polityPromDeltas.Add(polity.Id, delta);
         }
+
+        _hasPromValueDeltas = true;
     }
 
     /// <summary>
@@ -2827,6 +2829,9 @@ public class CellGroup : HumanGroup, IFlagHolder
     /// </summary>
     private void CalculateNewPolityProminenceValues()
     {
+        // There was no new deltas so there's nothing to calculate
+        if (!_hasPromValueDeltas) return;
+
         // add to the prominence deltas the current prominence values
         AddUBProminenceValueDelta(1f - TotalPolityProminenceValue);
         foreach (PolityProminence p in _polityProminences.Values)
@@ -2887,6 +2892,8 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         // reset all prominence deltas
         _polityPromDeltas.Clear();
+
+        _hasPromValueDeltas = false;
 
         // remove any prominences set to be removed above
         RemovePolityProminences();
