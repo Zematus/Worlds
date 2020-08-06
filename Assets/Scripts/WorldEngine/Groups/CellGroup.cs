@@ -2790,9 +2790,6 @@ public class CellGroup : HumanGroup, IFlagHolder
     /// <param name="delta">value delta to apply</param>
     public void AddUBProminenceValueDelta(float delta)
     {
-        // round value to six decimals to avoid hidden bit serialization issues
-        delta = MathUtility.RoundToSixDecimals(delta);
-
         _unorgBandsPromDelta += delta;
     }
 
@@ -2806,11 +2803,14 @@ public class CellGroup : HumanGroup, IFlagHolder
         // if this polity had no prominence then we need to add it to the group
         if (!_polityProminences.ContainsKey(polity.Id))
         {
+            if (delta <= 0)
+            {
+                Debug.LogWarning(
+                    "Trying to add polity with a prominence value delta equal or less than 0");
+            }
+
             SetPolityProminenceToAdd(polity);
         }
-
-        // round value to six decimals to avoid hidden bit serialization issues
-        delta = MathUtility.RoundToSixDecimals(delta);
 
         if (_polityPromDeltas.ContainsKey(polity.Id))
         {
@@ -2825,12 +2825,29 @@ public class CellGroup : HumanGroup, IFlagHolder
     }
 
     /// <summary>
+    /// Clean up all the unorganized bands and prominence value deltas
+    /// </summary>
+    private void ResetProminenceValueDeltas()
+    {
+        // reset delta for unorganized bands
+        _unorgBandsPromDelta = 0;
+
+        // reset all prominence deltas
+        _polityPromDeltas.Clear();
+
+        _hasPromValueDeltas = false;
+    }
+
+    /// <summary>
     /// Update all prominence values using all the applied value deltas so far
     /// </summary>
     private void CalculateNewPolityProminenceValues()
     {
         // There was no new deltas so there's nothing to calculate
-        if (!_hasPromValueDeltas) return;
+        if (!_hasPromValueDeltas)
+        {
+            ResetProminenceValueDeltas();
+        }
 
         // add to the prominence deltas the current prominence values
         AddUBProminenceValueDelta(1f - TotalPolityProminenceValue);
@@ -2884,16 +2901,13 @@ public class CellGroup : HumanGroup, IFlagHolder
         // normalize values
         foreach (PolityProminence prom in _polityProminences.Values)
         {
-            prom.Value /= totalValue;
+            // round value to six decimals to avoid hidden bit serialization issues
+            float finalValue = MathUtility.RoundToSixDecimals(prom.Value / totalValue);
+
+            prom.Value = finalValue;
         }
 
-        // reset delta for unorganized bands
-        _unorgBandsPromDelta = 0;
-
-        // reset all prominence deltas
-        _polityPromDeltas.Clear();
-
-        _hasPromValueDeltas = false;
+        ResetProminenceValueDeltas();
 
         // remove any prominences set to be removed above
         RemovePolityProminences();
