@@ -2729,9 +2729,11 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         RemovePolityProminences();
 
-        CalculateNewPolityProminenceValues();
-
-        CalculateProminenceValueTotals();
+        if (CalculateNewPolityProminenceValues())
+        {
+            // Only update if there was a change in values
+            CalculateProminenceValueTotals();
+        }
     }
 
     /// <summary>
@@ -2800,13 +2802,19 @@ public class CellGroup : HumanGroup, IFlagHolder
     /// <param name="delta">value delta to apply</param>
     public void AddPolityProminenceValueDelta(Polity polity, float delta)
     {
+        if (delta == 0)
+        {
+            Debug.LogWarning("Trying to add a prominence delta of 0. Will ignore...");
+            return;
+        }
+
         // if this polity had no prominence then we need to add it to the group
         if (!_polityProminences.ContainsKey(polity.Id))
         {
-            if (delta <= 0)
+            if (delta < 0)
             {
-                Debug.LogWarning(
-                    "Trying to add polity with a prominence value delta equal or less than 0");
+                throw new System.Exception(
+                    "Trying to add polity with a prominence value delta less than 0");
             }
 
             SetPolityProminenceToAdd(polity);
@@ -2841,18 +2849,28 @@ public class CellGroup : HumanGroup, IFlagHolder
     /// <summary>
     /// Update all prominence values using all the applied value deltas so far
     /// </summary>
-    private void CalculateNewPolityProminenceValues()
+    /// <returns>'true' if there was a change in prominence values</returns>
+    private bool CalculateNewPolityProminenceValues()
     {
         // There was no new deltas so there's nothing to calculate
         if (!_hasPromValueDeltas)
         {
             ResetProminenceValueDeltas();
+            return false;
         }
 
         // add to the prominence deltas the current prominence values
         AddUBProminenceValueDelta(1f - TotalPolityProminenceValue);
         foreach (PolityProminence p in _polityProminences.Values)
         {
+            if (_polityPromDeltas.ContainsKey(p.PolityId))
+            {
+                _polityPromDeltas[p.PolityId] += p.Value;
+            }
+            else
+            {
+                _polityPromDeltas.Add(p.PolityId, p.Value);
+            }
             AddPolityProminenceValueDelta(p.Polity, p.Value);
         }
 
@@ -2894,8 +2912,7 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         if (totalValue <= 0)
         {
-            Debug.LogWarning("Unexpected total prominence value of: " + totalValue);
-            return;
+            throw new System.Exception("Unexpected total prominence value of: " + totalValue);
         }
 
         // normalize values
@@ -2911,6 +2928,8 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         // remove any prominences set to be removed above
         RemovePolityProminences();
+
+        return true;
     }
 
     /// <summary>
