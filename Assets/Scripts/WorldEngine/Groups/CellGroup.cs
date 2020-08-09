@@ -36,6 +36,9 @@ public class CellGroup : HumanGroup, IFlagHolder
 
     public static List<ICellGroupEventGenerator> OnSpawnEventGenerators;
 
+    [XmlAttribute("MT")]
+    public bool MigrationTagged = false;
+
     [XmlAttribute("PMD")]
     public int PreferredMigrationDirectionInt;
 
@@ -2725,8 +2728,6 @@ public class CellGroup : HumanGroup, IFlagHolder
     /// </summary>
     private void UpdatePolityProminences()
     {
-        //AddPolityProminences();
-
         // Remove prominences that were forcibly declared to be removed
         RemovePolityProminences();
 
@@ -3050,8 +3051,6 @@ public class CellGroup : HumanGroup, IFlagHolder
 
             // We want to update the polity if a group is removed.
             SetPolityUpdate(polityProminence, true);
-
-            Profiler.EndSample();
         }
 
         _polityProminencesToRemove.Clear();
@@ -3236,6 +3235,11 @@ public class CellGroup : HumanGroup, IFlagHolder
     public override void FinalizeLoad()
     {
         base.FinalizeLoad();
+
+        if (MigrationTagged)
+        {
+            World.MigrationTagGroup(this);
+        }
 
         PreferredMigrationDirection = (Direction)PreferredMigrationDirectionInt;
 

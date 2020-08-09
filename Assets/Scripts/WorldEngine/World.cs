@@ -344,7 +344,7 @@ public class World : ISynchronizable
     public ProgressCastDelegate ProgressCastMethod { get; set; }
 
     [XmlIgnore]
-    public HumanGroup MigrationTaggedGroup = null;
+    public CellGroup MigrationTaggedGroup = null;
 
     [XmlIgnore]
     public bool GroupsHaveBeenUpdated = false;
@@ -2208,7 +2208,7 @@ public class World : ISynchronizable
         FinalizeLoad(0, 1, null);
     }
 
-    public void MigrationTagGroup(HumanGroup group)
+    public void MigrationTagGroup(CellGroup group)
     {
         MigrationUntagGroup();
 
