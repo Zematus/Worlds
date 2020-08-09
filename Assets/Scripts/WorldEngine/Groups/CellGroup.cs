@@ -242,8 +242,8 @@ public class CellGroup : HumanGroup, IFlagHolder
 
     private HashSet<Identifier> _polityProminencesToRemove =
         new HashSet<Identifier>();
-    private HashSet<Polity> _polityProminencesToAdd =
-        new HashSet<Polity>();
+    //private HashSet<Polity> _polityProminencesToAdd =
+    //    new HashSet<Polity>();
 
     private HashSet<string> _flags = new HashSet<string>();
 
@@ -258,8 +258,8 @@ public class CellGroup : HumanGroup, IFlagHolder
 
     private bool _hasPromValueDeltas = false;
     private float _unorgBandsPromDelta = 0;
-    private Dictionary<Identifier, float> _polityPromDeltas =
-        new Dictionary<Identifier, float>();
+    private Dictionary<Polity, float> _polityPromDeltas =
+        new Dictionary<Polity, float>();
 
     public int PreviousPopulation
     {
@@ -2725,8 +2725,9 @@ public class CellGroup : HumanGroup, IFlagHolder
     /// </summary>
     private void UpdatePolityProminences()
     {
-        AddPolityProminences();
+        //AddPolityProminences();
 
+        // Remove prominences that were forcibly declared to be removed
         RemovePolityProminences();
 
         if (CalculateNewPolityProminenceValues())
@@ -2802,31 +2803,24 @@ public class CellGroup : HumanGroup, IFlagHolder
     /// <param name="delta">value delta to apply</param>
     public void AddPolityProminenceValueDelta(Polity polity, float delta)
     {
+        //if (Id == "0000000000164772058:1142429918914917756")
+        //{
+        //    Debug.LogWarning("Debugging Group " + Id);
+        //}
+
         if (delta == 0)
         {
             Debug.LogWarning("Trying to add a prominence delta of 0. Will ignore...");
             return;
         }
 
-        // if this polity had no prominence then we need to add it to the group
-        if (!_polityProminences.ContainsKey(polity.Id))
+        if (_polityPromDeltas.ContainsKey(polity))
         {
-            if (delta < 0)
-            {
-                throw new System.Exception(
-                    "Trying to add polity with a prominence value delta less than 0");
-            }
-
-            SetPolityProminenceToAdd(polity);
-        }
-
-        if (_polityPromDeltas.ContainsKey(polity.Id))
-        {
-            _polityPromDeltas[polity.Id] += delta;
+            _polityPromDeltas[polity] += delta;
         }
         else
         {
-            _polityPromDeltas.Add(polity.Id, delta);
+            _polityPromDeltas.Add(polity, delta);
         }
 
         _hasPromValueDeltas = true;
@@ -2859,22 +2853,32 @@ public class CellGroup : HumanGroup, IFlagHolder
             return false;
         }
 
+        //if (Id == "0000000000165645824:1142545211065378440")
+        //{
+        //    Debug.LogWarning("Debugging Group " + Id);
+        //}
+
         // add to the prominence deltas the current prominence values
         AddUBProminenceValueDelta(1f - TotalPolityProminenceValue);
         foreach (PolityProminence p in _polityProminences.Values)
         {
-            if (_polityPromDeltas.ContainsKey(p.PolityId))
+            if (_polityPromDeltas.ContainsKey(p.Polity))
             {
-                _polityPromDeltas[p.PolityId] += p.Value;
+                _polityPromDeltas[p.Polity] += p.Value;
             }
             else
             {
-                _polityPromDeltas.Add(p.PolityId, p.Value);
+                _polityPromDeltas.Add(p.Polity, p.Value);
             }
-            AddPolityProminenceValueDelta(p.Polity, p.Value);
         }
 
         // get the offset to apply to all deltas so that there are no negative values
+        // -----
+        // NOTE: This is not a proper solution. A better one would require for every
+        // prominence value transfer between polities to be recorded as a transaction,
+        // and balancing out those transactions that push a prominence value below zero
+        // independently from all others
+        // -----
         float polPromDeltaOffset = Mathf.Min(0, _unorgBandsPromDelta);
         foreach (float delta in _polityPromDeltas.Values)
         {
@@ -2884,21 +2888,20 @@ public class CellGroup : HumanGroup, IFlagHolder
         // replace prom values with deltas minus offset, and get the total sum
         float ubProminenceValue = _unorgBandsPromDelta - polPromDeltaOffset;
         float totalValue = ubProminenceValue;
-        foreach (KeyValuePair<Identifier, float> pair in _polityPromDeltas)
+        foreach (KeyValuePair<Polity, float> pair in _polityPromDeltas)
         {
-            float newValue = pair.Value - polPromDeltaOffset;
+            Polity polity = pair.Key;
+            float newValue = pair.Value;
 
-            if (newValue <= 0)
+            newValue -= polPromDeltaOffset;
+
+            if (newValue <= Polity.MinPolityProminenceValue)
             {
-                if (newValue < 0)
-                {
-                    Debug.LogWarning("Unexpected new prominence value of: " + newValue);
-                }
-
-                if (!SetPolityProminenceToRemove(pair.Key))
+                // try to remove prominences that would end up with a value far too small
+                if (!SetPolityProminenceToRemove(pair.Key, false))
                 {
                     // if not possible to remove this prominence, set it to a min value
-                    newValue = Polity.MinPolityProminence;
+                    newValue = Polity.MinPolityProminenceValue;
                 }
                 else
                 {
@@ -2906,7 +2909,13 @@ public class CellGroup : HumanGroup, IFlagHolder
                 }
             }
 
-            _polityProminences[pair.Key].Value = newValue;
+            if (!_polityProminences.ContainsKey(polity.Id))
+            {
+                // add missing prominences that have values greater than MinPolityProminenceValue
+                AddPolityProminence(polity);
+            }
+
+            _polityProminences[polity.Id].Value = newValue;
             totalValue += newValue;
         }
 
@@ -2933,44 +2942,38 @@ public class CellGroup : HumanGroup, IFlagHolder
     }
 
     /// <summary>
-    /// Set a new polity prominence to add to the group
+    /// add a polity prominence to remove
     /// </summary>
-    /// <param name="polity">polity to add prominence for</param>
-    /// <param name="newProminenceValue">initial prominence value</param>
-    /// <param name="polityCoreDistance">polity core distance to use (autocalculated if set to -1)</param>
-    /// <param name="factionCoreDistance">faction core distance to use (autocalculated if set to -1)</param>
-    public void SetPolityProminenceToAdd(Polity polity)
+    /// <param name="polity">the polity to which the prominence belongs</param>
+    /// <param name="throwIfNotPresent">throw if prominence is not present</param>
+    /// <returns>'false' if the polity prominence can't be removed</returns>
+    public bool SetPolityProminenceToRemove(Polity polity, bool throwIfNotPresent = true)
     {
-        if (_polityProminences.ContainsKey(polity.Id))
-        {
-            throw new System.ArgumentException(
-                "Prominence of polity " + polity.Id +
-                " already present in " + Id);
-        }
-
-        _polityProminencesToAdd.Add(polity);
+        return SetPolityProminenceToRemove(polity.Id, throwIfNotPresent);
     }
 
     /// <summary>
     /// add a polity prominence to remove
     /// </summary>
-    /// <param name="polityId">id of polity to remove</param>
-    /// <returns></returns>
-    public bool SetPolityProminenceToRemove(Identifier polityId)
+    /// <param name="polityId">id of polity to which the prominence belongs</param>
+    /// <param name="throwIfNotPresent">throw if prominence is not present</param>
+    /// <returns>'false' if the polity prominence can't be removed</returns>
+    public bool SetPolityProminenceToRemove(Identifier polityId, bool throwIfNotPresent = true)
     {
         if (!_polityProminences.ContainsKey(polityId))
         {
-            throw new System.ArgumentException(
-                "Prominence of polity " + polityId +
-                " not present in " + Id);
+            if (throwIfNotPresent)
+            {
+                throw new System.ArgumentException(
+                    "Prominence of polity " + polityId +
+                    " not present in " + Id);
+            }
+
+            return true;
         }
 
         if (_polityProminencesToRemove.Contains(polityId))
         {
-            Debug.LogWarning(
-                "Prominence of polity " + polityId +
-                " already going to be removed from " + Id);
-
             return true;
         }
 
@@ -2991,29 +2994,25 @@ public class CellGroup : HumanGroup, IFlagHolder
     }
 
     /// <summary>
-    /// Add all prominences that where se to be added
+    /// Add a new polity prominence
     /// </summary>
-    private void AddPolityProminences()
+    /// <param name="polity">polity to associate the new prominence with</param>
+    private void AddPolityProminence(Polity polity)
     {
-        foreach (Polity polity in _polityProminencesToAdd)
+        PolityProminence polityProminence = new PolityProminence(this, polity);
+
+        // Increase polity contacts
+        foreach (PolityProminence otherProminence in _polityProminences.Values)
         {
-            PolityProminence polityProminence = new PolityProminence(this, polity);
-
-            // Increase polity contacts
-            foreach (PolityProminence otherProminence in _polityProminences.Values)
-            {
-                Polity.IncreaseContactGroupCount(polity, otherProminence.Polity);
-            }
-
-            _polityProminences.Add(polity.Id, polityProminence);
-
-            // We want to update the polity if a group is added.
-            SetPolityUpdate(polityProminence, true);
-
-            polity.AddGroup(polityProminence);
+            Polity.IncreaseContactGroupCount(polity, otherProminence.Polity);
         }
 
-        _polityProminencesToAdd.Clear();
+        _polityProminences.Add(polity.Id, polityProminence);
+
+        // We want to update the polity if a group is added.
+        SetPolityUpdate(polityProminence, true);
+
+        polity.AddGroup(polityProminence);
     }
 
     /// <summary>

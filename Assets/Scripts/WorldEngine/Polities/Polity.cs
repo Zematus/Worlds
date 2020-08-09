@@ -18,7 +18,7 @@ public abstract class Polity : ISynchronizable
 
     public const float CoreDistanceEffectConstant = 10000;
 
-    public const float MinPolityProminence = 0.01f;
+    public const float MinPolityProminenceValue = 0.01f;
 
     public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
 
@@ -889,7 +889,8 @@ public abstract class Polity : ISynchronizable
 
         cluster.RemoveProminence(prominence);
 
-        // Sketchy code. Make sure removing clusters this way is not troublesome for the simulation (and perf)
+        // Sketchy code. Make sure removing clusters this way is not troublesome
+        // for the simulation (and perf)
         if (cluster.Size <= 0)
         {
             ProminenceClusters.Remove(cluster);
@@ -1615,7 +1616,7 @@ public abstract class Polity : ISynchronizable
         {
             float ppValue = group.GetPolityProminenceValue(polity);
 
-            group.SetPolityProminenceToRemove(polity.Id);
+            group.SetPolityProminenceToRemove(polity);
             group.AddPolityProminenceValueDelta(this, ppValue);
 
             World.AddGroupToUpdate(group);
