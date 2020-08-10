@@ -24,7 +24,7 @@ public class Tribe : Polity
 
     private static string[] TribeNounVariants = new string[] {
         "nation", "tribe", "[in(person)]people", "folk", "community", "kin", "{kin:s:}person:s", "{kin:s:}[in(man)]men", "{kin:s:}[in(woman)]women", "[in(child)]children" };
-    
+
     private int _rngOffset;
 
     public Tribe()
@@ -85,7 +85,7 @@ public class Tribe : Polity
         coreGroup.AddPolityProminenceValueDelta(this, coreProminenceFactor);
 
         // substract the new tribe prominence from the unorganized bands prominence
-        coreGroup.AddUBProminenceValueDelta(-coreProminenceFactor);
+        coreGroup.AddUBandsProminenceValueDelta(-coreProminenceFactor);
 
         GenerateName();
 
@@ -184,12 +184,12 @@ public class Tribe : Polity
     {
         float targetPolityInfluence = triggerClan.Influence;
         float sourcePolityInfluence = 1 - targetPolityInfluence;
-        
+
         if (targetPolityInfluence <= 0)
         {
             throw new System.Exception("Pulling clan influence equal or less than zero.");
         }
-        
+
         int maxGroupCount = sourcePolity.Groups.Count;
 
         Dictionary<CellGroup, float> groupDistances = new Dictionary<CellGroup, float>(maxGroupCount);
@@ -387,25 +387,25 @@ public class Tribe : Polity
 
         Info.Name = new Name(untranslatedName, Culture.Language, World);
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            //if (Manager.TracingData.PolityId == Id)
-//            //{
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "Tribe.GenerateName - Polity.Id:" + Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
-//                    //", PrepositionVariations: [" + string.Join(",", PrepositionVariations) + "]" +
-//                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
-//                    ", TribeNounVariations.Length: " + TribeNounVariations.Length +
-//                    ", areaName: " + areaName +
-//                    "");
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            //if (Manager.TracingData.PolityId == Id)
+        //            //{
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "Tribe.GenerateName - Polity.Id:" + Id,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
+        //                    //", PrepositionVariations: [" + string.Join(",", PrepositionVariations) + "]" +
+        //                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
+        //                    ", TribeNounVariations.Length: " + TribeNounVariations.Length +
+        //                    ", areaName: " + areaName +
+        //                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            //}
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            //}
+        //        }
+        //#endif
 
         //		#if DEBUG
         //		Debug.Log ("Tribe #" + Id + " name: " + Name);

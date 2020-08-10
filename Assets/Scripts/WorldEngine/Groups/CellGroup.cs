@@ -292,6 +292,7 @@ public class CellGroup : HumanGroup, IFlagHolder
         Manager.UpdateWorldLoadTrackEventCount();
     }
 
+    [System.Obsolete]
     public CellGroup(MigratingGroup migratingGroup, int splitPopulation) :
         this(
             migratingGroup.World,
@@ -301,6 +302,21 @@ public class CellGroup : HumanGroup, IFlagHolder
             migratingGroup.MigrationDirection)
     {
         MergePolityProminences(migratingGroup.PolityProminences, 1);
+    }
+
+    /// <summary>
+    /// Creates a new cell group from a group of unorganized bands
+    /// </summary>
+    /// <param name="bands">migrating bands that will form the group</param>
+    /// <param name="splitPopulation">initial group population</param>
+    public CellGroup(MigratingBands bands, int splitPopulation) :
+        this(
+            bands.World,
+            bands.TargetCell,
+            splitPopulation,
+            bands.Culture,
+            bands.MigrationDirection)
+    {
     }
 
     public CellGroup(
@@ -709,6 +725,7 @@ public class CellGroup : HumanGroup, IFlagHolder
         return biomes;
     }
 
+    [System.Obsolete]
     public void MergeGroup(MigratingGroup group)
     {
         float newPopulation = Population + group.Population;
@@ -738,7 +755,7 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         Culture.MergeCulture(group.Culture, percentage);
 
-        MergeUBProminence(1f - TotalPolityProminenceValue, percentage);
+        MergeUBandsProminence(1f - TotalPolityProminenceValue, percentage);
         MergePolityProminences(group.PolityProminences, percentage);
 
         //		#if DEBUG
@@ -764,11 +781,46 @@ public class CellGroup : HumanGroup, IFlagHolder
         TriggerInterference();
     }
 
-    public void MergeUBProminence(
+    /// <summary>
+    /// Merges and group of unorganized bands into this group
+    /// </summary>
+    /// <param name="bands"></param>
+    public void MergeUnorganizedBands(MigratingBands bands)
+    {
+        float newPopulation = Population + bands.Population;
+
+        float percentage = bands.Population / newPopulation;
+
+        if (!percentage.IsInsideRange(0, 1))
+        {
+            throw new System.Exception(
+                "Percentage increase outside of range (0,1): " + percentage +
+                " - Group: " + Id);
+        }
+
+        ExactPopulation = newPopulation;
+
+#if DEBUG
+        if (Population < -1000)
+        {
+            throw new System.Exception(
+                "Negative population value is beyond tolerance value: " + Population +
+                " - Group: " + Id);
+        }
+#endif
+
+        Culture.MergeCulture(bands.Culture, percentage);
+
+        MergeUBandsProminence(1f, percentage);
+
+        TriggerInterference();
+    }
+
+    public void MergeUBandsProminence(
         float prominenceValue,
         float percentOfTarget)
     {
-        AddUBProminenceValueDelta(prominenceValue * percentOfTarget);
+        AddUBandsProminenceValueDelta(prominenceValue * percentOfTarget);
     }
 
     public void MergePolityProminence(Polity polity, float value, float percentOfTarget)
@@ -786,6 +838,7 @@ public class CellGroup : HumanGroup, IFlagHolder
         }
     }
 
+    [System.Obsolete]
     public int SplitGroup(MigratingGroup group)
     {
         int splitPopulation = (int)Mathf.Floor(Population * group.PercentPopulation);
@@ -817,6 +870,28 @@ public class CellGroup : HumanGroup, IFlagHolder
         //			}
         //		}
         //		#endif
+
+        if (Population < 0)
+        {
+            throw new System.Exception("Population less than 0");
+        }
+
+        return splitPopulation;
+    }
+
+    /// <summary>
+    /// Takes a portion of the group's unorganized bands to move to a new cell
+    /// </summary>
+    /// <param name="bands">migrating bands object that will take care of the process</param>
+    /// <returns>The amount of population that migrated out</returns>
+    public int SplitUnorganizedBands(MigratingBands bands)
+    {
+        float ubProminence = 1f - TotalPolityProminenceValue;
+
+        int splitPopulation =
+            (int)Mathf.Floor(Population * bands.PercentPopulation * ubProminence);
+
+        ExactPopulation -= splitPopulation;
 
         if (Population < 0)
         {
@@ -2794,7 +2869,7 @@ public class CellGroup : HumanGroup, IFlagHolder
     /// Adds a delta to apply to the unorganized bands' prominence value in this group
     /// </summary>
     /// <param name="delta">value delta to apply</param>
-    public void AddUBProminenceValueDelta(float delta)
+    public void AddUBandsProminenceValueDelta(float delta)
     {
         _unorgBandsPromDelta += delta;
     }
@@ -2865,7 +2940,7 @@ public class CellGroup : HumanGroup, IFlagHolder
         //}
 
         // add to the prominence deltas the current prominence values
-        AddUBProminenceValueDelta(1f - TotalPolityProminenceValue);
+        AddUBandsProminenceValueDelta(1f - TotalPolityProminenceValue);
         foreach (PolityProminence p in _polityProminences.Values)
         {
             if (_polityPromDeltas.ContainsKey(p.Polity))

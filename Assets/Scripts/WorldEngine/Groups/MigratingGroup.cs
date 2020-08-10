@@ -6,6 +6,7 @@ using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
 //NOTE: This class is not serialized
+[System.Obsolete]
 public class MigratingGroup : HumanGroup
 {
     public float PercentPopulation;
