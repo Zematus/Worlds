@@ -277,7 +277,7 @@ public abstract class Polity : ISynchronizable
 
         foreach (CellGroup group in Groups.Values)
         {
-            group.RemovePolityProminence(this);
+            group.SetPolityProminenceToRemove(this);
 
             World.AddGroupToPostUpdate_AfterPolityUpdate(group);
         }
@@ -613,11 +613,9 @@ public abstract class Polity : ISynchronizable
 
     public void DecreaseContactGroupCount(Polity polity)
     {
-        if (!_contacts.ContainsKey(polity.Id))
+        if (!_contacts.TryGetValue(polity.Id, out PolityContact contact))
             throw new System.Exception("(id: " + Id + ") contact not present: " + polity.Id +
                 " - Date: " + World.CurrentDate);
-
-        PolityContact contact = _contacts[polity.Id];
 
         contact.GroupCount--;
 
