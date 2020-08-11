@@ -181,7 +181,11 @@ public class CellGroup : HumanGroup, IFlagHolder
     public UpdateCellGroupEvent UpdateEvent;
 
     [XmlIgnore]
+    [System.Obsolete]
     public MigrateGroupEvent MigrationEvent;
+
+    [XmlIgnore]
+    public MigrateBandsEvent BandMigrationEvent;
 
     [XmlIgnore]
     public ExpandPolityProminenceEvent PolityExpansionEvent;
@@ -192,8 +196,12 @@ public class CellGroup : HumanGroup, IFlagHolder
     [XmlIgnore]
     public TerrainCell Cell;
 
+    [System.Obsolete]
     [XmlIgnore]
     public MigratingGroup MigratingGroup = null;
+
+    [XmlIgnore]
+    public MigratingBands MigratingBands = null;
 
     [XmlIgnore]
     public Faction WillBecomeCoreOfFaction = null;
@@ -444,6 +452,29 @@ public class CellGroup : HumanGroup, IFlagHolder
                 yield return group;
             if (Neighbors.TryGetValue(Direction.Northwest, out group))
                 yield return group;
+        }
+    }
+
+    /// <summary>
+    /// Sets Migrating Bands object
+    /// </summary>
+    /// <param name="percentPopulation">percentage of the source group's population to migrate</param>
+    /// <param name="targetCell">the cell group this migrates to</param>
+    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    public void SetMigratingBands(
+        float percentPopulation,
+        TerrainCell targetCell,
+        Direction migrationDirection)
+    {
+
+        if (MigratingBands == null)
+        {
+            MigratingBands =
+                new MigratingBands(World, percentPopulation, this, targetCell, migrationDirection);
+        }
+        else
+        {
+            MigratingBands.Set(percentPopulation, this, targetCell, migrationDirection);
         }
     }
 
