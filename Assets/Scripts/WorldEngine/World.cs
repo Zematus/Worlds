@@ -412,7 +412,10 @@ public class World : ISynchronizable
     private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToCleanupAfterUpdate = new HashSet<CellGroup>();
 
+    [System.Obsolete]
     private List<MigratingGroup> _migratingGroups = new List<MigratingGroup>();
+
+    private List<MigratingBands> _migratingBands = new List<MigratingBands>();
 
     private Dictionary<Identifier, Agent> _memorableAgents =
         new Dictionary<Identifier, Agent>();
@@ -1060,6 +1063,7 @@ public class World : ISynchronizable
         _groupsToUpdate.Clear();
     }
 
+    [System.Obsolete]
     private void MigrateGroups()
     {
         foreach (MigratingGroup group in _migratingGroups)
@@ -1073,6 +1077,24 @@ public class World : ISynchronizable
         }
 
         _migratingGroups.Clear();
+    }
+
+    /// <summary>
+    /// Performs the migration actions over all bands migrating during this iteration
+    /// </summary>
+    private void MigrateBands()
+    {
+        foreach (MigratingBands bands in _migratingBands)
+        {
+            bands.SplitFromSourceGroup();
+        }
+
+        foreach (MigratingBands bands in _migratingBands)
+        {
+            bands.MoveToCell();
+        }
+
+        _migratingBands.Clear();
     }
 
     private void PostUpdateGroups_BeforePolityUpdates()
@@ -1535,11 +1557,13 @@ public class World : ISynchronizable
     }
 
 #if DEBUG
+    [System.Obsolete]
     public delegate void AddMigratingGroupCalledDelegate();
-
+    [System.Obsolete]
     public static AddMigratingGroupCalledDelegate AddMigratingGroupCalled = null;
 #endif
 
+    [System.Obsolete]
     public void AddMigratingGroup(MigratingGroup group)
     {
 #if DEBUG
@@ -1563,6 +1587,41 @@ public class World : ISynchronizable
         if ((group.TargetCell.Group != null) && (group.TargetCell.Group.StillPresent))
         {
             AddGroupToUpdate(group.TargetCell.Group);
+        }
+    }
+
+#if DEBUG
+    public delegate void AddMigratingBandsCalledDelegate();
+    public static AddMigratingBandsCalledDelegate AddMigratingBandsCalled = null;
+#endif
+
+    /// <summary>
+    /// Adds a group of migrating bands to migrate during this iteration
+    /// </summary>
+    /// <param name="bands">group of bands to add</param>
+    public void AddMigratingBands(MigratingBands bands)
+    {
+#if DEBUG
+        if (AddMigratingBandsCalled != null)
+        {
+            AddMigratingBandsCalled();
+        }
+#endif
+
+        _migratingBands.Add(bands);
+
+        if (!bands.SourceGroup.StillPresent)
+        {
+            Debug.LogWarning("Sourcegroup is no longer present. Group Id: " + bands.SourceGroup);
+        }
+
+        // Source Group needs to be updated
+        AddGroupToUpdate(bands.SourceGroup);
+
+        // If Target Group is present, it also needs to be updated
+        if ((bands.TargetCell.Group != null) && (bands.TargetCell.Group.StillPresent))
+        {
+            AddGroupToUpdate(bands.TargetCell.Group);
         }
     }
 
