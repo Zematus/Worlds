@@ -112,7 +112,8 @@ public class Clan : Faction
 
     public CellGroup GetCoreGroupMigrationTarget()
     {
-        Direction migrationDirection = CoreGroup.GenerateCoreMigrationDirection();
+        //TODO: generate a valid direction or rewrite core migration
+        Direction migrationDirection = Direction.Null;
 
         if (migrationDirection == Direction.Null)
         {

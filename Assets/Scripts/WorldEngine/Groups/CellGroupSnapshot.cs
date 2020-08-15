@@ -10,10 +10,10 @@ public class CellGroupSnapshot
 {
     public Identifier Id;
 
-    public bool HasMigrationEvent;
-    public long MigrationEventDate;
-    public int MigrationTargetLongitude;
-    public int MigrationTargetLatitude;
+    public bool HasBandMigrationEvent;
+    public long BandMigrationEventDate;
+    public int BandMigrationTargetLongitude;
+    public int BandMigrationTargetLatitude;
 
     public bool HasPolityExpansionEvent;
     public long PolityExpansionEventDate;
@@ -27,10 +27,10 @@ public class CellGroupSnapshot
     {
         Id = group.Id;
 
-        HasMigrationEvent = group.HasMigrationEvent;
-        MigrationEventDate = group.MigrationEventDate;
-        MigrationTargetLongitude = group.MigrationTargetLongitude;
-        MigrationTargetLatitude = group.MigrationTargetLatitude;
+        HasBandMigrationEvent = group.HasBandMigrationEvent;
+        BandMigrationEventDate = group.BandMigrationEventDate;
+        BandMigrationTargetLongitude = group.BandMigrationTargetLongitude;
+        BandMigrationTargetLatitude = group.BandMigrationTargetLatitude;
 
         HasPolityExpansionEvent = group.HasPolityExpansionEvent;
         PolityExpansionEventDate = group.PolityExpansionEventDate;

@@ -42,9 +42,6 @@ public class CellGroup : Identifiable, IFlagHolder
     [XmlAttribute("MT")]
     public bool MigrationTagged = false;
 
-    [XmlAttribute("PMD")]
-    public int PreferredMigrationDirectionInt;
-
     [XmlAttribute("PEP")]
     public float PreviousExactPopulation;
 
@@ -1456,9 +1453,8 @@ public class CellGroup : Identifiable, IFlagHolder
                 Cell.NeighborList.Count);
 
         Direction expansionDirection = Cell.DirectionList[targetCellIndex];
-        CellGroup targetGroup = Neighbors[expansionDirection];
 
-        if (targetGroup == null)
+        if (!Neighbors.TryGetValue(expansionDirection, out CellGroup targetGroup))
             return;
 
         if (!targetGroup.StillPresent)
@@ -2991,8 +2987,6 @@ public class CellGroup : Identifiable, IFlagHolder
         }
 
         FactionCoreIds = new List<Identifier>(FactionCores.Keys);
-
-        PreferredMigrationDirectionInt = (int)PreferredMigrationDirection;
     }
 
 #if DEBUG
@@ -3020,8 +3014,6 @@ public class CellGroup : Identifiable, IFlagHolder
         {
             World.MigrationTagGroup(this);
         }
-
-        PreferredMigrationDirection = (Direction)PreferredMigrationDirectionInt;
 
         foreach (Identifier id in FactionCoreIds)
         {
@@ -3110,17 +3102,18 @@ public class CellGroup : Identifiable, IFlagHolder
 
         // Generate Migration Event
 
-        if (HasMigrationEvent)
+        if (HasBandMigrationEvent)
         {
-            TerrainCell targetCell = World.GetCell(MigrationTargetLongitude, MigrationTargetLatitude);
+            TerrainCell targetCell =
+                World.GetCell(BandMigrationTargetLongitude, BandMigrationTargetLatitude);
 
-            MigrationEvent = new MigrateGroupEvent(
+            BandMigrationEvent = new MigrateBandsEvent(
                 this,
                 targetCell,
-                (Direction)MigrationEventDirectionInt,
-                (MigrationType)MigrationEventTypeInt,
-                MigrationEventDate);
-            World.InsertEventToHappen(MigrationEvent);
+                (Direction)BandMigrationEventDirectionInt,
+                (MigrationType)BandMigrationEventTypeInt,
+                BandMigrationEventDate);
+            World.InsertEventToHappen(BandMigrationEvent);
         }
 
         // Generate Polity Expansion Event
