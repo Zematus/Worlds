@@ -109,7 +109,7 @@ public class MigrateBandsEvent : CellGroupEvent
     {
         if (Group != null)
         {
-            Group.HasMigrationEvent = false;
+            Group.HasBandMigrationEvent = false;
 
             if (MigrationType == MigrationType.Sea)
             {

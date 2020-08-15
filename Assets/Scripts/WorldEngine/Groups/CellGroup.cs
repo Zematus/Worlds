@@ -4,8 +4,11 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class CellGroup : HumanGroup, IFlagHolder
+public class CellGroup : Identifiable, IFlagHolder
 {
+    [XmlIgnore]
+    public World World;
+
     public const long GenerationSpan = 25 * World.YearLength;
 
     public const long MaxUpdateSpan = GenerationSpan * 8000;
@@ -85,19 +88,19 @@ public class CellGroup : HumanGroup, IFlagHolder
     public float TotalPolityExpansionValue;
 
     [XmlAttribute("MEv")]
-    public bool HasMigrationEvent = false;
+    public bool HasBandMigrationEvent = false;
     [XmlAttribute("MD")]
-    public long MigrationEventDate;
+    public long BandMigrationEventDate;
     [XmlAttribute("MSD")]
-    public long MigrationEventSpawnDate;
+    public long BandMigrationEventSpawnDate;
     [XmlAttribute("MLo")]
-    public int MigrationTargetLongitude;
+    public int BandMigrationTargetLongitude;
     [XmlAttribute("MLa")]
-    public int MigrationTargetLatitude;
+    public int BandMigrationTargetLatitude;
     [XmlAttribute("MED")]
-    public int MigrationEventDirectionInt;
+    public int BandMigrationEventDirectionInt;
     [XmlAttribute("MET")]
-    public int MigrationEventTypeInt;
+    public int BandMigrationEventTypeInt;
 
     [XmlAttribute("PEEv")]
     public bool HasPolityExpansionEvent = false;
@@ -172,17 +175,10 @@ public class CellGroup : HumanGroup, IFlagHolder
     }
 
     [XmlIgnore]
-    public Direction PreferredMigrationDirection;
-
-    [XmlIgnore]
     public Dictionary<Identifier, Faction> FactionCores = new Dictionary<Identifier, Faction>();
 
     [XmlIgnore]
     public UpdateCellGroupEvent UpdateEvent;
-
-    [XmlIgnore]
-    [System.Obsolete]
-    public MigrateGroupEvent MigrationEvent;
 
     [XmlIgnore]
     public MigrateBandsEvent BandMigrationEvent;
@@ -195,10 +191,6 @@ public class CellGroup : HumanGroup, IFlagHolder
 
     [XmlIgnore]
     public TerrainCell Cell;
-
-    [System.Obsolete]
-    [XmlIgnore]
-    public MigratingGroup MigratingGroup = null;
 
     [XmlIgnore]
     public MigratingBands MigratingBands = null;
@@ -300,18 +292,6 @@ public class CellGroup : HumanGroup, IFlagHolder
         Manager.UpdateWorldLoadTrackEventCount();
     }
 
-    [System.Obsolete]
-    public CellGroup(MigratingGroup migratingGroup, int splitPopulation) :
-        this(
-            migratingGroup.World,
-            migratingGroup.TargetCell,
-            splitPopulation,
-            migratingGroup.Culture,
-            migratingGroup.MigrationDirection)
-    {
-        MergePolityProminences(migratingGroup.PolityProminences, 1);
-    }
-
     /// <summary>
     /// Creates a new cell group from a group of unorganized bands
     /// </summary>
@@ -332,9 +312,10 @@ public class CellGroup : HumanGroup, IFlagHolder
         TerrainCell cell,
         int initialPopulation,
         Culture baseCulture = null,
-        Direction migrationDirection = Direction.Null) :
-        base(world)
+        Direction migrationDirection = Direction.Null)
     {
+        World = world;
+
         LastUpdateDate = World.CurrentDate;
 
         PreviousExactPopulation = 0;
@@ -347,17 +328,6 @@ public class CellGroup : HumanGroup, IFlagHolder
         Cell.Group = this;
 
         Init(World.CurrentDate, Cell.GenerateInitId());
-
-        if (migrationDirection == Direction.Null)
-        {
-            int offset = Cell.GetNextLocalRandomInt(RngOffsets.CELL_GROUP_UPDATE_MIGRATION_DIRECTION, TerrainCell.MaxNeighborDirections);
-
-            PreferredMigrationDirection = Cell.TryGetNeighborDirection(offset);
-        }
-        else
-        {
-            PreferredMigrationDirection = migrationDirection;
-        }
 
 #if DEBUG
         if (Longitude > 1000)
@@ -494,50 +464,6 @@ public class CellGroup : HumanGroup, IFlagHolder
         {
             generator.TryGenerateEventAndAssign(this);
         }
-    }
-
-    public void UpdatePreferredMigrationDirection()
-    {
-        int dir = ((int)PreferredMigrationDirection) + RandomUtility.NoOffsetRange(Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_UPDATE_MIGRATION_DIRECTION));
-
-        PreferredMigrationDirection = Cell.TryGetNeighborDirection(dir);
-    }
-
-    public Direction GenerateCoreMigrationDirection()
-    {
-        int dir = (int)PreferredMigrationDirection;
-
-        float fDir = RandomUtility.PseudoNormalRepeatDistribution(Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_GENERATE_CORE_MIGRATION_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
-
-        return TryGetNeighborDirection((int)fDir);
-    }
-
-    public Direction GeneratePolityExpansionDirection()
-    {
-        int dir = (int)PreferredMigrationDirection;
-
-        float fDir = RandomUtility.PseudoNormalRepeatDistribution(Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_GENERATE_PROMINENCE_TRANSFER_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
-
-        return TryGetNeighborDirection((int)fDir);
-    }
-
-    public Direction GenerateGroupMigrationDirection()
-    {
-        int dir = (int)PreferredMigrationDirection;
-
-        Profiler.BeginSample("RandomUtility.PseudoNormalRepeatDistribution");
-
-        float fDir = RandomUtility.PseudoNormalRepeatDistribution(Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_GENERATE_GROUP_MIGRATION_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
-
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Cell.TryGetNeighborDirection");
-
-        Direction direction = Cell.TryGetNeighborDirection((int)fDir);
-
-        Profiler.EndSample();
-
-        return direction;
     }
 
     public void AddFactionCore(Faction faction)
@@ -745,7 +671,7 @@ public class CellGroup : HumanGroup, IFlagHolder
             biomes.Add(Biome.Biomes[id]);
         }
 
-        foreach (TerrainCell neighborCell in Cell.Neighbors.Values)
+        foreach (TerrainCell neighborCell in Cell.NeighborList)
         {
             foreach (string id in neighborCell.PresentBiomeIds)
             {
@@ -756,66 +682,10 @@ public class CellGroup : HumanGroup, IFlagHolder
         return biomes;
     }
 
-    [System.Obsolete]
-    public void MergeGroup(MigratingGroup group)
-    {
-        float newPopulation = Population + group.Population;
-
-        float percentage = group.Population / newPopulation;
-
-        if (!percentage.IsInsideRange(0, 1))
-        {
-            Debug.LogWarning("MergeGroup, percentage increase outside of range (0,1): " + percentage);
-        }
-
-        percentage = Mathf.Clamp01(percentage);
-
-        //		#if DEBUG
-        //		float oldExactPopulation = ExactPopulation;
-        //		#endif
-
-        ExactPopulation = newPopulation;
-
-#if DEBUG
-        if (Population < -1000)
-        {
-            Debug.Break();
-            throw new System.Exception("Debug.Break");
-        }
-#endif
-
-        Culture.MergeCulture(group.Culture, percentage);
-
-        MergeUBandsProminence(1f - TotalPolityProminenceValue, percentage);
-        MergePolityProminences(group.PolityProminences, percentage);
-
-        //		#if DEBUG
-        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
-        //			if (Id == Manager.TracingData.GroupId) {
-        //				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-        //
-        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //					"MergeGroup - Group:" + groupId, 
-        //					"CurrentDate: " + World.CurrentDate +
-        //					", group.SourceGroupId: " + group.SourceGroupId + 
-        //					", oldExactPopulation: " + oldExactPopulation + 
-        //					", source group.Population: " + group.Population + 
-        //					", newPopulation: " + newPopulation + 
-        //					", group.PolityProminences.Count: " + group.PolityProminences.Count + 
-        //					"");
-        //
-        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-        //			}
-        //		}
-        //		#endif
-
-        TriggerInterference();
-    }
-
     /// <summary>
     /// Merges and group of unorganized bands into this group
     /// </summary>
-    /// <param name="bands"></param>
+    /// <param name="bands">group of bands to merge</param>
     public void MergeUnorganizedBands(MigratingBands bands)
     {
         float newPopulation = Population + bands.Population;
@@ -867,47 +737,6 @@ public class CellGroup : HumanGroup, IFlagHolder
         {
             MergePolityProminence(pair.Key, pair.Value, percentOfTarget);
         }
-    }
-
-    [System.Obsolete]
-    public int SplitGroup(MigratingGroup group)
-    {
-        int splitPopulation = (int)Mathf.Floor(Population * group.PercentPopulation);
-
-        //		#if DEBUG
-        //		float oldExactPopulation = ExactPopulation;
-        //		#endif
-
-        ExactPopulation -= splitPopulation;
-
-        //		#if DEBUG
-        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
-        //			if ((Id == Manager.TracingData.GroupId) || 
-        //				((group.TargetCell.Group != null) && (group.TargetCell.Group.Id == Manager.TracingData.GroupId))) {
-        //				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-        //				string targetInfo = "Long:" + group.TargetCell.Longitude + "|Lat:" + group.TargetCell.Latitude;
-        //
-        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //					"SplitGroup - sourceGroup:" + groupId,
-        //					"CurrentDate: " + World.CurrentDate + 
-        //					", targetInfo: " + targetInfo + 
-        //					", ExactPopulation: " + ExactPopulation + 
-        //					", oldExactPopulation: " + oldExactPopulation + 
-        //					", migratingGroup.PercentPopulation: " + group.PercentPopulation + 
-        //					", splitPopulation: " + splitPopulation + 
-        //					"");
-        //
-        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-        //			}
-        //		}
-        //		#endif
-
-        if (Population < 0)
-        {
-            throw new System.Exception("Population less than 0");
-        }
-
-        return splitPopulation;
     }
 
     /// <summary>
@@ -1052,13 +881,13 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         Profiler.BeginSample("Consider Land Migration");
 
-        ConsiderLandMigration();
+        ConsiderLandBandMigration();
 
         Profiler.EndSample();
 
         Profiler.BeginSample("Consider Sea Migration");
 
-        ConsiderSeaMigration();
+        ConsiderSeaBandMigration();
 
         Profiler.EndSample();
 
@@ -1380,22 +1209,6 @@ public class CellGroup : HumanGroup, IFlagHolder
         }
     }
 
-    private class CellWeight : CollectionUtility.ElementWeightPair<TerrainCell>
-    {
-        public CellWeight(TerrainCell cell, float weight) : base(cell, weight)
-        {
-
-        }
-    }
-
-    private class GroupWeight : CollectionUtility.ElementWeightPair<CellGroup>
-    {
-        public GroupWeight(CellGroup group, float weight) : base(group, weight)
-        {
-
-        }
-    }
-
     private class PolityProminenceWeight : CollectionUtility.ElementWeightPair<PolityProminence>
     {
         public PolityProminenceWeight(PolityProminence polityProminence, float weight) : base(polityProminence, weight)
@@ -1404,53 +1217,21 @@ public class CellGroup : HumanGroup, IFlagHolder
         }
     }
 
-    public void ConsiderLandMigration()
+    /// <summary>
+    /// Evaluates and chooses a neighbor land cell as a migration target
+    /// </summary>
+    public void ConsiderLandBandMigration()
     {
-        if (HasMigrationEvent)
+        if (HasBandMigrationEvent)
             return;
 
-        Profiler.BeginSample("UpdatePreferredMigrationDirection");
+        int targetCellIndex =
+            Cell.GetNextLocalRandomInt(
+                RngOffsets.CELL_GROUP_PICK_MIGRATION_DIRECTION,
+                Cell.NeighborList.Count);
 
-        UpdatePreferredMigrationDirection();
-
-        Profiler.EndSample();
-
-        //		int targetCellIndex = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET, Cell.Neighbors.Count);
-        //
-        //		TerrainCell targetCell = Cell.Neighbors.Values.ElementAt (targetCellIndex);
-
-        Profiler.BeginSample("GenerateGroupMigrationDirection");
-
-        Direction migrationDirection = GenerateGroupMigrationDirection();
-
-        TerrainCell targetCell = Cell.Neighbors[migrationDirection];
-
-        Profiler.EndSample();
-
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-        //                string cellInfo = "No target cell";
-
-        //                if (targetCell != null)
-        //                {
-        //                    cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
-        //                }
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "ConsiderLandMigration - Group:" + groupId,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", target cell: " + cellInfo +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
+        TerrainCell targetCell = Cell.NeighborList[targetCellIndex];
+        Direction migrationDirection = Cell.DirectionList[targetCellIndex];
 
         Profiler.BeginSample("CalculateMigrationValue");
 
@@ -1458,18 +1239,12 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         TotalMigrationValue += cellValue;
 
-        //#if DEBUG
-        //        if (float.IsNaN(TotalMigrationValue))
-        //        {
-        //            throw new System.Exception("float.IsNaN (TotalMigrationValue)");
-        //        }
-        //#endif
-
         float migrationChance = cellValue / TotalMigrationValue;
 
         Profiler.EndSample();
 
-        float rollValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE);
+        float rollValue =
+            Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE);
 
         if (rollValue > migrationChance)
             return;
@@ -1495,7 +1270,8 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         travelFactor = Mathf.Clamp(travelFactor, 0.0001f, 1);
 
-        int travelTime = (int)Mathf.Ceil(World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
+        int travelTime =
+            (int)Mathf.Ceil(World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
 
         long nextDate = World.CurrentDate + travelTime;
 
@@ -1522,57 +1298,23 @@ public class CellGroup : HumanGroup, IFlagHolder
             return;
         }
 
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "ConsiderLandMigration - Group:" + groupId,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
-
         Profiler.BeginSample("SetMigrationEvent");
 
-        SetMigrationEvent(targetCell, migrationDirection, MigrationType.Land, nextDate);
+        SetBandMigrationEvent(targetCell, migrationDirection, MigrationType.Land, nextDate);
 
         Profiler.EndSample();
     }
 
-    public void ConsiderSeaMigration()
+    /// <summary>
+    /// Evaluates and chooses a land cell across a body of water as a migration target
+    /// </summary>
+    public void ConsiderSeaBandMigration()
     {
         if (SeaTravelFactor <= 0)
             return;
 
-        if (HasMigrationEvent)
+        if (HasBandMigrationEvent)
             return;
-
-        //#if DEBUG
-        //        bool hadMigrationRoute = SeaMigrationRoute != null;
-
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "ConsiderSeaMigration 1 - Group:" + groupId,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", has migration route: " + hadMigrationRoute +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
 
         if ((SeaMigrationRoute == null) ||
             (!SeaMigrationRoute.Consolidated))
@@ -1586,35 +1328,6 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         TerrainCell targetCell = SeaMigrationRoute.LastCell;
         Direction migrationDirection = SeaMigrationRoute.MigrationDirection;
-
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-        //                string cellInfo = "No target cell";
-
-        //                if (targetCell != null)
-        //                {
-        //                    cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
-        //                }
-
-        //                //string rngOutputs = "[" + string.Join("|", SeaMigrationRoute.DebugLogs.ToArray()) + "]";
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "ConsiderSeaMigration 2 - Group:" + groupId,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", SeaMigrationRoute.CreationDate: " + SeaMigrationRoute.CreationDate +
-        //                    ", target cell: " + cellInfo +
-        //                    //", SeaMigrationRoute.RngOutputs: " + rngOutputs +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
 
         if (targetCell == Cell)
             return;
@@ -1640,42 +1353,6 @@ public class CellGroup : HumanGroup, IFlagHolder
         float successChance = SeaTravelFactor / (SeaTravelFactor + routeLengthFactor);
 
         float attemptValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_SEA_MIGRATION);
-
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-        //                string cellPositions = "";
-
-        //                bool first = true;
-        //                foreach (TerrainCell cell in SeaMigrationRoute.Cells)
-        //                {
-        //                    cellPositions += cell.Position.ToString();
-
-        //                    if (first)
-        //                        first = false;
-        //                    else
-        //                        cellPositions += ",";
-        //                }
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "ConsiderSeaMigration 3 - Group:" + groupId,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", attemptValue: " + attemptValue +
-        //                    ", successChance: " + successChance +
-        //                    ", SeaTravelFactor: " + SeaTravelFactor +
-        //                    ", routeLength: " + routeLength +
-        //                    ", route CreationDate: " + SeaMigrationRoute.CreationDate +
-        //                    ", route positions: " + cellPositions +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
 
         if (attemptValue > successChance)
             return;
@@ -1707,68 +1384,42 @@ public class CellGroup : HumanGroup, IFlagHolder
 
         SeaMigrationRoute.Used = true;
 
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "ConsiderSeaMigration 4 - Group:" + groupId,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
-
-        SetMigrationEvent(targetCell, migrationDirection, MigrationType.Sea, nextDate);
+        SetBandMigrationEvent(targetCell, migrationDirection, MigrationType.Sea, nextDate);
     }
 
-    private void SetMigrationEvent(
+    /// <summary>
+    /// Resets of generates a new unorganized bands migration event
+    /// </summary>
+    /// <param name="targetCell">cell twoard which this group of bands will migrate</param>
+    /// <param name="migrationDirection">direction toward which the migration will occur</param>
+    /// <param name="migrationType">'Land' or 'Sea' migration</param>
+    /// <param name="nextDate">the next date on which this event should trigger</param>
+    private void SetBandMigrationEvent(
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
         long nextDate)
     {
-        if (MigrationEvent == null)
+        if (BandMigrationEvent == null)
         {
-            MigrationEvent =
-                new MigrateGroupEvent(this, targetCell, migrationDirection, migrationType, nextDate);
+            BandMigrationEvent =
+                new MigrateBandsEvent(this, targetCell, migrationDirection, migrationType, nextDate);
         }
         else
         {
-            MigrationEvent.Reset(targetCell, migrationDirection, migrationType, nextDate);
+            BandMigrationEvent.Reset(targetCell, migrationDirection, migrationType, nextDate);
         }
 
-        World.InsertEventToHappen(MigrationEvent);
+        World.InsertEventToHappen(BandMigrationEvent);
 
-        HasMigrationEvent = true;
+        HasBandMigrationEvent = true;
 
-        MigrationEventDate = nextDate;
-        MigrationEventSpawnDate = MigrationEvent.SpawnDate;
-        MigrationTargetLongitude = targetCell.Longitude;
-        MigrationTargetLatitude = targetCell.Latitude;
-        MigrationEventDirectionInt = (int)migrationDirection;
-        MigrationEventTypeInt = (int)migrationType;
-    }
-
-    public Direction TryGetNeighborDirection(int offset)
-    {
-        if (Neighbors.Count <= 0)
-            return Direction.Null;
-
-        int dir = (int)Mathf.Repeat(offset, TerrainCell.MaxNeighborDirections);
-
-        while (true)
-        {
-            if (Neighbors.ContainsKey((Direction)dir))
-                return (Direction)dir;
-
-            dir = (dir + TerrainCell.NeighborSearchOffset) % TerrainCell.MaxNeighborDirections;
-        }
+        BandMigrationEventDate = nextDate;
+        BandMigrationEventSpawnDate = BandMigrationEvent.SpawnDate;
+        BandMigrationTargetLongitude = targetCell.Longitude;
+        BandMigrationTargetLatitude = targetCell.Latitude;
+        BandMigrationEventDirectionInt = (int)migrationDirection;
+        BandMigrationEventTypeInt = (int)migrationType;
     }
 
     public void ConsiderPolityProminenceExpansion()
@@ -1799,12 +1450,16 @@ public class CellGroup : HumanGroup, IFlagHolder
         PolityExpansionValue = 1;
         TotalPolityExpansionValue = 1;
 
-        Direction expansionDirection = GeneratePolityExpansionDirection();
+        int targetCellIndex =
+            Cell.GetNextLocalRandomInt(
+                RngOffsets.CELL_GROUP_PICK_PROMINENCE_TRANSFER_DIRECTION,
+                Cell.NeighborList.Count);
 
-        if (expansionDirection == Direction.Null)
-            return;
-
+        Direction expansionDirection = Cell.DirectionList[targetCellIndex];
         CellGroup targetGroup = Neighbors[expansionDirection];
+
+        if (targetGroup == null)
+            return;
 
         if (!targetGroup.StillPresent)
             return;

@@ -11,7 +11,7 @@ public class AllNCellsCondition : UnaryOpCellCondition
 
     public override bool Evaluate(TerrainCell cell)
     {
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             if (!Condition.Evaluate(nCell))
                 return false;

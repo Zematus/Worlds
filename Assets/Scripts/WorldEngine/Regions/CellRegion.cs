@@ -98,7 +98,7 @@ public class CellRegion : Region
 
             bool isNotFullyWater = (cell.WaterBiomePresence < 1);
 
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 if (nCell.Region != this)
                 {

@@ -1946,7 +1946,7 @@ public class Manager
 
     public static void ResetSlantsAround(TerrainCell cell)
     {
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             _manager._currentCellSlants[nCell.Longitude, nCell.Latitude] = null;
         }
@@ -3129,7 +3129,7 @@ public class Manager
 
     private static bool IsLanguageBorder(Language language, TerrainCell cell)
     {
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             if (nCell.Group == null)
                 return true;

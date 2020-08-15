@@ -24,7 +24,7 @@ public class AtLeastNCellsCondition : UnaryOpCellCondition
     {
         int count = 0;
 
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             if (Condition.Evaluate(nCell))
             {

@@ -44,7 +44,7 @@ public class Territory : ISynchronizable
             return false;
         }
 
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             if (!_cells.Contains(nCell))
                 return true;
@@ -73,7 +73,7 @@ public class Territory : ISynchronizable
             _borderCells.Add(cell);
         }
 
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             if (_borderCells.Contains(nCell))
             {
@@ -122,7 +122,7 @@ public class Territory : ISynchronizable
             _borderCells.Remove(cell);
         }
 
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             if (IsPartOfBorderInternal(nCell))
             {
@@ -160,7 +160,7 @@ public class Territory : ISynchronizable
 
         foreach (TerrainCell cell in _cells)
         {
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 if (!_cells.Contains(nCell))
                 {

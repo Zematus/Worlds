@@ -65,7 +65,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
         float totalPresence = groupCell.WaterBiomePresence * groupCellBonus;
 
-        foreach (TerrainCell c in groupCell.Neighbors.Values)
+        foreach (TerrainCell c in groupCell.NeighborList)
         {
             totalPresence += c.WaterBiomePresence;
             cellCount++;
