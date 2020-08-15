@@ -80,7 +80,7 @@ public class SuperRegion : Region
         if (!cellRegion.IsInnerBorderCell(cell))
             return false;
 
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             if (!IsWithinRegion(nCell))
                 return true;

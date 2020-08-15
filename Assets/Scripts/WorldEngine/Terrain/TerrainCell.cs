@@ -176,7 +176,7 @@ public class TerrainCell
             {
                 _neighborhoodWaterBiomePresence = WaterBiomePresence;
 
-                foreach (TerrainCell nCell in Neighbors.Values)
+                foreach (TerrainCell nCell in NeighborList)
                 {
                     _neighborhoodWaterBiomePresence += nCell.WaterBiomePresence;
                 }
@@ -206,7 +206,8 @@ public class TerrainCell
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
 
     public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
-    public HashSet<TerrainCell> NeighborSet { get; private set; }
+    public List<TerrainCell> NeighborList { get; private set; }
+    public List<Direction> DirectionList { get; private set; }
     public Dictionary<Direction, float> NeighborDistances { get; private set; }
 
     private float _waterAccumulation = 0;
@@ -579,7 +580,7 @@ public class TerrainCell
             biomePresences[pair.Key] = pair.Value;
         }
 
-        foreach (TerrainCell nCell in Neighbors.Values)
+        foreach (TerrainCell nCell in NeighborList)
         {
             foreach (KeyValuePair<string, float> pair in nCell.GetBiomePresencePairs())
             {
@@ -639,7 +640,7 @@ public class TerrainCell
     {
         float presence = GetBiomeTypePresence(type);
 
-        foreach (TerrainCell nCell in Neighbors.Values)
+        foreach (TerrainCell nCell in NeighborList)
         {
             presence += nCell.GetBiomeTypePresence(type);
         }
@@ -667,7 +668,7 @@ public class TerrainCell
     {
         float presence = GetBiomeTraitPresence(trait);
 
-        foreach (TerrainCell nCell in Neighbors.Values)
+        foreach (TerrainCell nCell in NeighborList)
         {
             presence += nCell.GetBiomeTraitPresence(trait);
         }
@@ -835,39 +836,53 @@ public class TerrainCell
         return nCell;
     }
 
+    /// <summary>
+    /// Adds a neighboring cell
+    /// </summary>
+    /// <param name="direction">direction the neighbor is located relative to this cell</param>
+    /// <param name="cell">the neighbor cell to add</param>
+    private void AddNeighborCell(Direction direction, TerrainCell cell)
+    {
+        Neighbors.Add(direction, cell);
+        DirectionList.Add(direction);
+        NeighborList.Add(cell);
+    }
+
+    /// <summary>
+    /// Sets all the neighboring cells that are present in the world
+    /// </summary>
     private void SetNeighborCells()
     {
         Neighbors = new Dictionary<Direction, TerrainCell>(8);
-        NeighborSet = new HashSet<TerrainCell>();
+        NeighborList = new List<TerrainCell>();
+        DirectionList = new List<Direction>();
 
         int wLongitude = (World.Width + Longitude - 1) % World.Width;
         int eLongitude = (Longitude + 1) % World.Width;
 
         if (Latitude < (World.Height - 1))
         {
-            Neighbors.Add(Direction.Northwest, World.TerrainCells[wLongitude][Latitude + 1]);
-            Neighbors.Add(Direction.North, World.TerrainCells[Longitude][Latitude + 1]);
-            Neighbors.Add(Direction.Northeast, World.TerrainCells[eLongitude][Latitude + 1]);
+            AddNeighborCell(Direction.Northwest, World.TerrainCells[wLongitude][Latitude + 1]);
+            AddNeighborCell(Direction.North, World.TerrainCells[Longitude][Latitude + 1]);
+            AddNeighborCell(Direction.Northeast, World.TerrainCells[eLongitude][Latitude + 1]);
         }
 
-        Neighbors.Add(Direction.West, World.TerrainCells[wLongitude][Latitude]);
-        Neighbors.Add(Direction.East, World.TerrainCells[eLongitude][Latitude]);
+        AddNeighborCell(Direction.West, World.TerrainCells[wLongitude][Latitude]);
+        AddNeighborCell(Direction.East, World.TerrainCells[eLongitude][Latitude]);
 
         if (Latitude > 0)
         {
-            Neighbors.Add(Direction.Southwest, World.TerrainCells[wLongitude][Latitude - 1]);
-            Neighbors.Add(Direction.South, World.TerrainCells[Longitude][Latitude - 1]);
-            Neighbors.Add(Direction.Southeast, World.TerrainCells[eLongitude][Latitude - 1]);
+            AddNeighborCell(Direction.Southwest, World.TerrainCells[wLongitude][Latitude - 1]);
+            AddNeighborCell(Direction.South, World.TerrainCells[Longitude][Latitude - 1]);
+            AddNeighborCell(Direction.Southeast, World.TerrainCells[eLongitude][Latitude - 1]);
         }
-
-        NeighborSet.UnionWith(Neighbors.Values);
     }
 
     private bool FindIfCoastline()
     {
         if (WaterBiomePresence > 0.5f)
         {
-            foreach (TerrainCell nCell in Neighbors.Values)
+            foreach (TerrainCell nCell in NeighborList)
             {
                 if (nCell.WaterBiomePresence < 0.5f)
                     return true;
@@ -875,7 +890,7 @@ public class TerrainCell
         }
         else
         {
-            foreach (TerrainCell nCell in Neighbors.Values)
+            foreach (TerrainCell nCell in NeighborList)
             {
                 if (nCell.WaterBiomePresence >= 0.5f)
                     return true;

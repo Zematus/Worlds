@@ -60,7 +60,7 @@ public static class BiomeCellRegionBuilder
             TerrainCell cell = borderCellsToExplore.Dequeue();
 
             // first separate neighbor cells that are inside and outside border
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 if (borderCells.Contains(nCell))
                 {

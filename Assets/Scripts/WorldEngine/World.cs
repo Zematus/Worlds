@@ -20,13 +20,10 @@ public static class RngOffsets
     public const int CELL_GROUP_SET_POLITY_UPDATE = 4;
 
     public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY = 5;
-    public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_TARGET = 6;
-    public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_CHANCE = 7;
+    public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_CHANCE = 6;
 
-    public const int CELL_GROUP_UPDATE_MIGRATION_DIRECTION = 8;
-    public const int CELL_GROUP_GENERATE_GROUP_MIGRATION_DIRECTION = 9;
-    public const int CELL_GROUP_GENERATE_PROMINENCE_TRANSFER_DIRECTION = 10;
-    public const int CELL_GROUP_GENERATE_CORE_MIGRATION_DIRECTION = 11;
+    public const int CELL_GROUP_PICK_MIGRATION_DIRECTION = 7;
+    public const int CELL_GROUP_PICK_PROMINENCE_TRANSFER_DIRECTION = 8;
 
     public const int PREFERENCE_UPDATE = 10000;
     public const int PREFERENCE_POLITY_PROMINENCE = 10100;
@@ -247,7 +244,7 @@ public class World : ISynchronizable
     // Start wonky segment (save failures might happen here)
 
     [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
-        XmlArrayItem(Type = typeof(MigrateGroupEvent)),
+        XmlArrayItem(Type = typeof(MigrateBandsEvent)),
         XmlArrayItem(Type = typeof(ExpandPolityProminenceEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
         // TODO: cleanup
@@ -411,9 +408,6 @@ public class World : ISynchronizable
 
     private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToCleanupAfterUpdate = new HashSet<CellGroup>();
-
-    [System.Obsolete]
-    private List<MigratingGroup> _migratingGroups = new List<MigratingGroup>();
 
     private List<MigratingBands> _migratingBands = new List<MigratingBands>();
 
@@ -825,7 +819,7 @@ public class World : ISynchronizable
 
         Manager.ResetSlantsAround(cell);
 
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             Manager.AddUpdatedCell(nCell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
         }
@@ -1061,22 +1055,6 @@ public class World : ISynchronizable
         }
 
         _groupsToUpdate.Clear();
-    }
-
-    [System.Obsolete]
-    private void MigrateGroups()
-    {
-        foreach (MigratingGroup group in _migratingGroups)
-        {
-            group.SplitFromSourceGroup();
-        }
-
-        foreach (MigratingGroup group in _migratingGroups)
-        {
-            group.MoveToCell();
-        }
-
-        _migratingGroups.Clear();
     }
 
     /// <summary>
@@ -1393,9 +1371,9 @@ public class World : ISynchronizable
 
         Profiler.EndSample();
 
-        Profiler.BeginSample("MigrateGroups");
+        Profiler.BeginSample("MigrateBands");
 
-        MigrateGroups();
+        MigrateBands();
 
         Profiler.EndSample();
 
@@ -1554,40 +1532,6 @@ public class World : ISynchronizable
         //		#endif
 
         //		Profiler.EndSample ();
-    }
-
-#if DEBUG
-    [System.Obsolete]
-    public delegate void AddMigratingGroupCalledDelegate();
-    [System.Obsolete]
-    public static AddMigratingGroupCalledDelegate AddMigratingGroupCalled = null;
-#endif
-
-    [System.Obsolete]
-    public void AddMigratingGroup(MigratingGroup group)
-    {
-#if DEBUG
-        if (AddMigratingGroupCalled != null)
-        {
-            AddMigratingGroupCalled();
-        }
-#endif
-
-        _migratingGroups.Add(group);
-
-        if (!group.SourceGroup.StillPresent)
-        {
-            Debug.LogWarning("Sourcegroup is no longer present. Group Id: " + group.SourceGroup);
-        }
-
-        // Source Group needs to be updated
-        AddGroupToUpdate(group.SourceGroup);
-
-        // If Target Group is present, it also needs to be updated
-        if ((group.TargetCell.Group != null) && (group.TargetCell.Group.StillPresent))
-        {
-            AddGroupToUpdate(group.TargetCell.Group);
-        }
     }
 
 #if DEBUG
@@ -2717,7 +2661,7 @@ public class World : ISynchronizable
         }
 
         // Add neighboor cells that will need to be reinitialized
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             _cellsToInit.Add(nCell);
         }
@@ -2739,7 +2683,7 @@ public class World : ISynchronizable
 
                 float cellAltitude = Mathf.Max(0, cell.Altitude);
 
-                foreach (TerrainCell nCell in cell.Neighbors.Values)
+                foreach (TerrainCell nCell in cell.NeighborList)
                 {
                     float nCellAltitude = Mathf.Max(0, nCell.Altitude);
 
@@ -2819,7 +2763,7 @@ public class World : ISynchronizable
         {
             _cellsToInitAfterDrainageRegen.Add(cell);
             Manager.ActiveEditorBrushAction.AddCellBeforeModification(cell);
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 _cellsToInitAfterDrainageRegen.Add(nCell);
                 Manager.ActiveEditorBrushAction.AddCellBeforeModification(nCell);
@@ -3590,7 +3534,7 @@ public class World : ISynchronizable
         exploredCells.Add(sourceCell);
 
         // Also skip cells that neighbor the source cell
-        foreach (TerrainCell cell in sourceCell.NeighborSet)
+        foreach (TerrainCell cell in sourceCell.NeighborList)
         {
             exploredCells.Add(cell);
         }
@@ -3633,7 +3577,7 @@ public class World : ISynchronizable
                 continue;
             }
 
-            foreach (TerrainCell nCell in cell.NeighborSet)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 if (exploredCells.Contains(nCell))
                 {
@@ -3685,7 +3629,7 @@ public class World : ISynchronizable
 #endif
 
         float totalAltDifference = 0;
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             float nCellAltitude = Mathf.Max(0, nCell.Altitude);
             nAltitudes[nCell] = nCellAltitude;
@@ -3702,7 +3646,7 @@ public class World : ISynchronizable
             TerrainCell bestCell = cell;
             float minAltitude = cell.Altitude;
             float minMinAltitude = cell.Altitude;
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 float nCellAltitude = Mathf.Max(0, nCell.Altitude);
                 float nCellMinAltitude = Mathf.Max(0, GetChannelledAltitude(nCell, cell, 5));
@@ -3911,7 +3855,7 @@ public class World : ISynchronizable
             }
 
             bool higherThanNeighborsWithWater = true;
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 if ((nCell.Altitude > cell.Altitude) && (nCell.WaterAccumulation > MinRiverFlow))
                 {
@@ -4080,7 +4024,7 @@ public class World : ISynchronizable
         float altitudeDelta = 0;
         float cellAltitude = cell.Altitude;
 
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             altitudeDelta += Mathf.Abs(cellAltitude - nCell.Altitude);
         }
