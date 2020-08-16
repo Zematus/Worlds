@@ -1,14 +1,9 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
 
+using UnityEngine;
 /// <summary>
-/// Abstraction for unorganized bands migrating from one cell to another
+/// Segment of unorganized bands migrating from one cell to another
 /// </summary>
-public class MigratingBands
+public abstract class MigratingPopulation
 {
     public float PercentPopulation;
 
@@ -32,14 +27,14 @@ public class MigratingBands
     public World World;
 
     /// <summary>
-    /// Constructs a new migrating bands object
+    /// Constructs a new migrating population object
     /// </summary>
     /// <param name="world">world this object belongs to</param>
     /// <param name="percentPopulation">percentage of the source group's population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
-    public MigratingBands(
+    /// <param name="migrationDirection">the direction this group is moving out from the source</param>
+    public MigratingPopulation(
         World world,
         float percentPopulation,
         CellGroup sourceGroup,
@@ -52,12 +47,12 @@ public class MigratingBands
     }
 
     /// <summary>
-    /// Sets the object properties (efectively resets it)
+    /// Sets the object properties to use during a migration event
     /// </summary>
     /// <param name="percentPopulation">percentage of the source group's population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    /// <param name="migrationDirection">the direction this group is moving out from the source</param>
     public void Set(
         float percentPopulation,
         CellGroup sourceGroup,
@@ -66,12 +61,12 @@ public class MigratingBands
     {
         MigrationDirection = migrationDirection;
 
-        PercentPopulation = percentPopulation;
-
         if (float.IsNaN(percentPopulation))
         {
-            throw new System.Exception("float.IsNaN(percentPopulation)");
+            throw new System.Exception("percentPopulation value is invalid: " + percentPopulation);
         }
+
+        PercentPopulation = percentPopulation;
 
         TargetCell = targetCell;
         SourceGroup = sourceGroup;
@@ -86,23 +81,39 @@ public class MigratingBands
     /// Initiates the migration process
     /// </summary>
     /// <returns>'false' if the process can't take place anymore</returns>
-    public bool SplitFromSourceGroup()
+    public void SplitFromSourceGroup()
     {
-        if (SourceGroup == null)
-            return false;
+        if ((SourceGroup == null) || !SourceGroup.StillPresent)
+        {
+            throw new System.Exception(
+                "The source group " + SourceGroupId + " is null or no longer present");
+        }
 
-        if (!SourceGroup.StillPresent)
-            return false;
-
-        Population = SourceGroup.SplitUnorganizedBands(this);
+        Population = SplitFromGroup();
 
         if (Population <= 0)
-            return false;
+        {
+            Debug.LogWarning(
+                "The population to migrate from the source group " +
+                SourceGroupId + " is 0");
+             
+            return;
+        }
 
-        Culture = new BufferCulture(SourceGroup.Culture);
-
-        return true;
+        Culture = CreateBufferCulture();
     }
+
+    /// <summary>
+    /// Creates a segment of migrating population from the source group
+    /// </summary>
+    /// <returns>Amount of population to migrate</returns>
+    protected abstract int SplitFromGroup();
+
+    /// <summary>
+    /// Create a buffer culture from the source group
+    /// </summary>
+    /// <returns>a buffer culture object</returns>
+    protected abstract BufferCulture CreateBufferCulture();
 
     /// <summary>
     /// Finalizes the migration process
@@ -118,11 +129,7 @@ public class MigratingBands
         {
             if (targetGroup.StillPresent)
             {
-                Profiler.BeginSample("targetGroup.MergeGroup");
-
-                targetGroup.MergeUnorganizedBands(this);
-
-                Profiler.EndSample();
+                MergeIntoGroup(targetGroup);
 
                 if (SourceGroup.MigrationTagged)
                 {
@@ -132,17 +139,9 @@ public class MigratingBands
         }
         else
         {
-            Profiler.BeginSample("targetGroup = new CellGroup");
-
-            targetGroup = new CellGroup(this, Population);
-
-            Profiler.EndSample();
-
-            Profiler.BeginSample("World.AddGroup");
+            targetGroup = CreateGroupOnTarget();
 
             World.AddGroup(targetGroup);
-
-            Profiler.EndSample();
 
             if (SourceGroup.MigrationTagged)
             {
@@ -150,4 +149,16 @@ public class MigratingBands
             }
         }
     }
+
+    /// <summary>
+    /// Merges the migrating population into the target group
+    /// </summary>
+    /// <param name="targetGroup">group to merge population into</param>
+    protected abstract void MergeIntoGroup(CellGroup targetGroup);
+
+    /// <summary>
+    /// Creates a cell group on the target cell
+    /// </summary>
+    /// <returns>The newly created group</returns>
+    protected abstract CellGroup CreateGroupOnTarget();
 }
