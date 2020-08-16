@@ -190,7 +190,7 @@ public class CellGroup : Identifiable, IFlagHolder
     public TerrainCell Cell;
 
     [XmlIgnore]
-    public MigratingBands MigratingBands = null;
+    public MigratingUnorganizedBands MigratingBands = null;
 
     [XmlIgnore]
     public Faction WillBecomeCoreOfFaction = null;
@@ -294,7 +294,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// </summary>
     /// <param name="bands">migrating bands that will form the group</param>
     /// <param name="splitPopulation">initial group population</param>
-    public CellGroup(MigratingBands bands, int splitPopulation) :
+    public CellGroup(MigratingUnorganizedBands bands, int splitPopulation) :
         this(
             bands.World,
             bands.TargetCell,
@@ -437,7 +437,7 @@ public class CellGroup : Identifiable, IFlagHolder
         if (MigratingBands == null)
         {
             MigratingBands =
-                new MigratingBands(World, percentPopulation, this, targetCell, migrationDirection);
+                new MigratingUnorganizedBands(World, percentPopulation, this, targetCell, migrationDirection);
         }
         else
         {
@@ -683,7 +683,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// Merges and group of unorganized bands into this group
     /// </summary>
     /// <param name="bands">group of bands to merge</param>
-    public void MergeUnorganizedBands(MigratingBands bands)
+    public void MergeUnorganizedBands(MigratingUnorganizedBands bands)
     {
         float newPopulation = Population + bands.Population;
 
@@ -741,7 +741,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// </summary>
     /// <param name="bands">migrating bands object that will take care of the process</param>
     /// <returns>The amount of population that migrated out</returns>
-    public int SplitUnorganizedBands(MigratingBands bands)
+    public int SplitUnorganizedBands(MigratingUnorganizedBands bands)
     {
         float ubProminence = 1f - TotalPolityProminenceValue;
 

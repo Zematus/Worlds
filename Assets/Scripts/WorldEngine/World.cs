@@ -409,7 +409,7 @@ public class World : ISynchronizable
     private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToCleanupAfterUpdate = new HashSet<CellGroup>();
 
-    private List<MigratingBands> _migratingBands = new List<MigratingBands>();
+    private List<MigratingUnorganizedBands> _migratingBands = new List<MigratingUnorganizedBands>();
 
     private Dictionary<Identifier, Agent> _memorableAgents =
         new Dictionary<Identifier, Agent>();
@@ -1062,12 +1062,12 @@ public class World : ISynchronizable
     /// </summary>
     private void MigrateBands()
     {
-        foreach (MigratingBands bands in _migratingBands)
+        foreach (MigratingUnorganizedBands bands in _migratingBands)
         {
             bands.SplitFromSourceGroup();
         }
 
-        foreach (MigratingBands bands in _migratingBands)
+        foreach (MigratingUnorganizedBands bands in _migratingBands)
         {
             bands.MoveToCell();
         }
@@ -1543,7 +1543,7 @@ public class World : ISynchronizable
     /// Adds a group of migrating bands to migrate during this iteration
     /// </summary>
     /// <param name="bands">group of bands to add</param>
-    public void AddMigratingBands(MigratingBands bands)
+    public void AddMigratingBands(MigratingUnorganizedBands bands)
     {
 #if DEBUG
         if (AddMigratingBandsCalled != null)
