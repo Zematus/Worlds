@@ -146,6 +146,10 @@ public abstract class WorldEvent : ISynchronizable
         return true;
     }
 
+    /// <summary>
+    /// Check if the event can be triggered under the current circumstances
+    /// </summary>
+    /// <returns>'true' if the event can be triggered, otherwise 'false'</returns>
     public virtual bool CanTrigger()
     {
         return IsStillValid();
@@ -161,6 +165,9 @@ public abstract class WorldEvent : ISynchronizable
 
     }
 
+    /// <summary>
+    /// Trigger all the effects of this event
+    /// </summary>
     public abstract void Trigger();
 
     public void Destroy()
@@ -168,6 +175,9 @@ public abstract class WorldEvent : ISynchronizable
         DestroyInternal();
     }
 
+    /// <summary>
+    /// Performs subclass-specific cleanup tasks before destroying the object
+    /// </summary>
     protected virtual void DestroyInternal()
     {
 

@@ -180,6 +180,45 @@ public static class MathUtility
         return pab;
     }
 
+    /// <summary>
+    /// Given b, c and f, return the original value for 'a' in c = lerp(a,b,f)
+    /// NOTE: This is not the same as InverseLerp, which solves the equation for 'f'...
+    /// </summary>
+    /// <param name="c">The output of lerp(a,b,f)</param>
+    /// <param name="b">The second input from lerp(a,b,f)</param>
+    /// <param name="f">the lerp percentage</param>
+    /// <returns>The first input from lerp(a,b,f)</returns>
+    public static int ReverseLerp(int c, int b, float f)
+    {
+        float a = ReverseLerp(c, b, f);
+        return Mathf.FloorToInt(a);
+    }
+
+    /// <summary>
+    /// Given b, c and f, return the original value for 'a' in c = lerp(a,b,f)
+    /// NOTE: This is not the same as InverseLerp, which solves the equation for 'f'...
+    /// </summary>
+    /// <param name="c">The output of lerp(a,b,f)</param>
+    /// <param name="b">The second input from lerp(a,b,f)</param>
+    /// <param name="f">the lerp percentage</param>
+    /// <returns>The first input from lerp(a,b,f)</returns>
+    public static float ReverseLerp(float c, float b, float f)
+    {
+        if (!f.IsInsideRange(0, 1))
+        {
+            throw new System.ArgumentException("'f' must be a value between 0 and 1 (inclusive)");
+        }
+
+        if (f == 1)
+        {
+            return float.NaN;
+        }
+
+        float a = ((b * f) - c) / (f - 1);
+
+        return a;
+    }
+
     // Only for values between 0 and 1
     public static float DecreaseByPercent(float value, float percentage)
     {

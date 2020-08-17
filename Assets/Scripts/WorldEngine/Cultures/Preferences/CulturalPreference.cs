@@ -14,11 +14,9 @@ public class CulturalPreference : CulturalPreferenceInfo
 {
     public static HashSet<string> Preferences;
 
-    [System.Obsolete]
+    // NOTE: Some preference value Ids might need to remain hardcoded
     public const string AuthorityPreferenceId = "authority";
-    [System.Obsolete]
     public const string CohesionPreferenceId = "cohesion";
-    [System.Obsolete]
     public const string IsolationPreferenceId = "isolation";
 
     [System.Obsolete]

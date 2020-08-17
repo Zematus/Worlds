@@ -244,7 +244,7 @@ public class World : ISynchronizable
     // Start wonky segment (save failures might happen here)
 
     [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
-        XmlArrayItem(Type = typeof(MigrateBandsEvent)),
+        XmlArrayItem(Type = typeof(MigratePopulationEvent)),
         XmlArrayItem(Type = typeof(ExpandPolityProminenceEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
         // TODO: cleanup

@@ -85,19 +85,19 @@ public class CellGroup : Identifiable, IFlagHolder
     public float TotalPolityExpansionValue;
 
     [XmlAttribute("MEv")]
-    public bool HasBandMigrationEvent = false;
+    public bool HasMigrationEvent = false;
     [XmlAttribute("MD")]
-    public long BandMigrationEventDate;
+    public long MigrationEventDate;
     [XmlAttribute("MSD")]
-    public long BandMigrationEventSpawnDate;
+    public long MigrationEventSpawnDate;
     [XmlAttribute("MLo")]
-    public int BandMigrationTargetLongitude;
+    public int MigrationTargetLongitude;
     [XmlAttribute("MLa")]
-    public int BandMigrationTargetLatitude;
+    public int MigrationTargetLatitude;
     [XmlAttribute("MED")]
-    public int BandMigrationEventDirectionInt;
+    public int MigrationEventDirectionInt;
     [XmlAttribute("MET")]
-    public int BandMigrationEventTypeInt;
+    public int MigrationEventTypeInt;
 
     [XmlAttribute("PEEv")]
     public bool HasPolityExpansionEvent = false;
@@ -178,7 +178,7 @@ public class CellGroup : Identifiable, IFlagHolder
     public UpdateCellGroupEvent UpdateEvent;
 
     [XmlIgnore]
-    public MigrateBandsEvent BandMigrationEvent;
+    public MigratePopulationEvent PopulationMigrationEvent;
 
     [XmlIgnore]
     public ExpandPolityProminenceEvent PolityExpansionEvent;
@@ -685,14 +685,16 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <param name="bands">group of bands to merge</param>
     public void MergeUnorganizedBands(MigratingUnorganizedBands bands)
     {
+        float prominenceDelta = bands.Population / Population;
+
         float newPopulation = Population + bands.Population;
 
-        float percentage = bands.Population / newPopulation;
+        float percentageOfPopulation = bands.Population / newPopulation;
 
-        if (!percentage.IsInsideRange(0, 1))
+        if (!percentageOfPopulation.IsInsideRange(0, 1))
         {
             throw new System.Exception(
-                "Percentage increase outside of range (0,1): " + percentage +
+                "Percentage increase outside of range (0,1): " + percentageOfPopulation +
                 " - Group: " + Id);
         }
 
@@ -707,18 +709,11 @@ public class CellGroup : Identifiable, IFlagHolder
         }
 #endif
 
-        Culture.MergeCulture(bands.Culture, percentage);
+        Culture.MergeCulture(bands.Culture, percentageOfPopulation);
 
-        MergeUBandsProminence(1f, percentage);
+        AddUBandsProminenceValueDelta(prominenceDelta);
 
         TriggerInterference();
-    }
-
-    public void MergeUBandsProminence(
-        float prominenceValue,
-        float percentOfTarget)
-    {
-        AddUBandsProminenceValueDelta(prominenceValue * percentOfTarget);
     }
 
     public void MergePolityProminence(Polity polity, float value, float percentOfTarget)
@@ -743,10 +738,46 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>The amount of population that migrated out</returns>
     public int SplitUnorganizedBands(MigratingUnorganizedBands bands)
     {
-        float ubProminence = 1f - TotalPolityProminenceValue;
+        float ubProminenceValue = 1f - TotalPolityProminenceValue;
+
+        float ubProminenceValueDelta = bands.ProminencePercent * ubProminenceValue;
 
         int splitPopulation =
-            (int)Mathf.Floor(Population * bands.PercentPopulation * ubProminence);
+            (int)Mathf.Floor(Population * ubProminenceValueDelta);
+
+        AddUBandsProminenceValueDelta(-ubProminenceValueDelta);
+
+        ExactPopulation -= splitPopulation;
+
+        if (Population < 0)
+        {
+            throw new System.Exception("Population less than 0");
+        }
+
+        return splitPopulation;
+    }
+
+    /// <summary>
+    /// Takes a portion of a polity's population within the group to move to a new cell
+    /// </summary>
+    /// <param name="polityPop">migrating bands object that will take care of the process</param>
+    /// <returns>The amount of population that migrated out</returns>
+    public int SplitPolityPopulation(MigratingPolityPopulation polityPop)
+    {
+        PolityProminence prominence = GetPolityProminence(polityPop.Polity);
+
+        float prominenceValue = prominence.Value;
+
+        // 'unmerge' the culture of the population that is migrating out
+        Culture.UnmergeCulture(polityPop.Culture, polityPop.ProminencePercent);
+
+        float prominenceValueDelta = polityPop.ProminencePercent * prominenceValue;
+
+        int splitPopulation =
+            (int)Mathf.Floor(Population * prominenceValueDelta);
+
+        // decrease the prominence of the polity whose population is migrating out
+        AddPolityProminenceValueDelta(polityPop.Polity, - prominenceValueDelta);
 
         ExactPopulation -= splitPopulation;
 
@@ -878,13 +909,13 @@ public class CellGroup : Identifiable, IFlagHolder
 
         Profiler.BeginSample("Consider Land Migration");
 
-        ConsiderLandBandMigration();
+        ConsiderLandMigration();
 
         Profiler.EndSample();
 
         Profiler.BeginSample("Consider Sea Migration");
 
-        ConsiderSeaBandMigration();
+        ConsiderSeaMigration();
 
         Profiler.EndSample();
 
@@ -1217,9 +1248,9 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <summary>
     /// Evaluates and chooses a neighbor land cell as a migration target
     /// </summary>
-    public void ConsiderLandBandMigration()
+    public void ConsiderLandMigration()
     {
-        if (HasBandMigrationEvent)
+        if (HasMigrationEvent)
             return;
 
         int targetCellIndex =
@@ -1297,7 +1328,7 @@ public class CellGroup : Identifiable, IFlagHolder
 
         Profiler.BeginSample("SetMigrationEvent");
 
-        SetBandMigrationEvent(targetCell, migrationDirection, MigrationType.Land, nextDate);
+        SetPopulationMigrationEvent(targetCell, migrationDirection, MigrationType.Land, nextDate);
 
         Profiler.EndSample();
     }
@@ -1305,12 +1336,12 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <summary>
     /// Evaluates and chooses a land cell across a body of water as a migration target
     /// </summary>
-    public void ConsiderSeaBandMigration()
+    public void ConsiderSeaMigration()
     {
         if (SeaTravelFactor <= 0)
             return;
 
-        if (HasBandMigrationEvent)
+        if (HasMigrationEvent)
             return;
 
         if ((SeaMigrationRoute == null) ||
@@ -1381,42 +1412,42 @@ public class CellGroup : Identifiable, IFlagHolder
 
         SeaMigrationRoute.Used = true;
 
-        SetBandMigrationEvent(targetCell, migrationDirection, MigrationType.Sea, nextDate);
+        SetPopulationMigrationEvent(targetCell, migrationDirection, MigrationType.Sea, nextDate);
     }
 
     /// <summary>
-    /// Resets of generates a new unorganized bands migration event
+    /// Resets of generates a new population migration event
     /// </summary>
-    /// <param name="targetCell">cell twoard which this group of bands will migrate</param>
+    /// <param name="targetCell">cell which the group population will migrate toward</param>
     /// <param name="migrationDirection">direction toward which the migration will occur</param>
     /// <param name="migrationType">'Land' or 'Sea' migration</param>
     /// <param name="nextDate">the next date on which this event should trigger</param>
-    private void SetBandMigrationEvent(
+    private void SetPopulationMigrationEvent(
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
         long nextDate)
     {
-        if (BandMigrationEvent == null)
+        if (PopulationMigrationEvent == null)
         {
-            BandMigrationEvent =
-                new MigrateBandsEvent(this, targetCell, migrationDirection, migrationType, nextDate);
+            PopulationMigrationEvent =
+                new MigratePopulationEvent(this, targetCell, migrationDirection, migrationType, nextDate);
         }
         else
         {
-            BandMigrationEvent.Reset(targetCell, migrationDirection, migrationType, nextDate);
+            PopulationMigrationEvent.Reset(targetCell, migrationDirection, migrationType, nextDate);
         }
 
-        World.InsertEventToHappen(BandMigrationEvent);
+        World.InsertEventToHappen(PopulationMigrationEvent);
 
-        HasBandMigrationEvent = true;
+        HasMigrationEvent = true;
 
-        BandMigrationEventDate = nextDate;
-        BandMigrationEventSpawnDate = BandMigrationEvent.SpawnDate;
-        BandMigrationTargetLongitude = targetCell.Longitude;
-        BandMigrationTargetLatitude = targetCell.Latitude;
-        BandMigrationEventDirectionInt = (int)migrationDirection;
-        BandMigrationEventTypeInt = (int)migrationType;
+        MigrationEventDate = nextDate;
+        MigrationEventSpawnDate = PopulationMigrationEvent.SpawnDate;
+        MigrationTargetLongitude = targetCell.Longitude;
+        MigrationTargetLatitude = targetCell.Latitude;
+        MigrationEventDirectionInt = (int)migrationDirection;
+        MigrationEventTypeInt = (int)migrationType;
     }
 
     public void ConsiderPolityProminenceExpansion()
@@ -1539,10 +1570,6 @@ public class CellGroup : Identifiable, IFlagHolder
 
         foreach (Faction faction in GetFactionCores())
         {
-            //#if DEBUG
-            //            Debug.Log("Faction will be removed due to core group dissapearing. faction id: " + faction.Id + ", polity id:" + faction.Polity.Id + ", group id:" + Id + ", date:" + World.CurrentDate);
-            //#endif
-
             World.AddFactionToRemove(faction);
         }
 
@@ -3102,18 +3129,18 @@ public class CellGroup : Identifiable, IFlagHolder
 
         // Generate Migration Event
 
-        if (HasBandMigrationEvent)
+        if (HasMigrationEvent)
         {
             TerrainCell targetCell =
-                World.GetCell(BandMigrationTargetLongitude, BandMigrationTargetLatitude);
+                World.GetCell(MigrationTargetLongitude, MigrationTargetLatitude);
 
-            BandMigrationEvent = new MigrateBandsEvent(
+            PopulationMigrationEvent = new MigratePopulationEvent(
                 this,
                 targetCell,
-                (Direction)BandMigrationEventDirectionInt,
-                (MigrationType)BandMigrationEventTypeInt,
-                BandMigrationEventDate);
-            World.InsertEventToHappen(BandMigrationEvent);
+                (Direction)MigrationEventDirectionInt,
+                (MigrationType)MigrationEventTypeInt,
+                MigrationEventDate);
+            World.InsertEventToHappen(PopulationMigrationEvent);
         }
 
         // Generate Polity Expansion Event
