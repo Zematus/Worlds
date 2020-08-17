@@ -225,6 +225,58 @@ public class CellCulture : Culture
         return HasDiscovery(id) | DiscoveriesToFind.ContainsKey(id);
     }
 
+    /// <summary>
+    /// Removes the influence from a reference culture from this culture
+    /// </summary>
+    /// <param name="referenceCulture">culture with properties to unmerge</param>
+    /// <param name="percentage">how much to 'unmerge'</param>
+    public void UnmergeCulture(Culture referenceCulture, float percentage)
+    {
+        if (percentage == 1)
+        {
+            // It's technically impossible to 'unmerge' a culture by 100% because that
+            // would mean the cell was completely abandoned. And this call shouldn't
+            // have happened in that scenario. Also, trying to unmerge property values
+            // by 100% will generate NaN values.
+
+            Debug.LogWarning("Trying to unmerge culture by 100%");
+            return;
+        }
+
+        foreach (CulturalPreference p in referenceCulture.GetPreferences())
+        {
+            CellCulturalPreference preference = GetAcquiredPreferenceOrToAcquire(p.Id);
+
+            if (preference != null)
+            {
+                preference.Unmerge(p, percentage);
+            }
+        }
+
+        foreach (CulturalActivity a in referenceCulture.GetActivities())
+        {
+            CellCulturalActivity activity = GetPerformedActivityOrToPerform(a.Id);
+
+            if (activity != null)
+            {
+                activity.Unmerge(a, percentage);
+            }
+        }
+
+        foreach (CulturalSkill s in referenceCulture.GetSkills())
+        {
+            CellCulturalSkill skill = GetLearnedSkillOrToLearn(s.Id);
+
+            if (skill != null)
+            {
+                skill.Unmerge(s, percentage);
+            }
+        }
+
+        // NOTE: Knowledges and discoveries can't be easily 'unmerged' without
+        // making some wild assumptions. So it's simpler just to leave them the same
+    }
+
     public void MergeCulture(Culture sourceCulture, float percentage)
     {
         foreach (CulturalPreference p in sourceCulture.GetPreferences())

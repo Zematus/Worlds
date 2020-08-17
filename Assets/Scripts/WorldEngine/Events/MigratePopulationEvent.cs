@@ -11,7 +11,10 @@ public enum MigrationType
     Sea = 1
 }
 
-public class MigrateBandsEvent : CellGroupEvent
+/// <summary>
+/// Defines a generic population migration event
+/// </summary>
+public class MigratePopulationEvent : CellGroupEvent
 {
     [XmlAttribute("TLon")]
     public int TargetCellLongitude;
@@ -33,12 +36,24 @@ public class MigrateBandsEvent : CellGroupEvent
     [XmlIgnore]
     public MigrationType MigrationType;
 
-    public MigrateBandsEvent()
+    /// <summary>
+    /// Deserialization constructor
+    /// </summary>
+    public MigratePopulationEvent()
     {
         DoNotSerialize = true;
     }
 
-    public MigrateBandsEvent(
+    /// <summary>
+    /// constructs a new population migration event
+    /// </summary>
+    /// <param name="group">the group the migration originates from</param>
+    /// <param name="targetCell">the cell where the migration will stop</param>
+    /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
+    /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
+    /// <param name="triggerDate">the date this event will trigger</param>
+    /// <param name="originalSpawnDate">the date this event was initiated</param>
+    public MigratePopulationEvent(
         CellGroup group,
         TerrainCell targetCell,
         Direction migrationDirection,
@@ -102,14 +117,14 @@ public class MigrateBandsEvent : CellGroupEvent
 
         TargetCell = World.TerrainCells[TargetCellLongitude][TargetCellLatitude];
 
-        Group.BandMigrationEvent = this;
+        Group.PopulationMigrationEvent = this;
     }
 
     protected override void DestroyInternal()
     {
         if (Group != null)
         {
-            Group.HasBandMigrationEvent = false;
+            Group.HasMigrationEvent = false;
 
             if (MigrationType == MigrationType.Sea)
             {
@@ -120,6 +135,13 @@ public class MigrateBandsEvent : CellGroupEvent
         base.DestroyInternal();
     }
 
+    /// <summary>
+    /// Re-sets all properties of the event to be able to reuse the object
+    /// </summary>
+    /// <param name="targetCell">the cell where the migration will stop</param>
+    /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
+    /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
+    /// <param name="triggerDate">the date this event will trigger</param>
     public void Reset(
         TerrainCell targetCell,
         Direction migrationDirection,

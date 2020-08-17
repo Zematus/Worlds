@@ -51,10 +51,28 @@ public class CellCulturalPreference : CulturalPreference
         return new CellCulturalPreference(group, IsolationPreferenceId, IsolationPreferenceName, IsolationPreferenceRngOffset, value);
     }
 
+    /// <summary>
+    /// Unmerge the preference value from a different culture by a proportion
+    /// TODO: Instead of modifying the previous 'new' value, this should use deltas
+    /// like prominences do.
+    /// </summary>
+    /// <param name="preference">the preference from the source culture</param>
+    /// <param name="percentage">percentage amount to merge</param>
+    public void Unmerge(CulturalPreference preference, float percentage)
+    {
+        _newValue = MathUtility.ReverseLerp(_newValue, preference.Value, percentage);
+    }
+
+    /// <summary>
+    /// Merge the preference value from a different culture by a proportion
+    /// TODO: Instead of modifying the previous 'new' value, this should use deltas
+    /// like prominences do.
+    /// </summary>
+    /// <param name="preference">the preference from the source culture</param>
+    /// <param name="percentage">percentage amount to merge</param>
     public void Merge(CulturalPreference preference, float percentage)
     {
-        // _newvalue should have been set correctly either by the constructor or by the Update function
-        _newValue = _newValue * (1f - percentage) + preference.Value * percentage;
+        _newValue = Mathf.Lerp(_newValue, preference.Value, percentage);
     }
 
     // This method should be called only once after a Cultural Value is copied from another source group

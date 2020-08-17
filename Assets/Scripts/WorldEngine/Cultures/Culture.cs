@@ -461,14 +461,3 @@ public class Culture : ISynchronizable
         }
     }
 }
-
-public class BufferCulture : Culture
-{
-    public BufferCulture()
-    {
-    }
-
-    public BufferCulture(Culture sourceCulture) : base(sourceCulture)
-    {
-    }
-}

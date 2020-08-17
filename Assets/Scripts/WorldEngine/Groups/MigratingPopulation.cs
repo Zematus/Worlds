@@ -5,7 +5,7 @@ using UnityEngine;
 /// </summary>
 public abstract class MigratingPopulation
 {
-    public float PercentPopulation;
+    public float ProminencePercent;
 
     public int TargetCellLongitude;
     public int TargetCellLatitude;
@@ -30,43 +30,43 @@ public abstract class MigratingPopulation
     /// Constructs a new migrating population object
     /// </summary>
     /// <param name="world">world this object belongs to</param>
-    /// <param name="percentPopulation">percentage of the source group's population to migrate</param>
+    /// <param name="prominencePercent">percentage of the source prominence to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is moving out from the source</param>
     public MigratingPopulation(
         World world,
-        float percentPopulation,
+        float prominencePercent,
         CellGroup sourceGroup,
         TerrainCell targetCell,
         Direction migrationDirection)
     {
         World = world;
 
-        Set(percentPopulation, sourceGroup, targetCell, migrationDirection);
+        Set(prominencePercent, sourceGroup, targetCell, migrationDirection);
     }
 
     /// <summary>
     /// Sets the object properties to use during a migration event
     /// </summary>
-    /// <param name="percentPopulation">percentage of the source group's population to migrate</param>
+    /// <param name="prominencePercent">percentage of the source prominence to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is moving out from the source</param>
     public void Set(
-        float percentPopulation,
+        float prominencePercent,
         CellGroup sourceGroup,
         TerrainCell targetCell,
         Direction migrationDirection)
     {
         MigrationDirection = migrationDirection;
 
-        if (float.IsNaN(percentPopulation))
+        if (float.IsNaN(prominencePercent))
         {
-            throw new System.Exception("percentPopulation value is invalid: " + percentPopulation);
+            throw new System.Exception("percentPopulation value is invalid: " + prominencePercent);
         }
 
-        PercentPopulation = percentPopulation;
+        ProminencePercent = prominencePercent;
 
         TargetCell = targetCell;
         SourceGroup = sourceGroup;
@@ -89,18 +89,18 @@ public abstract class MigratingPopulation
                 "The source group " + SourceGroupId + " is null or no longer present");
         }
 
+        Culture = CreateMigratingCulture();
+
         Population = SplitFromGroup();
 
         if (Population <= 0)
         {
             Debug.LogWarning(
                 "The population to migrate from the source group " +
-                SourceGroupId + " is 0");
+                SourceGroupId + " is equal or less than 0: " + Population);
              
             return;
         }
-
-        Culture = CreateBufferCulture();
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public abstract class MigratingPopulation
     /// Create a buffer culture from the source group
     /// </summary>
     /// <returns>a buffer culture object</returns>
-    protected abstract BufferCulture CreateBufferCulture();
+    protected abstract BufferCulture CreateMigratingCulture();
 
     /// <summary>
     /// Finalizes the migration process

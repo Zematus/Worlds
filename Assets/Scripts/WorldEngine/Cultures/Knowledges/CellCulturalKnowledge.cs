@@ -170,9 +170,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     public void Merge(int value, float percentage)
     {
-        float d;
         // _newvalue should have been set correctly either by the constructor or by the Update function
-        int mergedValue = MathUtility.LerpToIntAndGetDecimals(_newValue, value, percentage, out d);
+        int mergedValue = MathUtility.LerpToIntAndGetDecimals(_newValue, value, percentage, out float d);
 
         if (d > Group.GetNextLocalRandomFloat(RngOffsets.KNOWLEDGE_MERGE + InstanceRngOffset))
             mergedValue++;
@@ -186,30 +185,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
             }
         }
 #endif
-
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Group.Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "CellCulturalKnowledge.Merge - Group:" + groupId,
-        //                    "CurrentDate: " + Group.World.CurrentDate +
-        //                    ", Id: " + Id +
-        //                    ", IsPresent: " + IsPresent +
-        //                    ", Value: " + Value +
-        //                    ", _newValue: " + _newValue +
-        //                    ", mergedValue: " + mergedValue +
-        //                    ", value (param): " + value +
-        //                    ", percentage: " + percentage +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
 
         _newValue = mergedValue;
     }
