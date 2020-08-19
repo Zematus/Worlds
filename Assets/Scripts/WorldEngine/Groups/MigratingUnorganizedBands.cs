@@ -30,7 +30,7 @@ public class MigratingUnorganizedBands : MigratingPopulation
 
     protected override int SplitFromGroup()
     {
-        float ubProminenceValue = 1f - SourceGroup.TotalPolityProminenceValue;
+        float ubProminenceValue = SourceGroup.GetUBandsProminenceValue();
 
         float ubProminenceValueDelta = ProminencePercent * ubProminenceValue;
 
@@ -73,6 +73,6 @@ public class MigratingUnorganizedBands : MigratingPopulation
 
     protected override CellGroup CreateGroupOnTarget()
     {
-        return new CellGroup(this, Population);
+        return new CellGroup(this);
     }
 }

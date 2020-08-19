@@ -290,18 +290,32 @@ public class CellGroup : Identifiable, IFlagHolder
     }
 
     /// <summary>
-    /// Creates a new cell group from a group of unorganized bands
+    /// Creates a new cell group from a migrating population of unorganized bands
     /// </summary>
     /// <param name="bands">migrating bands that will form the group</param>
-    /// <param name="splitPopulation">initial group population</param>
-    public CellGroup(MigratingUnorganizedBands bands, int splitPopulation) :
+    public CellGroup(MigratingUnorganizedBands bands) :
         this(
             bands.World,
             bands.TargetCell,
-            splitPopulation,
+            bands.Population,
             bands.Culture,
             bands.MigrationDirection)
     {
+    }
+
+    /// <summary>
+    /// Creates a new cell group from a migrating polity population
+    /// </summary>
+    /// <param name="polityPop">migrating population that will form the group</param>
+    public CellGroup(MigratingPolityPopulation polityPop) :
+        this(
+            polityPop.World,
+            polityPop.TargetCell,
+            polityPop.Population,
+            polityPop.Culture,
+            polityPop.MigrationDirection)
+    {
+        AddPolityProminence(polityPop.Polity, 1.0f);
     }
 
     public CellGroup(
@@ -710,37 +724,6 @@ public class CellGroup : Identifiable, IFlagHolder
                 ", Group: " + Id);
         }
 #endif
-    }
-
-    /// <summary>
-    /// Takes a portion of a polity's population within the group to move to a new cell
-    /// </summary>
-    /// <param name="polityPop">migrating bands object that will take care of the process</param>
-    /// <returns>The amount of population that migrated out</returns>
-    public int SplitPolityPopulation(MigratingPolityPopulation polityPop)
-    {
-        PolityProminence prominence = GetPolityProminence(polityPop.Polity);
-
-        float prominenceValue = prominence.Value;
-
-        // 'unmerge' the culture of the population that is migrating out
-        Culture.UnmergeCulture(polityPop.Culture, polityPop.ProminencePercent);
-
-        float prominenceValueDelta = polityPop.ProminencePercent * prominenceValue;
-
-        int splitPopulation = (int)(Population * prominenceValueDelta);
-
-        // decrease the prominence of the polity whose population is migrating out
-        AddPolityProminenceValueDelta(polityPop.Polity, - prominenceValueDelta);
-
-        ExactPopulation -= splitPopulation;
-
-        if (Population < 0)
-        {
-            throw new System.Exception("Population less than 0");
-        }
-
-        return splitPopulation;
     }
 
     public void ExecuteDeferredEffects()
@@ -2529,6 +2512,15 @@ public class CellGroup : Identifiable, IFlagHolder
     }
 
     /// <summary>
+    /// Returns the current prominence value of the unorganized bands in the group
+    /// </summary>
+    /// <returns>the unorganized bands prominence value</returns>
+    public float GetUBandsProminenceValue()
+    {
+        return 1f - TotalPolityProminenceValue;
+    }
+
+    /// <summary>
     /// Adds a delta to apply to the unorganized bands' prominence value in this group
     /// </summary>
     /// <param name="delta">value delta to apply</param>
@@ -2596,11 +2588,6 @@ public class CellGroup : Identifiable, IFlagHolder
             ResetProminenceValueDeltas();
             return false;
         }
-
-        //if (Id == "0000000000165645824:1142545211065378440")
-        //{
-        //    Debug.LogWarning("Debugging Group " + Id);
-        //}
 
         // add to the prominence deltas the current prominence values
         AddUBandsProminenceValueDelta(1f - TotalPolityProminenceValue);
@@ -2758,19 +2745,10 @@ public class CellGroup : Identifiable, IFlagHolder
     /// Add a new polity prominence
     /// </summary>
     /// <param name="polity">polity to associate the new prominence with</param>
-    private void AddPolityProminence(Polity polity)
+    /// <param name="initialValue">starting prominence value</param>
+    private void AddPolityProminence(Polity polity, float initialValue = 0)
     {
-        PolityProminence polityProminence = new PolityProminence(this, polity);
-
-        if ((Id == "0000000000154284508:0959461276133812248") &&
-            ((polity.Id == "0000000000286143191:0959345983983351564") ||
-            (polity.Id == "0000000000309214725:0982519706225949048")))
-        {
-            if (_polityProminences.Count > 0)
-            {
-                Debug.Log("Debugging AddPolityProminence for group " + Id);
-            }
-        }
+        PolityProminence polityProminence = new PolityProminence(this, polity, initialValue);
 
         // Increase polity contacts
         foreach (PolityProminence otherProminence in _polityProminences.Values)
