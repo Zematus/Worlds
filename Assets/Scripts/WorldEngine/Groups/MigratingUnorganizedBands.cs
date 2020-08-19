@@ -30,7 +30,18 @@ public class MigratingUnorganizedBands : MigratingPopulation
 
     protected override int SplitFromGroup()
     {
-        return SourceGroup.SplitUnorganizedBands(this);
+        float ubProminenceValue = 1f - SourceGroup.TotalPolityProminenceValue;
+
+        float ubProminenceValueDelta = ProminencePercent * ubProminenceValue;
+
+        int splitPopulation =
+            (int)(SourceGroup.Population * ubProminenceValueDelta);
+
+        SourceGroup.AddUBandsProminenceValueDelta(-ubProminenceValueDelta);
+
+        SourceGroup.ChangePopulation(-splitPopulation);
+
+        return splitPopulation;
     }
 
     protected override BufferCulture CreateMigratingCulture()
@@ -40,7 +51,24 @@ public class MigratingUnorganizedBands : MigratingPopulation
 
     protected override void MergeIntoGroup(CellGroup targetGroup)
     {
-        targetGroup.MergeUnorganizedBands(this);
+        float prominenceDelta = Population / targetGroup.Population;
+
+        float percentageOfPopulation = Population / (targetGroup.Population + Population);
+
+        if (!percentageOfPopulation.IsInsideRange(0, 1))
+        {
+            throw new System.Exception(
+                "Percentage increase outside of range (0,1): " + percentageOfPopulation +
+                " - Group: " + targetGroup.Id);
+        }
+
+        targetGroup.ChangePopulation(Population);
+
+        targetGroup.Culture.MergeCulture(Culture, percentageOfPopulation);
+
+        targetGroup.AddUBandsProminenceValueDelta(prominenceDelta);
+
+        targetGroup.TriggerInterference();
     }
 
     protected override CellGroup CreateGroupOnTarget()

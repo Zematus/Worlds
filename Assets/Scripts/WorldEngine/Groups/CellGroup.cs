@@ -265,7 +265,7 @@ public class CellGroup : Identifiable, IFlagHolder
     {
         get
         {
-            return (int)Mathf.Floor(PreviousExactPopulation);
+            return (int)PreviousExactPopulation;
         }
     }
 
@@ -273,7 +273,7 @@ public class CellGroup : Identifiable, IFlagHolder
     {
         get
         {
-            int population = (int)Mathf.Floor(ExactPopulation);
+            int population = (int)ExactPopulation;
 
             if (population < 0)
             {
@@ -679,43 +679,6 @@ public class CellGroup : Identifiable, IFlagHolder
         return biomes;
     }
 
-    /// <summary>
-    /// Merges and group of unorganized bands into this group
-    /// </summary>
-    /// <param name="bands">group of bands to merge</param>
-    public void MergeUnorganizedBands(MigratingUnorganizedBands bands)
-    {
-        float prominenceDelta = bands.Population / Population;
-
-        float newPopulation = Population + bands.Population;
-
-        float percentageOfPopulation = bands.Population / newPopulation;
-
-        if (!percentageOfPopulation.IsInsideRange(0, 1))
-        {
-            throw new System.Exception(
-                "Percentage increase outside of range (0,1): " + percentageOfPopulation +
-                " - Group: " + Id);
-        }
-
-        ExactPopulation = newPopulation;
-
-#if DEBUG
-        if (Population < -1000)
-        {
-            throw new System.Exception(
-                "Negative population value is beyond tolerance value: " + Population +
-                " - Group: " + Id);
-        }
-#endif
-
-        Culture.MergeCulture(bands.Culture, percentageOfPopulation);
-
-        AddUBandsProminenceValueDelta(prominenceDelta);
-
-        TriggerInterference();
-    }
-
     public void MergePolityProminence(Polity polity, float value, float percentOfTarget)
     {
         AddPolityProminenceValueDelta(polity, value * percentOfTarget);
@@ -732,29 +695,21 @@ public class CellGroup : Identifiable, IFlagHolder
     }
 
     /// <summary>
-    /// Takes a portion of the group's unorganized bands to move to a new cell
+    /// Modifies the group's current population
     /// </summary>
-    /// <param name="bands">migrating bands object that will take care of the process</param>
-    /// <returns>The amount of population that migrated out</returns>
-    public int SplitUnorganizedBands(MigratingUnorganizedBands bands)
+    /// <param name="popDelta">amount of population to add or remove from the group</param>
+    public void ChangePopulation(float popDelta)
     {
-        float ubProminenceValue = 1f - TotalPolityProminenceValue;
+        ExactPopulation += popDelta;
 
-        float ubProminenceValueDelta = bands.ProminencePercent * ubProminenceValue;
-
-        int splitPopulation =
-            (int)Mathf.Floor(Population * ubProminenceValueDelta);
-
-        AddUBandsProminenceValueDelta(-ubProminenceValueDelta);
-
-        ExactPopulation -= splitPopulation;
-
+#if DEBUG
         if (Population < 0)
         {
-            throw new System.Exception("Population less than 0");
+            Debug.LogWarning(
+                "Population changed to less than zero: " + Population +
+                ", Group: " + Id);
         }
-
-        return splitPopulation;
+#endif
     }
 
     /// <summary>
@@ -773,8 +728,7 @@ public class CellGroup : Identifiable, IFlagHolder
 
         float prominenceValueDelta = polityPop.ProminencePercent * prominenceValue;
 
-        int splitPopulation =
-            (int)Mathf.Floor(Population * prominenceValueDelta);
+        int splitPopulation = (int)(Population * prominenceValueDelta);
 
         // decrease the prominence of the polity whose population is migrating out
         AddPolityProminenceValueDelta(polityPop.Polity, - prominenceValueDelta);
@@ -1999,7 +1953,7 @@ public class CellGroup : Identifiable, IFlagHolder
 
         float populationCapacity = (populationCapacityByForaging + populationCapacityByFarming + populationCapacityByFishing) * survivability * accesibilityFactor;
 
-        optimalPopulation = (int)Mathf.Floor(populationCapacity);
+        optimalPopulation = (int)populationCapacity;
 
 #if DEBUG
         if (optimalPopulation < -1000)

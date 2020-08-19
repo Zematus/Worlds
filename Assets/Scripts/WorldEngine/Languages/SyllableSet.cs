@@ -168,7 +168,7 @@ public class SyllableSet
     {
         float randValue = getRandomFloat();
         randValue *= randValue; // Emulate a Zipf's Distribution
-        int randOption = (int)Mathf.Floor(MaxNumberOfSyllables * randValue);
+        int randOption = (int)(MaxNumberOfSyllables * randValue);
 
         if (_syllables.ContainsKey(randOption))
         {
