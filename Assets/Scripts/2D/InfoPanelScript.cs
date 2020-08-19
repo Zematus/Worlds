@@ -596,7 +596,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nFormation Date: " + Manager.GetDateString(polity.FormationDate);
         InfoText.text += "\n";
 
-        int totalPopulation = (int)Mathf.Floor(polity.TotalPopulation);
+        int totalPopulation = (int)polity.TotalPopulation;
 
         InfoText.text += "\n\tPolity population: " + totalPopulation;
         InfoText.text += "\n";
@@ -654,7 +654,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\n";
 
         float percentageOfPopulation = cell.Group.GetPolityProminenceValue(polity);
-        int prominencedPopulation = (int)Mathf.Floor(population * percentageOfPopulation);
+        int prominencedPopulation = (int)(population * percentageOfPopulation);
 
         float percentageOfPolity = 1;
 

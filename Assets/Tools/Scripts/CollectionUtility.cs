@@ -50,7 +50,7 @@ public static class CollectionUtility
         {
             if (selectionValue == 1) selectionValue = 0;
 
-            int index = (int)Mathf.Floor(selectionValue * count);
+            int index = (int)(selectionValue * count);
 
             int i = 0;
             foreach (ElementWeightPair<T> pair in elementWeightPairs)
