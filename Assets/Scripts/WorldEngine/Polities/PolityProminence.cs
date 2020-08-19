@@ -47,11 +47,13 @@ public class PolityProminence// : IKeyedValue<Identifier>
     /// </summary>
     /// <param name="group">group associated with this prominence</param>
     /// <param name="polity">polity associated with this prominence</param>
-    public PolityProminence(CellGroup group, Polity polity)
+    /// <param name="initialValue">starting prominence value</param>
+    public PolityProminence(CellGroup group, Polity polity, float initialValue = 0)
     {
         Group = group;
         Polity = polity;
         PolityId = polity.Id;
+        Value = initialValue;
     }
 
     /// <summary>

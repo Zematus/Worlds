@@ -35,7 +35,21 @@ public class MigratingPolityPopulation : MigratingPopulation
 
     protected override int SplitFromGroup()
     {
-        return SourceGroup.SplitPolityPopulation(this);
+        float prominenceValue = SourceGroup.GetPolityProminenceValue(Polity);
+
+        // 'unmerge' the culture of the population that is migrating out
+        SourceGroup.Culture.UnmergeCulture(Culture, ProminencePercent);
+
+        float prominenceValueDelta = ProminencePercent * prominenceValue;
+
+        int splitPopulation = (int)(SourceGroup.Population * prominenceValueDelta);
+
+        // decrease the prominence of the polity whose population is migrating out
+        SourceGroup.AddPolityProminenceValueDelta(Polity, -prominenceValueDelta);
+
+        SourceGroup.ChangePopulation(-splitPopulation);
+
+        return splitPopulation;
     }
 
     protected override BufferCulture CreateMigratingCulture()
@@ -55,11 +69,28 @@ public class MigratingPolityPopulation : MigratingPopulation
 
     protected override void MergeIntoGroup(CellGroup targetGroup)
     {
-        throw new System.NotImplementedException();
+        float prominenceDelta = Population / targetGroup.Population;
+
+        float percentageOfPopulation = Population / (targetGroup.Population + Population);
+
+        if (!percentageOfPopulation.IsInsideRange(0, 1))
+        {
+            throw new System.Exception(
+                "Percentage increase outside of range (0,1): " + percentageOfPopulation +
+                " - Group: " + targetGroup.Id);
+        }
+
+        targetGroup.ChangePopulation(Population);
+
+        targetGroup.Culture.MergeCulture(Culture, percentageOfPopulation);
+
+        targetGroup.AddPolityProminenceValueDelta(Polity, prominenceDelta);
+
+        targetGroup.TriggerInterference();
     }
 
     protected override CellGroup CreateGroupOnTarget()
     {
-        throw new System.NotImplementedException();
+        return new CellGroup(this);
     }
 }
