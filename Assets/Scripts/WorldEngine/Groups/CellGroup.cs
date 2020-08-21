@@ -1368,11 +1368,22 @@ public class CellGroup : Identifiable, IFlagHolder
         if (PopulationMigrationEvent == null)
         {
             PopulationMigrationEvent =
-                new MigratePopulationEvent(this, targetCell, migrationDirection, migrationType, nextDate);
+                new MigratePopulationEvent(
+                    this,
+                    targetCell,
+                    migrationDirection,
+                    migrationType,
+                    MigratingPopulationType.UnorganizedBands,
+                    nextDate);
         }
         else
         {
-            PopulationMigrationEvent.Reset(targetCell, migrationDirection, migrationType, nextDate);
+            PopulationMigrationEvent.Reset(
+                targetCell,
+                migrationDirection,
+                migrationType,
+                MigratingPopulationType.UnorganizedBands,
+                nextDate);
         }
 
         World.InsertEventToHappen(PopulationMigrationEvent);
@@ -3071,6 +3082,7 @@ public class CellGroup : Identifiable, IFlagHolder
                 targetCell,
                 (Direction)MigrationEventDirectionInt,
                 (MigrationType)MigrationEventTypeInt,
+                MigratingPopulationType.UnorganizedBands,
                 MigrationEventDate);
             World.InsertEventToHappen(PopulationMigrationEvent);
         }

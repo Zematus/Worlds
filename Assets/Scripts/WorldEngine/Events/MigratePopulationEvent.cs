@@ -5,6 +5,9 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
+/// <summary>
+/// Identifies if the migration is over land or water
+/// </summary>
 public enum MigrationType
 {
     Land = 0,
@@ -21,11 +24,14 @@ public class MigratePopulationEvent : CellGroupEvent
     [XmlAttribute("TLat")]
     public int TargetCellLatitude;
 
-    [XmlAttribute("MigDir")]
+    [XmlAttribute("MDir")]
     public int MigrationDirectionInt;
 
-    [XmlAttribute("MigType")]
+    [XmlAttribute("MTyp")]
     public int MigrationTypeInt;
+
+    [XmlAttribute("MPTyp")]
+    public int MigratingPopTypeInt;
 
     [XmlIgnore]
     public TerrainCell TargetCell;
@@ -36,12 +42,15 @@ public class MigratePopulationEvent : CellGroupEvent
     [XmlIgnore]
     public MigrationType MigrationType;
 
+    [XmlIgnore]
+    public MigratingPopulationType MigratingPopType;
+
     /// <summary>
     /// Deserialization constructor
     /// </summary>
     public MigratePopulationEvent()
     {
-        DoNotSerialize = true;
+        throw new System.InvalidOperationException("This type is not serializable");
     }
 
     /// <summary>
@@ -51,6 +60,8 @@ public class MigratePopulationEvent : CellGroupEvent
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
+    /// <param name="migratingPopType">the type of migrating population:
+    /// 'unorganized bands' or 'tribe'</param>
     /// <param name="triggerDate">the date this event will trigger</param>
     /// <param name="originalSpawnDate">the date this event was initiated</param>
     public MigratePopulationEvent(
@@ -58,17 +69,12 @@ public class MigratePopulationEvent : CellGroupEvent
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
+        MigratingPopulationType migratingPopType,
         long triggerDate,
         long originalSpawnDate = - 1) : 
         base(group, triggerDate, MigrateGroupEventId, originalSpawnDate: originalSpawnDate)
     {
-        TargetCell = targetCell;
-
-        TargetCellLongitude = TargetCell.Longitude;
-        TargetCellLatitude = TargetCell.Latitude;
-
-        MigrationDirection = migrationDirection;
-        MigrationType = migrationType;
+        Set(targetCell, migrationDirection, migrationType, migratingPopType);
 
         DoNotSerialize = true;
     }
@@ -106,12 +112,14 @@ public class MigratePopulationEvent : CellGroupEvent
     {
         MigrationDirectionInt = (int)MigrationDirection;
         MigrationTypeInt = (int)MigrationType;
+        MigratingPopTypeInt = (int)MigratingPopType;
     }
 
     public override void FinalizeLoad()
     {
         MigrationDirection = (Direction)MigrationDirectionInt;
         MigrationType = (MigrationType)MigrationTypeInt;
+        MigratingPopType = (MigratingPopulationType)MigratingPopTypeInt;
 
         base.FinalizeLoad();
 
@@ -136,17 +144,39 @@ public class MigratePopulationEvent : CellGroupEvent
     }
 
     /// <summary>
-    /// Re-sets all properties of the event to be able to reuse the object
+    /// Resets all properties of the event to be able to reuse the object
     /// </summary>
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
+    /// <param name="migratingPopType">the type of migrating population:
+    /// 'unorganized bands' or 'tribe'</param>
     /// <param name="triggerDate">the date this event will trigger</param>
     public void Reset(
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
+        MigratingPopulationType migratingPopType,
         long triggerDate)
+    {
+        Set(targetCell, migrationDirection, migrationType, migratingPopType);
+
+        Reset(triggerDate);
+    }
+
+    /// <summary>
+    /// Sets most properties of this event
+    /// </summary>
+    /// <param name="targetCell">the cell where the migration will stop</param>
+    /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
+    /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
+    /// <param name="migratingPopType">the type of migrating population:
+    /// 'unorganized bands' or 'tribe'</param>
+    private void Set(
+        TerrainCell targetCell,
+        Direction migrationDirection,
+        MigrationType migrationType,
+        MigratingPopulationType migratingPopType)
     {
         TargetCell = targetCell;
 
@@ -155,7 +185,6 @@ public class MigratePopulationEvent : CellGroupEvent
 
         MigrationDirection = migrationDirection;
         MigrationType = migrationType;
-
-        Reset(triggerDate);
+        MigratingPopType = migratingPopType;
     }
 }
