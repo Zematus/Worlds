@@ -1,5 +1,14 @@
-
 using UnityEngine;
+
+/// <summary>
+/// Identifies if the migrating population is part of a tribe or just unorganized bands
+/// </summary>
+public enum MigratingPopulationType
+{
+    UnorganizedBands = 0,
+    Tribe = 1
+}
+
 /// <summary>
 /// Segment of unorganized bands migrating from one cell to another
 /// </summary>

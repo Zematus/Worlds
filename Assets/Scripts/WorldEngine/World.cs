@@ -23,6 +23,7 @@ public static class RngOffsets
     public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_CHANCE = 6;
 
     public const int CELL_GROUP_PICK_MIGRATION_DIRECTION = 7;
+    [System.Obsolete]
     public const int CELL_GROUP_PICK_PROMINENCE_TRANSFER_DIRECTION = 8;
 
     public const int PREFERENCE_UPDATE = 10000;
@@ -69,8 +70,11 @@ public static class RngOffsets
 
     public const int TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE = 900003;
 
+    [System.Obsolete]
     public const int CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900006;
+    [System.Obsolete]
     public const int CLAN_SPLITTING_EVENT_PREFER_SPLIT = 900007;
+    [System.Obsolete]
     public const int CLAN_SPLITTING_EVENT_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900008;
 
     public const int TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900010;
@@ -81,12 +85,19 @@ public static class RngOffsets
 
     public const int CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE = 900020;
 
+    [System.Obsolete]
     public const int CLAN_DEMANDS_INFLUENCE_EVENT_CALCULATE_TRIGGER_DATE = 900021;
+    [System.Obsolete]
     public const int CLAN_DEMANDS_INFLUENCE_EVENT_PERFORM_DEMAND = 900022;
+    [System.Obsolete]
     public const int CLAN_DEMANDS_INFLUENCE_EVENT_ACCEPT_DEMAND = 900023;
+    [System.Obsolete]
     public const int CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_AVOIDS_DEMAND_MODIFY_ATTRIBUTE = 900024;
+    [System.Obsolete]
     public const int CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_DEMANDS_MODIFY_ATTRIBUTE = 900025;
+    [System.Obsolete]
     public const int CLAN_DEMANDS_INFLUENCE_EVENT_DOMINANTCLAN_LEADER_REJECTS_DEMAND_MODIFY_ATTRIBUTE = 900026;
+    [System.Obsolete]
     public const int CLAN_DEMANDS_INFLUENCE_EVENT_DOMINANTCLAN_LEADER_ACCEPTS_DEMAND_MODIFY_ATTRIBUTE = 900027;
 
     public const int FOSTER_TRIBE_RELATION_EVENT_CALCULATE_TRIGGER_DATE = 900030;
