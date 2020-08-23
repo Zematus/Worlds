@@ -190,7 +190,10 @@ public class CellGroup : Identifiable, IFlagHolder
     public TerrainCell Cell;
 
     [XmlIgnore]
-    public MigratingUnorganizedBands MigratingBands = null;
+    public MigratingUnorganizedBands MigratingUnorganizedBands = null;
+
+    [XmlIgnore]
+    public MigratingPolityPopulation MigratingPolityPopulation = null;
 
     [XmlIgnore]
     public Faction WillBecomeCoreOfFaction = null;
@@ -437,26 +440,124 @@ public class CellGroup : Identifiable, IFlagHolder
     }
 
     /// <summary>
-    /// Sets Migrating Bands object
+    /// Defines population to migrate
     /// </summary>
-    /// <param name="percentPopulation">percentage of the source group's population to migrate</param>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is exiting from the source</param>
-    public void SetMigratingBands(
-        float percentPopulation,
+    public void DefineMigratingPopulation(
         TerrainCell targetCell,
         Direction migrationDirection)
     {
+        // the number of population sets is qual to the number of prominences present
+        int popSetCount = _polityProminences.Count;
 
-        if (MigratingBands == null)
+        if (popSetCount == 0)
         {
-            MigratingBands =
-                new MigratingUnorganizedBands(World, percentPopulation, this, targetCell, migrationDirection);
+            // If there are no prominences there's no need to pick a random one
+            SetMigratingBands(targetCell, migrationDirection);
+            return;
+        }
+
+        if (TotalPolityProminenceValue < 1)
+        {
+            // Add to the count one if there are still unorganized bands present
+            popSetCount++;
+        }
+
+        int popIndex = GetNextLocalRandomInt(
+            RngOffsets.CELL_GROUP_PICK_MIGRATING_POPULATION, popSetCount);
+
+        if (TotalPolityProminenceValue < 1)
+        {
+            if (popIndex == 0)
+            {
+                SetMigratingBands(targetCell, migrationDirection);
+                return;
+            }
+
+            // decrease the index to make sure we pick a valid prominence
+            popIndex--;
+        }
+
+        Polity selectedPolity = null;
+        int i = 0;
+        foreach (PolityProminence prom in _polityProminences.Values)
+        {
+            if (i == popIndex)
+            {
+                selectedPolity = prom.Polity;
+                break;
+            }
+
+            i++;
+        }
+
+        SetMigratingPolityPopulation(targetCell, migrationDirection, selectedPolity);
+    }
+
+    /// <summary>
+    /// Sets Migrating Bands object
+    /// </summary>
+    /// <param name="targetCell">the cell group this migrates to</param>
+    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    public void SetMigratingBands(
+        TerrainCell targetCell,
+        Direction migrationDirection)
+    {
+        float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
+        float prominencePercent = (1 - MigrationValue / TotalMigrationValue) * randomFactor;
+        prominencePercent = Mathf.Pow(prominencePercent, 4);
+
+        if (!prominencePercent.IsInsideRange(0, 1))
+        {
+            Debug.LogWarning("Prominence percent outside of range [0,1]: " + prominencePercent);
+            prominencePercent = Mathf.Clamp01(prominencePercent);
+        }
+
+        if (MigratingUnorganizedBands == null)
+        {
+            MigratingUnorganizedBands = new MigratingUnorganizedBands(
+                World, prominencePercent, this, targetCell, migrationDirection);
         }
         else
         {
-            MigratingBands.Set(percentPopulation, this, targetCell, migrationDirection);
+            MigratingUnorganizedBands.Set(prominencePercent, this, targetCell, migrationDirection);
         }
+
+        World.AddMigratingPopulation(MigratingUnorganizedBands);
+    }
+
+    /// <summary>
+    /// Sets Migrating Polity Population object
+    /// </summary>
+    /// <param name="targetCell">the cell group this migrates to</param>
+    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    public void SetMigratingPolityPopulation(
+        TerrainCell targetCell,
+        Direction migrationDirection,
+        Polity polity)
+    {
+        float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
+        float prominencePercent = (1 - MigrationValue / TotalMigrationValue) * randomFactor;
+        prominencePercent = Mathf.Pow(prominencePercent, 4);
+
+        if (!prominencePercent.IsInsideRange(0, 1))
+        {
+            Debug.LogWarning("Prominence percent outside of range [0,1]: " + prominencePercent);
+            prominencePercent = Mathf.Clamp01(prominencePercent);
+        }
+
+        if (MigratingPolityPopulation == null)
+        {
+            MigratingPolityPopulation = new MigratingPolityPopulation(
+                World, prominencePercent, this, polity, targetCell, migrationDirection);
+        }
+        else
+        {
+            MigratingPolityPopulation.Set(prominencePercent, this, targetCell, migrationDirection);
+        }
+
+        World.AddMigratingPopulation(MigratingPolityPopulation);
     }
 
     public void AddDeferredEffect(Effect effect)
@@ -1373,7 +1474,6 @@ public class CellGroup : Identifiable, IFlagHolder
                     targetCell,
                     migrationDirection,
                     migrationType,
-                    MigratingPopulationType.UnorganizedBands,
                     nextDate);
         }
         else
@@ -1382,7 +1482,6 @@ public class CellGroup : Identifiable, IFlagHolder
                 targetCell,
                 migrationDirection,
                 migrationType,
-                MigratingPopulationType.UnorganizedBands,
                 nextDate);
         }
 
@@ -3082,7 +3181,6 @@ public class CellGroup : Identifiable, IFlagHolder
                 targetCell,
                 (Direction)MigrationEventDirectionInt,
                 (MigrationType)MigrationEventTypeInt,
-                MigratingPopulationType.UnorganizedBands,
                 MigrationEventDate);
             World.InsertEventToHappen(PopulationMigrationEvent);
         }

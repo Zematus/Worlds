@@ -30,9 +30,6 @@ public class MigratePopulationEvent : CellGroupEvent
     [XmlAttribute("MTyp")]
     public int MigrationTypeInt;
 
-    [XmlAttribute("MPTyp")]
-    public int MigratingPopTypeInt;
-
     [XmlIgnore]
     public TerrainCell TargetCell;
 
@@ -41,9 +38,6 @@ public class MigratePopulationEvent : CellGroupEvent
 
     [XmlIgnore]
     public MigrationType MigrationType;
-
-    [XmlIgnore]
-    public MigratingPopulationType MigratingPopType;
 
     /// <summary>
     /// Deserialization constructor
@@ -60,8 +54,6 @@ public class MigratePopulationEvent : CellGroupEvent
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
-    /// <param name="migratingPopType">the type of migrating population:
-    /// 'unorganized bands' or 'tribe'</param>
     /// <param name="triggerDate">the date this event will trigger</param>
     /// <param name="originalSpawnDate">the date this event was initiated</param>
     public MigratePopulationEvent(
@@ -69,12 +61,11 @@ public class MigratePopulationEvent : CellGroupEvent
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
-        MigratingPopulationType migratingPopType,
         long triggerDate,
         long originalSpawnDate = - 1) : 
         base(group, triggerDate, MigrateGroupEventId, originalSpawnDate: originalSpawnDate)
     {
-        Set(targetCell, migrationDirection, migrationType, migratingPopType);
+        Set(targetCell, migrationDirection, migrationType);
 
         DoNotSerialize = true;
     }
@@ -92,34 +83,19 @@ public class MigratePopulationEvent : CellGroupEvent
 
     public override void Trigger()
     {
-        if (Group.TotalMigrationValue <= 0)
-        {
-            throw new System.Exception("Total Migration Value equal or less than zero: " + Group.TotalMigrationValue);
-        }
-
-        float randomFactor = Group.Cell.GetNextLocalRandomFloat(RngOffsets.EVENT_TRIGGER + unchecked((int)Id));
-        float percentToMigrate = (1 - Group.MigrationValue / Group.TotalMigrationValue) * randomFactor;
-        percentToMigrate = Mathf.Pow(percentToMigrate, 4);
-
-        percentToMigrate = Mathf.Clamp01(percentToMigrate);
-
-        Group.SetMigratingBands(percentToMigrate, TargetCell, MigrationDirection);
-
-        World.AddMigratingBands(Group.MigratingBands);
+        Group.DefineMigratingPopulation(TargetCell, MigrationDirection);
     }
 
     public override void Synchronize()
     {
         MigrationDirectionInt = (int)MigrationDirection;
         MigrationTypeInt = (int)MigrationType;
-        MigratingPopTypeInt = (int)MigratingPopType;
     }
 
     public override void FinalizeLoad()
     {
         MigrationDirection = (Direction)MigrationDirectionInt;
         MigrationType = (MigrationType)MigrationTypeInt;
-        MigratingPopType = (MigratingPopulationType)MigratingPopTypeInt;
 
         base.FinalizeLoad();
 
@@ -149,17 +125,14 @@ public class MigratePopulationEvent : CellGroupEvent
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
-    /// <param name="migratingPopType">the type of migrating population:
-    /// 'unorganized bands' or 'tribe'</param>
     /// <param name="triggerDate">the date this event will trigger</param>
     public void Reset(
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
-        MigratingPopulationType migratingPopType,
         long triggerDate)
     {
-        Set(targetCell, migrationDirection, migrationType, migratingPopType);
+        Set(targetCell, migrationDirection, migrationType);
 
         Reset(triggerDate);
     }
@@ -170,13 +143,10 @@ public class MigratePopulationEvent : CellGroupEvent
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
-    /// <param name="migratingPopType">the type of migrating population:
-    /// 'unorganized bands' or 'tribe'</param>
     private void Set(
         TerrainCell targetCell,
         Direction migrationDirection,
-        MigrationType migrationType,
-        MigratingPopulationType migratingPopType)
+        MigrationType migrationType)
     {
         TargetCell = targetCell;
 
@@ -185,6 +155,5 @@ public class MigratePopulationEvent : CellGroupEvent
 
         MigrationDirection = migrationDirection;
         MigrationType = migrationType;
-        MigratingPopType = migratingPopType;
     }
 }
