@@ -8,128 +8,6 @@ using UnityEngine.Profiling;
 
 public delegate void ProgressCastDelegate(float value, string message = null, bool reset = false);
 
-public static class RngOffsets
-{
-    //public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET = 0;
-    public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE = 1;
-
-    public const int CELL_GROUP_CONSIDER_SEA_MIGRATION = 2;
-
-    public const int CELL_GROUP_CALCULATE_NEXT_UPDATE = 3;
-
-    public const int CELL_GROUP_SET_POLITY_UPDATE = 4;
-
-    public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY = 5;
-    public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_CHANCE = 6;
-
-    public const int CELL_GROUP_PICK_MIGRATION_DIRECTION = 7;
-    [System.Obsolete]
-    public const int CELL_GROUP_PICK_PROMINENCE_TRANSFER_DIRECTION = 8;
-
-    public const int PREFERENCE_UPDATE = 10000;
-    public const int PREFERENCE_POLITY_PROMINENCE = 10100;
-
-    public const int ACTIVITY_UPDATE = 11000;
-    public const int ACTIVITY_POLITY_PROMINENCE = 11100;
-
-    public const int KNOWLEDGE_MERGE = 20000;
-    public const int KNOWLEDGE_MODIFY_VALUE = 20100;
-    public const int KNOWLEDGE_UPDATE_VALUE_INTERNAL = 20200;
-    public const int KNOWLEDGE_POLITY_PROMINENCE = 20300;
-    public const int KNOWLEDGE_FACTION_CORE_UPDATE = 20400;
-
-    public const int SKILL_UPDATE = 30000;
-    public const int SKILL_POLITY_PROMINENCE = 30100;
-
-    public const int POLITY_CULTURE_NORMALIZE_ATTRIBUTE_VALUES = 40000;
-    public const int POLITY_CULTURE_GENERATE_NEW_LANGUAGE = 40100;
-
-    public const int POLITY_UPDATE_EFFECTS = 50000;
-
-    public const int REGION_GENERATE_NAME = 60000;
-    public const int REGION_SELECT_BORDER_REGION_TO_REPLACE_WITH = 61000;
-    public const int REGION_SELECT_SUBSET_CELL = 62000;
-
-    public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
-    public const int TRIBE_GENERATE_NAME = 71000;
-
-    public const int FACTION_CULTURE_DISCOVERY_LOSS_CHANCE = 80500;
-
-    public const int CLAN_GENERATE_NAME = 85000;
-    public const int CLAN_CHOOSE_CORE_GROUP = 85100;
-    public const int CLAN_CHOOSE_TARGET_GROUP = 85200;
-    public const int CLAN_LEADER_GEN_OFFSET = 85300;
-    public const int CLAN_SPLIT = 85500;
-
-    public const int AGENT_GENERATE_BIO = 90000;
-    public const int AGENT_GENERATE_NAME = 91000;
-
-    public const int ROUTE_CHOOSE_NEXT_DEPTH_SEA_CELL = 100000;
-    public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL = 110000;
-    public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL_2 = 120000;
-
-    public const int TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE = 900003;
-
-    [System.Obsolete]
-    public const int CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900006;
-    [System.Obsolete]
-    public const int CLAN_SPLITTING_EVENT_PREFER_SPLIT = 900007;
-    [System.Obsolete]
-    public const int CLAN_SPLITTING_EVENT_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900008;
-
-    public const int TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900010;
-    public const int TRIBE_SPLITTING_EVENT_SPLITCLAN_PREFER_SPLIT = 900011;
-    public const int TRIBE_SPLITTING_EVENT_TRIBE_PREFER_SPLIT = 900012;
-    public const int TRIBE_SPLITTING_EVENT_SPLITCLAN_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900013;
-    public const int TRIBE_SPLITTING_EVENT_TRIBE_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900014;
-
-    public const int CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE = 900020;
-
-    [System.Obsolete]
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_CALCULATE_TRIGGER_DATE = 900021;
-    [System.Obsolete]
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_PERFORM_DEMAND = 900022;
-    [System.Obsolete]
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_ACCEPT_DEMAND = 900023;
-    [System.Obsolete]
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_AVOIDS_DEMAND_MODIFY_ATTRIBUTE = 900024;
-    [System.Obsolete]
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_DEMANDS_MODIFY_ATTRIBUTE = 900025;
-    [System.Obsolete]
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_DOMINANTCLAN_LEADER_REJECTS_DEMAND_MODIFY_ATTRIBUTE = 900026;
-    [System.Obsolete]
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_DOMINANTCLAN_LEADER_ACCEPTS_DEMAND_MODIFY_ATTRIBUTE = 900027;
-
-    public const int FOSTER_TRIBE_RELATION_EVENT_CALCULATE_TRIGGER_DATE = 900030;
-    public const int FOSTER_TRIBE_RELATION_EVENT_MAKE_ATTEMPT = 900031;
-    public const int FOSTER_TRIBE_RELATION_EVENT_REJECT_OFFER = 900032;
-    public const int FOSTER_TRIBE_RELATION_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE = 900033;
-    public const int FOSTER_TRIBE_RELATION_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE = 900034;
-    public const int FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_ACCEPT_OFFER = 900035;
-    public const int FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_REJECTS_OFFER_MODIFY_ATTRIBUTE = 900036;
-    public const int FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_ACCEPTS_OFFER_MODIFY_ATTRIBUTE = 900037;
-
-    public const int MERGE_TRIBES_EVENT_CALCULATE_TRIGGER_DATE = 900040;
-    public const int MERGE_TRIBES_EVENT_MAKE_ATTEMPT = 900041;
-    public const int MERGE_TRIBES_EVENT_REJECT_OFFER = 900042;
-    public const int MERGE_TRIBES_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE = 900043;
-    public const int MERGE_TRIBES_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE = 900044;
-    public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_ACCEPT_OFFER = 900045;
-    public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_REJECTS_OFFER_MODIFY_ATTRIBUTE = 900046;
-    public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_ACCEPTS_OFFER_MODIFY_ATTRIBUTE = 900047;
-
-    public const int OPEN_TRIBE_EVENT_CALCULATE_TRIGGER_DATE = 900050;
-    public const int OPEN_TRIBE_EVENT_MAKE_ATTEMPT = 900051;
-    public const int OPEN_TRIBE_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE = 900052;
-    public const int OPEN_TRIBE_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE = 900053;
-
-    public const int EVENT_TRIGGER = 1000000;
-    public const int EVENT_CAN_TRIGGER = 1100000;
-
-    public const int MIGRATING_GROUP_MOVE_FACTION_CORE = 2000000;
-    public const int EXPAND_POLITY_MOVE_FACTION_CORE = 2100000;
-}
-
 public enum GenerationType
 {
     Temperature = 0x03, // also generate rainfall
@@ -420,7 +298,7 @@ public class World : ISynchronizable
     private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToCleanupAfterUpdate = new HashSet<CellGroup>();
 
-    private List<MigratingUnorganizedBands> _migratingBands = new List<MigratingUnorganizedBands>();
+    private List<MigratingPopulation> _migratingPopulations = new List<MigratingPopulation>();
 
     private Dictionary<Identifier, Agent> _memorableAgents =
         new Dictionary<Identifier, Agent>();
@@ -1069,21 +947,21 @@ public class World : ISynchronizable
     }
 
     /// <summary>
-    /// Performs the migration actions over all bands migrating during this iteration
+    /// Performs the migration actions over all populations migrating during this iteration
     /// </summary>
-    private void MigrateBands()
+    private void MigratePopulations()
     {
-        foreach (MigratingUnorganizedBands bands in _migratingBands)
+        foreach (MigratingPopulation population in _migratingPopulations)
         {
-            bands.SplitFromSourceGroup();
+            population.SplitFromSourceGroup();
         }
 
-        foreach (MigratingUnorganizedBands bands in _migratingBands)
+        foreach (MigratingPopulation population in _migratingPopulations)
         {
-            bands.MoveToCell();
+            population.MoveToCell();
         }
 
-        _migratingBands.Clear();
+        _migratingPopulations.Clear();
     }
 
     private void PostUpdateGroups_BeforePolityUpdates()
@@ -1384,7 +1262,7 @@ public class World : ISynchronizable
 
         Profiler.BeginSample("MigrateBands");
 
-        MigrateBands();
+        MigratePopulations();
 
         Profiler.EndSample();
 
@@ -1547,36 +1425,36 @@ public class World : ISynchronizable
 
 #if DEBUG
     public delegate void AddMigratingBandsCalledDelegate();
-    public static AddMigratingBandsCalledDelegate AddMigratingBandsCalled = null;
+    public static AddMigratingBandsCalledDelegate AddMigratingPopulationCalled = null;
 #endif
 
     /// <summary>
-    /// Adds a group of migrating bands to migrate during this iteration
+    /// Adds a population set to migrate during this iteration
     /// </summary>
-    /// <param name="bands">group of bands to add</param>
-    public void AddMigratingBands(MigratingUnorganizedBands bands)
+    /// <param name="migPop">migrating population object</param>
+    public void AddMigratingPopulation(MigratingPopulation migPop)
     {
 #if DEBUG
-        if (AddMigratingBandsCalled != null)
+        if (AddMigratingPopulationCalled != null)
         {
-            AddMigratingBandsCalled();
+            AddMigratingPopulationCalled();
         }
 #endif
 
-        _migratingBands.Add(bands);
+        _migratingPopulations.Add(migPop);
 
-        if (!bands.SourceGroup.StillPresent)
+        if (!migPop.SourceGroup.StillPresent)
         {
-            Debug.LogWarning("Sourcegroup is no longer present. Group Id: " + bands.SourceGroup);
+            Debug.LogWarning("Sourcegroup is no longer present. Group Id: " + migPop.SourceGroup);
         }
 
         // Source Group needs to be updated
-        AddGroupToUpdate(bands.SourceGroup);
+        AddGroupToUpdate(migPop.SourceGroup);
 
         // If Target Group is present, it also needs to be updated
-        if ((bands.TargetCell.Group != null) && (bands.TargetCell.Group.StillPresent))
+        if ((migPop.TargetCell.Group != null) && (migPop.TargetCell.Group.StillPresent))
         {
-            AddGroupToUpdate(bands.TargetCell.Group);
+            AddGroupToUpdate(migPop.TargetCell.Group);
         }
     }
 

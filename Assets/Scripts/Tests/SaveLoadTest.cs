@@ -357,7 +357,7 @@ public class SaveLoadTest : AutomatedTest
                 _totalCallsToGroupUpdate = 0;
 
 #if DEBUG
-                World.AddMigratingBandsCalled = () =>
+                World.AddMigratingPopulationCalled = () =>
                 {
                     _totalCallsToAddMigratingGroup++;
                 };
@@ -697,7 +697,7 @@ public class SaveLoadTest : AutomatedTest
                 _totalCallsToGroupUpdate = 0;
 
 #if DEBUG
-                World.AddMigratingBandsCalled = () =>
+                World.AddMigratingPopulationCalled = () =>
                 {
                     _totalCallsToAddMigratingGroup++;
                 };
@@ -1245,7 +1245,7 @@ public class SaveLoadTest : AutomatedTest
                 Manager.TrackGenRandomCallers = false;
                 Manager.RegisterDebugEvent = null;
                 World.AddGroupToUpdateCalled = null;
-                World.AddMigratingBandsCalled = null;
+                World.AddMigratingPopulationCalled = null;
                 CellGroup.UpdateCalled = null;
                 TerrainCell.GetNextLocalRandomCalled = null;
 #endif
