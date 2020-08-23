@@ -78,12 +78,6 @@ public class CellGroup : Identifiable, IFlagHolder
     [XmlAttribute("TMV")]
     public float TotalMigrationValue;
 
-    [XmlAttribute("PE")]
-    public float PolityExpansionValue;
-
-    [XmlAttribute("TPE")]
-    public float TotalPolityExpansionValue;
-
     [XmlAttribute("MEv")]
     public bool HasMigrationEvent = false;
     [XmlAttribute("MD")]
@@ -99,11 +93,6 @@ public class CellGroup : Identifiable, IFlagHolder
     [XmlAttribute("MET")]
     public int MigrationEventTypeInt;
 
-    [XmlAttribute("PEEv")]
-    public bool HasPolityExpansionEvent = false;
-    [XmlAttribute("PED")]
-    public long PolityExpansionEventDate;
-
     [XmlAttribute("TFEv")]
     public bool HasTribeFormationEvent = false;
     [XmlAttribute("TFD")]
@@ -115,9 +104,6 @@ public class CellGroup : Identifiable, IFlagHolder
     public int AccessibilityModifier = 0;
     [XmlAttribute("NvM")]
     public int NavigationRangeModifier = 0;
-
-    public Identifier ExpansionTargetGroupId;
-    public Identifier ExpandingPolityId;
 
     public Route SeaMigrationRoute = null;
 
@@ -179,9 +165,6 @@ public class CellGroup : Identifiable, IFlagHolder
 
     [XmlIgnore]
     public MigratePopulationEvent PopulationMigrationEvent;
-
-    [XmlIgnore]
-    public ExpandPolityProminenceEvent PolityExpansionEvent;
 
     [XmlIgnore]
     public TribeFormationEvent TribeFormationEvent;
@@ -957,12 +940,6 @@ public class CellGroup : Identifiable, IFlagHolder
 
         Profiler.EndSample();
 
-        Profiler.BeginSample("Consider Prominence Expansion");
-
-        ConsiderPolityProminenceExpansion();
-
-        Profiler.EndSample();
-
         Profiler.BeginSample("Calculate Next Update Date");
 
         NextUpdateDate = CalculateNextUpdateDate();
@@ -1497,120 +1474,6 @@ public class CellGroup : Identifiable, IFlagHolder
         MigrationEventTypeInt = (int)migrationType;
     }
 
-    public void ConsiderPolityProminenceExpansion()
-    {
-        PolityExpansionValue = 0;
-        TotalPolityExpansionValue = 0;
-
-        if (_polityProminences.Count <= 0)
-            return;
-
-        if (Neighbors.Count <= 0)
-            return;
-
-        if (HasPolityExpansionEvent)
-            return;
-
-        List<PolityProminenceWeight> polityProminenceWeights = new List<PolityProminenceWeight>(_polityProminences.Count);
-
-        foreach (PolityProminence pi in _polityProminences.Values)
-        {
-            polityProminenceWeights.Add(new PolityProminenceWeight(pi, pi.Value));
-        }
-
-        float selectionValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY);
-
-        PolityProminence selectedPi = CollectionUtility.WeightedSelection(polityProminenceWeights.ToArray(), TotalPolityProminenceValue, selectionValue);
-
-        PolityExpansionValue = 1;
-        TotalPolityExpansionValue = 1;
-
-        int targetCellIndex =
-            Cell.GetNextLocalRandomInt(
-                RngOffsets.CELL_GROUP_PICK_PROMINENCE_TRANSFER_DIRECTION,
-                Cell.NeighborList.Count);
-
-        Direction expansionDirection = Cell.DirectionList[targetCellIndex];
-
-        if (!Neighbors.TryGetValue(expansionDirection, out CellGroup targetGroup))
-            return;
-
-        if (!targetGroup.StillPresent)
-            return;
-
-        float groupValue = selectedPi.Polity.CalculateGroupProminenceExpansionValue(
-            this, targetGroup, selectedPi.Value);
-
-        if (groupValue <= 0)
-            return;
-
-        TotalPolityExpansionValue += groupValue;
-
-        float expansionChance = groupValue / TotalPolityExpansionValue;
-
-        float rollValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_CHANCE);
-
-        if (rollValue > expansionChance)
-            return;
-
-        CalculateAdaptionToCell(targetGroup.Cell, out _, out float cellSurvivability);
-
-        if (cellSurvivability <= 0)
-            return;
-
-        float cellAltitudeDeltaFactor = CalculateAltitudeDeltaFactor(targetGroup.Cell);
-
-        float travelFactor =
-            cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
-            cellSurvivability * cellSurvivability * targetGroup.Cell.Accessibility;
-
-        travelFactor = Mathf.Clamp(travelFactor, 0.0001f, 1);
-
-        int travelTime = (int)Mathf.Ceil(World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
-
-        long nextDate = World.CurrentDate + travelTime;
-
-        if (nextDate <= World.CurrentDate)
-        {
-            // nextDate is invalid, generate report
-            Debug.LogWarning("CellGroup.ConsiderPolityProminenceExpansion - nextDate (" + nextDate +
-                ") less or equal to World.CurrentDate (" + World.CurrentDate +
-                "). travelTime: " + travelTime + ", Cell.Width: " + Cell.Width +
-                ", TravelWidthFactor: " + TravelWidthFactor + ", travelFactor: " + travelFactor);
-
-            // Do not generate event
-            return;
-        }
-        else if (nextDate > World.MaxSupportedDate)
-        {
-            // targetDate is invalid, generate report
-            Debug.LogWarning("CellGroup.ConsiderPolityProminenceExpansion - nextDate (" + nextDate +
-                ") greater than MaxSupportedDate (" + World.MaxSupportedDate +
-                "). travelTime: " + travelTime + ", Cell.Width: " + Cell.Width +
-                ", TravelWidthFactor: " + TravelWidthFactor + ", travelFactor: " + travelFactor);
-
-            // Do not generate event
-            return;
-        }
-
-        if (PolityExpansionEvent == null)
-        {
-            PolityExpansionEvent = new ExpandPolityProminenceEvent(this, selectedPi.Polity, targetGroup, nextDate);
-        }
-        else
-        {
-            PolityExpansionEvent.Reset(selectedPi.Polity, targetGroup, nextDate);
-        }
-
-        World.InsertEventToHappen(PolityExpansionEvent);
-
-        HasPolityExpansionEvent = true;
-
-        PolityExpansionEventDate = nextDate;
-        ExpandingPolityId = selectedPi.PolityId;
-        ExpansionTargetGroupId = targetGroup.Id;
-    }
-
     public void Destroy()
     {
         StillPresent = false;
@@ -2065,14 +1928,14 @@ public class CellGroup : Identifiable, IFlagHolder
         //
         //					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
         //						"CalculateOptimalPopulation - Group:" + groupId,
-        //						"CurrentDate: " + World.CurrentDate + 
-        //						", target cellInfo: " + cellInfo + 
-        //						", foragingContribution: " + foragingContribution + 
-        ////						", Area: " + cell.Area + 
-        //						", modifiedForagingCapacity: " + modifiedForagingCapacity + 
-        //						", modifiedSurvivability: " + modifiedSurvivability + 
-        //						", accesibilityFactor: " + accesibilityFactor + 
-        //						", optimalPopulation: " + optimalPopulation + 
+        //						"CurrentDate: " + World.CurrentDate +
+        //						", target cellInfo: " + cellInfo +
+        //						", foragingContribution: " + foragingContribution +
+        ////						", Area: " + cell.Area +
+        //						", modifiedForagingCapacity: " + modifiedForagingCapacity +
+        //						", modifiedSurvivability: " + modifiedSurvivability +
+        //						", accesibilityFactor: " + accesibilityFactor +
+        //						", optimalPopulation: " + optimalPopulation +
         //						"");
         //
         //					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
@@ -2148,9 +2011,9 @@ public class CellGroup : Identifiable, IFlagHolder
                 //				#if DEBUG
                 //
                 //				if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
-                //					biomeData += "\n\tBiome: " + biomeName + 
-                //						" ForagingCapacity: " + biome.ForagingCapacity + 
-                //						" skillValue: " + skillValue + 
+                //					biomeData += "\n\tBiome: " + biomeName +
+                //						" ForagingCapacity: " + biome.ForagingCapacity +
+                //						" skillValue: " + skillValue +
                 //						" biomePresence: " + biomePresence;
                 //				}
                 //
@@ -2200,13 +2063,13 @@ public class CellGroup : Identifiable, IFlagHolder
         //
         //						SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
         //							"CalculateAdaptionToCell - Group:" + groupId,
-        //							"CurrentDate: " + World.CurrentDate + 
-        //							", callingMethod(2): " + callingMethod + 
-        //							", target cell: " + cellInfo + 
-        //							", cell.FarmlandPercentage: " + cell.FarmlandPercentage + 
-        //							", foragingCapacity: " + foragingCapacity + 
-        //							", survivability: " + survivability + 
-        //							", biomeData: " + biomeData + 
+        //							"CurrentDate: " + World.CurrentDate +
+        //							", callingMethod(2): " + callingMethod +
+        //							", target cell: " + cellInfo +
+        //							", cell.FarmlandPercentage: " + cell.FarmlandPercentage +
+        //							", foragingCapacity: " + foragingCapacity +
+        //							", survivability: " + survivability +
+        //							", biomeData: " + biomeData +
         //							"");
         //
         //						Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
@@ -2245,14 +2108,6 @@ public class CellGroup : Identifiable, IFlagHolder
             migrationFactor = Mathf.Pow(migrationFactor, 4);
         }
 
-        float polityExpansionFactor = 1;
-
-        if (TotalPolityExpansionValue > 0)
-        {
-            polityExpansionFactor = PolityExpansionValue / TotalPolityExpansionValue;
-            polityExpansionFactor = Mathf.Pow(polityExpansionFactor, 4);
-        }
-
         float skillLevelFactor = Culture.MinimumSkillAdaptationLevel();
         float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel();
 
@@ -2261,8 +2116,7 @@ public class CellGroup : Identifiable, IFlagHolder
 
         populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
-        float mixFactor = randomFactor * migrationFactor
-            * polityExpansionFactor * skillLevelFactor
+        float mixFactor = randomFactor * migrationFactor * skillLevelFactor
             * knowledgeLevelFactor * populationFactor;
 
         long updateSpan = GenerationSpan * (int)mixFactor;
@@ -2289,7 +2143,6 @@ public class CellGroup : Identifiable, IFlagHolder
                     ", ExactPopulation: " + ExactPopulation +
                     ", randomFactor: " + randomFactor +
                     ", migrationFactor: " + migrationFactor +
-                    ", polityExpansionFactor: " + polityExpansionFactor +
                     ", skillLevelFactor: " + skillLevelFactor +
                     ", knowledgeLevelFactor: " + knowledgeLevelFactor +
                     ", populationFactor: " + populationFactor +
@@ -2364,10 +2217,10 @@ public class CellGroup : Identifiable, IFlagHolder
             //
             //					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
             //						"PopulationAfterTime:increase - Group:" + groupId,
-            //						"CurrentDate: " + World.CurrentDate + 
-            //						", OptimalPopulation: " + OptimalPopulation + 
-            //						", ExactPopulation: " + ExactPopulation + 
-            //						", new population: " + population + 
+            //						"CurrentDate: " + World.CurrentDate +
+            //						", OptimalPopulation: " + OptimalPopulation +
+            //						", ExactPopulation: " + ExactPopulation +
+            //						", new population: " + population +
             //						"");
             //
             //					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
@@ -2397,10 +2250,10 @@ public class CellGroup : Identifiable, IFlagHolder
             //
             //					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
             //						"PopulationAfterTime:decrease - Group:" + groupId,
-            //						"CurrentDate: " + World.CurrentDate + 
-            //						", OptimalPopulation: " + OptimalPopulation + 
-            //						", ExactPopulation: " + ExactPopulation + 
-            //						", new population: " + population + 
+            //						"CurrentDate: " + World.CurrentDate +
+            //						", OptimalPopulation: " + OptimalPopulation +
+            //						", ExactPopulation: " + ExactPopulation +
+            //						", new population: " + population +
             //						"");
             //
             //					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
@@ -3033,11 +2886,6 @@ public class CellGroup : Identifiable, IFlagHolder
         _polityProminences.Clear();
         LoadPolityProminences();
 
-        if (HasPolityExpansionEvent && !PolityExpansionEvent.IsStillValid())
-        {
-            HasPolityExpansionEvent = false;
-        }
-
         Flags = new List<string>(_flags);
         Properties = new List<string>(_properties);
 
@@ -3183,23 +3031,6 @@ public class CellGroup : Identifiable, IFlagHolder
                 (MigrationType)MigrationEventTypeInt,
                 MigrationEventDate);
             World.InsertEventToHappen(PopulationMigrationEvent);
-        }
-
-        // Generate Polity Expansion Event
-
-        if (HasPolityExpansionEvent)
-        {
-            Polity expandingPolity = World.GetPolity(ExpandingPolityId);
-
-            if (expandingPolity == null)
-            {
-                throw new System.Exception("Missing polity with id:" + ExpandingPolityId);
-            }
-
-            CellGroup targetGroup = World.GetGroup(ExpansionTargetGroupId);
-
-            PolityExpansionEvent = new ExpandPolityProminenceEvent(this, expandingPolity, targetGroup, PolityExpansionEventDate);
-            World.InsertEventToHappen(PolityExpansionEvent);
         }
 
         // Generate Tribe Formation Event

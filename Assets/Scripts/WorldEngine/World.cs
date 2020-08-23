@@ -134,7 +134,6 @@ public class World : ISynchronizable
 
     [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
         XmlArrayItem(Type = typeof(MigratePopulationEvent)),
-        XmlArrayItem(Type = typeof(ExpandPolityProminenceEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
         // TODO: cleanup
         //XmlArrayItem(Type = typeof(ClanSplitDecisionEvent)),
