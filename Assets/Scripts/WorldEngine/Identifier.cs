@@ -79,6 +79,11 @@ public class Identifier : Identifiable, System.IComparable
 
     public static bool operator ==(Identifier left, Identifier right)
     {
+        if (left is null)
+        {
+            return right is null;
+        }
+
         return left.Equals(right);
     }
 

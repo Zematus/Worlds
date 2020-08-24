@@ -30,6 +30,8 @@ public class MigratePopulationEvent : CellGroupEvent
     [XmlAttribute("MTyp")]
     public int MigrationTypeInt;
 
+    public Identifier PolityId = null;
+
     [XmlIgnore]
     public TerrainCell TargetCell;
 
@@ -38,6 +40,9 @@ public class MigratePopulationEvent : CellGroupEvent
 
     [XmlIgnore]
     public MigrationType MigrationType;
+
+    [XmlIgnore]
+    public Polity Polity;
 
     /// <summary>
     /// Deserialization constructor
@@ -54,6 +59,7 @@ public class MigratePopulationEvent : CellGroupEvent
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
+    /// <param name="polityId">identifier of the polity whose population will migrate</param>
     /// <param name="triggerDate">the date this event will trigger</param>
     /// <param name="originalSpawnDate">the date this event was initiated</param>
     public MigratePopulationEvent(
@@ -61,11 +67,12 @@ public class MigratePopulationEvent : CellGroupEvent
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
+        Identifier polityId,
         long triggerDate,
         long originalSpawnDate = - 1) : 
         base(group, triggerDate, MigrateGroupEventId, originalSpawnDate: originalSpawnDate)
     {
-        Set(targetCell, migrationDirection, migrationType);
+        Set(targetCell, migrationDirection, migrationType, polityId);
 
         DoNotSerialize = true;
     }
@@ -78,12 +85,24 @@ public class MigratePopulationEvent : CellGroupEvent
         if (Group.TotalMigrationValue <= 0)
             return false;
 
+        Polity = null;
+        if (!(PolityId is null))
+        {
+            PolityProminence prominence = Group.GetPolityProminence(PolityId);
+
+            // the polity might no longer have a prominence in the group
+            if (prominence is null)
+                return false;
+
+            Polity = prominence.Polity;
+        }
+
         return true;
     }
 
     public override void Trigger()
     {
-        Group.DefineMigratingPopulation(TargetCell, MigrationDirection);
+        Group.SetMigratingPopulation(TargetCell, MigrationDirection, Polity);
     }
 
     public override void Synchronize()
@@ -125,14 +144,16 @@ public class MigratePopulationEvent : CellGroupEvent
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
+    /// <param name="polityId">identifier of the polity whose population will migrate</param>
     /// <param name="triggerDate">the date this event will trigger</param>
     public void Reset(
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
+        Identifier polityId,
         long triggerDate)
     {
-        Set(targetCell, migrationDirection, migrationType);
+        Set(targetCell, migrationDirection, migrationType, polityId);
 
         Reset(triggerDate);
     }
@@ -143,10 +164,12 @@ public class MigratePopulationEvent : CellGroupEvent
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
+    /// <param name="polityId">identifier of the polity whose population will migrate</param>
     private void Set(
         TerrainCell targetCell,
         Direction migrationDirection,
-        MigrationType migrationType)
+        MigrationType migrationType,
+        Identifier polityId)
     {
         TargetCell = targetCell;
 
@@ -155,5 +178,7 @@ public class MigratePopulationEvent : CellGroupEvent
 
         MigrationDirection = migrationDirection;
         MigrationType = migrationType;
+
+        PolityId = polityId;
     }
 }
