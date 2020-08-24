@@ -105,6 +105,8 @@ public class CellGroup : Identifiable, IFlagHolder
     [XmlAttribute("NvM")]
     public int NavigationRangeModifier = 0;
 
+    public Identifier MigratingPopPolId = null;
+
     public Route SeaMigrationRoute = null;
 
     public List<string> Flags;
@@ -174,7 +176,6 @@ public class CellGroup : Identifiable, IFlagHolder
 
     [XmlIgnore]
     public MigratingUnorganizedBands MigratingUnorganizedBands = null;
-
     [XmlIgnore]
     public MigratingPolityPopulation MigratingPolityPopulation = null;
 
@@ -422,23 +423,14 @@ public class CellGroup : Identifiable, IFlagHolder
         }
     }
 
-    /// <summary>
-    /// Defines population to migrate
-    /// </summary>
-    /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
-    public void DefineMigratingPopulation(
-        TerrainCell targetCell,
-        Direction migrationDirection)
+    public Identifier GetPolityPopIdToMigrate()
     {
         // the number of population sets is qual to the number of prominences present
         int popSetCount = _polityProminences.Count;
 
         if (popSetCount == 0)
         {
-            // If there are no prominences there's no need to pick a random one
-            SetMigratingBands(targetCell, migrationDirection);
-            return;
+            return null;
         }
 
         if (TotalPolityProminenceValue < 1)
@@ -450,32 +442,38 @@ public class CellGroup : Identifiable, IFlagHolder
         int popIndex = GetNextLocalRandomInt(
             RngOffsets.CELL_GROUP_PICK_MIGRATING_POPULATION, popSetCount);
 
-        if (TotalPolityProminenceValue < 1)
-        {
-            if (popIndex == 0)
-            {
-                SetMigratingBands(targetCell, migrationDirection);
-                return;
-            }
-
-            // decrease the index to make sure we pick a valid prominence
-            popIndex--;
-        }
-
-        Polity selectedPolity = null;
         int i = 0;
         foreach (PolityProminence prom in _polityProminences.Values)
         {
             if (i == popIndex)
             {
-                selectedPolity = prom.Polity;
-                break;
+                return prom.Polity.Id;
             }
 
             i++;
         }
 
-        SetMigratingPolityPopulation(targetCell, migrationDirection, selectedPolity);
+        return null;
+    }
+
+    /// <summary>
+    /// Defines population to migrate
+    /// </summary>
+    /// <param name="targetCell">the cell group this migrates to</param>
+    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    /// <param name="polity">the polity whose population will migrate</param>
+    public void SetMigratingPopulation(
+        TerrainCell targetCell,
+        Direction migrationDirection,
+        Polity polity)
+    {
+        if (polity == null)
+        {
+            SetMigratingUnorganizedBands(targetCell, migrationDirection);
+            return;
+        }
+
+        SetMigratingPolityPopulation(targetCell, migrationDirection, polity);
     }
 
     /// <summary>
@@ -483,7 +481,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// </summary>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is exiting from the source</param>
-    public void SetMigratingBands(
+    public void SetMigratingUnorganizedBands(
         TerrainCell targetCell,
         Direction migrationDirection)
     {
@@ -1276,15 +1274,11 @@ public class CellGroup : Identifiable, IFlagHolder
         TerrainCell targetCell = Cell.NeighborList[targetCellIndex];
         Direction migrationDirection = Cell.DirectionList[targetCellIndex];
 
-        Profiler.BeginSample("CalculateMigrationValue");
-
         float cellValue = CalculateMigrationValue(targetCell);
 
         TotalMigrationValue += cellValue;
 
         float migrationChance = cellValue / TotalMigrationValue;
-
-        Profiler.EndSample();
 
         float rollValue =
             Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE);
@@ -1292,20 +1286,12 @@ public class CellGroup : Identifiable, IFlagHolder
         if (rollValue > migrationChance)
             return;
 
-        Profiler.BeginSample("CalculateAdaptionToCell");
-
         CalculateAdaptionToCell(targetCell, out float cellForagingCapacity, out float cellSurvivability);
-
-        Profiler.EndSample();
 
         if (cellSurvivability <= 0)
             return;
 
-        Profiler.BeginSample("CalculateAltitudeDeltaFactor");
-
         float cellAltitudeDeltaFactor = CalculateAltitudeDeltaFactor(targetCell);
-
-        Profiler.EndSample();
 
         float travelFactor =
             cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
@@ -1341,11 +1327,10 @@ public class CellGroup : Identifiable, IFlagHolder
             return;
         }
 
-        Profiler.BeginSample("SetMigrationEvent");
+        Identifier polityId = GetPolityPopIdToMigrate();
 
-        SetPopulationMigrationEvent(targetCell, migrationDirection, MigrationType.Land, nextDate);
-
-        Profiler.EndSample();
+        SetPopulationMigrationEvent(
+            targetCell, migrationDirection, MigrationType.Land, polityId, nextDate);
     }
 
     /// <summary>
@@ -1427,7 +1412,10 @@ public class CellGroup : Identifiable, IFlagHolder
 
         SeaMigrationRoute.Used = true;
 
-        SetPopulationMigrationEvent(targetCell, migrationDirection, MigrationType.Sea, nextDate);
+        Identifier polityId = GetPolityPopIdToMigrate();
+
+        SetPopulationMigrationEvent(
+            targetCell, migrationDirection, MigrationType.Sea, polityId, nextDate);
     }
 
     /// <summary>
@@ -1441,6 +1429,7 @@ public class CellGroup : Identifiable, IFlagHolder
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
+        Identifier polityId,
         long nextDate)
     {
         if (PopulationMigrationEvent == null)
@@ -1451,6 +1440,7 @@ public class CellGroup : Identifiable, IFlagHolder
                     targetCell,
                     migrationDirection,
                     migrationType,
+                    polityId,
                     nextDate);
         }
         else
@@ -1459,6 +1449,7 @@ public class CellGroup : Identifiable, IFlagHolder
                 targetCell,
                 migrationDirection,
                 migrationType,
+                polityId,
                 nextDate);
         }
 
@@ -1472,6 +1463,7 @@ public class CellGroup : Identifiable, IFlagHolder
         MigrationTargetLatitude = targetCell.Latitude;
         MigrationEventDirectionInt = (int)migrationDirection;
         MigrationEventTypeInt = (int)migrationType;
+        MigratingPopPolId = polityId;
     }
 
     public void Destroy()
@@ -2272,6 +2264,19 @@ public class CellGroup : Identifiable, IFlagHolder
         return _polityProminences.Values;
     }
 
+    /// <summary>
+    /// Obtain the prominence associated with a polity Id
+    /// </summary>
+    /// <param name="polityId">the polity Id to search for</param>
+    /// <returns>the polity prominence</returns>
+    public PolityProminence GetPolityProminence(Identifier polityId)
+    {
+        if (!_polityProminences.TryGetValue(polityId, out PolityProminence polityProminence))
+            return null;
+
+        return polityProminence;
+    }
+
     public PolityProminence GetPolityProminence(Polity polity)
     {
         if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
@@ -3029,7 +3034,9 @@ public class CellGroup : Identifiable, IFlagHolder
                 targetCell,
                 (Direction)MigrationEventDirectionInt,
                 (MigrationType)MigrationEventTypeInt,
+                MigratingPopPolId,
                 MigrationEventDate);
+
             World.InsertEventToHappen(PopulationMigrationEvent);
         }
 
