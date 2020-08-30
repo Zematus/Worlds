@@ -29,7 +29,7 @@ public class CellGroup : Identifiable, IFlagHolder
 
     public const float SeaTravelBaseFactor = 25f;
 
-    public const float MigrationFactor = 0.1f;
+    //public const float MigrationFactor = 0.1f;
 
     public const float MaxMigrationAltitudeDelta = 1f; // in meters
 
@@ -71,12 +71,6 @@ public class CellGroup : Identifiable, IFlagHolder
 
     [XmlAttribute("TPP")]
     public float TotalPolityProminenceValueFloat = 0;
-
-    [XmlAttribute("MV")]
-    public float MigrationValue;
-
-    [XmlAttribute("TMV")]
-    public float TotalMigrationValue;
 
     [XmlAttribute("MEv")]
     public bool HasMigrationEvent = false;
@@ -423,7 +417,13 @@ public class CellGroup : Identifiable, IFlagHolder
         }
     }
 
-    public Identifier GetPolityPopIdToMigrate()
+    /// <summary>
+    /// Gets a random polity to migrate if it has a prominence in the group.
+    /// It if returns null, then the population to migrate will be unorganized bands
+    /// </summary>
+    /// <returns>The polity the population to migrate belongs to. Or null if migrating
+    /// unorganized bands</returns>
+    public Polity GetRandomPopPolityToMigrate()
     {
         // the number of population sets is qual to the number of prominences present
         int popSetCount = _polityProminences.Count;
@@ -447,7 +447,7 @@ public class CellGroup : Identifiable, IFlagHolder
         {
             if (i == popIndex)
             {
-                return prom.Polity.Id;
+                return prom.Polity;
             }
 
             i++;
@@ -461,19 +461,21 @@ public class CellGroup : Identifiable, IFlagHolder
     /// </summary>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
     /// <param name="polity">the polity whose population will migrate</param>
     public void SetMigratingPopulation(
         TerrainCell targetCell,
         Direction migrationDirection,
+        float maxProminencePercent,
         Polity polity)
     {
         if (polity == null)
         {
-            SetMigratingUnorganizedBands(targetCell, migrationDirection);
+            SetMigratingUnorganizedBands(targetCell, migrationDirection, maxProminencePercent);
             return;
         }
 
-        SetMigratingPolityPopulation(targetCell, migrationDirection, polity);
+        SetMigratingPolityPopulation(targetCell, migrationDirection, maxProminencePercent, polity);
     }
 
     /// <summary>
@@ -481,12 +483,16 @@ public class CellGroup : Identifiable, IFlagHolder
     /// </summary>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
     public void SetMigratingUnorganizedBands(
         TerrainCell targetCell,
-        Direction migrationDirection)
+        Direction migrationDirection,
+        float maxProminencePercent)
     {
+        float overflowFactor = 1.2f;
+
         float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
-        float prominencePercent = (1 - MigrationValue / TotalMigrationValue) * randomFactor;
+        float prominencePercent = Mathf.Clamp01(maxProminencePercent * randomFactor * overflowFactor);
         prominencePercent = Mathf.Pow(prominencePercent, 4);
 
         if (!prominencePercent.IsInsideRange(0, 1))
@@ -513,13 +519,18 @@ public class CellGroup : Identifiable, IFlagHolder
     /// </summary>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
+    /// <param name="polity">the polity whose population will migrate</param>
     public void SetMigratingPolityPopulation(
         TerrainCell targetCell,
         Direction migrationDirection,
+        float maxProminencePercent,
         Polity polity)
     {
+        float overflowFactor = 1.2f;
+
         float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
-        float prominencePercent = (1 - MigrationValue / TotalMigrationValue) * randomFactor;
+        float prominencePercent = Mathf.Clamp01(maxProminencePercent * randomFactor * overflowFactor);
         prominencePercent = Mathf.Pow(prominencePercent, 4);
 
         if (!prominencePercent.IsInsideRange(0, 1))
@@ -920,12 +931,6 @@ public class CellGroup : Identifiable, IFlagHolder
 
         Profiler.EndSample();
 
-        Profiler.BeginSample("Calculate Local Migration Value");
-
-        CalculateLocalMigrationValue();
-
-        Profiler.EndSample();
-
         Profiler.BeginSample("Consider Land Migration");
 
         ConsiderLandMigration();
@@ -985,103 +990,6 @@ public class CellGroup : Identifiable, IFlagHolder
         float altitudeDeltaFactor = 1 - (Mathf.Clamp(altitudeDelta, -MaxMigrationAltitudeDelta, MaxMigrationAltitudeDelta) + MaxMigrationAltitudeDelta) / 2 * MaxMigrationAltitudeDelta;
 
         return altitudeDeltaFactor;
-    }
-
-    public float CalculateMigrationValue(TerrainCell cell)
-    {
-        float areaFactor = cell.MaxAreaPercent;
-
-        float altitudeDeltaFactor = CalculateAltitudeDeltaFactor(cell);
-        float altitudeDeltaFactorPow = Mathf.Pow(altitudeDeltaFactor, 4);
-
-        if (float.IsNaN(altitudeDeltaFactorPow))
-        {
-            throw new System.Exception("float.IsNaN(altitudeDeltaFactorPow)");
-        }
-
-        int existingPopulation = 0;
-
-        float popDifferenceFactor = 1;
-
-        if (cell.Group != null)
-        {
-            existingPopulation = cell.Group.Population;
-
-            popDifferenceFactor = (float)Population / (float)(Population + existingPopulation);
-            popDifferenceFactor = Mathf.Pow(popDifferenceFactor, 4);
-        }
-
-        float noMigrationFactor = 1;
-
-        float optimalPopulation = OptimalPopulation;
-
-        if (cell != Cell)
-        {
-            noMigrationFactor = MigrationFactor;
-
-            optimalPopulation = CalculateOptimalPopulation(cell);
-        }
-
-        float targetOptimalPopulationFactor = 0;
-
-        if (optimalPopulation > 0)
-        {
-            targetOptimalPopulationFactor = optimalPopulation / (existingPopulation + optimalPopulation);
-        }
-
-        float cellValue = altitudeDeltaFactorPow * areaFactor * popDifferenceFactor * noMigrationFactor * targetOptimalPopulationFactor;
-
-        if (float.IsNaN(cellValue))
-        {
-            throw new System.Exception("float.IsNaN(cellValue)");
-        }
-
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Id == Manager.TracingData.GroupId)
-        //            {
-        //                //				if ((Longitude == cell.Longitude) && (Latitude == cell.Latitude)) {
-        //                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-        //                string targetCellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-
-        //                if (cell.Group != null)
-        //                {
-        //                    targetCellInfo = "Id:" + cell.Group.Id + "|" + targetCellInfo;
-        //                }
-
-        //                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-
-        //                System.Reflection.MethodBase method1 = stackTrace.GetFrame(1).GetMethod();
-        //                string callingMethod1 = method1.Name;
-        //                string callingClass1 = method1.DeclaringType.ToString();
-
-        //                System.Reflection.MethodBase method2 = stackTrace.GetFrame(2).GetMethod();
-        //                string callingMethod2 = method2.Name;
-        //                string callingClass2 = method2.DeclaringType.ToString();
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "CalculateMigrationValue - Group:" + groupId +
-        //                    ", targetCell: " + targetCellInfo,
-        //                    ", CurrentDate: " + World.CurrentDate +
-        //                    ", altitudeDeltaFactor: " + altitudeDeltaFactor +
-        //                    ", ExactPopulation: " + ExactPopulation +
-        //                    ", target existingPopulation: " + existingPopulation +
-        //                    ", popDifferenceFactor: " + popDifferenceFactor +
-        //                    ", OptimalPopulation: " + OptimalPopulation +
-        //                    ", target optimalPopulation: " + optimalPopulation +
-        //                    ", targetOptimalPopulationFactor: " + targetOptimalPopulationFactor +
-        //                    ", Calling method 1: " + callingClass1 + "." + callingMethod1 +
-        //                    ", Calling method 2: " + callingClass2 + "." + callingMethod2 +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //                //				}
-        //            }
-        //        }
-        //#endif
-
-        return cellValue;
     }
 
     public long GeneratePastSpawnDate(long baseDate, int cycleLength, int offset = 0)
@@ -1238,24 +1146,99 @@ public class CellGroup : Identifiable, IFlagHolder
         //#endif
     }
 
-    public void CalculateLocalMigrationValue()
-    {
-        MigrationValue = CalculateMigrationValue(Cell);
-
-        TotalMigrationValue = MigrationValue;
-
-        if (float.IsNaN(TotalMigrationValue))
-        {
-            throw new System.Exception("float.IsNaN(TotalMigrationValue)");
-        }
-    }
-
     private class PolityProminenceWeight : CollectionUtility.ElementWeightPair<PolityProminence>
     {
         public PolityProminenceWeight(PolityProminence polityProminence, float weight) : base(polityProminence, weight)
         {
 
         }
+    }
+
+    /// <summary>
+    /// Calculates the current migration value of a cell that is a possible target for
+    /// migration of unorganized bands.
+    /// The value returned will be a value between 0 and 1.
+    /// </summary>
+    /// <param name="cell">the target cell</param>
+    /// <returns>a migration value between 0 and 1</returns>
+    public float UBCellMigrationValue(TerrainCell cell)
+    {
+        float targetOptimalPopulation = CalculateOptimalPopulation(cell);
+
+        if (targetOptimalPopulation <= 0)
+        {
+            return 0;
+        }
+
+        float targetPopulation = 0;
+
+        if (cell.Group != null)
+        {
+            targetPopulation = cell.Group.Population;
+        }
+
+        float targetOptimalPopulationDelta = targetOptimalPopulation - targetPopulation;
+        float sourceOptimalPopulationDelta = OptimalPopulation - Population;
+
+        float optimalPopulationFactor;
+
+        if (targetOptimalPopulationDelta <= 0)
+        {
+            float deltaDiff = targetOptimalPopulationDelta - sourceOptimalPopulationDelta;
+
+            if (deltaDiff <= 0)
+            {
+                return 0;
+            }
+
+            optimalPopulationFactor = deltaDiff / (deltaDiff + targetOptimalPopulation);
+        }
+        else
+        {
+            optimalPopulationFactor =
+                targetOptimalPopulationDelta / (targetOptimalPopulationDelta + sourceOptimalPopulationDelta);
+        }
+
+        optimalPopulationFactor = Mathf.Pow(optimalPopulationFactor, 4);
+
+        float areaFactor = cell.MaxAreaPercent / (cell.MaxAreaPercent + Cell.MaxAreaPercent);
+
+        float altitudeDeltaFactor = CalculateAltitudeDeltaFactor(cell);
+        altitudeDeltaFactor = Mathf.Pow(altitudeDeltaFactor, 4);
+
+        if (float.IsNaN(altitudeDeltaFactor))
+        {
+            throw new System.Exception("float.IsNaN(altitudeDeltaFactorPow)");
+        }
+
+        float cellValue = areaFactor * altitudeDeltaFactor * optimalPopulationFactor;
+
+        if (float.IsNaN(cellValue))
+        {
+            throw new System.Exception("float.IsNaN(cellValue)");
+        }
+
+        return cellValue;
+    }
+
+    /// <summary>
+    /// Calculates the current migration value of a cell that is a possible target for
+    /// migration of a population.
+    /// The value returned will be a value between 0 and 1.
+    /// </summary>
+    /// <param name="cell">the target cell</param>
+    /// <param name="migratingPolity">the polity that intend to migrate
+    /// (null if migrating unorganized bands)</param>
+    /// <returns>a migration value between 0 and 1</returns>
+    public float CellMigrationValue(TerrainCell cell, Polity migratingPolity = null)
+    {
+        if (migratingPolity == null)
+        {
+            return UBCellMigrationValue(cell);
+        }
+
+        throw new System.NotImplementedException();
+        return 0;
     }
 
     /// <summary>
@@ -1266,6 +1249,8 @@ public class CellGroup : Identifiable, IFlagHolder
         if (HasMigrationEvent)
             return;
 
+        Polity polity = GetRandomPopPolityToMigrate();
+
         int targetCellIndex =
             Cell.GetNextLocalRandomInt(
                 RngOffsets.CELL_GROUP_PICK_MIGRATION_DIRECTION,
@@ -1274,19 +1259,15 @@ public class CellGroup : Identifiable, IFlagHolder
         TerrainCell targetCell = Cell.NeighborList[targetCellIndex];
         Direction migrationDirection = Cell.DirectionList[targetCellIndex];
 
-        float cellValue = CalculateMigrationValue(targetCell);
+        float migrationChance = CellMigrationValue(targetCell, polity);
 
-        TotalMigrationValue += cellValue;
-
-        float migrationChance = cellValue / TotalMigrationValue;
-
-        float rollValue =
+        float attemptValue =
             Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE);
 
-        if (rollValue > migrationChance)
+        if (attemptValue > migrationChance)
             return;
 
-        CalculateAdaptionToCell(targetCell, out float cellForagingCapacity, out float cellSurvivability);
+        CalculateAdaptionToCell(targetCell, out _, out float cellSurvivability);
 
         if (cellSurvivability <= 0)
             return;
@@ -1302,12 +1283,12 @@ public class CellGroup : Identifiable, IFlagHolder
         int travelTime =
             (int)Mathf.Ceil(World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
 
-        long nextDate = World.CurrentDate + travelTime;
+        long arrivalDate = World.CurrentDate + travelTime;
 
-        if (nextDate <= World.CurrentDate)
+        if (arrivalDate <= World.CurrentDate)
         {
             // nextDate is invalid, generate report
-            Debug.LogWarning("CellGroup.ConsiderLandMigration - nextDate (" + nextDate +
+            Debug.LogWarning("CellGroup.ConsiderLandMigration - nextDate (" + arrivalDate +
                 ") less or equal to World.CurrentDate (" + World.CurrentDate +
                 "). travelTime: " + travelTime + ", Cell.Width: " + Cell.Width +
                 ", TravelWidthFactor: " + TravelWidthFactor + ", travelFactor: " + travelFactor);
@@ -1315,10 +1296,10 @@ public class CellGroup : Identifiable, IFlagHolder
             // Do not generate event
             return;
         }
-        else if (nextDate > World.MaxSupportedDate)
+        else if (arrivalDate > World.MaxSupportedDate)
         {
             // nextDate is invalid, generate report
-            Debug.LogWarning("CellGroup.ConsiderLandMigration - nextDate (" + nextDate +
+            Debug.LogWarning("CellGroup.ConsiderLandMigration - nextDate (" + arrivalDate +
                 ") greater than MaxSupportedDate (" + World.MaxSupportedDate +
                 "). travelTime: " + travelTime + ", Cell.Width: " + Cell.Width +
                 ", TravelWidthFactor: " + TravelWidthFactor + ", travelFactor: " + travelFactor);
@@ -1327,10 +1308,8 @@ public class CellGroup : Identifiable, IFlagHolder
             return;
         }
 
-        Identifier polityId = GetPolityPopIdToMigrate();
-
         SetPopulationMigrationEvent(
-            targetCell, migrationDirection, MigrationType.Land, polityId, nextDate);
+            targetCell, migrationDirection, MigrationType.Land, polity.Id, arrivalDate);
     }
 
     /// <summary>
@@ -1343,6 +1322,8 @@ public class CellGroup : Identifiable, IFlagHolder
 
         if (HasMigrationEvent)
             return;
+
+        Polity polity = GetRandomPopPolityToMigrate();
 
         if ((SeaMigrationRoute == null) ||
             (!SeaMigrationRoute.Consolidated))
@@ -1363,14 +1344,12 @@ public class CellGroup : Identifiable, IFlagHolder
         if (targetCell == null)
             return;
 
-        TotalMigrationValue += CalculateMigrationValue(targetCell);
+        float cellValue = CellMigrationValue(targetCell, polity);
 
-        if (float.IsNaN(TotalMigrationValue))
-        {
-            throw new System.Exception("float.IsNaN (TotalMigrationValue)");
-        }
+        if (cellValue <= 0)
+            return;
 
-        CalculateAdaptionToCell(targetCell, out float cellForagingCapacity, out float cellSurvivability);
+        CalculateAdaptionToCell(targetCell, out _, out float cellSurvivability);
 
         if (cellSurvivability <= 0)
             return;
@@ -1378,11 +1357,11 @@ public class CellGroup : Identifiable, IFlagHolder
         float routeLength = SeaMigrationRoute.Length;
         float routeLengthFactor = Mathf.Pow(routeLength, 2);
 
-        float successChance = SeaTravelFactor / (SeaTravelFactor + routeLengthFactor);
+        float migrationChance = cellValue * SeaTravelFactor / (SeaTravelFactor + routeLengthFactor);
 
         float attemptValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_SEA_MIGRATION);
 
-        if (attemptValue > successChance)
+        if (attemptValue > migrationChance)
             return;
 
         int travelTime = (int)Mathf.Ceil(World.YearLength * routeLength / SeaTravelFactor);
@@ -1412,10 +1391,8 @@ public class CellGroup : Identifiable, IFlagHolder
 
         SeaMigrationRoute.Used = true;
 
-        Identifier polityId = GetPolityPopIdToMigrate();
-
         SetPopulationMigrationEvent(
-            targetCell, migrationDirection, MigrationType.Sea, polityId, nextDate);
+            targetCell, migrationDirection, MigrationType.Sea, polity.Id, nextDate);
     }
 
     /// <summary>
@@ -1868,14 +1845,15 @@ public class CellGroup : Identifiable, IFlagHolder
     {
         int optimalPopulation = 0;
 
-        float foragingCapacity = 0;
-        float survivability = 0;
-
         float foragingContribution = GetActivityContribution(CellCulturalActivity.ForagingActivityId);
 
-        CalculateAdaptionToCell(cell, out foragingCapacity, out survivability);
+        CalculateAdaptionToCell(cell, out float foragingCapacity, out float survivability);
 
-        float populationCapacityByForaging = foragingContribution * PopulationForagingConstant * cell.Area * foragingCapacity;
+        if (survivability <= 0)
+            return 0;
+
+        float populationCapacityByForaging =
+            foragingContribution * PopulationForagingConstant * cell.Area * foragingCapacity;
 
         float farmingContribution = GetActivityContribution(CellCulturalActivity.FarmingActivityId);
         float populationCapacityByFarming = 0;
@@ -1884,7 +1862,8 @@ public class CellGroup : Identifiable, IFlagHolder
         {
             float farmingCapacity = CalculateFarmingCapacity(cell);
 
-            populationCapacityByFarming = farmingContribution * PopulationFarmingConstant * cell.Area * farmingCapacity;
+            populationCapacityByFarming =
+                farmingContribution * PopulationFarmingConstant * cell.Area * farmingCapacity;
         }
 
         float fishingContribution = GetActivityContribution(CellCulturalActivity.FishingActivityId);
@@ -1894,12 +1873,15 @@ public class CellGroup : Identifiable, IFlagHolder
         {
             float fishingCapacity = CalculateFishingCapacity(cell);
 
-            populationCapacityByFishing = fishingContribution * PopulationFishingConstant * cell.Area * fishingCapacity;
+            populationCapacityByFishing =
+                fishingContribution * PopulationFishingConstant * cell.Area * fishingCapacity;
         }
 
         float accesibilityFactor = 0.25f + 0.75f * cell.Accessibility;
 
-        float populationCapacity = (populationCapacityByForaging + populationCapacityByFarming + populationCapacityByFishing) * survivability * accesibilityFactor;
+        float populationCapacity =
+            (populationCapacityByForaging + populationCapacityByFarming + populationCapacityByFishing) *
+            survivability * accesibilityFactor;
 
         optimalPopulation = (int)populationCapacity;
 
@@ -2039,37 +2021,12 @@ public class CellGroup : Identifiable, IFlagHolder
         {
             throw new System.Exception("Survivability greater than 1: " + survivability);
         }
+    }
 
-        //		#if DEBUG
-        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
-        //			if (Id == Manager.TracingData.GroupId) {
-        //				if ((cell.Longitude == Longitude) && (cell.Latitude == Latitude)) {
-        //					System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-        //
-        //					System.Reflection.MethodBase method = stackTrace.GetFrame(2).GetMethod();
-        //					string callingMethod = method.Name;
-        //
-        ////					if (callingMethod.Contains ("CalculateMigrationValue")) {
-        //						string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-        //						string cellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-        //
-        //						SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //							"CalculateAdaptionToCell - Group:" + groupId,
-        //							"CurrentDate: " + World.CurrentDate +
-        //							", callingMethod(2): " + callingMethod +
-        //							", target cell: " + cellInfo +
-        //							", cell.FarmlandPercentage: " + cell.FarmlandPercentage +
-        //							", foragingCapacity: " + foragingCapacity +
-        //							", survivability: " + survivability +
-        //							", biomeData: " + biomeData +
-        //							"");
-        //
-        //						Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-        ////					}
-        //				}
-        //			}
-        //		}
-        //		#endif
+    public float CalculateMigrationPressure()
+    {
+        throw new System.NotImplementedException();
+        return 0;
     }
 
     public long CalculateNextUpdateDate()
@@ -2092,13 +2049,8 @@ public class CellGroup : Identifiable, IFlagHolder
         float randomFactor = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CALCULATE_NEXT_UPDATE);
         randomFactor = 1f - Mathf.Pow(randomFactor, 4);
 
-        float migrationFactor = 1;
-
-        if (TotalMigrationValue > 0)
-        {
-            migrationFactor = MigrationValue / TotalMigrationValue;
-            migrationFactor = Mathf.Pow(migrationFactor, 4);
-        }
+        float migrationFactor = 1 - CalculateMigrationPressure();
+        migrationFactor = Mathf.Pow(migrationFactor, 4);
 
         float skillLevelFactor = Culture.MinimumSkillAdaptationLevel();
         float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel();
@@ -2129,8 +2081,6 @@ public class CellGroup : Identifiable, IFlagHolder
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
                     "CalculateNextUpdateDate - Group: " + groupId,
                     "CurrentDate: " + World.CurrentDate +
-                    ", MigrationValue: " + MigrationValue +
-                    ", TotalMigrationValue: " + TotalMigrationValue +
                     ", OptimalPopulation: " + OptimalPopulation +
                     ", ExactPopulation: " + ExactPopulation +
                     ", randomFactor: " + randomFactor +
