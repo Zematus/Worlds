@@ -63,7 +63,8 @@ public class Tribe : Polity
             }
             else
             {
-                throw new System.Exception("No region could be generated");
+                throw new System.Exception(
+                    "No region could be generated with from cell " + coreCell.Position);
             }
         }
 

@@ -199,9 +199,9 @@ public static class BiomeCellRegionBuilder
         Language language,
         HashSet<TerrainCell> cellsToIgnore = null)
     {
-        //if ((startCell.Latitude == 141) && (startCell.Longitude == 318))
+        //if ((startCell.Latitude == 113) && (startCell.Longitude == 15))
         //{
-        //    Debug.Log("Debugging TryGenerateRegion...");
+        //    Debug.LogWarning("Debugging TryGenerateRegion from cell " + startCell.Position);
         //}
 
         if (startCell.WaterBiomePresence >= 1)

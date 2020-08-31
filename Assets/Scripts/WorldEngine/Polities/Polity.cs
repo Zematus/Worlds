@@ -120,6 +120,29 @@ public abstract class Polity : ISynchronizable
         }
     }
 
+    /// <summary>
+    /// Calculates how much pressure there is for a polity population to migrate
+    /// out of a group's cell
+    /// </summary>
+    /// <param name="group">the group the pressure wil be calculated for</param>
+    /// <returns>the pressure value</returns>
+    public float CalculateMigrationPressure(CellGroup group)
+    {
+        //throw new System.NotImplementedException();
+        return 0;
+    }
+
+    /// <summary>
+    /// Calculates the migration value of a cell for this polity
+    /// </summary>
+    /// <param name="cell">the terrain cell the value will be calculated for</param>
+    /// <returns>the calculated migration value</returns>
+    public float CalculateMigrationValue(TerrainCell cell)
+    {
+        //throw new System.NotImplementedException();
+        return 0;
+    }
+
     public float TotalPopulation
     {
         get

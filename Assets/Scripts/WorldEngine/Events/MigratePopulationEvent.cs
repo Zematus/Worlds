@@ -1,9 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
+﻿using System.Xml;
 using System.Xml.Serialization;
-using UnityEngine.Profiling;
 
 /// <summary>
 /// Identifies if the migration is over land or water
@@ -29,6 +25,9 @@ public class MigratePopulationEvent : CellGroupEvent
 
     [XmlAttribute("MTyp")]
     public int MigrationTypeInt;
+
+    [XmlAttribute("PPer")]
+    public float MaxProminencePercent;
 
     public Identifier PolityId = null;
 
@@ -59,6 +58,7 @@ public class MigratePopulationEvent : CellGroupEvent
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
+    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
     /// <param name="polityId">identifier of the polity whose population will migrate</param>
     /// <param name="triggerDate">the date this event will trigger</param>
     /// <param name="originalSpawnDate">the date this event was initiated</param>
@@ -67,12 +67,13 @@ public class MigratePopulationEvent : CellGroupEvent
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
+        float maxProminencePercent,
         Identifier polityId,
         long triggerDate,
         long originalSpawnDate = - 1) : 
         base(group, triggerDate, MigrateGroupEventId, originalSpawnDate: originalSpawnDate)
     {
-        Set(targetCell, migrationDirection, migrationType, polityId);
+        Set(targetCell, migrationDirection, migrationType, maxProminencePercent, polityId);
 
         DoNotSerialize = true;
     }
@@ -80,9 +81,6 @@ public class MigratePopulationEvent : CellGroupEvent
     public override bool CanTrigger()
     {
         if (!base.CanTrigger())
-            return false;
-
-        if (Group.TotalMigrationValue <= 0)
             return false;
 
         Polity = null;
@@ -102,7 +100,7 @@ public class MigratePopulationEvent : CellGroupEvent
 
     public override void Trigger()
     {
-        Group.SetMigratingPopulation(TargetCell, MigrationDirection, Polity);
+        Group.SetMigratingPopulation(TargetCell, MigrationDirection, MaxProminencePercent, Polity);
     }
 
     public override void Synchronize()
@@ -144,16 +142,18 @@ public class MigratePopulationEvent : CellGroupEvent
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
+    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
     /// <param name="polityId">identifier of the polity whose population will migrate</param>
     /// <param name="triggerDate">the date this event will trigger</param>
     public void Reset(
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
+        float maxProminencePercent,
         Identifier polityId,
         long triggerDate)
     {
-        Set(targetCell, migrationDirection, migrationType, polityId);
+        Set(targetCell, migrationDirection, migrationType, maxProminencePercent, polityId);
 
         Reset(triggerDate);
     }
@@ -164,11 +164,13 @@ public class MigratePopulationEvent : CellGroupEvent
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
+    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
     /// <param name="polityId">identifier of the polity whose population will migrate</param>
     private void Set(
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
+        float maxProminencePercent,
         Identifier polityId)
     {
         TargetCell = targetCell;
@@ -178,6 +180,8 @@ public class MigratePopulationEvent : CellGroupEvent
 
         MigrationDirection = migrationDirection;
         MigrationType = migrationType;
+
+        MaxProminencePercent = maxProminencePercent;
 
         PolityId = polityId;
     }

@@ -296,7 +296,7 @@ public class InfoPanelScript : MonoBehaviour
         float modifiedSurvivability = 0;
         float modifiedForagingCapacity = 0;
 
-        cell.Group.CalculateAdaptionToCell(cell, out modifiedForagingCapacity, out modifiedSurvivability);
+        cell.Group.CalculateAdaptation(cell, out modifiedForagingCapacity, out modifiedSurvivability);
 
         InfoText.text += "\n";
         InfoText.text += "\nSurvivability: " + modifiedSurvivability.ToString("P");

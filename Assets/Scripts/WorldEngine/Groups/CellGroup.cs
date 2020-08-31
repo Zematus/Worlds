@@ -86,6 +86,8 @@ public class CellGroup : Identifiable, IFlagHolder
     public int MigrationEventDirectionInt;
     [XmlAttribute("MET")]
     public int MigrationEventTypeInt;
+    [XmlAttribute("MPPer")]
+    public float MigrationMaxProminencePercent;
 
     [XmlAttribute("TFEv")]
     public bool HasTribeFormationEvent = false;
@@ -743,7 +745,8 @@ public class CellGroup : Identifiable, IFlagHolder
                     Culture.AddSkillToLearn(new SeafaringSkill(this));
                 }
             }
-            else
+
+            if (biome.TerrainType != BiomeTerrainType.Water)
             {
                 string skillId = BiomeSurvivalSkill.GenerateId(biome);
 
@@ -1161,7 +1164,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// </summary>
     /// <param name="cell">the target cell</param>
     /// <returns>a migration value between 0 and 1</returns>
-    public float UBCellMigrationValue(TerrainCell cell)
+    public float CalculateUBMigrationValue(TerrainCell cell)
     {
         float targetOptimalPopulation = CalculateOptimalPopulation(cell);
 
@@ -1197,14 +1200,13 @@ public class CellGroup : Identifiable, IFlagHolder
         {
             optimalPopulationFactor =
                 targetOptimalPopulationDelta / (targetOptimalPopulationDelta + sourceOptimalPopulationDelta);
-        }
 
-        optimalPopulationFactor = Mathf.Pow(optimalPopulationFactor, 4);
+            optimalPopulationFactor *= targetOptimalPopulationDelta / targetOptimalPopulation;
+        }
 
         float areaFactor = cell.MaxAreaPercent / (cell.MaxAreaPercent + Cell.MaxAreaPercent);
 
         float altitudeDeltaFactor = CalculateAltitudeDeltaFactor(cell);
-        altitudeDeltaFactor = Mathf.Pow(altitudeDeltaFactor, 4);
 
         if (float.IsNaN(altitudeDeltaFactor))
         {
@@ -1230,15 +1232,15 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <param name="migratingPolity">the polity that intend to migrate
     /// (null if migrating unorganized bands)</param>
     /// <returns>a migration value between 0 and 1</returns>
-    public float CellMigrationValue(TerrainCell cell, Polity migratingPolity = null)
+    public float CalculateMigrationValue(TerrainCell cell, Polity migratingPolity = null)
     {
+        // if no polity is given, then return the value calculated for the unorganized bands 
         if (migratingPolity == null)
         {
-            return UBCellMigrationValue(cell);
+            return CalculateUBMigrationValue(cell);
         }
 
-        throw new System.NotImplementedException();
-        return 0;
+        return migratingPolity.CalculateMigrationValue(cell);
     }
 
     /// <summary>
@@ -1259,15 +1261,18 @@ public class CellGroup : Identifiable, IFlagHolder
         TerrainCell targetCell = Cell.NeighborList[targetCellIndex];
         Direction migrationDirection = Cell.DirectionList[targetCellIndex];
 
-        float migrationChance = CellMigrationValue(targetCell, polity);
+        float cellValue = CalculateMigrationValue(targetCell, polity);
+
+        if (cellValue <= 0)
+            return;
 
         float attemptValue =
             Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE);
 
-        if (attemptValue > migrationChance)
+        if (attemptValue > cellValue)
             return;
 
-        CalculateAdaptionToCell(targetCell, out _, out float cellSurvivability);
+        CalculateAdaptation(targetCell, out _, out float cellSurvivability);
 
         if (cellSurvivability <= 0)
             return;
@@ -1309,7 +1314,7 @@ public class CellGroup : Identifiable, IFlagHolder
         }
 
         SetPopulationMigrationEvent(
-            targetCell, migrationDirection, MigrationType.Land, polity.Id, arrivalDate);
+            targetCell, migrationDirection, MigrationType.Land, cellValue, polity?.Id, arrivalDate);
     }
 
     /// <summary>
@@ -1344,12 +1349,12 @@ public class CellGroup : Identifiable, IFlagHolder
         if (targetCell == null)
             return;
 
-        float cellValue = CellMigrationValue(targetCell, polity);
+        float cellValue = CalculateMigrationValue(targetCell, polity);
 
         if (cellValue <= 0)
             return;
 
-        CalculateAdaptionToCell(targetCell, out _, out float cellSurvivability);
+        CalculateAdaptation(targetCell, out _, out float cellSurvivability);
 
         if (cellSurvivability <= 0)
             return;
@@ -1392,7 +1397,7 @@ public class CellGroup : Identifiable, IFlagHolder
         SeaMigrationRoute.Used = true;
 
         SetPopulationMigrationEvent(
-            targetCell, migrationDirection, MigrationType.Sea, polity.Id, nextDate);
+            targetCell, migrationDirection, MigrationType.Sea, cellValue, polity?.Id, nextDate);
     }
 
     /// <summary>
@@ -1401,11 +1406,13 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <param name="targetCell">cell which the group population will migrate toward</param>
     /// <param name="migrationDirection">direction toward which the migration will occur</param>
     /// <param name="migrationType">'Land' or 'Sea' migration</param>
+    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
     /// <param name="nextDate">the next date on which this event should trigger</param>
     private void SetPopulationMigrationEvent(
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
+        float maxProminencePercent,
         Identifier polityId,
         long nextDate)
     {
@@ -1417,6 +1424,7 @@ public class CellGroup : Identifiable, IFlagHolder
                     targetCell,
                     migrationDirection,
                     migrationType,
+                    maxProminencePercent,
                     polityId,
                     nextDate);
         }
@@ -1426,6 +1434,7 @@ public class CellGroup : Identifiable, IFlagHolder
                 targetCell,
                 migrationDirection,
                 migrationType,
+                maxProminencePercent,
                 polityId,
                 nextDate);
         }
@@ -1440,6 +1449,7 @@ public class CellGroup : Identifiable, IFlagHolder
         MigrationTargetLatitude = targetCell.Latitude;
         MigrationEventDirectionInt = (int)migrationDirection;
         MigrationEventTypeInt = (int)migrationType;
+        MigrationMaxProminencePercent = maxProminencePercent;
         MigratingPopPolId = polityId;
     }
 
@@ -1843,11 +1853,16 @@ public class CellGroup : Identifiable, IFlagHolder
 
     public int CalculateOptimalPopulation(TerrainCell cell)
     {
+        //if ((cell.Latitude == 113) && (cell.Longitude == 15))
+        //{
+        //    Debug.LogWarning("Debugging CalculateOptimalPopulation for cell " + cell.Position);
+        //}
+
         int optimalPopulation = 0;
 
         float foragingContribution = GetActivityContribution(CellCulturalActivity.ForagingActivityId);
 
-        CalculateAdaptionToCell(cell, out float foragingCapacity, out float survivability);
+        CalculateAdaptation(cell, out float foragingCapacity, out float survivability);
 
         if (survivability <= 0)
             return 0;
@@ -1954,60 +1969,44 @@ public class CellGroup : Identifiable, IFlagHolder
         return capacityFactor;
     }
 
-    public void CalculateAdaptionToCell(TerrainCell cell, out float foragingCapacity, out float survivability)
+    /// <summary>
+    /// Calculates the foraging capacity and the survubability of this group
+    /// toward the target cell
+    /// </summary>
+    /// <param name="cell">the cell to calculate adaptation to</param>
+    /// <param name="foragingCapacity">the calculated foraging capacity</param>
+    /// <param name="survivability">the calculated survibability</param>
+    public void CalculateAdaptation(
+        TerrainCell cell,
+        out float foragingCapacity,
+        out float survivability)
     {
         float modifiedForagingCapacity = 0;
         float modifiedSurvivability = 0;
 
-        //		#if DEBUG
-        //		string biomeData = "";
-        //		#endif
-
-        //		Profiler.BeginSample ("Get Group Skill Values");
-
         foreach (string biomeId in cell.PresentBiomeIds)
         {
-            //			Profiler.BeginSample ("Try Get Group Biome Survival Skill");
-
             float biomeRelPresence = cell.GetBiomePresence(biomeId);
-
-            BiomeSurvivalSkill skill = null;
 
             Biome biome = Biome.Biomes[biomeId];
 
-            if (_biomeSurvivalSkills.TryGetValue(biomeId, out skill))
+            if (_biomeSurvivalSkills.TryGetValue(biomeId, out BiomeSurvivalSkill skill))
             {
-                //				Profiler.BeginSample ("Evaluate Group Biome Survival Skill");
-
                 modifiedForagingCapacity += biomeRelPresence * biome.ForagingCapacity * skill.Value;
-                modifiedSurvivability += biomeRelPresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
-
-                //				#if DEBUG
-                //
-                //				if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
-                //					biomeData += "\n\tBiome: " + biomeName +
-                //						" ForagingCapacity: " + biome.ForagingCapacity +
-                //						" skillValue: " + skillValue +
-                //						" biomePresence: " + biomePresence;
-                //				}
-                //
-                //				#endif
-
-                //				Profiler.EndSample ();
+                modifiedSurvivability +=
+                    biomeRelPresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
             }
             else
             {
                 modifiedSurvivability += biomeRelPresence * biome.Survivability;
             }
-
-            //			Profiler.EndSample ();
         }
 
-        //		Profiler.EndSample ();
+        float altitudeSurvivabilityFactor =
+            1 - Mathf.Clamp01(cell.Altitude / World.MaxPossibleAltitude);
 
-        float altitudeSurvivabilityFactor = 1 - Mathf.Clamp01(cell.Altitude / World.MaxPossibleAltitude);
-
-        modifiedSurvivability = (modifiedSurvivability * (1 - cell.FarmlandPercentage)) + cell.FarmlandPercentage;
+        modifiedSurvivability =
+            (modifiedSurvivability * (1 - cell.FarmlandPercentage)) + cell.FarmlandPercentage;
 
         foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
         survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
@@ -2023,10 +2022,71 @@ public class CellGroup : Identifiable, IFlagHolder
         }
     }
 
+    /// <summary>
+    /// Calculates how much pressure there is for unorganized bands to migrate
+    /// out of this cell
+    /// </summary>
+    /// <returns>the migration presure value</returns>
+    public float CalculateUBMigrationPressure()
+    {
+        float populationFactor;
+
+        if (OptimalPopulation > 0)
+        {
+            populationFactor = Population / (float)OptimalPopulation;
+        }
+        else
+        {
+            return 1;
+        }
+
+#if DEBUG
+        if (Cell.IsSelected)
+        {
+            Debug.LogWarning("Debugging cell " + Cell.Position);
+        }
+#endif
+
+        // if the population is not near its optimum then don't add pressure
+        if (populationFactor < 0.9f)
+            return 0;
+
+        float neighborhoodValue = 0;
+        foreach (TerrainCell nCell in Cell.NeighborList)
+        {
+            neighborhoodValue = Mathf.Max(neighborhoodValue, CalculateUBMigrationValue(nCell));
+        }
+
+        neighborhoodValue = Mathf.Pow(neighborhoodValue, 4);
+
+        return 1 - 1 / (1 + 100000 * neighborhoodValue);
+    }
+
+    /// <summary>
+    /// Calculates how much pressure there is for population sets to migrate
+    /// out of this cell
+    /// </summary>
+    /// <returns>the migration presure value</returns>
     public float CalculateMigrationPressure()
     {
-        throw new System.NotImplementedException();
-        return 0;
+        // There's low pressure if there's already a migration event occurring
+        if (HasMigrationEvent)
+            return 0;
+
+        // Get the pressure from unorganized bands
+        float pressure = CalculateUBMigrationPressure();
+
+        // Get the pressure from polity populations
+        foreach (PolityProminence prominence in _polityProminences.Values)
+        {
+            // 1 should be the max amount of pressure possible. So no need to calculate further
+            if (pressure >= 1)
+                return 1;
+
+            pressure = Mathf.Max(pressure, prominence.Polity.CalculateMigrationPressure(this));
+        }
+
+        return pressure;
     }
 
     public long CalculateNextUpdateDate()
@@ -2050,7 +2110,6 @@ public class CellGroup : Identifiable, IFlagHolder
         randomFactor = 1f - Mathf.Pow(randomFactor, 4);
 
         float migrationFactor = 1 - CalculateMigrationPressure();
-        migrationFactor = Mathf.Pow(migrationFactor, 4);
 
         float skillLevelFactor = Culture.MinimumSkillAdaptationLevel();
         float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel();
@@ -2984,6 +3043,7 @@ public class CellGroup : Identifiable, IFlagHolder
                 targetCell,
                 (Direction)MigrationEventDirectionInt,
                 (MigrationType)MigrationEventTypeInt,
+                MigrationMaxProminencePercent,
                 MigratingPopPolId,
                 MigrationEventDate);
 
