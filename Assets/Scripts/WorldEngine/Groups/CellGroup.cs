@@ -2067,6 +2067,9 @@ public class CellGroup : Identifiable, IFlagHolder
             neighborhoodValue = Mathf.Max(neighborhoodValue, CalculateUBMigrationValue(nCell));
         }
 
+        // This will reduce the effect that low value cells have
+        neighborhoodValue = Mathf.Clamp01(neighborhoodValue - 0.1f);
+
         neighborhoodValue = 100000 * Mathf.Pow(neighborhoodValue, 4);
 
         return neighborhoodValue / (1 + neighborhoodValue);
