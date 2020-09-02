@@ -34,42 +34,6 @@ public class Tribe : Polity
 
     public Tribe(CellGroup coreGroup) : base(PolityTypeStr, coreGroup)
     {
-        //// Make sure there's a region to spawn into
-
-        TerrainCell coreCell = coreGroup.Cell;
-
-        Region cellRegion = coreGroup.Cell.Region;
-
-        if (cellRegion == null)
-        {
-            //			#if DEBUG
-            //			if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
-            //				if ((Id == Manager.TracingData.PolityId) && (coreCell.Longitude == Manager.TracingData.Longitude) && (coreCell.Latitude == Manager.TracingData.Latitude)) {
-            //					bool debug = true;
-            //				}
-            //			}
-            //			#endif
-
-            cellRegion = Region.TryGenerateRegion(coreCell, Culture.Language);
-
-            if (cellRegion != null)
-            {
-                if (World.GetRegionInfo(cellRegion.Id) != null)
-                {
-                    throw new System.Exception("RegionInfo with Id " + cellRegion.Id + " already present");
-                }
-
-                World.AddRegionInfo(cellRegion.Info);
-            }
-            else
-            {
-                throw new System.Exception(
-                    "No region could be generated with from cell " + coreCell.Position);
-            }
-        }
-
-        ////
-
         float randomValue = coreGroup.Cell.GetNextLocalRandomFloat(RngOffsets.TRIBE_GENERATE_NEW_TRIBE);
         float coreProminenceFactor = BaseCoreProminence + randomValue * (1 - BaseCoreProminence);
 

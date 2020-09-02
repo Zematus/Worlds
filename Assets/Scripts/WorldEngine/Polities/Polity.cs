@@ -47,6 +47,8 @@ public abstract class Polity : ISynchronizable
 
     public Identifier CoreGroupId;
 
+    public Identifier CoreRegionId;
+
     public List<PolityProminenceCluster> ProminenceClusters = new List<PolityProminenceCluster>();
 
     public Territory Territory;
@@ -80,6 +82,9 @@ public abstract class Polity : ISynchronizable
 
     [XmlIgnore]
     public CellGroup CoreGroup;
+
+    [XmlIgnore]
+    public Region CoreRegion;
 
     [XmlIgnore]
     public Faction DominantFaction;
@@ -139,6 +144,10 @@ public abstract class Polity : ISynchronizable
     /// <returns>the calculated migration value</returns>
     public float CalculateMigrationValue(TerrainCell cell)
     {
+        if (cell.Region == CoreRegion)
+        {
+        }
+
         //throw new System.NotImplementedException();
         return 0;
     }
@@ -253,6 +262,34 @@ public abstract class Polity : ISynchronizable
         //			}
         //		}
         //		#endif
+
+        //// Make sure there's a region to spawn into
+
+        if (coreGroup.Cell.Region == null)
+        {
+            TerrainCell coreCell = coreGroup.Cell;
+            Region region = Region.TryGenerateRegion(coreCell, Culture.Language);
+
+            if (region != null)
+            {
+                if (World.GetRegionInfo(region.Id) != null)
+                {
+                    throw new System.Exception("RegionInfo with Id " + region.Id + " already present");
+                }
+
+                World.AddRegionInfo(region.Info);
+            }
+            else
+            {
+                throw new System.Exception(
+                    "No region could be generated with from cell " + coreCell.Position);
+            }
+        }
+
+        CoreRegion = coreGroup.Cell.Region;
+        CoreRegionId = CoreRegion.Id;
+
+        ////
     }
 
     public void Initialize()
@@ -1168,6 +1205,15 @@ public abstract class Polity : ISynchronizable
         if (CoreGroup == null)
         {
             string message = "Missing Group with Id " + CoreGroupId +
+                " in polity with Id: " + Id;
+            throw new System.Exception(message);
+        }
+
+        CoreRegion = World.GetRegionInfo(CoreRegionId)?.Region;
+
+        if (CoreRegion == null)
+        {
+            string message = "Missing Region with Id " + CoreRegionId +
                 " in polity with Id: " + Id;
             throw new System.Exception(message);
         }
