@@ -1169,9 +1169,7 @@ public class CellGroup : Identifiable, IFlagHolder
         float targetOptimalPopulation = CalculateOptimalPopulation(cell);
 
         if (targetOptimalPopulation <= 0)
-        {
             return 0;
-        }
 
         float targetPopulation = 0;
 
@@ -1186,23 +1184,12 @@ public class CellGroup : Identifiable, IFlagHolder
         float optimalPopulationFactor;
 
         if (targetOptimalPopulationDelta <= 0)
-        {
-            float deltaDiff = targetOptimalPopulationDelta - sourceOptimalPopulationDelta;
+            return 0;
 
-            if (deltaDiff <= 0)
-            {
-                return 0;
-            }
+        optimalPopulationFactor =
+            targetOptimalPopulationDelta / (targetOptimalPopulationDelta + sourceOptimalPopulationDelta);
 
-            optimalPopulationFactor = deltaDiff / (deltaDiff + targetOptimalPopulation);
-        }
-        else
-        {
-            optimalPopulationFactor =
-                targetOptimalPopulationDelta / (targetOptimalPopulationDelta + sourceOptimalPopulationDelta);
-
-            optimalPopulationFactor *= targetOptimalPopulationDelta / targetOptimalPopulation;
-        }
+        optimalPopulationFactor *= targetOptimalPopulationDelta / targetOptimalPopulation;
 
         float areaFactor = cell.MaxAreaPercent / (cell.MaxAreaPercent + Cell.MaxAreaPercent);
 
@@ -1224,14 +1211,13 @@ public class CellGroup : Identifiable, IFlagHolder
     }
 
     /// <summary>
-    /// Calculates the current migration value of a cell that is a possible target for
-    /// migration of a population.
+    /// Calculates the current value of a cell considered as a migration target
     /// The value returned will be a value between 0 and 1.
     /// </summary>
     /// <param name="cell">the target cell</param>
     /// <param name="migratingPolity">the polity that intend to migrate
     /// (null if migrating unorganized bands)</param>
-    /// <returns>a migration value between 0 and 1</returns>
+    /// <returns>Migration value</returns>
     public float CalculateMigrationValue(TerrainCell cell, Polity migratingPolity = null)
     {
         // if no polity is given, then return the value calculated for the unorganized bands 
@@ -1241,6 +1227,23 @@ public class CellGroup : Identifiable, IFlagHolder
         }
 
         return migratingPolity.CalculateMigrationValue(cell);
+    }
+
+    /// <summary>
+    /// Calculates the chance of a successful migration to the target cell.
+    /// </summary>
+    /// <param name="cell">the target cell</param>
+    /// <param name="migratingPolity">the polity that intend to migrate
+    /// (null if migrating unorganized bands)</param>
+    /// <returns>Migration chance as a value between 0 and 1</returns>
+    public float CalculateMigrationChance(TerrainCell cell, Polity migratingPolity = null)
+    {
+        float chance = Mathf.Clamp01(CalculateMigrationValue(cell, migratingPolity));
+
+        // Bias the value toward 1
+        chance = 1 - Mathf.Pow(1 - chance, 4);
+
+        return chance;
     }
 
     /// <summary>
@@ -1261,15 +1264,22 @@ public class CellGroup : Identifiable, IFlagHolder
         TerrainCell targetCell = Cell.NeighborList[targetCellIndex];
         Direction migrationDirection = Cell.DirectionList[targetCellIndex];
 
-        float cellValue = CalculateMigrationValue(targetCell, polity);
+#if DEBUG
+        if (Cell.IsSelected)
+        {
+            Debug.LogWarning("Debugging ConsiderLandMigration for cell " + Cell.Position);
+        }
+#endif
 
-        if (cellValue <= 0)
+        float cellChance = CalculateMigrationChance(targetCell, polity);
+
+        if (cellChance <= 0)
             return;
 
         float attemptValue =
             Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE);
 
-        if (attemptValue > cellValue)
+        if (attemptValue > cellChance)
             return;
 
         CalculateAdaptation(targetCell, out _, out float cellSurvivability);
@@ -1314,7 +1324,7 @@ public class CellGroup : Identifiable, IFlagHolder
         }
 
         SetPopulationMigrationEvent(
-            targetCell, migrationDirection, MigrationType.Land, cellValue, polity?.Id, arrivalDate);
+            targetCell, migrationDirection, MigrationType.Land, cellChance, polity?.Id, arrivalDate);
     }
 
     /// <summary>
@@ -1349,9 +1359,9 @@ public class CellGroup : Identifiable, IFlagHolder
         if (targetCell == null)
             return;
 
-        float cellValue = CalculateMigrationValue(targetCell, polity);
+        float cellChance = CalculateMigrationChance(targetCell, polity);
 
-        if (cellValue <= 0)
+        if (cellChance <= 0)
             return;
 
         CalculateAdaptation(targetCell, out _, out float cellSurvivability);
@@ -1362,7 +1372,7 @@ public class CellGroup : Identifiable, IFlagHolder
         float routeLength = SeaMigrationRoute.Length;
         float routeLengthFactor = Mathf.Pow(routeLength, 2);
 
-        float migrationChance = cellValue * SeaTravelFactor / (SeaTravelFactor + routeLengthFactor);
+        float migrationChance = cellChance * SeaTravelFactor / (SeaTravelFactor + routeLengthFactor);
 
         float attemptValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_SEA_MIGRATION);
 
@@ -1397,7 +1407,7 @@ public class CellGroup : Identifiable, IFlagHolder
         SeaMigrationRoute.Used = true;
 
         SetPopulationMigrationEvent(
-            targetCell, migrationDirection, MigrationType.Sea, cellValue, polity?.Id, nextDate);
+            targetCell, migrationDirection, MigrationType.Sea, cellChance, polity?.Id, nextDate);
     }
 
     /// <summary>
@@ -2057,9 +2067,12 @@ public class CellGroup : Identifiable, IFlagHolder
             neighborhoodValue = Mathf.Max(neighborhoodValue, CalculateUBMigrationValue(nCell));
         }
 
-        neighborhoodValue = Mathf.Pow(neighborhoodValue, 4);
+        // This will reduce the effect that low value cells have
+        neighborhoodValue = Mathf.Clamp01(neighborhoodValue - 0.1f);
 
-        return 1 - 1 / (1 + 100000 * neighborhoodValue);
+        neighborhoodValue = 100000 * Mathf.Pow(neighborhoodValue, 4);
+
+        return neighborhoodValue / (1 + neighborhoodValue);
     }
 
     /// <summary>
