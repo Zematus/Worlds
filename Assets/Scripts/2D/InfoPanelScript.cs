@@ -293,10 +293,10 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nOptimal Population: " + optimalPopulation;
         InfoText.text += "\nPop Density: " + (population / cellArea).ToString("0.000") + " Pop / Km^2";
 
-        float modifiedSurvivability = 0;
-        float modifiedForagingCapacity = 0;
-
-        cell.Group.CalculateAdaptation(cell, out modifiedForagingCapacity, out modifiedSurvivability);
+        cell.CalculateAdaptation(
+            cell.Group.Culture,
+            out float modifiedForagingCapacity,
+            out float modifiedSurvivability);
 
         InfoText.text += "\n";
         InfoText.text += "\nSurvivability: " + modifiedSurvivability.ToString("P");

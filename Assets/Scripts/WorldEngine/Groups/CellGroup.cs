@@ -21,17 +21,9 @@ public class CellGroup : Identifiable, IFlagHolder
 
     public const float NaturalGrowthRate = NaturalBirthRate - NaturalDeathRate;
 
-    public const float PopulationForagingConstant = 10;
-    public const float PopulationFarmingConstant = 5;
-    public const float PopulationFishingConstant = 2;
-
     public const float MinKnowledgeTransferValue = 0.25f;
 
     public const float SeaTravelBaseFactor = 25f;
-
-    //public const float MigrationFactor = 0.1f;
-
-    public const float MaxMigrationAltitudeDelta = 1f; // in meters
 
     public const float MaxCoreDistance = 1000000000000f;
 
@@ -748,7 +740,7 @@ public class CellGroup : Identifiable, IFlagHolder
 
             if (biome.TerrainType != BiomeTerrainType.Water)
             {
-                string skillId = BiomeSurvivalSkill.GenerateId(biome);
+                string skillId = biome.SkillId;
 
                 if (Culture.GetSkill(skillId) == null)
                 {
@@ -930,7 +922,7 @@ public class CellGroup : Identifiable, IFlagHolder
 
         Profiler.BeginSample("Calculate Optimal Population");
 
-        OptimalPopulation = CalculateOptimalPopulation(Cell);
+        OptimalPopulation = Cell.CalculateOptimalPopulation(Culture);
 
         Profiler.EndSample();
 
@@ -980,19 +972,6 @@ public class CellGroup : Identifiable, IFlagHolder
 
         _cellUpdateType = CellUpdateType.None;
         _cellUpdateSubtype = CellUpdateSubType.None;
-    }
-
-    public float CalculateAltitudeDeltaFactor(TerrainCell targetCell)
-    {
-        if (targetCell == Cell)
-            return 0.5f;
-
-        float altitudeChange = Mathf.Max(0, targetCell.Altitude) - Mathf.Max(0, Cell.Altitude);
-        float altitudeDelta = 2 * altitudeChange / (Cell.Area + targetCell.Area);
-
-        float altitudeDeltaFactor = 1 - (Mathf.Clamp(altitudeDelta, -MaxMigrationAltitudeDelta, MaxMigrationAltitudeDelta) + MaxMigrationAltitudeDelta) / 2 * MaxMigrationAltitudeDelta;
-
-        return altitudeDeltaFactor;
     }
 
     public long GeneratePastSpawnDate(long baseDate, int cycleLength, int offset = 0)
@@ -1166,48 +1145,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>a migration value between 0 and 1</returns>
     public float CalculateUBMigrationValue(TerrainCell cell)
     {
-        float targetOptimalPopulation = CalculateOptimalPopulation(cell);
-
-        if (targetOptimalPopulation <= 0)
-            return 0;
-
-        float targetPopulation = 0;
-
-        if (cell.Group != null)
-        {
-            targetPopulation = cell.Group.Population;
-        }
-
-        float targetOptimalPopulationDelta = targetOptimalPopulation - targetPopulation;
-        float sourceOptimalPopulationDelta = OptimalPopulation - Population;
-
-        float optimalPopulationFactor;
-
-        if (targetOptimalPopulationDelta <= 0)
-            return 0;
-
-        optimalPopulationFactor =
-            targetOptimalPopulationDelta / (targetOptimalPopulationDelta + sourceOptimalPopulationDelta);
-
-        optimalPopulationFactor *= targetOptimalPopulationDelta / targetOptimalPopulation;
-
-        float areaFactor = cell.MaxAreaPercent / (cell.MaxAreaPercent + Cell.MaxAreaPercent);
-
-        float altitudeDeltaFactor = CalculateAltitudeDeltaFactor(cell);
-
-        if (float.IsNaN(altitudeDeltaFactor))
-        {
-            throw new System.Exception("float.IsNaN(altitudeDeltaFactorPow)");
-        }
-
-        float cellValue = areaFactor * altitudeDeltaFactor * optimalPopulationFactor;
-
-        if (float.IsNaN(cellValue))
-        {
-            throw new System.Exception("float.IsNaN(cellValue)");
-        }
-
-        return cellValue;
+        return cell.CalculateMigrationValue(this, Culture);
     }
 
     /// <summary>
@@ -1282,12 +1220,13 @@ public class CellGroup : Identifiable, IFlagHolder
         if (attemptValue > cellChance)
             return;
 
-        CalculateAdaptation(targetCell, out _, out float cellSurvivability);
+        targetCell.CalculateAdaptation(Culture, out _, out float cellSurvivability);
 
         if (cellSurvivability <= 0)
             return;
 
-        float cellAltitudeDeltaFactor = CalculateAltitudeDeltaFactor(targetCell);
+        float cellAltitudeDeltaFactor =
+            targetCell.CalculateMigrationAltitudeDeltaFactor(Cell);
 
         float travelFactor =
             cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
@@ -1364,7 +1303,7 @@ public class CellGroup : Identifiable, IFlagHolder
         if (cellChance <= 0)
             return;
 
-        CalculateAdaptation(targetCell, out _, out float cellSurvivability);
+        targetCell.CalculateAdaptation(Culture, out _, out float cellSurvivability);
 
         if (cellSurvivability <= 0)
             return;
@@ -1754,16 +1693,6 @@ public class CellGroup : Identifiable, IFlagHolder
         }
     }
 
-    private float GetActivityContribution(string activityId)
-    {
-        CellCulturalActivity activity = Culture.GetActivity(activityId) as CellCulturalActivity;
-
-        if (activity == null)
-            return 0;
-
-        return activity.Contribution;
-    }
-
     private void UpdateTerrainAttributes()
     {
         if (ArabilityModifier > 0)
@@ -1799,8 +1728,8 @@ public class CellGroup : Identifiable, IFlagHolder
 
     private void UpdateTerrainFarmlandPercentage()
     {
-        float knowledgeValue = 0;
-        AgricultureKnowledge knowledge = Culture.GetKnowledge(AgricultureKnowledge.KnowledgeId) as AgricultureKnowledge;
+        AgricultureKnowledge knowledge =
+            Culture.GetKnowledge(AgricultureKnowledge.KnowledgeId) as AgricultureKnowledge;
 
         if (knowledge == null)
         {
@@ -1815,7 +1744,7 @@ public class CellGroup : Identifiable, IFlagHolder
             return;
         }
 
-        knowledgeValue = knowledge.ScaledValue;
+        float knowledgeValue = knowledge.ScaledValue;
 
         float techValue = Mathf.Sqrt(knowledgeValue);
 
@@ -1823,7 +1752,8 @@ public class CellGroup : Identifiable, IFlagHolder
 
         float terrainFactor = knowledge.TerrainFactor;
 
-        float farmingPopulation = GetActivityContribution(CellCulturalActivity.FarmingActivityId) * Population;
+        float farmingPopulation =
+            Cell.GetActivityContribution(Culture, CellCulturalActivity.FarmingActivityId) * Population;
 
         float maxWorkableArea = areaPerFarmWorker * farmingPopulation;
 
@@ -1859,177 +1789,6 @@ public class CellGroup : Identifiable, IFlagHolder
         float rangeFactor = 1 + (NavigationRangeModifier * MathUtility.IntToFloatScalingFactor);
 
         SeaTravelFactor = SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor * rangeFactor;
-    }
-
-    public int CalculateOptimalPopulation(TerrainCell cell)
-    {
-        //if ((cell.Latitude == 113) && (cell.Longitude == 15))
-        //{
-        //    Debug.LogWarning("Debugging CalculateOptimalPopulation for cell " + cell.Position);
-        //}
-
-        int optimalPopulation = 0;
-
-        float foragingContribution = GetActivityContribution(CellCulturalActivity.ForagingActivityId);
-
-        CalculateAdaptation(cell, out float foragingCapacity, out float survivability);
-
-        if (survivability <= 0)
-            return 0;
-
-        float populationCapacityByForaging =
-            foragingContribution * PopulationForagingConstant * cell.Area * foragingCapacity;
-
-        float farmingContribution = GetActivityContribution(CellCulturalActivity.FarmingActivityId);
-        float populationCapacityByFarming = 0;
-
-        if (farmingContribution > 0)
-        {
-            float farmingCapacity = CalculateFarmingCapacity(cell);
-
-            populationCapacityByFarming =
-                farmingContribution * PopulationFarmingConstant * cell.Area * farmingCapacity;
-        }
-
-        float fishingContribution = GetActivityContribution(CellCulturalActivity.FishingActivityId);
-        float populationCapacityByFishing = 0;
-
-        if (fishingContribution > 0)
-        {
-            float fishingCapacity = CalculateFishingCapacity(cell);
-
-            populationCapacityByFishing =
-                fishingContribution * PopulationFishingConstant * cell.Area * fishingCapacity;
-        }
-
-        float accesibilityFactor = 0.25f + 0.75f * cell.Accessibility;
-
-        float populationCapacity =
-            (populationCapacityByForaging + populationCapacityByFarming + populationCapacityByFishing) *
-            survivability * accesibilityFactor;
-
-        optimalPopulation = (int)populationCapacity;
-
-#if DEBUG
-        if (optimalPopulation < -1000)
-        {
-            Debug.Break();
-            throw new System.Exception("Debug.Break");
-        }
-#endif
-
-        //		#if DEBUG
-        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
-        //			if (Id == Manager.TracingData.GroupId) {
-        //				if ((cell.Longitude == Longitude) && (cell.Latitude == Latitude)) {
-        //					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-        //					string cellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-        //
-        //					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //						"CalculateOptimalPopulation - Group:" + groupId,
-        //						"CurrentDate: " + World.CurrentDate +
-        //						", target cellInfo: " + cellInfo +
-        //						", foragingContribution: " + foragingContribution +
-        ////						", Area: " + cell.Area +
-        //						", modifiedForagingCapacity: " + modifiedForagingCapacity +
-        //						", modifiedSurvivability: " + modifiedSurvivability +
-        //						", accesibilityFactor: " + accesibilityFactor +
-        //						", optimalPopulation: " + optimalPopulation +
-        //						"");
-        //
-        //					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-        //				}
-        //			}
-        //		}
-        //		#endif
-
-        return optimalPopulation;
-    }
-
-    public float CalculateFarmingCapacity(TerrainCell cell)
-    {
-        float capacityFactor = 0;
-
-        float value = 0;
-
-        if (!Culture.TryGetKnowledgeScaledValue(AgricultureKnowledge.KnowledgeId, out value))
-        {
-            return capacityFactor;
-        }
-
-        float techFactor = value;
-
-        capacityFactor = cell.FarmlandPercentage * techFactor;
-
-        return capacityFactor;
-    }
-
-    public float CalculateFishingCapacity(TerrainCell cell)
-    {
-        float noTechBaseValue = 0.5f;
-
-        float value = 0;
-
-        Culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out value);
-
-        float techFactor = (0.5f * value) + noTechBaseValue;
-
-        float capacityFactor = techFactor * cell.NeighborhoodWaterBiomePresence;
-
-        return capacityFactor;
-    }
-
-    /// <summary>
-    /// Calculates the foraging capacity and the survubability of this group
-    /// toward the target cell
-    /// </summary>
-    /// <param name="cell">the cell to calculate adaptation to</param>
-    /// <param name="foragingCapacity">the calculated foraging capacity</param>
-    /// <param name="survivability">the calculated survibability</param>
-    public void CalculateAdaptation(
-        TerrainCell cell,
-        out float foragingCapacity,
-        out float survivability)
-    {
-        float modifiedForagingCapacity = 0;
-        float modifiedSurvivability = 0;
-
-        foreach (string biomeId in cell.PresentBiomeIds)
-        {
-            float biomeRelPresence = cell.GetBiomePresence(biomeId);
-
-            Biome biome = Biome.Biomes[biomeId];
-
-            if (_biomeSurvivalSkills.TryGetValue(biomeId, out BiomeSurvivalSkill skill))
-            {
-                modifiedForagingCapacity += biomeRelPresence * biome.ForagingCapacity * skill.Value;
-                modifiedSurvivability +=
-                    biomeRelPresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
-            }
-            else
-            {
-                modifiedSurvivability += biomeRelPresence * biome.Survivability;
-            }
-        }
-
-        float altitudeSurvivabilityFactor =
-            1 - Mathf.Clamp01(cell.Altitude / World.MaxPossibleAltitude);
-
-        modifiedSurvivability =
-            (modifiedSurvivability * (1 - cell.FarmlandPercentage)) + cell.FarmlandPercentage;
-
-        foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
-        survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
-
-        if (foragingCapacity > 1)
-        {
-            throw new System.Exception("ForagingCapacity greater than 1: " + foragingCapacity);
-        }
-
-        if (survivability > 1)
-        {
-            throw new System.Exception("Survivability greater than 1: " + survivability);
-        }
     }
 
     /// <summary>
