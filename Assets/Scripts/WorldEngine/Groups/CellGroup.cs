@@ -1164,7 +1164,7 @@ public class CellGroup : Identifiable, IFlagHolder
             return CalculateUBMigrationValue(cell);
         }
 
-        return migratingPolity.CalculateMigrationValue(cell);
+        return migratingPolity.CalculateMigrationValue(this, cell);
     }
 
     /// <summary>

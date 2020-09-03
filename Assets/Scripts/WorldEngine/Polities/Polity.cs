@@ -133,23 +133,59 @@ public abstract class Polity : ISynchronizable
     /// <returns>the pressure value</returns>
     public float CalculateMigrationPressure(CellGroup group)
     {
-        //throw new System.NotImplementedException();
-        return 0;
+        float populationFactor;
+
+        if (group.OptimalPopulation > 0)
+        {
+            populationFactor = group.Population / (float)group.OptimalPopulation;
+        }
+        else
+        {
+            return 1;
+        }
+
+#if DEBUG
+        if (group.Cell.IsSelected)
+        {
+            Debug.LogWarning("Debugging cell " + group.Cell.Position);
+        }
+#endif
+
+        // if the population is not near its optimum then don't add pressure
+        if (populationFactor < 0.9f)
+            return 0;
+
+        float neighborhoodValue = 0;
+        foreach (TerrainCell nCell in group.Cell.NeighborList)
+        {
+            neighborhoodValue =
+                Mathf.Max(neighborhoodValue, nCell.CalculateMigrationValue(group, Culture));
+        }
+
+        // This will reduce the effect that low value cells have
+        neighborhoodValue = Mathf.Clamp01(neighborhoodValue - 0.1f);
+
+        neighborhoodValue = 100000 * Mathf.Pow(neighborhoodValue, 4);
+
+        return neighborhoodValue / (1 + neighborhoodValue);
     }
 
     /// <summary>
     /// Calculates the migration value of a cell for this polity
     /// </summary>
-    /// <param name="cell">the terrain cell the value will be calculated for</param>
+    /// <param name="sourceGroup">the group from which the migration will arrive</param>
+    /// <param name="targetCell">the terrain cell the value will be calculated for</param>
     /// <returns>the calculated migration value</returns>
-    public float CalculateMigrationValue(TerrainCell cell)
+    public float CalculateMigrationValue(CellGroup sourceGroup, TerrainCell targetCell)
     {
-        if (cell.Region == CoreRegion)
+        float value = targetCell.CalculateMigrationValue(sourceGroup, Culture);
+
+        if (targetCell.Region != CoreRegion)
         {
+            value *= 0.1f;
         }
 
-        //throw new System.NotImplementedException();
-        return 0;
+        return value;
     }
 
     public float TotalPopulation
