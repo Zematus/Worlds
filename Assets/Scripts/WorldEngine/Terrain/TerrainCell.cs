@@ -61,11 +61,17 @@ public class TerrainCell
     public const int MaxNeighborDirections = 8;
     public const int NeighborSearchOffset = 3;
 
+    public const float PopulationForagingConstant = 10;
+    public const float PopulationFarmingConstant = 5;
+    public const float PopulationFishingConstant = 2;
+
     public const int MaxNeighborhoodCellCount = 9;
 
     public const float HillinessSlopeFactor = 0.01f;
 
     public const float TemperatureHoldOffFactor = 0.35f;
+
+    public const float MaxMigrationAltitudeDelta = 1f; // in meters
 
     public bool Modified = false; // This will be true if the cell has been modified after/during generation by using a heighmap, using the map editor, or by running the simulation
 
@@ -236,6 +242,267 @@ public class TerrainCell
 
         Area = height * width;
         MaxAreaPercent = Area / MaxArea;
+    }
+
+    /// <summary>
+    /// Returns the contribution level a certain activity would have on this cell
+    /// </summary>
+    /// <param name="culture">the reference culture</param>
+    /// <param name="activityId">the id of the activity to evaluate</param>
+    /// <returns></returns>
+    public float GetActivityContribution(Culture culture, string activityId)
+    {
+        CulturalActivity activity = culture.GetActivity(activityId);
+
+        if (activity == null)
+            return 0;
+
+        return activity.Contribution;
+    }
+
+    /// <summary>
+    /// Calculates the foraging capacity and the survivability that a particular
+    /// culture would have
+    /// </summary>
+    /// <param name="culture">the culture to use as reference</param>
+    /// <param name="foragingCapacity">the calculated foraging capacity</param>
+    /// <param name="survivability">the calculated survibability</param>
+    public void CalculateAdaptation(
+        Culture culture,
+        out float foragingCapacity,
+        out float survivability)
+    {
+        float modifiedForagingCapacity = 0;
+        float modifiedSurvivability = 0;
+
+        foreach (string biomeId in PresentBiomeIds)
+        {
+            float biomeRelPresence = GetBiomePresence(biomeId);
+
+            Biome biome = Biome.Biomes[biomeId];
+
+            string skillId = biome.SkillId;
+
+            if (culture.TryGetSkillValue(skillId, out float value))
+            {
+                modifiedForagingCapacity += biomeRelPresence * biome.ForagingCapacity * value;
+                modifiedSurvivability +=
+                    biomeRelPresence * (biome.Survivability + value * (1 - biome.Survivability));
+            }
+            else
+            {
+                modifiedSurvivability += biomeRelPresence * biome.Survivability;
+            }
+        }
+
+        float altitudeSurvivabilityFactor =
+            1 - Mathf.Clamp01(Altitude / World.MaxPossibleAltitude);
+
+        modifiedSurvivability =
+            (modifiedSurvivability * (1 - FarmlandPercentage)) + FarmlandPercentage;
+
+        foragingCapacity = modifiedForagingCapacity * (1 - FarmlandPercentage);
+        survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
+
+        if (foragingCapacity > 1)
+        {
+            throw new System.Exception("ForagingCapacity greater than 1: " + foragingCapacity);
+        }
+
+        if (survivability > 1)
+        {
+            throw new System.Exception("Survivability greater than 1: " + survivability);
+        }
+    }
+
+    /// <summary>
+    /// Returns the farming capacity that a culture would have on this cell
+    /// </summary>
+    /// <param name="culture">the reference culture</param>
+    /// <returns>the farming capacity</returns>
+    private float CalculateFarmingCapacity(Culture culture)
+    {
+        if (!culture.TryGetKnowledgeScaledValue(AgricultureKnowledge.KnowledgeId, out float value))
+        {
+            return 0;
+        }
+
+        float techFactor = value;
+
+        float capacityFactor = FarmlandPercentage * techFactor;
+
+        return capacityFactor;
+    }
+
+    /// <summary>
+    /// Returns the fishing capacity that a culture would have on this cell
+    /// </summary>
+    /// <param name="culture">the reference culture</param>
+    /// <returns>the fishing capacity</returns>
+    private float CalculateFishingCapacity(Culture culture)
+    {
+        float noTechBaseValue = 0.5f;
+
+        culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out float value);
+
+        float techFactor = (0.5f * value) + noTechBaseValue;
+
+        float capacityFactor = techFactor * NeighborhoodWaterBiomePresence;
+
+        return capacityFactor;
+    }
+
+    /// <summary>
+    /// Returns the optimal population that this cell could potentially hold
+    /// </summary>
+    /// <param name="culture">the culture to use as reference</param>
+    /// <returns>The optimal population</returns>
+    public int CalculateOptimalPopulation(Culture culture)
+    {
+        float foragingContribution =
+            GetActivityContribution(culture, CellCulturalActivity.ForagingActivityId);
+
+        CalculateAdaptation(culture, out float foragingCapacity, out float survivability);
+
+        if (survivability <= 0)
+            return 0;
+
+        float populationCapacityByForaging =
+            foragingContribution * PopulationForagingConstant * Area * foragingCapacity;
+
+        float farmingContribution =
+            GetActivityContribution(culture, CellCulturalActivity.FarmingActivityId);
+        float populationCapacityByFarming = 0;
+
+        if (farmingContribution > 0)
+        {
+            float farmingCapacity = CalculateFarmingCapacity(culture);
+
+            populationCapacityByFarming =
+                farmingContribution * PopulationFarmingConstant * Area * farmingCapacity;
+        }
+
+        float fishingContribution =
+            GetActivityContribution(culture, CellCulturalActivity.FishingActivityId);
+        float populationCapacityByFishing = 0;
+
+        if (fishingContribution > 0)
+        {
+            float fishingCapacity = CalculateFishingCapacity(culture);
+
+            populationCapacityByFishing =
+                fishingContribution * PopulationFishingConstant * Area * fishingCapacity;
+        }
+
+        float accesibilityFactor = 0.25f + 0.75f * Accessibility;
+
+        float populationCapacity =
+            (populationCapacityByForaging + populationCapacityByFarming + populationCapacityByFishing) *
+            survivability * accesibilityFactor;
+
+        return (int)populationCapacity;
+    }
+
+    /// <summary>
+    /// Returns how much the altitude chance would affect the migration
+    /// </summary>
+    /// <param name="sourceCell">the terrain cell where the migration would start from</param>
+    /// <returns>the altitude delta factor</returns>
+    public float CalculateMigrationAltitudeDeltaFactor(TerrainCell sourceCell)
+    {
+        if (sourceCell == this)
+            return 0.5f;
+
+        float altitudeChange = Mathf.Max(0, Altitude) - Mathf.Max(0, sourceCell.Altitude);
+        float altitudeDelta = 2 * altitudeChange / (sourceCell.Area + Area);
+
+        float altitudeDeltaFactor =
+            1 - (Mathf.Clamp(altitudeDelta, -MaxMigrationAltitudeDelta, MaxMigrationAltitudeDelta) +
+            MaxMigrationAltitudeDelta) / 2 * MaxMigrationAltitudeDelta;
+
+        return altitudeDeltaFactor;
+    }
+
+    /// <summary>
+    /// Estimates how valuable this cell might be as a migration target
+    /// </summary>
+    /// <param name="sourceGroup">the group from which the migration will arrive</param>
+    /// <param name="sourceCulture">the culture that might attempt migrating</param>
+    /// <returns></returns>
+    public float CalculateMigrationValue(CellGroup sourceGroup, Culture sourceCulture)
+    {
+        float targetOptimalPopulation = CalculateOptimalPopulation(sourceCulture);
+
+        if (targetOptimalPopulation <= 0)
+            return 0;
+
+        float targetPopulation = 0;
+
+        if (Group != null)
+        {
+            targetPopulation = Group.Population;
+        }
+
+        float targetOptimalPopulationDelta = targetOptimalPopulation - targetPopulation;
+        float sourceOptimalPopulationDelta = sourceGroup.OptimalPopulation - sourceGroup.Population;
+
+        float optimalPopulationFactor;
+
+        if (targetOptimalPopulationDelta <= 0)
+            return 0;
+
+        optimalPopulationFactor =
+            targetOptimalPopulationDelta / (targetOptimalPopulationDelta + sourceOptimalPopulationDelta);
+
+        optimalPopulationFactor *= targetOptimalPopulationDelta / targetOptimalPopulation;
+
+        float areaFactor = MaxAreaPercent / (MaxAreaPercent + MaxAreaPercent);
+
+        float altitudeDeltaFactor = CalculateMigrationAltitudeDeltaFactor(sourceGroup.Cell);
+
+        if (float.IsNaN(altitudeDeltaFactor))
+        {
+            throw new System.Exception("float.IsNaN(altitudeDeltaFactorPow)");
+        }
+
+        float cellValue = areaFactor * altitudeDeltaFactor * optimalPopulationFactor;
+
+        if (float.IsNaN(cellValue))
+        {
+            throw new System.Exception("float.IsNaN(cellValue)");
+        }
+
+        return cellValue;
+    }
+
+    /// <summary>
+    /// Return the region this cell belongs to, or generate a new region if none is assigned yet
+    /// </summary>
+    /// <param name="initLanguage">The language to use to give the region a new name</param>
+    /// <returns>The region assigned to this cell</returns>
+    public Region GetRegion(Language initLanguage)
+    {
+        if (Region == null)
+        {
+            Region region = Region.TryGenerateRegion(this, initLanguage);
+
+            if (region != null)
+            {
+                if (World.GetRegionInfo(region.Id) != null)
+                {
+                    throw new System.Exception("RegionInfo with Id " + region.Id + " already present");
+                }
+
+                World.AddRegionInfo(region.Info);
+            }
+            else
+            {
+                throw new System.Exception(
+                    "No region could be generated with from cell " + Position);
+            }
+        }
+
+        return Region;
     }
 
     public static int CompareOriginalAltitude(TerrainCell a, TerrainCell b)

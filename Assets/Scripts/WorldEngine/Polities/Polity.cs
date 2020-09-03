@@ -265,28 +265,7 @@ public abstract class Polity : ISynchronizable
 
         //// Make sure there's a region to spawn into
 
-        if (coreGroup.Cell.Region == null)
-        {
-            TerrainCell coreCell = coreGroup.Cell;
-            Region region = Region.TryGenerateRegion(coreCell, Culture.Language);
-
-            if (region != null)
-            {
-                if (World.GetRegionInfo(region.Id) != null)
-                {
-                    throw new System.Exception("RegionInfo with Id " + region.Id + " already present");
-                }
-
-                World.AddRegionInfo(region.Info);
-            }
-            else
-            {
-                throw new System.Exception(
-                    "No region could be generated with from cell " + coreCell.Position);
-            }
-        }
-
-        CoreRegion = coreGroup.Cell.Region;
+        CoreRegion = coreGroup.Cell.GetRegion(Culture.Language);
         CoreRegionId = CoreRegion.Id;
 
         ////
@@ -1333,63 +1312,6 @@ public abstract class Polity : ISynchronizable
             (prominenceValue * -timeFactor) + (targetValue * timeFactor);
 
         group.AddPolityProminenceValueDelta(this, prominenceValueDelta);
-    }
-
-    public void CalculateAdaptionToCell(TerrainCell cell, out float foragingCapacity, out float survivability)
-    {
-        float modifiedForagingCapacity = 0;
-        float modifiedSurvivability = 0;
-
-        //		Profiler.BeginSample ("Get Polity Skill Values");
-
-        foreach (string biomeId in cell.PresentBiomeIds)
-        {
-            //			Profiler.BeginSample ("Try Get Polity Biome Survival Skill");
-
-            float biomePresence = cell.GetBiomePresence(biomeId);
-
-            Biome biome = Biome.Biomes[biomeId];
-
-            string skillId = BiomeSurvivalSkill.GenerateId(biome);
-
-            CulturalSkill skill = Culture.GetSkill(skillId);
-
-            if (skill != null)
-            {
-                //				Profiler.BeginSample ("Evaluate Polity Biome Survival Skill");
-
-                modifiedForagingCapacity += biomePresence * biome.ForagingCapacity * skill.Value;
-                modifiedSurvivability += biomePresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
-
-                //				Profiler.EndSample ();
-
-            }
-            else
-            {
-                modifiedSurvivability += biomePresence * biome.Survivability;
-            }
-
-            //			Profiler.EndSample ();
-        }
-
-        //		Profiler.EndSample ();
-
-        float altitudeSurvivabilityFactor = 1 - Mathf.Clamp01(cell.Altitude / World.MaxPossibleAltitude);
-
-        modifiedSurvivability = (modifiedSurvivability * (1 - cell.FarmlandPercentage)) + cell.FarmlandPercentage;
-
-        foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
-        survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
-
-        if (foragingCapacity > 1)
-        {
-            throw new System.Exception("ForagingCapacity greater than 1: " + foragingCapacity);
-        }
-
-        if (survivability > 1)
-        {
-            throw new System.Exception("Survivability greater than 1: " + survivability);
-        }
     }
 
     public CellGroup GetRandomGroup(int rngOffset)

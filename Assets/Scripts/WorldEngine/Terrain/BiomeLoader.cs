@@ -106,8 +106,10 @@ public class BiomeLoader
         Biome biome = new Biome()
         {
             Id = b.id,
-            IdHash = b.id.GetHashCode(),
             Name = b.name,
+            SkillId = b.id + BiomeSurvivalSkill.SkillIdSuffix,
+            SkillName = b.name + BiomeSurvivalSkill.SkillNamePart,
+            IdHash = b.id.GetHashCode(),
             Survivability = b.survivability,
             ForagingCapacity = b.foragingCapacity,
             Accessibility = b.accessibility,

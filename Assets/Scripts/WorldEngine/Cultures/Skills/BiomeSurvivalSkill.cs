@@ -9,22 +9,13 @@ public class BiomeSurvivalSkill : CellCulturalSkill
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 1500;
 
     public const string SkillIdSuffix = "_survival";
+    public const string SkillNamePart = " survival";
     public const int BiomeSurvivalSkillRngOffsetBase = 1000;
 
     [XmlIgnore]
     public string BiomeId;
 
     private float _neighborhoodBiomePresence;
-
-    public static string GenerateId(Biome biome)
-    {
-        return biome.Id + SkillIdSuffix;
-    }
-
-    public static string GenerateName(Biome biome)
-    {
-        return biome.Name + " survival";
-    }
 
     public static int GenerateRngOffset(Biome biome)
     {
@@ -36,7 +27,8 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 
     }
 
-    public BiomeSurvivalSkill(CellGroup group, Biome biome, float value) : base(group, GenerateId(biome), GenerateName(biome), GenerateRngOffset(biome), value)
+    public BiomeSurvivalSkill(CellGroup group, Biome biome, float value) :
+        base(group, biome.SkillId, biome.SkillName, GenerateRngOffset(biome), value)
     {
         BiomeId = biome.Id;
 
@@ -45,7 +37,8 @@ public class BiomeSurvivalSkill : CellCulturalSkill
         CalculateNeighborhoodBiomePresence();
     }
 
-    public BiomeSurvivalSkill(CellGroup group, BiomeSurvivalSkill baseSkill) : base(group, baseSkill.Id, baseSkill.Name, baseSkill.RngOffset, baseSkill.Value)
+    public BiomeSurvivalSkill(CellGroup group, BiomeSurvivalSkill baseSkill) :
+        base(group, baseSkill.Id, baseSkill.Name, baseSkill.RngOffset, baseSkill.Value)
     {
         BiomeId = baseSkill.BiomeId;
 
@@ -54,7 +47,8 @@ public class BiomeSurvivalSkill : CellCulturalSkill
         CalculateNeighborhoodBiomePresence();
     }
 
-    public BiomeSurvivalSkill(CellGroup group, CulturalSkill baseSkill, float initialValue) : base(group, baseSkill.Id, baseSkill.Name, baseSkill.RngOffset, initialValue)
+    public BiomeSurvivalSkill(CellGroup group, CulturalSkill baseSkill, float initialValue) :
+        base(group, baseSkill.Id, baseSkill.Name, baseSkill.RngOffset, initialValue)
     {
         BiomeId = GetBiomeId(baseSkill.Id);
 
@@ -63,7 +57,8 @@ public class BiomeSurvivalSkill : CellCulturalSkill
         CalculateNeighborhoodBiomePresence();
     }
 
-    public BiomeSurvivalSkill(CellGroup group, CulturalSkill baseSkill) : this(group, baseSkill, baseSkill.Value)
+    public BiomeSurvivalSkill(CellGroup group, CulturalSkill baseSkill) :
+        this(group, baseSkill, baseSkill.Value)
     {
 
     }
