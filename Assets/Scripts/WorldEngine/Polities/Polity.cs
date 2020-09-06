@@ -159,7 +159,7 @@ public abstract class Polity : ISynchronizable
         foreach (TerrainCell nCell in group.Cell.NeighborList)
         {
             neighborhoodValue =
-                Mathf.Max(neighborhoodValue, nCell.CalculateMigrationValue(group, Culture));
+                Mathf.Max(neighborhoodValue, CalculateMigrationValue(group, nCell));
         }
 
         // This will reduce the effect that low value cells have
@@ -178,14 +178,50 @@ public abstract class Polity : ISynchronizable
     /// <returns>the calculated migration value</returns>
     public float CalculateMigrationValue(CellGroup sourceGroup, TerrainCell targetCell)
     {
-        float value = targetCell.CalculateMigrationValue(sourceGroup, Culture);
+        float targetOptimalPopulation = targetCell.CalculateOptimalPopulation(Culture);
+
+        if (targetOptimalPopulation <= 0)
+            return 0;
+
+        float targetPopulation = 0;
+
+        if (targetCell.Group != null)
+        {
+            float targetProminenceValue = targetCell.Group.GetPolityProminenceValue(this);
+
+            targetPopulation = targetProminenceValue * targetCell.Group.Population;
+        }
+
+        float sourceProminenceValue = sourceGroup.GetPolityProminenceValue(this);
+        float sourcePopulation = sourceProminenceValue * sourceGroup.Population;
+
+        float targetOptimalPopulationDelta = targetOptimalPopulation - targetPopulation;
+        float sourceOptimalPopulationDelta = sourceGroup.OptimalPopulation - sourcePopulation;
+
+        float optimalPopulationFactor;
+
+        if (targetOptimalPopulationDelta <= 0)
+            return 0;
+
+        optimalPopulationFactor =
+            targetOptimalPopulationDelta / (targetOptimalPopulationDelta + sourceOptimalPopulationDelta);
+
+        optimalPopulationFactor *= targetOptimalPopulationDelta / targetOptimalPopulation;
+
+        float cellValue =
+            optimalPopulationFactor * targetCell.CalculateMigrationTerrainFactor(sourceGroup.Cell);
+
+        if (float.IsNaN(cellValue))
+        {
+            throw new System.Exception("float.IsNaN(cellValue)");
+        }
 
         if (targetCell.Region != CoreRegion)
         {
-            value *= 0.1f;
+            cellValue *= 0.1f;
         }
 
-        return value;
+        return cellValue;
     }
 
     public float TotalPopulation
