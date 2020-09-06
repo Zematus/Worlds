@@ -424,6 +424,20 @@ public class TerrainCell
     }
 
     /// <summary>
+    /// Returns how much the altitude chance would affect the migration
+    /// </summary>
+    /// <param name="sourceCell">the terrain cell where the migration would start from</param>
+    /// <returns>the terrain factor</returns>
+    public float CalculateMigrationTerrainFactor(TerrainCell sourceCell)
+    {
+        float areaFactor = MaxAreaPercent / (MaxAreaPercent + sourceCell.MaxAreaPercent);
+
+        float altitudeDeltaFactor = CalculateMigrationAltitudeDeltaFactor(sourceCell);
+
+        return areaFactor * altitudeDeltaFactor;
+    }
+
+    /// <summary>
     /// Estimates how valuable this cell might be as a migration target
     /// </summary>
     /// <param name="sourceGroup">the group from which the migration will arrive</param>
@@ -456,16 +470,7 @@ public class TerrainCell
 
         optimalPopulationFactor *= targetOptimalPopulationDelta / targetOptimalPopulation;
 
-        float areaFactor = MaxAreaPercent / (MaxAreaPercent + MaxAreaPercent);
-
-        float altitudeDeltaFactor = CalculateMigrationAltitudeDeltaFactor(sourceGroup.Cell);
-
-        if (float.IsNaN(altitudeDeltaFactor))
-        {
-            throw new System.Exception("float.IsNaN(altitudeDeltaFactorPow)");
-        }
-
-        float cellValue = areaFactor * altitudeDeltaFactor * optimalPopulationFactor;
+        float cellValue = optimalPopulationFactor * CalculateMigrationTerrainFactor(sourceGroup.Cell);
 
         if (float.IsNaN(cellValue))
         {
