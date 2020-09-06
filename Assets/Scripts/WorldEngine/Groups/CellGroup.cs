@@ -290,7 +290,7 @@ public class CellGroup : Identifiable, IFlagHolder
             polityPop.Culture,
             polityPop.MigrationDirection)
     {
-        AddPolityProminence(polityPop.Polity, 1.0f);
+        AddPolityProminence(polityPop.Polity, 1.0f, true);
     }
 
     public CellGroup(
@@ -2201,6 +2201,16 @@ public class CellGroup : Identifiable, IFlagHolder
         // Remove prominences that were forcibly declared to be removed
         RemovePolityProminences(!afterPolityUpdates);
 
+#if DEBUG
+        if (!afterPolityUpdates && !_hasPromValueDeltas)
+        {
+            if ((_polityProminences.Count > 0) && (HighestPolityProminence == null))
+            {
+                throw new System.Exception("Invalid state. Group: " + Id);
+            }
+        }
+#endif
+
         if (CalculateNewPolityProminenceValues(afterPolityUpdates))
         {
             // Only update if there was a change in values
@@ -2420,6 +2430,8 @@ public class CellGroup : Identifiable, IFlagHolder
             // round value to six decimals to avoid hidden bit serialization issues
             float finalValue = MathUtility.RoundToSixDecimals(prom.Value / totalValue);
 
+            // TODO: Check this value stays within 0-1
+
             prom.Value = finalValue;
         }
 
@@ -2493,7 +2505,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// </summary>
     /// <param name="polity">polity to associate the new prominence with</param>
     /// <param name="initialValue">starting prominence value</param>
-    private void AddPolityProminence(Polity polity, float initialValue = 0)
+    private void AddPolityProminence(Polity polity, float initialValue = 0, bool setAsHighest = false)
     {
         PolityProminence polityProminence = new PolityProminence(this, polity, initialValue);
 
@@ -2509,6 +2521,11 @@ public class CellGroup : Identifiable, IFlagHolder
         SetPolityUpdate(polityProminence, true);
 
         polity.AddGroup(polityProminence);
+
+        if (setAsHighest)
+        {
+            SetHighestPolityProminence(polityProminence);
+        }
     }
 
     /// <summary>
@@ -2560,6 +2577,9 @@ public class CellGroup : Identifiable, IFlagHolder
         _polityProminencesToRemove.Clear();
     }
 
+    /// <summary>
+    /// Compares all polity prominences and sets the one with the highest value
+    /// </summary>
     public void FindHighestPolityProminence()
     {
         float highestProminenceValue = float.MinValue;
@@ -2574,21 +2594,13 @@ public class CellGroup : Identifiable, IFlagHolder
             }
         }
 
-#if DEBUG
-        if (highestProminence == null)
+        if ((_polityProminences.Count > 0) && (highestProminence == null))
         {
-            foreach (PolityProminence pi in _polityProminences.Values)
-            {
-                Debug.LogWarning("pi.Id: " + pi.Id + ", pi.PolityId: " + pi.PolityId + ", pi.Value: " + pi.Value);
-            }
+            throw new System.Exception("Highest prominence value not found event though " +
+                "there are multiple prominences. Group: " + Id);
         }
-#endif
-
-        //Profiler.BeginSample("Set Highest Polity Prominence");
 
         SetHighestPolityProminence(highestProminence);
-
-        //Profiler.EndSample();
     }
 
     public void SetToUpdate()
