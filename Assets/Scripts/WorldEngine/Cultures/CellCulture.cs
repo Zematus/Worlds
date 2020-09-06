@@ -449,7 +449,7 @@ public class CellCulture : Culture
 
         if (Group.HighestPolityProminence == null)
         {
-            throw new System.Exception("HighestPolityProminence is null");
+            throw new System.Exception("HighestPolityProminence is null. Group: " + Group.Id);
         }
 
         if (((Language == null) ||
