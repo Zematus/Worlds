@@ -33,6 +33,26 @@ public class MigratingPolityPopulation : MigratingPopulation
         Polity = polity;
     }
 
+    /// <summary>
+    /// Sets the object properties to use during a migration event
+    /// </summary>
+    /// <param name="prominencePercent">percentage of the source prominence to migrate</param>
+    /// <param name="sourceGroup">the cell group this originates from</param>
+    /// <param name="polity">the polity to which the migrating population belongs</param>
+    /// <param name="targetCell">the cell group this migrates to</param>
+    /// <param name="migrationDirection">the direction this group is moving out from the source</param>
+    public void Set(
+        float prominencePercent,
+        CellGroup sourceGroup,
+        Polity polity,
+        TerrainCell targetCell,
+        Direction migrationDirection)
+    {
+        SetInternal(prominencePercent, sourceGroup, targetCell, migrationDirection);
+
+        Polity = polity;
+    }
+
     protected override int SplitFromGroup()
     {
         float prominenceValue = SourceGroup.GetPolityProminenceValue(Polity);
@@ -69,9 +89,9 @@ public class MigratingPolityPopulation : MigratingPopulation
 
     protected override void MergeIntoGroup(CellGroup targetGroup)
     {
-        float prominenceDelta = Population / targetGroup.Population;
+        float prominenceDelta = Population / (float)targetGroup.Population;
 
-        float percentageOfPopulation = Population / (targetGroup.Population + Population);
+        float percentageOfPopulation = Population / (float)(targetGroup.Population + Population);
 
         if (!percentageOfPopulation.IsInsideRange(0, 1))
         {

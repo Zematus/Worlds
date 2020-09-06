@@ -487,7 +487,6 @@ public class CellGroup : Identifiable, IFlagHolder
 
         float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
         float prominencePercent = Mathf.Clamp01(maxProminencePercent * randomFactor * overflowFactor);
-        prominencePercent = Mathf.Pow(prominencePercent, 4);
 
         if (!prominencePercent.IsInsideRange(0, 1))
         {
@@ -525,7 +524,6 @@ public class CellGroup : Identifiable, IFlagHolder
 
         float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
         float prominencePercent = Mathf.Clamp01(maxProminencePercent * randomFactor * overflowFactor);
-        prominencePercent = Mathf.Pow(prominencePercent, 4);
 
         if (!prominencePercent.IsInsideRange(0, 1))
         {
@@ -540,7 +538,7 @@ public class CellGroup : Identifiable, IFlagHolder
         }
         else
         {
-            MigratingPolityPopulation.Set(prominencePercent, this, targetCell, migrationDirection);
+            MigratingPolityPopulation.Set(prominencePercent, this, polity, targetCell, migrationDirection);
         }
 
         World.AddMigratingPopulation(MigratingPolityPopulation);
