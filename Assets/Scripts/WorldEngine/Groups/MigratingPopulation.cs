@@ -43,7 +43,7 @@ public abstract class MigratingPopulation
     {
         World = world;
 
-        Set(prominencePercent, sourceGroup, targetCell, migrationDirection);
+        SetInternal(prominencePercent, sourceGroup, targetCell, migrationDirection);
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ public abstract class MigratingPopulation
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is moving out from the source</param>
-    public void Set(
+    protected void SetInternal(
         float prominencePercent,
         CellGroup sourceGroup,
         TerrainCell targetCell,
@@ -98,8 +98,6 @@ public abstract class MigratingPopulation
             Debug.LogWarning(
                 "The population to migrate from the source group " +
                 SourceGroupId + " is equal or less than 0: " + Population);
-             
-            return;
         }
     }
 
