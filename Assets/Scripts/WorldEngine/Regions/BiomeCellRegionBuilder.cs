@@ -210,16 +210,16 @@ public static class BiomeCellRegionBuilder
         if (startCell.Region != null)
             return null;
 
-#if DEBUG
-        string debugRegionStr = "region";
+//#if DEBUG
+//        string debugRegionStr = "region";
 
-        if (cellsToIgnore != null)
-        {
-            debugRegionStr = "enclosed region";
-        }
+//        if (cellsToIgnore != null)
+//        {
+//            debugRegionStr = "enclosed region";
+//        }
 
-        Debug.Log("Generating " + debugRegionStr + " from cell " + startCell.Position);
-#endif
+//        Debug.Log("Generating " + debugRegionStr + " from cell " + startCell.Position);
+//#endif
 
         string biomeId = startCell.GetLocalAndNeighborhoodMostPresentBiome(true);
 
@@ -349,16 +349,16 @@ public static class BiomeCellRegionBuilder
                 superRegion.Add(enclosedRegion);
             }
 
-#if DEBUG
-            Debug.Log("Finished generating super " + debugRegionStr + " from cell " + startCell.Position);
-#endif
+//#if DEBUG
+//            Debug.Log("Finished generating super " + debugRegionStr + " from cell " + startCell.Position);
+//#endif
 
             return superRegion;
         }
 
-#if DEBUG
-        Debug.Log("Finished generating " + debugRegionStr + " from cell " + startCell.Position);
-#endif
+//#if DEBUG
+//        Debug.Log("Finished generating " + debugRegionStr + " from cell " + startCell.Position);
+//#endif
 
         return region;
     }
