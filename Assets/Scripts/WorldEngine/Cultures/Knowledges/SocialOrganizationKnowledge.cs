@@ -54,14 +54,6 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         return finalPopFactor;
     }
 
-    private float CalculatePolityProminenceFactor()
-    {
-        // This should actually depend on the type of polity, tribes should have little effect
-        float totalProminence = Group.TotalPolityProminenceValue * 0.5f;
-
-        return totalProminence;
-    }
-
     protected override void UpdateInternal(long timeSpan)
     {
         float populationFactor = CalculatePopulationFactor();

@@ -810,14 +810,14 @@ public class CellGroup : Identifiable, IFlagHolder
     {
         ExactPopulation += popDelta;
 
-#if DEBUG
-        if (ExactPopulation < 0)
-        {
-            Debug.LogWarning(
-                "Exact Population changed to less than zero: " + ExactPopulation +
-                ", Group: " + Id);
-        }
-#endif
+//#if DEBUG
+//        if (ExactPopulation < 0)
+//        {
+//            Debug.LogWarning(
+//                "Exact Population changed to less than zero: " + ExactPopulation +
+//                ", Group: " + Id);
+//        }
+//#endif
 
         ExactPopulation = Mathf.Max(0, ExactPopulation);
     }
@@ -1421,7 +1421,7 @@ public class CellGroup : Identifiable, IFlagHolder
 
         foreach (Faction faction in GetFactionCores())
         {
-            World.AddFactionToRemove(faction);
+            faction.SetToRemove();
         }
 
         Destroy_RemovePolityProminences();
@@ -2278,13 +2278,20 @@ public class CellGroup : Identifiable, IFlagHolder
         if (TotalPolityProminenceValue > 1.0)
         {
             Debug.LogWarning("Total Polity Prominence Value greater than 1: " +
-                TotalPolityProminenceValue + ", Group Id: " + this);
+                TotalPolityProminenceValue + ", Group: " + Id);
         }
 
-        if ((TotalPolityProminenceValue <= 0) && (GetFactionCores().Count > 0))
+        if (TotalPolityProminenceValue <= 0)
         {
-            throw new System.Exception(
-                "Group with no polity prominence has faction cores. Id: " + this);
+            foreach (Faction faction in GetFactionCores())
+            {
+                if (!faction.BeingRemoved)
+                {
+                    throw new System.Exception(
+                        "Group with no polity prominence has cores for factions " +
+                        "not being removed. Group: " + Id + ", Faction: " + faction.Id);
+                }
+            }
         }
 
         FindHighestPolityProminence();
@@ -2449,12 +2456,19 @@ public class CellGroup : Identifiable, IFlagHolder
         // normalize values
         foreach (PolityProminence prom in _polityProminences.Values)
         {
+            float prevValue = prom.Value;
+            float finalValue = prevValue / totalValue;
+
+#if DEBUG
+            if (!finalValue.IsInsideRange(0, 1))
+            {
+                Debug.LogWarning("prominence value outside of (0,1) range: " + finalValue +
+                    ", prev value: " + prevValue + ", total value: " + totalValue);
+            }
+#endif
+
             // round value to six decimals to avoid hidden bit serialization issues
-            float finalValue = MathUtility.RoundToSixDecimals(prom.Value / totalValue);
-
-            // TODO: Check this value stays within 0-1
-
-            prom.Value = finalValue;
+            prom.Value = MathUtility.RoundToSixDecimals(finalValue);
         }
 
         ResetProminenceValueDeltas();
@@ -2586,7 +2600,7 @@ public class CellGroup : Identifiable, IFlagHolder
                         ", removing faction " + faction.Id +
                         " - polity: " + polityId + " - Date:" + World.CurrentDate);
 
-                    World.AddFactionToRemove(faction);
+                    faction.SetToRemove();
                 }
             }
 

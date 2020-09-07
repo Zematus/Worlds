@@ -191,10 +191,10 @@ public class CellSet
         float maxScaleDiff,
         float minRectAreaPercent)
     {
-#if DEBUG
-        Debug.Log("Spliting set with area: " + cellSet.Area + ", width: " +
-            cellSet.RectWidth + ", height: " + cellSet.RectHeight);
-#endif
+//#if DEBUG
+//        Debug.Log("Spliting set with area: " + cellSet.Area + ", width: " +
+//            cellSet.RectWidth + ", height: " + cellSet.RectHeight);
+//#endif
 
         int majorLength = Mathf.Max(cellSet.RectHeight, cellSet.RectWidth);
         int minorLength = Mathf.Min(cellSet.RectHeight, cellSet.RectWidth);
@@ -210,9 +210,9 @@ public class CellSet
 
         if (noNeedToSplit)
         {
-#if DEBUG
-            Debug.Log("Returning set with area: " + cellSet.Area);
-#endif
+//#if DEBUG
+//            Debug.Log("Returning set with area: " + cellSet.Area);
+//#endif
 
             yield return cellSet;
         }
@@ -234,10 +234,10 @@ public class CellSet
             topCellSet.Update();
             bottomCellSet.Update();
 
-#if DEBUG
-            Debug.Log("topCellSet area: " + topCellSet.Area);
-            Debug.Log("bottomCellSet area: " + bottomCellSet.Area);
-#endif
+//#if DEBUG
+//            Debug.Log("topCellSet area: " + topCellSet.Area);
+//            Debug.Log("bottomCellSet area: " + bottomCellSet.Area);
+//#endif
 
             foreach (CellSet subset in SplitIntoSubsets(
                 topCellSet, maxMajorLength, minMajorLength, maxScaleDiff, minRectAreaPercent))
@@ -269,10 +269,10 @@ public class CellSet
             leftCellSet.Update();
             rightCellSet.Update();
 
-#if DEBUG
-            Debug.Log("leftCellSet area: " + leftCellSet.Area);
-            Debug.Log("rightCellSet area: " + rightCellSet.Area);
-#endif
+//#if DEBUG
+//            Debug.Log("leftCellSet area: " + leftCellSet.Area);
+//            Debug.Log("rightCellSet area: " + rightCellSet.Area);
+//#endif
 
             foreach (CellSet subset in SplitIntoSubsets(
                 leftCellSet, maxMajorLength, minMajorLength, maxScaleDiff, minRectAreaPercent))

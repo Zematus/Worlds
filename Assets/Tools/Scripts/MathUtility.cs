@@ -141,7 +141,10 @@ public static class MathUtility
 #if DEBUG
         if (!value.IsInsideRange(0,1))
         {
-            Debug.LogWarning("This function is meant to be used only with values between 0 and 1. Value = " + value);
+            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+            Debug.LogWarning("This function is meant to be used only with values between 0 and 1. Value = " +
+                value + ", stackTrace:\n" + stackTrace);
         }
 #endif
 
