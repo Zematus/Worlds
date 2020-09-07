@@ -79,7 +79,7 @@ public class CellGroup : Identifiable, IFlagHolder
     [XmlAttribute("MET")]
     public int MigrationEventTypeInt;
     [XmlAttribute("MPPer")]
-    public float MigrationMaxProminencePercent;
+    public float MigrationProminencePercent;
 
     [XmlAttribute("TFEv")]
     public bool HasTribeFormationEvent = false;
@@ -313,6 +313,8 @@ public class CellGroup : Identifiable, IFlagHolder
 
         Cell.Group = this;
 
+        TotalPolityProminenceValue = 0;
+
         Init(World.CurrentDate, Cell.GenerateInitId());
 
 #if DEBUG
@@ -455,21 +457,27 @@ public class CellGroup : Identifiable, IFlagHolder
     /// </summary>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is exiting from the source</param>
-    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
+    /// <param name="prominencePercent">prominence value to migrate out</param>
+    /// <param name="prominenceValueDelta">how much the prominence value should change</param>
+    /// <param name="population">population to migrate</param>
     /// <param name="polity">the polity whose population will migrate</param>
     public void SetMigratingPopulation(
         TerrainCell targetCell,
         Direction migrationDirection,
-        float maxProminencePercent,
+        float prominencePercent,
+        float prominenceValueDelta,
+        int population,
         Polity polity)
     {
         if (polity == null)
         {
-            SetMigratingUnorganizedBands(targetCell, migrationDirection, maxProminencePercent);
+            SetMigratingUnorganizedBands(
+                targetCell, migrationDirection, prominencePercent, prominenceValueDelta, population);
             return;
         }
 
-        SetMigratingPolityPopulation(targetCell, migrationDirection, maxProminencePercent, polity);
+        SetMigratingPolityPopulation(
+            targetCell, migrationDirection, prominencePercent, prominenceValueDelta, population, polity);
     }
 
     /// <summary>
@@ -477,17 +485,16 @@ public class CellGroup : Identifiable, IFlagHolder
     /// </summary>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is exiting from the source</param>
-    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
+    /// <param name="prominencePercent">prominence value to migrate out</param>
+    /// <param name="prominenceValueDelta">how much the prominence value should change</param>
+    /// <param name="population">population to migrate</param>
     public void SetMigratingUnorganizedBands(
         TerrainCell targetCell,
         Direction migrationDirection,
-        float maxProminencePercent)
+        float prominencePercent,
+        float prominenceValueDelta,
+        int population)
     {
-        float overflowFactor = 1.2f;
-
-        float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
-        float prominencePercent = Mathf.Clamp01(maxProminencePercent * randomFactor * overflowFactor);
-
         if (!prominencePercent.IsInsideRange(0, 1))
         {
             Debug.LogWarning("Prominence percent outside of range [0,1]: " + prominencePercent);
@@ -497,11 +504,12 @@ public class CellGroup : Identifiable, IFlagHolder
         if (MigratingUnorganizedBands == null)
         {
             MigratingUnorganizedBands = new MigratingUnorganizedBands(
-                World, prominencePercent, this, targetCell, migrationDirection);
+                World, prominencePercent, prominenceValueDelta, population, this, targetCell, migrationDirection);
         }
         else
         {
-            MigratingUnorganizedBands.Set(prominencePercent, this, targetCell, migrationDirection);
+            MigratingUnorganizedBands.Set(
+                prominencePercent, prominenceValueDelta, population, this, targetCell, migrationDirection);
         }
 
         World.AddMigratingPopulation(MigratingUnorganizedBands);
@@ -512,19 +520,18 @@ public class CellGroup : Identifiable, IFlagHolder
     /// </summary>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is exiting from the source</param>
-    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
+    /// <param name="prominencePercent">prominence value to migrate out</param>
+    /// <param name="prominenceValueDelta">how much the prominence value should change</param>
+    /// <param name="population">population to migrate</param>
     /// <param name="polity">the polity whose population will migrate</param>
     public void SetMigratingPolityPopulation(
         TerrainCell targetCell,
         Direction migrationDirection,
-        float maxProminencePercent,
+        float prominencePercent,
+        float prominenceValueDelta,
+        int population,
         Polity polity)
     {
-        float overflowFactor = 1.2f;
-
-        float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
-        float prominencePercent = Mathf.Clamp01(maxProminencePercent * randomFactor * overflowFactor);
-
         if (!prominencePercent.IsInsideRange(0, 1))
         {
             Debug.LogWarning("Prominence percent outside of range [0,1]: " + prominencePercent);
@@ -534,11 +541,12 @@ public class CellGroup : Identifiable, IFlagHolder
         if (MigratingPolityPopulation == null)
         {
             MigratingPolityPopulation = new MigratingPolityPopulation(
-                World, prominencePercent, this, polity, targetCell, migrationDirection);
+                World, prominencePercent, prominenceValueDelta, population, this, polity, targetCell, migrationDirection);
         }
         else
         {
-            MigratingPolityPopulation.Set(prominencePercent, this, polity, targetCell, migrationDirection);
+            MigratingPolityPopulation.Set(
+                prominencePercent, prominenceValueDelta, population, this, polity, targetCell, migrationDirection);
         }
 
         World.AddMigratingPopulation(MigratingPolityPopulation);
@@ -803,13 +811,15 @@ public class CellGroup : Identifiable, IFlagHolder
         ExactPopulation += popDelta;
 
 #if DEBUG
-        if (Population < 0)
+        if (ExactPopulation < 0)
         {
             Debug.LogWarning(
-                "Population changed to less than zero: " + Population +
+                "Exact Population changed to less than zero: " + ExactPopulation +
                 ", Group: " + Id);
         }
 #endif
+
+        ExactPopulation = Mathf.Max(0, ExactPopulation);
     }
 
     public void ExecuteDeferredEffects()
@@ -1363,6 +1373,11 @@ public class CellGroup : Identifiable, IFlagHolder
         Identifier polityId,
         long nextDate)
     {
+        float overflowFactor = 1.2f;
+
+        float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
+        float prominencePercent = Mathf.Clamp01(maxProminencePercent * randomFactor * overflowFactor);
+
         if (PopulationMigrationEvent == null)
         {
             PopulationMigrationEvent =
@@ -1371,7 +1386,7 @@ public class CellGroup : Identifiable, IFlagHolder
                     targetCell,
                     migrationDirection,
                     migrationType,
-                    maxProminencePercent,
+                    prominencePercent,
                     polityId,
                     nextDate);
         }
@@ -1381,7 +1396,7 @@ public class CellGroup : Identifiable, IFlagHolder
                 targetCell,
                 migrationDirection,
                 migrationType,
-                maxProminencePercent,
+                prominencePercent,
                 polityId,
                 nextDate);
         }
@@ -1396,7 +1411,7 @@ public class CellGroup : Identifiable, IFlagHolder
         MigrationTargetLatitude = targetCell.Latitude;
         MigrationEventDirectionInt = (int)migrationDirection;
         MigrationEventTypeInt = (int)migrationType;
-        MigrationMaxProminencePercent = maxProminencePercent;
+        MigrationProminencePercent = prominencePercent;
         MigratingPopPolId = polityId;
     }
 
@@ -2253,6 +2268,13 @@ public class CellGroup : Identifiable, IFlagHolder
             TotalPolityProminenceValue += prominence.Value;
         }
 
+#if DEBUG
+        if ((_polityProminences.Count > 0) && (TotalPolityProminenceValue <= 0))
+        {
+            throw new System.Exception("Invalid state. Group: " + Id);
+        }
+#endif
+
         if (TotalPolityProminenceValue > 1.0)
         {
             Debug.LogWarning("Total Polity Prominence Value greater than 1: " +
@@ -2505,7 +2527,9 @@ public class CellGroup : Identifiable, IFlagHolder
     /// </summary>
     /// <param name="polity">polity to associate the new prominence with</param>
     /// <param name="initialValue">starting prominence value</param>
-    private void AddPolityProminence(Polity polity, float initialValue = 0, bool setAsHighest = false)
+    /// <param name="originator">'true' if a new cell group is being initialized using
+    /// this prominence</param>
+    private void AddPolityProminence(Polity polity, float initialValue = 0, bool originator = false)
     {
         PolityProminence polityProminence = new PolityProminence(this, polity, initialValue);
 
@@ -2522,9 +2546,10 @@ public class CellGroup : Identifiable, IFlagHolder
 
         polity.AddGroup(polityProminence);
 
-        if (setAsHighest)
+        if (originator)
         {
             SetHighestPolityProminence(polityProminence);
+            TotalPolityProminenceValue = initialValue;
         }
     }
 
@@ -2558,7 +2583,7 @@ public class CellGroup : Identifiable, IFlagHolder
                 {
                     Debug.LogWarning(
                         "Removing polity prominence of faction that had core in group " + Id +
-                        ", removing faction " + WillBecomeCoreOfFaction.Id +
+                        ", removing faction " + faction.Id +
                         " - polity: " + polityId + " - Date:" + World.CurrentDate);
 
                     World.AddFactionToRemove(faction);
@@ -2825,7 +2850,7 @@ public class CellGroup : Identifiable, IFlagHolder
                 targetCell,
                 (Direction)MigrationEventDirectionInt,
                 (MigrationType)MigrationEventTypeInt,
-                MigrationMaxProminencePercent,
+                MigrationProminencePercent,
                 MigratingPopPolId,
                 MigrationEventDate);
 

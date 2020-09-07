@@ -26,35 +26,45 @@ public abstract class MigratingPopulation
 
     public World World;
 
+    protected float _prominenceValueDelta;
+
     /// <summary>
     /// Constructs a new migrating population object
     /// </summary>
     /// <param name="world">world this object belongs to</param>
     /// <param name="prominencePercent">percentage of the source prominence to migrate</param>
+    /// <param name="prominenceValueDelta">how much the prominence value should change</param>
+    /// <param name="population">population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is moving out from the source</param>
     public MigratingPopulation(
         World world,
         float prominencePercent,
+        float prominenceValueDelta,
+        int population,
         CellGroup sourceGroup,
         TerrainCell targetCell,
         Direction migrationDirection)
     {
         World = world;
 
-        SetInternal(prominencePercent, sourceGroup, targetCell, migrationDirection);
+        SetInternal(prominencePercent, prominenceValueDelta, population, sourceGroup, targetCell, migrationDirection);
     }
 
     /// <summary>
     /// Sets the object properties to use during a migration event
     /// </summary>
     /// <param name="prominencePercent">percentage of the source prominence to migrate</param>
+    /// <param name="prominenceValueDelta">how much the prominence value should change</param>
+    /// <param name="population">population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is moving out from the source</param>
     protected void SetInternal(
         float prominencePercent,
+        float prominenceValueDelta,
+        int population,
         CellGroup sourceGroup,
         TerrainCell targetCell,
         Direction migrationDirection)
@@ -68,6 +78,17 @@ public abstract class MigratingPopulation
 
         ProminencePercent = prominencePercent;
 
+        _prominenceValueDelta = prominenceValueDelta;
+
+        Population = population;
+
+        if (Population <= 0)
+        {
+            throw new System.Exception(
+                "The population to migrate from the source group " +
+                SourceGroupId + " is equal or less than 0: " + Population);
+        }
+
         TargetCell = targetCell;
         SourceGroup = sourceGroup;
 
@@ -78,9 +99,8 @@ public abstract class MigratingPopulation
     }
 
     /// <summary>
-    /// Initiates the migration process
+    /// Applies migration related changes to the source group
     /// </summary>
-    /// <returns>'false' if the process can't take place anymore</returns>
     public void SplitFromSourceGroup()
     {
         if ((SourceGroup == null) || !SourceGroup.StillPresent)
@@ -91,21 +111,15 @@ public abstract class MigratingPopulation
 
         Culture = CreateMigratingCulture();
 
-        Population = SplitFromGroup();
+        ApplyProminenceChanges();
 
-        if (Population <= 0)
-        {
-            Debug.LogWarning(
-                "The population to migrate from the source group " +
-                SourceGroupId + " is equal or less than 0: " + Population);
-        }
+        SourceGroup.ChangePopulation(-Population);
     }
 
     /// <summary>
-    /// Creates a segment of migrating population from the source group
+    /// Modifies a source group based on the prominence changes
     /// </summary>
-    /// <returns>Amount of population to migrate</returns>
-    protected abstract int SplitFromGroup();
+    protected abstract void ApplyProminenceChanges();
 
     /// <summary>
     /// Create a buffer culture from the source group
@@ -114,12 +128,12 @@ public abstract class MigratingPopulation
     protected abstract BufferCulture CreateMigratingCulture();
 
     /// <summary>
-    /// Finalizes the migration process
+    /// Applies migration related changes to the source group
     /// </summary>
     public void MoveToCell()
     {
-        if (Population <= 0)
-            return;
+        //if (Population <= 0)
+        //    return;
 
         CellGroup targetGroup = TargetCell.Group;
 
