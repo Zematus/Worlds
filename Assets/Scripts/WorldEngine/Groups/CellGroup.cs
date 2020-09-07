@@ -1376,7 +1376,17 @@ public class CellGroup : Identifiable, IFlagHolder
         float overflowFactor = 1.2f;
 
         float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
-        float prominencePercent = Mathf.Clamp01(maxProminencePercent * randomFactor * overflowFactor);
+
+        float prominencePercent = maxProminencePercent * randomFactor * overflowFactor;
+
+//#if DEBUG
+//        if (prominencePercent >= 1)
+//        {
+//            Debug.LogWarning("prominence percent equal or greater than 1: " + prominencePercent);
+//        }
+//#endif
+
+        prominencePercent = Mathf.Clamp01(prominencePercent);
 
         if (PopulationMigrationEvent == null)
         {
@@ -2367,6 +2377,13 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>'true' if there was a change in prominence values</returns>
     private bool CalculateNewPolityProminenceValues(bool afterPolityUpdates = false)
     {
+//#if DEBUG
+//        if ((World.CurrentDate == 181517346L) && (Cell.Longitude == 64) && (Cell.Latitude == 151))
+//        {
+//            Debug.LogWarning("Debugging CalculateNewPolityProminenceValues...");
+//        }
+//#endif
+
         // There was no new deltas so there's nothing to calculate
         // NOTE: after polity updates there might be no deltas, bu we still need to recalculate
         if (!afterPolityUpdates && !_hasPromValueDeltas)
@@ -2405,6 +2422,15 @@ public class CellGroup : Identifiable, IFlagHolder
         // replace prom values with deltas minus offset, and get the total sum
         float ubProminenceValue = _unorgBandsPromDelta - polPromDeltaOffset;
         float totalValue = ubProminenceValue;
+
+#if DEBUG
+        if (totalValue < 0)
+        {
+            Debug.LogWarning("initial totalValue less than 0: " + totalValue +
+                ", polPromDeltaOffset: " + polPromDeltaOffset);
+        }
+#endif
+
         foreach (KeyValuePair<Polity, float> pair in _polityPromDeltas)
         {
             Polity polity = pair.Key;
@@ -2444,6 +2470,19 @@ public class CellGroup : Identifiable, IFlagHolder
                 AddPolityProminence(polity);
             }
 
+#if DEBUG
+            if (newValue <= 0)
+            {
+                Debug.LogWarning("new value less than 0: " + newValue);
+            }
+
+            if (newValue > (totalValue + newValue))
+            {
+                Debug.LogWarning("new total value less than new value. prev total value: " + totalValue +
+                    ", new value: " + newValue);
+            }
+#endif
+
             _polityProminences[polity.Id].Value = newValue;
             totalValue += newValue;
         }
@@ -2456,6 +2495,9 @@ public class CellGroup : Identifiable, IFlagHolder
         // normalize values
         foreach (PolityProminence prom in _polityProminences.Values)
         {
+            if (_polityProminencesToRemove.Contains(prom.Id))
+                continue;
+
             float prevValue = prom.Value;
             float finalValue = prevValue / totalValue;
 

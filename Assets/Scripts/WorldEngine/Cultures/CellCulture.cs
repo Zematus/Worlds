@@ -234,12 +234,10 @@ public class CellCulture : Culture
     {
         if (percentage == 1)
         {
-            // It's technically impossible to 'unmerge' a culture by 100% because that
-            // would mean the cell was completely abandoned. And this call shouldn't
-            // have happened in that scenario. Also, trying to unmerge property values
-            // by 100% will generate NaN values.
+            // Trying to unmerge property values by 100% will generate NaN values,
+            // and the prominence will get removed anyway (hopefully), so skipping....
 
-            Debug.LogWarning("Trying to unmerge culture by 100%");
+            //Debug.LogWarning("Trying to unmerge culture by 100%");
             return;
         }
 

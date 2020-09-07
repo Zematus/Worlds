@@ -76,13 +76,6 @@ public abstract class MigratingPopulation
             throw new System.Exception("percentPopulation value is invalid: " + prominencePercent);
         }
 
-#if DEBUG
-        if (prominencePercent >= 1)
-        {
-            Debug.LogWarning("prominence percent equal or greater than 1: " + prominencePercent);
-        }
-#endif
-
         ProminencePercent = prominencePercent;
 
         _prominenceValueDelta = prominenceValueDelta;
