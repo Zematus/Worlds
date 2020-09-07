@@ -97,6 +97,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlIgnore]
     public Agent CurrentLeader => _currentLeader.Value;
 
+    [XmlIgnore]
+    public bool BeingRemoved = false;
+
     public string Type => Info.Type;
 
     public Identifier Id => Info.Id;
@@ -248,6 +251,16 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         Info.Faction = null;
 
         StillPresent = false;
+    }
+
+    /// <summary>
+    /// Sets this faction to be removed from the world
+    /// </summary>
+    public void SetToRemove()
+    {
+        World.AddFactionToRemove(this);
+
+        BeingRemoved = true;
     }
 
     public void SetToUpdate()
