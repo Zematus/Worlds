@@ -17,6 +17,8 @@ public class MigratingPolityPopulation : MigratingPopulation
     /// </summary>
     /// <param name="world">world this object belongs to</param>
     /// <param name="prominencePercent">percentage of the source prominence to migrate</param>
+    /// <param name="prominenceValueDelta">how much the prominence value should change</param>
+    /// <param name="population">population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="polity">the polity to which the migrating population belongs</param>
     /// <param name="targetCell">the cell group this migrates to</param>
@@ -24,11 +26,20 @@ public class MigratingPolityPopulation : MigratingPopulation
     public MigratingPolityPopulation(
         World world,
         float prominencePercent,
+        float prominenceValueDelta,
+        int population,
         CellGroup sourceGroup,
         Polity polity,
         TerrainCell targetCell,
         Direction migrationDirection)
-        : base (world, prominencePercent, sourceGroup, targetCell, migrationDirection)
+        : base (
+            world,
+            prominencePercent,
+            prominenceValueDelta,
+            population,
+            sourceGroup,
+            targetCell,
+            migrationDirection)
     {
         Polity = polity;
     }
@@ -37,39 +48,39 @@ public class MigratingPolityPopulation : MigratingPopulation
     /// Sets the object properties to use during a migration event
     /// </summary>
     /// <param name="prominencePercent">percentage of the source prominence to migrate</param>
+    /// <param name="prominenceValueDelta">how much the prominence value should change</param>
+    /// <param name="population">population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="polity">the polity to which the migrating population belongs</param>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is moving out from the source</param>
     public void Set(
         float prominencePercent,
+        float prominenceValueDelta,
+        int population,
         CellGroup sourceGroup,
         Polity polity,
         TerrainCell targetCell,
         Direction migrationDirection)
     {
-        SetInternal(prominencePercent, sourceGroup, targetCell, migrationDirection);
+        SetInternal(
+            prominencePercent,
+            prominenceValueDelta,
+            population,
+            sourceGroup,
+            targetCell,
+            migrationDirection);
 
         Polity = polity;
     }
 
-    protected override int SplitFromGroup()
+    protected override void ApplyProminenceChanges()
     {
-        float prominenceValue = SourceGroup.GetPolityProminenceValue(Polity);
-
         // 'unmerge' the culture of the population that is migrating out
         SourceGroup.Culture.UnmergeCulture(Culture, ProminencePercent);
 
-        float prominenceValueDelta = ProminencePercent * prominenceValue;
-
-        int splitPopulation = (int)(SourceGroup.Population * prominenceValueDelta);
-
         // decrease the prominence of the polity whose population is migrating out
-        SourceGroup.AddPolityProminenceValueDelta(Polity, -prominenceValueDelta);
-
-        SourceGroup.ChangePopulation(-splitPopulation);
-
-        return splitPopulation;
+        SourceGroup.AddPolityProminenceValueDelta(Polity, -_prominenceValueDelta);
     }
 
     protected override BufferCulture CreateMigratingCulture()

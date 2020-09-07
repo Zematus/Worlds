@@ -15,16 +15,27 @@ public class MigratingUnorganizedBands : MigratingPopulation
     /// </summary>
     /// <param name="world">world this object belongs to</param>
     /// <param name="prominencePercent">percentage of the source prominence to migrate</param>
+    /// <param name="prominenceValueDelta">how much the prominence value should change</param>
+    /// <param name="population">population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is exiting from the source</param>
     public MigratingUnorganizedBands(
         World world,
         float prominencePercent,
+        float prominenceValueDelta,
+        int population,
         CellGroup sourceGroup,
         TerrainCell targetCell,
         Direction migrationDirection)
-        : base (world, prominencePercent, sourceGroup, targetCell, migrationDirection)
+        : base (
+            world,
+            prominencePercent,
+            prominenceValueDelta,
+            population,
+            sourceGroup,
+            targetCell,
+            migrationDirection)
     {
     }
 
@@ -32,32 +43,31 @@ public class MigratingUnorganizedBands : MigratingPopulation
     /// Sets the object properties to use during a migration event
     /// </summary>
     /// <param name="prominencePercent">percentage of the source prominence to migrate</param>
+    /// <param name="prominenceValueDelta">how much the prominence value should change</param>
+    /// <param name="population">population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is moving out from the source</param>
     public void Set(
         float prominencePercent,
+        float prominenceValueDelta,
+        int population,
         CellGroup sourceGroup,
         TerrainCell targetCell,
         Direction migrationDirection)
     {
-        SetInternal(prominencePercent, sourceGroup, targetCell, migrationDirection);
+        SetInternal(
+            prominencePercent,
+            prominenceValueDelta,
+            population,
+            sourceGroup,
+            targetCell,
+            migrationDirection);
     }
 
-    protected override int SplitFromGroup()
+    protected override void ApplyProminenceChanges()
     {
-        float ubProminenceValue = SourceGroup.GetUBandsProminenceValue();
-
-        float ubProminenceValueDelta = ProminencePercent * ubProminenceValue;
-
-        int splitPopulation =
-            (int)(SourceGroup.Population * ubProminenceValueDelta);
-
-        SourceGroup.AddUBandsProminenceValueDelta(-ubProminenceValueDelta);
-
-        SourceGroup.ChangePopulation(-splitPopulation);
-
-        return splitPopulation;
+        SourceGroup.AddUBandsProminenceValueDelta(-_prominenceValueDelta);
     }
 
     protected override BufferCulture CreateMigratingCulture()

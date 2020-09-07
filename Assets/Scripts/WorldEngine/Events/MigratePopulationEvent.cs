@@ -27,7 +27,7 @@ public class MigratePopulationEvent : CellGroupEvent
     public int MigrationTypeInt;
 
     [XmlAttribute("PPer")]
-    public float MaxProminencePercent;
+    public float ProminencePercent;
 
     public Identifier PolityId = null;
 
@@ -42,6 +42,10 @@ public class MigratePopulationEvent : CellGroupEvent
 
     [XmlIgnore]
     public Polity Polity;
+
+    private int _population;
+
+    private float _prominenceValueDelta;
 
     /// <summary>
     /// Deserialization constructor
@@ -58,7 +62,7 @@ public class MigratePopulationEvent : CellGroupEvent
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
-    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
+    /// <param name="prominencePercent">prominence value to migrate out</param>
     /// <param name="polityId">identifier of the polity whose population will migrate</param>
     /// <param name="triggerDate">the date this event will trigger</param>
     /// <param name="originalSpawnDate">the date this event was initiated</param>
@@ -67,13 +71,13 @@ public class MigratePopulationEvent : CellGroupEvent
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
-        float maxProminencePercent,
+        float prominencePercent,
         Identifier polityId,
         long triggerDate,
         long originalSpawnDate = - 1) : 
         base(group, triggerDate, MigrateGroupEventId, originalSpawnDate: originalSpawnDate)
     {
-        Set(targetCell, migrationDirection, migrationType, maxProminencePercent, polityId);
+        Set(targetCell, migrationDirection, migrationType, prominencePercent, polityId);
 
         DoNotSerialize = true;
     }
@@ -93,14 +97,28 @@ public class MigratePopulationEvent : CellGroupEvent
                 return false;
 
             Polity = prominence.Polity;
+
+            _prominenceValueDelta = ProminencePercent * prominence.Value;
         }
+        else
+        {
+            float prominenceValue = Group.GetUBandsProminenceValue();
+
+            _prominenceValueDelta = ProminencePercent * prominenceValue;
+        }
+
+        _population = (int)(Group.Population * _prominenceValueDelta);
+
+        if (_population <= 0)
+            return false;
 
         return true;
     }
 
     public override void Trigger()
     {
-        Group.SetMigratingPopulation(TargetCell, MigrationDirection, MaxProminencePercent, Polity);
+        Group.SetMigratingPopulation(
+            TargetCell, MigrationDirection, ProminencePercent, _prominenceValueDelta, _population, Polity);
     }
 
     public override void Synchronize()
@@ -142,18 +160,18 @@ public class MigratePopulationEvent : CellGroupEvent
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
-    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
+    /// <param name="prominencePercent">prominence value to migrate out</param>
     /// <param name="polityId">identifier of the polity whose population will migrate</param>
     /// <param name="triggerDate">the date this event will trigger</param>
     public void Reset(
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
-        float maxProminencePercent,
+        float prominencePercent,
         Identifier polityId,
         long triggerDate)
     {
-        Set(targetCell, migrationDirection, migrationType, maxProminencePercent, polityId);
+        Set(targetCell, migrationDirection, migrationType, prominencePercent, polityId);
 
         Reset(triggerDate);
     }
@@ -164,13 +182,13 @@ public class MigratePopulationEvent : CellGroupEvent
     /// <param name="targetCell">the cell where the migration will stop</param>
     /// <param name="migrationDirection">the direction the migration will arrive to the target</param>
     /// <param name="migrationType">the type of migration: 'land' or 'sea'</param>
-    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
+    /// <param name="prominencePercent">prominence value to migrate out</param>
     /// <param name="polityId">identifier of the polity whose population will migrate</param>
     private void Set(
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
-        float maxProminencePercent,
+        float prominencePercent,
         Identifier polityId)
     {
         TargetCell = targetCell;
@@ -181,7 +199,7 @@ public class MigratePopulationEvent : CellGroupEvent
         MigrationDirection = migrationDirection;
         MigrationType = migrationType;
 
-        MaxProminencePercent = maxProminencePercent;
+        ProminencePercent = prominencePercent;
 
         PolityId = polityId;
     }
