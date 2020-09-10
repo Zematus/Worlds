@@ -4122,6 +4122,7 @@ public class Manager
 
         Discovery.ResetDiscoveries();
         Knowledge.ResetKnowledges();
+        PreferenceGenerator.ResetPreferenceGenerators();
 
         EventGenerator.ResetGenerators();
         ModDecision.ResetDecisions();
@@ -4146,6 +4147,7 @@ public class Manager
             LastStageProgress += progressPerMod;
         }
 
+        PreferenceGenerator.InitializePreferenceGenerators();
         Knowledge.InitializeKnowledges();
         Discovery.InitializeDiscoveries();
 
@@ -4205,13 +4207,14 @@ public class Manager
             throw new System.ArgumentException("Mod path '" + path + "' not found");
         }
 
-        float progressPerSegment = progressPerMod / 8f;
+        float progressPerSegment = progressPerMod / 9f;
 
         TryLoadModFiles(Layer.LoadLayersFile, Path.Combine(path, @"Layers"), progressPerSegment);
         TryLoadModFiles(Biome.LoadBiomesFile, Path.Combine(path, @"Biomes"), progressPerSegment);
         TryLoadModFiles(Adjective.LoadAdjectivesFile, Path.Combine(path, @"Adjectives"), progressPerSegment);
         TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
         TryLoadModFiles(Element.LoadElementsFile, Path.Combine(path, @"Elements"), progressPerSegment);
+        TryLoadModFiles(PreferenceGenerator.LoadPreferencesFile, Path.Combine(path, @"Preferences"), progressPerSegment);
         TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
         TryLoadModFiles(EventGenerator.LoadEventFile, Path.Combine(path, @"Events"), progressPerSegment);
         TryLoadModFiles(ModDecision.LoadDecisionFile, Path.Combine(path, @"Decisions"), progressPerSegment);
