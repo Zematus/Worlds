@@ -70,6 +70,7 @@ public class World : ISynchronizable
     public const float TerrainGenerationSteps = 9;
 
     public static Dictionary<string, IWorldEventGenerator> EventGenerators;
+    public static Dictionary<string, PreferenceGenerator> PreferenceGenerators;
 
     public int EventsTriggered = 0;
 
