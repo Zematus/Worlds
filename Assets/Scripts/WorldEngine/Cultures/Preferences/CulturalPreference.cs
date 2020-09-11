@@ -4,11 +4,6 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-// Cultural Preferences
-// -- Authority
-// -- Cohesion
-// -- Isolation
-
 [XmlInclude(typeof(CellCulturalPreference))]
 public class CulturalPreference : CulturalPreferenceInfo
 {
@@ -18,6 +13,7 @@ public class CulturalPreference : CulturalPreferenceInfo
     public const string AuthorityPreferenceId = "authority";
     public const string CohesionPreferenceId = "cohesion";
     public const string IsolationPreferenceId = "isolation";
+    public const string AggressionPreferenceId = "aggression";
 
     [System.Obsolete]
     public const string AuthorityPreferenceName = "Authority";

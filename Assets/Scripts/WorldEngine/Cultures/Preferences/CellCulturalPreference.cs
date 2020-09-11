@@ -19,7 +19,7 @@ public class CellCulturalPreference : CulturalPreference
     {
     }
 
-    private CellCulturalPreference(CellGroup group, string id, string name, int rngOffset, float value = 0) : base(id, name, rngOffset, value)
+    public CellCulturalPreference(CellGroup group, string id, string name, int rngOffset, float value = 0) : base(id, name, rngOffset, value)
     {
         Group = group;
 
@@ -34,21 +34,6 @@ public class CellCulturalPreference : CulturalPreference
     public static CellCulturalPreference CreateCellInstance(CellGroup group, CulturalPreference basePreference, float initialValue)
     {
         return new CellCulturalPreference(group, basePreference.Id, basePreference.Name, basePreference.RngOffset, initialValue);
-    }
-
-    public static CellCulturalPreference CreateAuthorityPreference(CellGroup group, float value = 0)
-    {
-        return new CellCulturalPreference(group, AuthorityPreferenceId, AuthorityPreferenceName, AuthorityPreferenceRngOffset, value);
-    }
-
-    public static CellCulturalPreference CreateCohesionPreference(CellGroup group, float value = 0)
-    {
-        return new CellCulturalPreference(group, CohesionPreferenceId, CohesionPreferenceName, CohesionPreferenceRngOffset, value);
-    }
-
-    public static CellCulturalPreference CreateIsolationPreference(CellGroup group, float value = 0)
-    {
-        return new CellCulturalPreference(group, IsolationPreferenceId, IsolationPreferenceName, IsolationPreferenceRngOffset, value);
     }
 
     /// <summary>
