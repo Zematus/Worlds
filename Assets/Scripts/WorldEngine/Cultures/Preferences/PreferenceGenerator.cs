@@ -55,4 +55,9 @@ public class PreferenceGenerator
     {
         World.PreferenceGenerators.Add(Id, this);
     }
+
+    public CellCulturalPreference GenerateCellPreference(CellGroup group, float value = 0)
+    {
+        return new CellCulturalPreference(group, Id, Name, IdHash, value);
+    }
 }

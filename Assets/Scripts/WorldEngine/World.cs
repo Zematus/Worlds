@@ -548,11 +548,29 @@ public class World : ISynchronizable
     public static void ResetStaticModData()
     {
         EventGenerators = new Dictionary<string, IWorldEventGenerator>();
+        PreferenceGenerators = new Dictionary<string, PreferenceGenerator>();
     }
 
     public static IWorldEventGenerator GetEventGenerator(string id)
     {
         if (!EventGenerators.TryGetValue(id, out IWorldEventGenerator generator))
+        {
+            return null;
+        }
+
+        return generator;
+    }
+
+    /// <summary>
+    /// Returns the generator for the preference with the specified id.
+    /// Generators are created through mods. So if the mod is not loaded,
+    /// this function will return null
+    /// </summary>
+    /// <param name="id">the id of the generator to obtain</param>
+    /// <returns>the preference generator</returns>
+    public static PreferenceGenerator GetPreferenceGenerator(string id)
+    {
+        if (!PreferenceGenerators.TryGetValue(id, out PreferenceGenerator generator))
         {
             return null;
         }

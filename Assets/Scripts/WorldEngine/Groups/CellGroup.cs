@@ -375,7 +375,7 @@ public class CellGroup : Identifiable, IFlagHolder
             Culture = new CellCulture(this, baseCulture);
         }
 
-        InitializeDefaultPreferences(initialGroup);
+        InitializePreferences(initialGroup);
         InitializeDefaultActivities(initialGroup);
         InitializeDefaultSkills(initialGroup);
         InitializeDefaultKnowledges(initialGroup);
@@ -639,13 +639,18 @@ public class CellGroup : Identifiable, IFlagHolder
         InitializeOnSpawnEvents();
     }
 
-    public void InitializeDefaultPreferences(bool initialGroup)
+    /// <summary>
+    /// Sets all the preferences this group should start with
+    /// </summary>
+    /// <param name="initialGroup">indicates if this is one of the world's initial groups</param>
+    public void InitializePreferences(bool initialGroup)
     {
         if (initialGroup)
         {
-            Culture.AddPreferenceToAcquire(CellCulturalPreference.CreateAuthorityPreference(this, 0.5f));
-            Culture.AddPreferenceToAcquire(CellCulturalPreference.CreateCohesionPreference(this, 0.5f));
-            Culture.AddPreferenceToAcquire(CellCulturalPreference.CreateIsolationPreference(this, 0.5f));
+            foreach (PreferenceGenerator generator in World.PreferenceGenerators.Values)
+            {
+                Culture.AddPreferenceToAcquire(generator.GenerateCellPreference(this, 0.5f));
+            }
         }
     }
 
