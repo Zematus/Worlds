@@ -935,7 +935,7 @@ public class CellGroup : Identifiable, IFlagHolder
 
         Profiler.BeginSample("Calculate Optimal Population");
 
-        OptimalPopulation = Cell.CalculateOptimalPopulation(Culture);
+        OptimalPopulation = Cell.EstimateOptimalPopulation(Culture);
 
         Profiler.EndSample();
 
