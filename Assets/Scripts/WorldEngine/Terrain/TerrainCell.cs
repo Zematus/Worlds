@@ -353,11 +353,11 @@ public class TerrainCell
     }
 
     /// <summary>
-    /// Returns the optimal population that this cell could potentially hold
+    /// Estimates the population capacity for this cell given the input culture
     /// </summary>
     /// <param name="culture">the culture to use as reference</param>
-    /// <returns>The optimal population</returns>
-    public int CalculateOptimalPopulation(Culture culture)
+    /// <returns>The estimated population capacity</returns>
+    public float EstimatePopulationCapacity(Culture culture)
     {
         float foragingContribution =
             GetActivityContribution(culture, CellCulturalActivity.ForagingActivityId);
@@ -400,7 +400,45 @@ public class TerrainCell
             (populationCapacityByForaging + populationCapacityByFarming + populationCapacityByFishing) *
             survivability * accesibilityFactor;
 
-        return (int)populationCapacity;
+        return populationCapacity;
+    }
+
+    /// <summary>
+    /// Estimates the encroachment factor on the cell given the input culture
+    /// </summary>
+    /// <param name="culture">the culture to use as reference</param>
+    /// <returns>the estimated encroachment factor</returns>
+    public float EstimateEncroachmentFactor(Culture culture)
+    {
+        float aggresionPrefValue =
+            culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+
+        if (!aggresionPrefValue.IsInsideRange(0, 1))
+        {
+            Debug.LogWarning(
+                "The aggression preference value is outside the [0,1] range: " + aggresionPrefValue);
+
+            aggresionPrefValue = Mathf.Clamp01(aggresionPrefValue);
+        }
+
+        return 1 - (0.5f * aggresionPrefValue);
+    }
+
+    /// <summary>
+    /// Estimates the optimal population that this cell could potentially hold
+    /// given the input culture
+    /// </summary>
+    /// <param name="culture">the culture to use as reference</param>
+    /// <returns>The estimated optimal population</returns>
+    public int EstimateOptimalPopulation(Culture culture)
+    {
+        float populationCapacity = EstimatePopulationCapacity(culture);
+
+        float encroachmentFactor = EstimateEncroachmentFactor(culture);
+
+        float estimatedOptimalPopulation = populationCapacity * encroachmentFactor;
+
+        return (int)estimatedOptimalPopulation;
     }
 
     /// <summary>
@@ -445,7 +483,7 @@ public class TerrainCell
     /// <returns></returns>
     public float CalculateMigrationValue(CellGroup sourceGroup, Culture sourceCulture)
     {
-        float targetOptimalPopulation = CalculateOptimalPopulation(sourceCulture);
+        float targetOptimalPopulation = EstimateOptimalPopulation(sourceCulture);
 
         if (targetOptimalPopulation <= 0)
             return 0;

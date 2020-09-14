@@ -227,6 +227,19 @@ public class Culture : ISynchronizable
         return preference;
     }
 
+    /// <summary>
+    /// Returns the current value for the specified reference or 0 if not present
+    /// </summary>
+    /// <param name="id">the id of the preference to query</param>
+    /// <returns>the value of the preference</returns>
+    public float GetPreferenceValue(string id)
+    {
+        if (!_preferences.TryGetValue(id, out CulturalPreference preference))
+            return 0;
+
+        return preference.Value;
+    }
+
     public ICollection<CulturalActivity> GetActivities()
     {
         return _activities.Values;
