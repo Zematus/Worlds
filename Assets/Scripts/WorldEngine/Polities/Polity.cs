@@ -178,7 +178,7 @@ public abstract class Polity : ISynchronizable
     /// <returns>the calculated migration value</returns>
     public float CalculateMigrationValue(CellGroup sourceGroup, TerrainCell targetCell)
     {
-        float targetOptimalPopulation = targetCell.CalculateOptimalPopulation(Culture);
+        float targetOptimalPopulation = targetCell.EstimateOptimalPopulation(Culture);
 
         if (targetOptimalPopulation <= 0)
             return 0;
