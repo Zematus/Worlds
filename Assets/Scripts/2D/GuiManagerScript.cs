@@ -3171,13 +3171,15 @@ public class GuiManagerScript : MonoBehaviour
 
         if (activity != null)
         {
-            string text = activity.Name + " Contribution: " + activity.Contribution.ToString("P") + "\n\nFactions:";
+            string text = activity.Name + " Contribution: " +
+                activity.Contribution.ToString("P") + "\n\nFactions:";
 
             foreach (Faction faction in polity.GetFactions())
             {
-                activity = faction.Culture.GetActivity(_planetOverlaySubtype);
+                float activityContribution =
+                    faction.Culture.GetActivityContribution(_planetOverlaySubtype);
 
-                text += "\n " + faction.Name.Text + ": " + activity.Contribution.ToString("P");
+                text += "\n " + faction.Name.Text + ": " + activityContribution.ToString("P");
             }
 
             InfoTooltipScript.DisplayTip(text, position, fadeStart);

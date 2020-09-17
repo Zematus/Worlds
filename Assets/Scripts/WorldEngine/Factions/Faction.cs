@@ -243,7 +243,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
             Polity.RemoveFaction(this);
         }
 
-        foreach (FactionRelationship relationship in _relationships.Values)
+        List<FactionRelationship> relationshipsToRemove =
+            new List<FactionRelationship>(_relationships.Values);
+        foreach (FactionRelationship relationship in relationshipsToRemove)
         {
             relationship.Faction.RemoveRelationship(this);
         }
