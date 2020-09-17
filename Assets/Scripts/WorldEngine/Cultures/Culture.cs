@@ -245,12 +245,30 @@ public class Culture : ISynchronizable
         return _activities.Values;
     }
 
+    /// <summary>
+    /// Gets the activity if present in the culture
+    /// </summary>
+    /// <param name="id">the id of the activity</param>
+    /// <returns>the activity, or null if not present</returns>
     public CulturalActivity GetActivity(string id)
     {
         if (!_activities.TryGetValue(id, out CulturalActivity activity))
             return null;
 
         return activity;
+    }
+
+    /// <summary>
+    /// Returns the activity contribution level, or 0 if activity not present
+    /// </summary>
+    /// <param name="id">the id of the activity</param>
+    /// <returns>the contribution level</returns>
+    public float GetActivityContribution(string id)
+    {
+        if (!_activities.TryGetValue(id, out CulturalActivity activity))
+            return 0;
+
+        return activity.Contribution;
     }
 
     public bool HasActivity(string id)
