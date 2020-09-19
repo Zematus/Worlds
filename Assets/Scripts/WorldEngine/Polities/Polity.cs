@@ -114,11 +114,7 @@ public abstract class Polity : ISynchronizable
         {
             if (NeedsNewCensus)
             {
-                Profiler.BeginSample("Run Census");
-
                 RunCensus();
-
-                Profiler.EndSample();
             }
 
             return TotalAdministrativeCost_Internal;
@@ -230,11 +226,7 @@ public abstract class Polity : ISynchronizable
         {
             if (NeedsNewCensus)
             {
-                Profiler.BeginSample("Run Census");
-
                 RunCensus();
-
-                Profiler.EndSample();
             }
 
             return TotalPopulation_Internal;
@@ -247,11 +239,7 @@ public abstract class Polity : ISynchronizable
         {
             if (NeedsNewCensus)
             {
-                Profiler.BeginSample("Run Census");
-
                 RunCensus();
-
-                Profiler.EndSample();
             }
 
             return ProminenceArea_Internal;
@@ -858,29 +846,13 @@ public abstract class Polity : ISynchronizable
 
         IsBeingUpdated = true;
 
-        Profiler.BeginSample("Normalize Faction Influences");
-
         NormalizeFactionInfluences();
-
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Update Dominant Faction");
 
         UpdateDominantFaction();
 
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Update Culture");
-
         Culture.Update();
 
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Update Internal");
-
         UpdateInternal();
-
-        Profiler.EndSample();
 
         Manager.AddUpdatedCells(Territory.GetCells(), CellUpdateType.Territory, CellUpdateSubType.Culture, Territory.IsSelected);
 
@@ -894,8 +866,6 @@ public abstract class Polity : ISynchronizable
         TotalAdministrativeCost_Internal = 0;
         TotalPopulation_Internal = 0;
         ProminenceArea_Internal = 0;
-
-        Profiler.BeginSample("foreach cluster");
 
 #if DEBUG
         int totalClusterGroupCount = 0;
@@ -911,41 +881,23 @@ public abstract class Polity : ISynchronizable
 
             if (cluster.NeedsNewCensus)
             {
-                Profiler.BeginSample("cluster - RunCensus");
-
 #if DEBUG
                 totalUpdatedClusterGroupCount += cluster.Size;
                 updatedClusters++;
 #endif
 
                 cluster.RunCensus();
-
-                Profiler.EndSample();
             }
-
-            Profiler.BeginSample("add administrative cost");
 
             if (cluster.TotalAdministrativeCost < float.MaxValue)
                 TotalAdministrativeCost_Internal += cluster.TotalAdministrativeCost;
             else
                 TotalAdministrativeCost_Internal = float.MaxValue;
 
-            Profiler.EndSample();
-
-            Profiler.BeginSample("add pop");
-
             TotalPopulation_Internal += cluster.TotalPopulation;
 
-            Profiler.EndSample();
-
-            Profiler.BeginSample("add area");
-
             ProminenceArea_Internal += cluster.ProminenceArea;
-
-            Profiler.EndSample();
         }
-
-        Profiler.EndSample();
 
 #if DEBUG
         if (Groups.Count != totalClusterGroupCount)
@@ -1487,11 +1439,7 @@ public abstract class Polity : ISynchronizable
 
             if (skipGroup) continue;
 
-            Profiler.BeginSample("GetRandomGroup - calculateGroupValue - " + calculateGroupValue.Method.Module.Name + ":" + calculateGroupValue.Method.Name);
-
             float weight = calculateGroupValue(group);
-
-            Profiler.EndSample();
 
             if (weight < 0)
                 throw new System.Exception("calculateGroupValue method returned weight value less than zero: " + weight);
