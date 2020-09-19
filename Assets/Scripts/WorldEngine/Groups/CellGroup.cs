@@ -231,6 +231,7 @@ public class CellGroup : Identifiable, IFlagHolder
     private HashSet<string> _propertiesToAquire = new HashSet<string>();
     private HashSet<string> _propertiesToLose = new HashSet<string>();
 
+    private bool _hasRemovedProminences = false;
     private bool _hasPromValueDeltas = false;
     private float _unorgBandsPromDelta = 0;
     private Dictionary<Polity, float> _polityPromDeltas =
@@ -1162,6 +1163,22 @@ public class CellGroup : Identifiable, IFlagHolder
     }
 
     /// <summary>
+    /// Estimates how encroached are unorganized bands on this cell
+    /// </summary>
+    /// <returns>the encroachment value on unorganized bands</returns>
+    public float CalculateEncroachmentOnUnorganizedBands()
+    {
+        float value = 0;
+
+        foreach (PolityProminence p in _polityProminences.Values)
+        {
+            value += p.Value * p.Polity.Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+        }
+
+        return value;
+    }
+
+    /// <summary>
     /// Calculates the current value of a cell considered as a migration target
     /// The value returned will be a value between 0 and 1.
     /// </summary>
@@ -1200,7 +1217,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <summary>
     /// Evaluates and chooses a neighbor land cell as a migration target
     /// </summary>
-    public void ConsiderLandMigration()
+    private void ConsiderLandMigration()
     {
         if (HasMigrationEvent)
             return;
@@ -1282,7 +1299,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <summary>
     /// Evaluates and chooses a land cell across a body of water as a migration target
     /// </summary>
-    public void ConsiderSeaMigration()
+    private void ConsiderSeaMigration()
     {
         if (SeaTravelFactor <= 0)
             return;
@@ -2241,10 +2258,12 @@ public class CellGroup : Identifiable, IFlagHolder
         }
 #endif
 
-        if (CalculateNewPolityProminenceValues(afterPolityUpdates))
+        if (CalculateNewPolityProminenceValues(afterPolityUpdates) || _hasRemovedProminences)
         {
             // Only update if there was a change in values
             CalculateProminenceValueTotals();
+
+            _hasRemovedProminences = false;
         }
     }
 
@@ -2658,6 +2677,8 @@ public class CellGroup : Identifiable, IFlagHolder
                 // We want to update the polity if a group is removed.
                 SetPolityUpdate(polityProminence, true);
             }
+
+            _hasRemovedProminences = true;
         }
 
         _polityProminencesToRemove.Clear();

@@ -421,7 +421,7 @@ public class TerrainCell
             aggresionPrefValue = Mathf.Clamp01(aggresionPrefValue);
         }
 
-        return 1 - (0.5f * aggresionPrefValue);
+        return aggresionPrefValue;
     }
 
     /// <summary>
@@ -435,6 +435,7 @@ public class TerrainCell
         float populationCapacity = EstimatePopulationCapacity(culture);
 
         float encroachmentFactor = EstimateEncroachmentFactor(culture);
+        encroachmentFactor = 1 - (0.1f * encroachmentFactor);
 
         float estimatedOptimalPopulation = populationCapacity * encroachmentFactor;
 
@@ -508,7 +509,19 @@ public class TerrainCell
 
         optimalPopulationFactor *= targetOptimalPopulationDelta / targetOptimalPopulation;
 
-        float cellValue = optimalPopulationFactor * CalculateMigrationTerrainFactor(sourceGroup.Cell);
+        float sourceEncroachmentFactor = 0.1f + sourceGroup.CalculateEncroachmentOnUnorganizedBands();
+        float targetEncroachmentFactor = 0.1f;
+
+        if (Group != null)
+        {
+            targetEncroachmentFactor += Group.CalculateEncroachmentOnUnorganizedBands();
+        }
+
+        float encroachmentFactor =
+            sourceEncroachmentFactor / (sourceEncroachmentFactor + targetEncroachmentFactor);
+
+        float cellValue =
+            encroachmentFactor * optimalPopulationFactor * CalculateMigrationTerrainFactor(sourceGroup.Cell);
 
         if (float.IsNaN(cellValue))
         {

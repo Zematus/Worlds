@@ -3261,9 +3261,9 @@ public class Manager
 
                 Color territoryColor = GenerateColorFromId(territoryPolity.Id);
 
-                PolityProminence pi = cell.Group.GetPolityProminence(territoryPolity);
+                float factionCoreDistance = cell.Group.GetFactionCoreDistance(territoryPolity);
 
-                float distanceFactor = Mathf.Sqrt(pi.FactionCoreDistance);
+                float distanceFactor = Mathf.Sqrt(factionCoreDistance);
                 distanceFactor = 1 - 0.9f * Mathf.Min(1, distanceFactor / 50f);
 
                 color = territoryColor * distanceFactor;
@@ -3906,6 +3906,16 @@ public class Manager
             inTerritory = true;
 
             Polity territoryPolity = cell.EncompassingTerritory.Polity;
+
+            if (cell.Group != null)
+            {
+                if (cell.Group.GetPolityProminence(territoryPolity) == null)
+                {
+                    throw new System.Exception(
+                        "The polity prominence is null. Polity: " + territoryPolity.Id +
+                        ", Group: " + cell.Group.Id);
+                }
+            }
 
             groupColor = GenerateColorFromId(territoryPolity.Id);
 
