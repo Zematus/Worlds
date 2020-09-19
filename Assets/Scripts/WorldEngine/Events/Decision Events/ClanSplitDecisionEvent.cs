@@ -168,11 +168,7 @@ public class ClanSplitDecisionEvent : FactionEvent
 
         int rngOffset = unchecked((int)(RngOffsets.EVENT_CAN_TRIGGER + Id));
 
-        //Profiler.BeginSample("CanTrigger - _clan.Polity.GetRandomGroup");
-
         _newClanCoreGroup = _clan.Polity.GetRandomGroup(rngOffset++);
-
-        //Profiler.EndSample();
 
 //#if DEBUG
 //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -197,18 +193,10 @@ public class ClanSplitDecisionEvent : FactionEvent
             return false;
         }
 
-        //Profiler.BeginSample("CanTrigger - _clan.PreUpdate");
-
         // We should use the latest cultural attribute values before calculating chances
         _clan.PreUpdate();
 
-        //Profiler.EndSample();
-
-        //Profiler.BeginSample("CanTrigger - CalculateChanceOfSplitting");
-
         _chanceOfSplitting = CalculateChanceOfSplitting();
-
-        //Profiler.EndSample();
 
 //#if DEBUG
 //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))

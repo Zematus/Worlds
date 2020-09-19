@@ -341,31 +341,18 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     protected Agent RequestCurrentLeader(int leadershipSpan, int minStartAge, int maxStartAge, int offset)
     {
-        //		Profiler.BeginSample ("RequestCurrentLeader - GeneratePastSpawnDate");
-
         long spawnDate = CoreGroup.GeneratePastSpawnDate(CoreGroup.LastUpdateDate, leadershipSpan, offset++);
-
-        //		Profiler.EndSample ();
 
         if ((LastLeader != null) && (spawnDate < LeaderStartDate))
         {
-
             return LastLeader;
         }
-
-        //		Profiler.BeginSample ("RequestCurrentLeader - GetLocalRandomInt");
 
         // Generate a birthdate from the leader spawnDate (when the leader takes over)
         int startAge = minStartAge + CoreGroup.GetLocalRandomInt(spawnDate, offset++, maxStartAge - minStartAge);
 
-        //		Profiler.EndSample ();
-
-        Profiler.BeginSample("RequestCurrentLeader - new Agent");
-
         LastLeader = new Agent(CoreGroup, spawnDate - startAge, GetHashCode());
         LeaderStartDate = spawnDate;
-
-        Profiler.EndSample();
 
         return LastLeader;
     }
@@ -522,8 +509,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
             return;
         }
 
-        Profiler.BeginSample("Faction - PreUpdate");
-
         //#if DEBUG
         //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //        {
@@ -572,30 +557,16 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
             throw new System.Exception("Faction's polity is no longer present. Id: " + Id + " Polity Id: " + Polity.Id + ", Date: " + World.CurrentDate);
         }
 
-        Profiler.BeginSample("RequestCurrentLeader");
-
         RequestCurrentLeader();
-
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Culture.Update");
 
         Culture.Update();
 
-        Profiler.EndSample();
-
         if (!IsBeingUpdated)
         {
-            Profiler.BeginSample("World.AddFactionToUpdate");
-
             World.AddFactionToUpdate(this);
-
-            Profiler.EndSample();
         }
 
         _preupdated = true;
-
-        Profiler.EndSample();
     }
 
     public void Update()

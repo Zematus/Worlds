@@ -2208,8 +2208,6 @@ public class Manager
             UpdatedPixelCount = 0;
         }
 
-        //Profiler.BeginSample("UpdateMapTextureColors");
-
         UpdateMapTextureColors();
         UpdateMapOverlayTextureColors();
         UpdateMapActivityTextureColors();
@@ -2218,10 +2216,6 @@ public class Manager
         {
             UpdateMapOverlayShaderTextureColors();
         }
-
-        //Profiler.EndSample();
-
-        //Profiler.BeginSample("CurrentMapTexture.SetPixels32");
 
         CurrentMapTexture.SetPixels32(_manager._currentMapTextureColors);
         CurrentMapOverlayTexture.SetPixels32(_manager._currentMapOverlayTextureColors);
@@ -2232,10 +2226,6 @@ public class Manager
             CurrentMapOverlayShaderInfoTexture.SetPixels32(_manager._currentMapOverlayShaderInfoColor);
         }
 
-        //Profiler.EndSample();
-
-        //Profiler.BeginSample("CurrentMapTexture.Apply");
-
         CurrentMapTexture.Apply();
         CurrentMapOverlayTexture.Apply();
         CurrentMapActivityTexture.Apply();
@@ -2245,13 +2235,7 @@ public class Manager
             CurrentMapOverlayShaderInfoTexture.Apply();
         }
 
-        //Profiler.EndSample();
-
-        //Profiler.BeginSample("ResetUpdatedAndHighlightedCells");
-
         ResetUpdatedAndHighlightedCells();
-
-        //Profiler.EndSample();
     }
 
     public static void UpdatePointerOverlayTextureColors(Color32[] textureColors)

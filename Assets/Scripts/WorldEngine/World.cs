@@ -1191,8 +1191,12 @@ public class World : ISynchronizable
                 break;
             }
 
+            Profiler.BeginSample("Remove Leftmost Event");
+
             _eventsToHappen.RemoveLeftmost();
             EventsToHappenCount--;
+
+            Profiler.EndSample();
 
             //#if DEBUG
             //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -1424,7 +1428,7 @@ public class World : ISynchronizable
 
     public void InsertEventToHappen(WorldEvent eventToHappen)
     {
-        //		Profiler.BeginSample ("Insert Event To Happen");
+        Profiler.BeginSample("Insert Event To Happen");
 
         EventsToHappenCount++;
 
@@ -1438,7 +1442,7 @@ public class World : ISynchronizable
         //		}
         //		#endif
 
-        //		Profiler.EndSample ();
+        Profiler.EndSample();
     }
 
 #if DEBUG

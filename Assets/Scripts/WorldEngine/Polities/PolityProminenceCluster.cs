@@ -56,35 +56,19 @@ public class PolityProminenceCluster : Identifiable
         TotalPopulation = 0;
         ProminenceArea = 0;
 
-        Profiler.BeginSample("foreach group");
-
         foreach (PolityProminence prominence in _prominences.Values)
         {
-            Profiler.BeginSample("add administrative cost");
-
             if (prominence.AdministrativeCost < float.MaxValue)
                 TotalAdministrativeCost += prominence.AdministrativeCost;
             else
                 TotalAdministrativeCost = float.MaxValue;
 
-            Profiler.EndSample();
-
-            Profiler.BeginSample("add pop");
-
             float polityPop = prominence.Group.Population * prominence.Value;
 
             TotalPopulation += polityPop;
 
-            Profiler.EndSample();
-
-            Profiler.BeginSample("add area");
-
             ProminenceArea += prominence.Group.Cell.Area;
-
-            Profiler.EndSample();
         }
-
-        Profiler.EndSample();
 
         NeedsNewCensus = false;
     }
