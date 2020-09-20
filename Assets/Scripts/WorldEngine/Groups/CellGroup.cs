@@ -934,29 +934,29 @@ public class CellGroup : Identifiable, IFlagHolder
 
         World.UpdateMostPopulousGroup(this);
 
-        Profiler.BeginSample("Calculate Optimal Population");
+        //Profiler.BeginSample("Calculate Optimal Population");
 
         OptimalPopulation = Cell.EstimateOptimalPopulation(Culture);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Consider Land Migration");
+        //Profiler.BeginSample("Consider Land Migration");
 
         ConsiderLandMigration();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Consider Sea Migration");
+        //Profiler.BeginSample("Consider Sea Migration");
 
         ConsiderSeaMigration();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Calculate Next Update Date");
+        //Profiler.BeginSample("Calculate Next Update Date");
 
         NextUpdateDate = CalculateNextUpdateDate();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
         LastUpdateDate = World.CurrentDate;
 
@@ -1530,41 +1530,41 @@ public class CellGroup : Identifiable, IFlagHolder
 
         _alreadyUpdated = true;
 
-        Profiler.BeginSample("Update Population");
+        //Profiler.BeginSample("Update Population");
 
         UpdatePopulation(timeSpan);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Update Culture");
+        //Profiler.BeginSample("Update Culture");
 
         Culture.Update(timeSpan);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Update Polity Cultural Prominences");
+        //Profiler.BeginSample("Update Polity Cultural Prominences");
 
         UpdatePolityCulturalProminences(timeSpan);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Polity Update Effects");
+        //Profiler.BeginSample("Polity Update Effects");
 
         PolityUpdateEffects(timeSpan);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Update Travel Factors");
+        //Profiler.BeginSample("Update Travel Factors");
 
         UpdateSeaTravelFactor();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Update Add Updated Group");
+        //Profiler.BeginSample("Update Add Updated Group");
 
         World.AddUpdatedGroup(this);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
     }
 
     private void SetFactionUpdates()

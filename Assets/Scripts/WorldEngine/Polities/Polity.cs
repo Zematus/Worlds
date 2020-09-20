@@ -573,6 +573,10 @@ public abstract class Polity : ISynchronizable
         SetDominantFaction(mostInfluentFaction);
     }
 
+    /// <summary>
+    /// Sets the most dominant faction within a polity
+    /// </summary>
+    /// <param name="faction">faction to set as dominant</param>
     public void SetDominantFaction(Faction faction)
     {
         if (DominantFaction == faction)
@@ -581,8 +585,6 @@ public abstract class Polity : ISynchronizable
         if (DominantFaction != null)
         {
             DominantFaction.SetDominant(false);
-
-            World.AddFactionToUpdate(DominantFaction);
         }
 
         if ((faction == null) || (!faction.StillPresent))
@@ -608,11 +610,12 @@ public abstract class Polity : ISynchronizable
                     Faction.SetRelationship(faction, contact.Polity.DominantFaction, 0.5f);
                 }
             }
-
-            World.AddFactionToUpdate(faction);
         }
 
-        World.AddPolityToUpdate(this);
+        if (!World.PolitiesHaveBeenUpdated)
+        {
+            World.AddPolityToUpdate(this);
+        }
     }
 
     public static void AddContact(Polity polityA, Polity polityB, int initialGroupCount)

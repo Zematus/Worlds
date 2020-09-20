@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine.Profiling;
 
 /// <summary>
 /// Object that generates events of a certain type during the simulation run
@@ -186,14 +187,25 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     public bool CanTriggerEvent()
     {
+        Profiler.BeginSample("EventGenerator - CanTriggerEvent - Id:" + Id);
+
         OpenDebugOutput("Evaluating Trigger Conditions:");
+
+        Profiler.BeginSample("EventGenerator - CanAssignEventToTarget");
 
         // Always validate that the target is still valid
         if (!CanAssignEventToTarget())
         {
+            Profiler.EndSample(); // "EventGenerator - CanAssignEventToTarget"
+            Profiler.EndSample(); // "EventGenerator - CanTriggerEvent"
+
             CloseDebugOutput("Trigger Result: False");
             return false;
         }
+
+        Profiler.EndSample(); // "EventGenerator - CanAssignEventToTarget"
+
+        Profiler.BeginSample("EventGenerator - TriggerConditions");
 
         if (TriggerConditions != null)
         {
@@ -213,11 +225,17 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
                 if (!value)
                 {
+                    Profiler.EndSample(); // "EventGenerator - TriggerConditions"
+                    Profiler.EndSample(); // "EventGenerator - CanTriggerEvent"
+
                     CloseDebugOutput("Trigger Result: False");
                     return false;
                 }
             }
         }
+
+        Profiler.EndSample(); // "EventGenerator - TriggerConditions"
+        Profiler.EndSample(); // "EventGenerator - CanTriggerEvent"
 
         CloseDebugOutput("Trigger Result: True");
         return true;
