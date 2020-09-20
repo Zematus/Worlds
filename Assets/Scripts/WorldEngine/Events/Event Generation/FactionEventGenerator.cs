@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine.Profiling;
 
 public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 {
@@ -41,9 +42,17 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 
     public void SetTarget(Faction faction)
     {
+        Profiler.BeginSample("FactionEventGenerator.SetTarget - Reset");
+
         Reset();
 
+        Profiler.EndSample(); // "FactionEventGenerator.SetTarget - Reset"
+
+        Profiler.BeginSample("FactionEventGenerator.SetTarget - Target.Set");
+
         Target.Set(faction);
+
+        Profiler.EndSample(); // "FactionEventGenerator.SetTarget - Target.Set"
     }
 
     public override int GetNextRandomInt(int iterOffset, int maxValue) =>

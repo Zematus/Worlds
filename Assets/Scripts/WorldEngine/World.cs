@@ -305,6 +305,8 @@ public class World : ISynchronizable
 
     private HashSet<Faction> _factionsToSplit = new HashSet<Faction>();
     private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
+    private HashSet<Faction> _factionsWithStatusChanges = new HashSet<Faction>();
+    private HashSet<Faction> _factionsToCleanup = new HashSet<Faction>();
     private HashSet<Faction> _factionsToRemove = new HashSet<Faction>();
 
     private HashSet<Polity> _politiesToUpdate = new HashSet<Polity>();
@@ -1057,6 +1059,9 @@ public class World : ISynchronizable
         _factionsToSplit.Clear();
     }
 
+    /// <summary>
+    /// Updates all factions marked for update
+    /// </summary>
     private void UpdateFactions()
     {
         FactionsHaveBeenUpdated = true;
@@ -1067,6 +1072,31 @@ public class World : ISynchronizable
         }
 
         _factionsToUpdate.Clear();
+    }
+
+    private void ApplyFactionStatusChanges()
+    {
+        foreach (Faction faction in _factionsWithStatusChanges)
+        {
+            faction.ApplyStatusChange();
+        }
+
+        _factionsWithStatusChanges.Clear();
+    }
+
+    /// <summary>
+    /// Cleans up all factions that were marked for cleanup
+    /// </summary>
+    private void CleanupFactions()
+    {
+        FactionsHaveBeenUpdated = false;
+
+        foreach (Faction faction in _factionsToCleanup)
+        {
+            faction.Cleanup();
+        }
+
+        _factionsToCleanup.Clear();
     }
 
     private void RemoveFactions()
@@ -1208,16 +1238,16 @@ public class World : ISynchronizable
             //#endif
 
 #if DEBUG
-            //string eventTypeName = eventToHappen.GetType().ToString();
+            string eventTypeName = eventToHappen.GetType().ToString();
 
             Profiler.BeginSample("Event CanTrigger");
-            //Profiler.BeginSample("Event CanTrigger - " + eventTypeName);
+            Profiler.BeginSample("Event CanTrigger - " + eventTypeName);
 #endif
 
             bool canTrigger = eventToHappen.CanTrigger();
 
 #if DEBUG
-            //Profiler.EndSample();
+            Profiler.EndSample();
             Profiler.EndSample();
 #endif
 
@@ -1276,89 +1306,95 @@ public class World : ISynchronizable
         if (CellGroupCount <= 0)
             return 0;
 
-        Profiler.BeginSample("UpdateGroups");
+        //Profiler.BeginSample("UpdateGroups");
 
         UpdateGroups();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("MigrateBands");
+        //Profiler.BeginSample("MigrateBands");
 
         MigratePopulations();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("PostUpdateGroups_BeforePolityUpdates");
+        //Profiler.BeginSample("PostUpdateGroups_BeforePolityUpdates");
 
         PostUpdateGroups_BeforePolityUpdates();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("ExecuteDeferredEffectsOnGroups");
+        //Profiler.BeginSample("ExecuteDeferredEffectsOnGroups");
 
         ExecuteDeferredEffectsOnGroups();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("RemoveGroups");
+        //Profiler.BeginSample("RemoveGroups");
 
         RemoveGroups();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("UpdatePolityClusters");
+        //Profiler.BeginSample("UpdatePolityClusters");
 
         UpdatePolityClusters();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("SetNextGroupUpdates");
+        //Profiler.BeginSample("SetNextGroupUpdates");
 
         SetNextGroupUpdates();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("SplitFactions");
+        //Profiler.BeginSample("SplitFactions");
 
         SplitFactions();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("RemoveFactions");
+        //Profiler.BeginSample("RemoveFactions");
 
         RemoveFactions();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("UpdateFactions");
+        //Profiler.BeginSample("UpdateFactions");
 
         UpdateFactions();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("UpdatePolities");
+        //Profiler.BeginSample("UpdatePolities");
 
         UpdatePolities();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("RemovePolities");
+        //Profiler.BeginSample("RemovePolities");
 
         RemovePolities();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("PostUpdateGroups_AfterPolityUpdates");
+        //Profiler.BeginSample("PostUpdateGroups_AfterPolityUpdates");
 
         PostUpdateGroups_AfterPolityUpdates();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("AfterUpdateGroupCleanup");
+        //Profiler.BeginSample("AfterUpdateGroupCleanup");
 
         AfterUpdateGroupCleanup();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
+
+        //Profiler.BeginSample("ApplyFactionStatusChanges");
+
+        ApplyFactionStatusChanges();
+
+        //Profiler.EndSample();
 
         //
         // Skip to Next Event's Date
@@ -1414,9 +1450,10 @@ public class World : ISynchronizable
 
         // reset update flags
         GroupsHaveBeenUpdated = false;
-        FactionsHaveBeenUpdated = false;
         PolitiesHaveBeenUpdated = false;
         PolityClustersHaveBeenUpdated = false;
+
+        CleanupFactions();
 
         return dateSpan;
     }
@@ -1725,10 +1762,41 @@ public class World : ISynchronizable
 
         if (!faction.StillPresent)
         {
-            Debug.LogWarning("Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+            Debug.LogWarning(
+                "Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
         }
 
         _factionsToUpdate.Add(faction);
+    }
+
+    /// <summary>
+    /// Adds a new faction to cleanup during the cleanup phase
+    /// </summary>
+    /// <param name="faction">faction to cleanup</param>
+    public void AddFactionToCleanup(Faction faction)
+    {
+        if (!faction.StillPresent)
+        {
+            Debug.LogWarning(
+                "Faction to cleanup no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+        }
+
+        _factionsToCleanup.Add(faction);
+    }
+
+    /// <summary>
+    /// Adds a faction that had a status change
+    /// </summary>
+    /// <param name="faction">faction that had a status change</param>
+    public void AddFactionWithStatusChange(Faction faction)
+    {
+        if (!faction.StillPresent)
+        {
+            Debug.LogWarning(
+                "Faction with status change no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+        }
+
+        _factionsWithStatusChanges.Add(faction);
     }
 
     public void AddFactionToRemove(Faction faction)

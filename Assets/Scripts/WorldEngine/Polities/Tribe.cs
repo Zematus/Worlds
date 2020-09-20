@@ -274,8 +274,6 @@ public class Tribe : Polity
         }
 
         SetDominantFaction(dominantClan);
-
-        //		Debug.Log ("SwitchCellProminences: source polity cells: " + maxGroupCount + ", reviewed cells: " + reviewedCells + ", switched cells: " + switchedCells);
     }
 
     private float CalculateShortestCoreDistance(CellGroup group, Dictionary<CellGroup, float> groupDistances)

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using UnityEngine.Profiling;
 
 public class FactionEntity : Entity
 {
@@ -160,13 +161,21 @@ public class FactionEntity : Entity
 
     public virtual void Set(Faction f)
     {
+        Profiler.BeginSample("FactionEntity.Set - f.PreUpdate");
+
         f.PreUpdate();
+
+        Profiler.EndSample(); // "FactionEntity.Set - f.PreUpdate"
 
         Faction = f;
 
         _preferencesEntity?.Set(Faction.Culture);
 
+        Profiler.BeginSample("FactionEntity.Set - ResetInternal");
+
         ResetInternal();
+
+        Profiler.EndSample(); // "FactionEntity.Set - ResetInternal"
 
         _alreadyReset = false;
     }

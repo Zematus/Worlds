@@ -54,7 +54,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public Identifier CoreGroupId;
 
     [XmlIgnore]
-    public bool IsBeingUpdated = false;
+    public bool HasBeenUpdated = false;
 
     public static List<IFactionEventGenerator> OnSpawnEventGenerators;
     public static List<IFactionEventGenerator> OnStatusChangeEventGenerators;
@@ -131,8 +131,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     private HashSet<string> _flags = new HashSet<string>();
 
     private bool _preupdated = false;
-
-    private bool _statusChanged = false;
 
     public Faction()
     {
@@ -497,6 +495,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     }
 
+    /// <summary>
+    /// Tries to update all the faction properties before being accessed by other entities
+    /// </summary>
     public void PreUpdate()
     {
         if (!IsInitialized)
@@ -509,62 +510,28 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
             return;
         }
 
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Manager.TracingData.FactionId == Id)
-        //            {
-        //                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-
-        //                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-        //                string callingMethod = method.Name;
-        //                string callingClass = method.DeclaringType.ToString();
-
-        //                int knowledgeValue = 0;
-
-        //                Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out knowledgeValue);
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "Faction:PreUpdate - Faction Id:" + Id,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", Polity.Id: " + Polity.Id +
-        //                    ", preupdated: " + _preupdated +
-        //                    ", Social organization knowledge value: " + knowledgeValue +
-        //                    ", Calling method: " + callingClass + "." + callingMethod +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
-
-        if (World.FactionsHaveBeenUpdated && !IsBeingUpdated)
-        {
-            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-
-            Debug.LogWarning(
-                "Trying to  preupdate faction after or during faction update. Id: " +
-                Id + ", stackTrace:\n" + stackTrace);
-        }
-
         if (!StillPresent)
         {
-            throw new System.Exception("Faction is no longer present. Id: " + Id + ", Date: " + World.CurrentDate);
+            throw new System.Exception(
+                "Faction is no longer present. Id: " + Id + ", Date: " + World.CurrentDate);
         }
 
         if (!Polity.StillPresent)
         {
-            throw new System.Exception("Faction's polity is no longer present. Id: " + Id + " Polity Id: " + Polity.Id + ", Date: " + World.CurrentDate);
+            throw new System.Exception(
+                "Faction's polity is no longer present. Id: " + Id + " Polity Id: " + Polity.Id + ", Date: " + World.CurrentDate);
         }
 
         RequestCurrentLeader();
 
         Culture.Update();
 
-        if (!IsBeingUpdated)
+        if (!World.FactionsHaveBeenUpdated)
         {
             World.AddFactionToUpdate(this);
         }
+
+        World.AddFactionToCleanup(this);
 
         _preupdated = true;
     }
@@ -574,21 +541,24 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if (!StillPresent)
             return;
 
-        IsBeingUpdated = true;
+        HasBeenUpdated = true;
 
         PreUpdate();
 
-        _preupdated = false;
-
         UpdateInternal();
-
-        ValidateStatusChange();
 
         LastUpdateDate = World.CurrentDate;
 
         World.AddPolityToUpdate(Polity);
+    }
 
-        IsBeingUpdated = false;
+    /// <summary>
+    /// Cleans up all state flags
+    /// </summary>
+    public void Cleanup()
+    {
+        _preupdated = false;
+        HasBeenUpdated = false;
     }
 
     public void PrepareNewCoreGroup(CellGroup coreGroup)
@@ -720,7 +690,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     {
         IsDominant = state;
 
-        SetStatusChange(true);
+        SetStatusChange();
     }
 
     public void SetUnderPlayerGuidance(bool state)
@@ -822,33 +792,23 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         }
     }
 
-    public void SetStatusChange(bool state)
+    /// <summary>
+    /// set that the status of the faction has changed (for example when it becomes dominant)
+    /// </summary>
+    public void SetStatusChange()
     {
-        if (World.FactionsHaveBeenUpdated && !IsBeingUpdated)
-        {
-            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-
-            Debug.LogWarning(
-                "Trying to set faction's status change after or during faction update. Id: " +
-                Id + ", stackTrace:\n" + stackTrace);
-        }
-
-        _statusChanged = state;
+        World.AddFactionWithStatusChange(this);
     }
 
-    private void ValidateStatusChange()
+    /// <summary>
+    /// Applies the effects of having the faction status changed
+    /// </summary>
+    public void ApplyStatusChange()
     {
-        if (!_statusChanged)
-        {
-            return;
-        }
-
         foreach (IFactionEventGenerator generator in OnStatusChangeEventGenerators)
         {
             generator.TryGenerateEventAndAssign(this);
         }
-
-        _statusChanged = false;
     }
 
     public void InitializeDefaultEvents()
