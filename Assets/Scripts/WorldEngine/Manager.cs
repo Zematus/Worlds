@@ -195,13 +195,19 @@ public class Manager
     public static List<string> ActiveModPaths = new List<string>() { Path.Combine(@"Mods", "Base") };
     public static bool ModsAlreadyLoaded = false;
 
-    public static Dictionary<string, LayerSettings> LayerSettings = new Dictionary<string, LayerSettings>();
+    public static Dictionary<string, LayerSettings> LayerSettings =
+        new Dictionary<string, LayerSettings>();
 
     public static GameMode GameMode = GameMode.None;
 
     public static bool ViewingGlobe = false;
 
     public static int LastEventsTriggeredCount = 0;
+    public static int LastEventsEvaluatedCount = 0;
+
+    public static Dictionary<string, World.EventEvalStats> LastEventEvalStatsPerType =
+        new Dictionary<string, World.EventEvalStats>();
+
     public static int LastMapUpdateCount = 0;
     public static int LastPixelUpdateCount = 0;
     public static long LastDateSpan = 0;

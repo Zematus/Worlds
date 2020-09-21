@@ -73,6 +73,16 @@ public class World : ISynchronizable
     public static Dictionary<string, PreferenceGenerator> PreferenceGenerators;
 
     public int EventsTriggered = 0;
+    public int EventsEvaluated = 0;
+
+    public class EventEvalStats
+    {
+        public int EvaluationCount = 0;
+        public int TriggerCount = 0;
+    }
+
+    public Dictionary<string, EventEvalStats> EventEvalStatsPerType =
+        new Dictionary<string, EventEvalStats>();
 
     [XmlAttribute]
     public int Width { get; set; }
@@ -1153,6 +1163,64 @@ public class World : ISynchronizable
         return Update();
     }
 
+    /// <summary>
+    /// Increases the count of evaluated events (for debug mode)
+    /// </summary>
+    /// <param name="worldEvent">the event that was evaluated</param>
+    public void IncreaseEvaluatedEventCount(WorldEvent worldEvent)
+    {
+        EventsEvaluated++;
+
+        string idString = worldEvent.GetType().ToString();
+
+        if (worldEvent is FactionModEvent)
+        {
+            idString = (worldEvent as FactionModEvent).GeneratorId;
+        }
+        else if (worldEvent is CellGroupModEvent)
+        {
+            idString = (worldEvent as CellGroupModEvent).GeneratorId;
+        }
+
+        if (!EventEvalStatsPerType.ContainsKey(idString))
+        {
+            EventEvalStatsPerType[idString] = new EventEvalStats();
+        }
+
+        EventEvalStatsPerType[idString].EvaluationCount++;
+    }
+
+    /// <summary>
+    /// Increases the count of triggered events (for debug mode)
+    /// </summary>
+    /// <param name="worldEvent">the event that was triggered</param>
+    public void IncreaseTriggeredEventCount(WorldEvent worldEvent)
+    {
+        EventsTriggered++;
+
+        string idString = worldEvent.GetType().ToString();
+
+        if (worldEvent is FactionModEvent)
+        {
+            idString = (worldEvent as FactionModEvent).GeneratorId;
+        }
+        else if (worldEvent is CellGroupModEvent)
+        {
+            idString = (worldEvent as CellGroupModEvent).GeneratorId;
+        }
+
+        if (!EventEvalStatsPerType.ContainsKey(idString))
+        {
+            throw new System.Exception("triggering event that wasn't evaluated: " + idString);
+        }
+
+        EventEvalStatsPerType[idString].TriggerCount++;
+    }
+
+    /// <summary>
+    /// Tries to evaluate any event that should happen at the current world date
+    /// </summary>
+    /// <returns></returns>
     public bool EvaluateEventsToHappen()
     {
         if (CellGroupCount <= 0)
@@ -1170,7 +1238,11 @@ public class World : ISynchronizable
         {
             //if (_eventsToHappen.Count <= 0) break;
 
+            Profiler.BeginSample("Find Leftmost");
+
             _eventsToHappen.FindLeftmost(ValidateEventsToHappenNode, InvalidEventsToHappenNodeEffect);
+
+            Profiler.EndSample();
 
             // FindLeftMost() might have removed events so we need to check if there are events to happen left
             if (_eventsToHappen.Count <= 0) break;
@@ -1187,6 +1259,8 @@ public class World : ISynchronizable
                 throw new System.Exception("World.EvaluateEventsToHappen - eventToHappen.TriggerDate (" + eventToHappen.TriggerDate +
                     ") greater than MaxSupportedDate (" + MaxSupportedDate + "), eventToHappen: " + eventToHappen);
             }
+
+            //Profiler.BeginSample("eventToHappen.TriggerDate > CurrentDate");
 
             if (eventToHappen.TriggerDate > CurrentDate)
             {
@@ -1221,21 +1295,14 @@ public class World : ISynchronizable
                 break;
             }
 
+            //Profiler.EndSample();
+
             Profiler.BeginSample("Remove Leftmost Event");
 
             _eventsToHappen.RemoveLeftmost();
             EventsToHappenCount--;
 
             Profiler.EndSample();
-
-            //#if DEBUG
-            //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-            //            {
-            //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Being Triggered", "Triggering");
-
-            //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            //            }
-            //#endif
 
 #if DEBUG
             string eventTypeName = eventToHappen.GetType().ToString();
@@ -1257,8 +1324,17 @@ public class World : ISynchronizable
             }
             else
             {
+                Profiler.BeginSample("Event failed to trigger");
+
                 eventToHappen.FailedToTrigger = true;
                 eventToHappen.Destroy();
+
+                Profiler.EndSample();
+            }
+
+            if (Manager.DebugModeEnabled)
+            {
+                IncreaseEvaluatedEventCount(eventToHappen);
             }
         }
 
@@ -1284,14 +1360,19 @@ public class World : ISynchronizable
 
             if (Manager.DebugModeEnabled)
             {
-                EventsTriggered++;
+                IncreaseTriggeredEventCount(eventToHappen);
             }
 
 #if DEBUG
             Profiler.EndSample();
             Profiler.EndSample();
 #endif
+
+            Profiler.BeginSample("Destroy Event");
+
             eventToHappen.Destroy();
+
+            Profiler.EndSample();
         }
 
         _eventsToHappenNow.Clear();
