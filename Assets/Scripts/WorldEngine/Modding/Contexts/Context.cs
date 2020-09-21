@@ -10,7 +10,7 @@ public abstract class Context
 {
     public string Id;
 
-    public bool DebugEnabled => Manager.DebugModeEnabled && _debug;
+    public bool DebugEnabled => (Manager.CurrentDevMode != DevMode.None) && _debug;
 
     protected int _currentIterOffset = 0;
 

@@ -40,7 +40,7 @@ public class InfoPanelScript : MonoBehaviour
 
         InfoText.text += "\n";
 
-        if (Manager.DebugModeEnabled)
+        if (Manager.CurrentDevMode != DevMode.None)
         {
             InfoText.text += "\n -- Debug Data -- ";
 
@@ -63,21 +63,23 @@ public class InfoPanelScript : MonoBehaviour
             }
 
             InfoText.text += "\nSuccess Rate: " + successRate.ToString("P");
-            InfoText.text += "\n";
 
-            foreach (KeyValuePair<string, World.EventEvalStats> pair in Manager.LastEventEvalStatsPerType)
+            if (Manager.CurrentDevMode == DevMode.Advanced)
             {
-                InfoText.text += "\nEvents Evaluated (" + pair.Key + "): " + pair.Value.EvaluationCount;
-                InfoText.text += "\nEvents Triggered (" + pair.Key + "): " + pair.Value.TriggerCount;
-
-                successRate = 0;
-                if (Manager.LastEventsEvaluatedCount > 0)
+                foreach (KeyValuePair<string, World.EventEvalStats> pair in Manager.LastEventEvalStatsPerType)
                 {
-                    successRate = pair.Value.TriggerCount / (float)pair.Value.EvaluationCount;
-                }
+                    InfoText.text += "\n";
+                    InfoText.text += "\nEvents Evaluated (" + pair.Key + "): " + pair.Value.EvaluationCount;
+                    InfoText.text += "\nEvents Triggered (" + pair.Key + "): " + pair.Value.TriggerCount;
 
-                InfoText.text += "\nSuccess Rate (" + pair.Key + "): " + successRate.ToString("P");
-                InfoText.text += "\n";
+                    successRate = 0;
+                    if (Manager.LastEventsEvaluatedCount > 0)
+                    {
+                        successRate = pair.Value.TriggerCount / (float)pair.Value.EvaluationCount;
+                    }
+
+                    InfoText.text += "\nSuccess Rate (" + pair.Key + "): " + successRate.ToString("P");
+                }
             }
 
             InfoText.text += "\n";

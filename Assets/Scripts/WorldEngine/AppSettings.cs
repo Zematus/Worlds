@@ -17,7 +17,7 @@ public class AppSettings
     public float RainfallOffset = 0;
     public bool Fullscreen = true;
     public bool UIScaling = true;
-    public bool DebugMode = true;
+    public string DeveloperMode = "None";
     public bool AnimationShaders = true;
 
     public List<string> ActiveModPaths = new List<string>();
@@ -38,8 +38,22 @@ public class AppSettings
         RainfallOffset = Manager.RainfallOffset;
         Fullscreen = Manager.FullScreenEnabled;
         UIScaling = Manager.UIScalingEnabled;
-        DebugMode = Manager.DebugModeEnabled;
         AnimationShaders = Manager.AnimationShadersEnabled;
+
+        switch (Manager.CurrentDevMode)
+        {
+            case DevMode.None:
+                DeveloperMode = "None";
+                break;
+            case DevMode.Basic:
+                DeveloperMode = "Basic";
+                break;
+            case DevMode.Advanced:
+                DeveloperMode = "Advanced";
+                break;
+            default:
+                throw new System.Exception("Unhandled Dev Mode: " + Manager.CurrentDevMode);
+        }
 
         ActiveModPaths.Clear();
         ActiveModPaths.AddRange(Manager.ActiveModPaths);
@@ -58,8 +72,22 @@ public class AppSettings
         Manager.RainfallOffset = RainfallOffset;
         Manager.FullScreenEnabled = Fullscreen;
         Manager.UIScalingEnabled = UIScaling;
-        Manager.DebugModeEnabled = DebugMode;
         Manager.AnimationShadersEnabled = AnimationShaders;
+
+        switch (DeveloperMode)
+        {
+            case "None":
+                Manager.CurrentDevMode = DevMode.None;
+                break;
+            case "Basic":
+                Manager.CurrentDevMode = DevMode.Basic;
+                break;
+            case "Advanced":
+                Manager.CurrentDevMode = DevMode.Advanced;
+                break;
+            default:
+                throw new System.Exception("Unhandled Developer Mode Setting: " + DeveloperMode);
+        }
 
         Manager.SetActiveModPaths(ActiveModPaths);
         Manager.SetLayerSettings(LayerSettings);
