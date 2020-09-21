@@ -417,7 +417,18 @@ public class GuiManagerScript : MonoBehaviour
             if (_timeSinceLastMapUpdate > 1) // Every second
             {
                 Manager.LastEventsTriggeredCount = Manager.CurrentWorld.EventsTriggered;
+                Manager.LastEventsEvaluatedCount = Manager.CurrentWorld.EventsEvaluated;
+
+                foreach (KeyValuePair<string, World.EventEvalStats> pair in
+                    Manager.CurrentWorld.EventEvalStatsPerType)
+                {
+                    Manager.LastEventEvalStatsPerType[pair.Key] = pair.Value;
+                }
+
                 Manager.CurrentWorld.EventsTriggered = 0;
+                Manager.CurrentWorld.EventsEvaluated = 0;
+
+                Manager.CurrentWorld.EventEvalStatsPerType.Clear();
 
                 Manager.LastMapUpdateCount = _mapUpdateCount;
                 _mapUpdateCount = 0;
@@ -1253,11 +1264,19 @@ public class GuiManagerScript : MonoBehaviour
         if (state)
         {
             Manager.CurrentWorld.EventsTriggered = 0;
+            Manager.CurrentWorld.EventsEvaluated = 0;
+
+            Manager.CurrentWorld.EventEvalStatsPerType.Clear();
+
             _mapUpdateCount = 0;
             _pixelUpdateCount = 0;
             _timeSinceLastMapUpdate = 0;
 
             Manager.LastEventsTriggeredCount = 0;
+            Manager.LastEventsEvaluatedCount = 0;
+
+            Manager.LastEventEvalStatsPerType.Clear();
+
             Manager.LastMapUpdateCount = 0;
             Manager.LastPixelUpdateCount = 0;
             Manager.LastDateSpan = 0;

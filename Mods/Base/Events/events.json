@@ -4,15 +4,16 @@
       "id": "clan_decide_split",
       "name": "clan decide split",
       "target": "faction",
-      "assignOn" : ["spawn"],
+      "assignOn" : ["status_change"],
       "properties": [
-        {
-          "id": "new_core_group",
-          "value": "target.polity.get_random_group()"
-        }
+        { "id": "new_core_group", "value": "target.polity.get_random_group()" },
+        { "id": "dominant_faction", "value": "target.polity.dominant_faction" }
       ],
       "assignmentConditions": [
-        "target.type == clan"
+        "target.type == clan",
+        "target.polity.type == tribe",
+        "dominant_faction.type == clan",
+        "target != dominant_faction"
       ],
       "triggerConditions": [
         "target.administrative_load > 100000",
@@ -45,10 +46,10 @@
         "target.type == clan",
         "target.polity.type == tribe",
         "dominant_faction.type == clan",
-        "target != dominant_faction",
-        "chance_of_making_demand > 0"
+        "target != dominant_faction"
       ],
       "triggerConditions": [
+        "chance_of_making_demand > 0",
         "target_authority > 0.5",
         "(target_authority > dominant_faction.preferences.authority) || (dominant_faction.administrative_load > 100000)"
       ],

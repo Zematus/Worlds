@@ -2401,12 +2401,12 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>'true' if there was a change in prominence values</returns>
     private bool CalculateNewPolityProminenceValues(bool afterPolityUpdates = false)
     {
-//#if DEBUG
-//        if ((World.CurrentDate == 181517346L) && (Cell.Longitude == 64) && (Cell.Latitude == 151))
-//        {
-//            Debug.LogWarning("Debugging CalculateNewPolityProminenceValues...");
-//        }
-//#endif
+#if DEBUG
+        if ((Id == "0000000000053130607:8730498093635295900") && (World.CurrentDate == 223877150))
+        {
+            Debug.LogWarning("Debugging CalculateNewPolityProminenceValues...");
+        }
+#endif
 
         // There was no new deltas so there's nothing to calculate
         // NOTE: after polity updates there might be no deltas, bu we still need to recalculate
@@ -2519,7 +2519,7 @@ public class CellGroup : Identifiable, IFlagHolder
         // normalize values
         foreach (PolityProminence prom in _polityProminences.Values)
         {
-            if (_polityProminencesToRemove.Contains(prom.Id))
+            if (_polityProminencesToRemove.Contains(prom.PolityId))
                 continue;
 
             float prevValue = prom.Value;
@@ -2529,7 +2529,8 @@ public class CellGroup : Identifiable, IFlagHolder
             if (!finalValue.IsInsideRange(0, 1))
             {
                 Debug.LogWarning("prominence value outside of (0,1) range: " + finalValue +
-                    ", prev value: " + prevValue + ", total value: " + totalValue);
+                    ", prev value: " + prevValue + ", total value: " + totalValue +
+                    ", group: " + Id + ", date: " + World.CurrentDate);
             }
 #endif
 

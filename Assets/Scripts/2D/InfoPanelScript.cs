@@ -14,6 +14,9 @@ public class InfoPanelScript : MonoBehaviour
         _infoTextMinimized = state;
     }
 
+    /// <summary>
+    /// Updates the upper left corner info panel
+    /// </summary>
     public void UpdateInfoPanel()
     {
         World world = Manager.CurrentWorld;
@@ -50,7 +53,32 @@ public class InfoPanelScript : MonoBehaviour
             }
 
             InfoText.text += "\n";
+            InfoText.text += "\nEvents Evaluated Per Second: " + Manager.LastEventsEvaluatedCount;
             InfoText.text += "\nEvents Triggered Per Second: " + Manager.LastEventsTriggeredCount;
+
+            float successRate = 0;
+            if (Manager.LastEventsEvaluatedCount > 0)
+            {
+                successRate = Manager.LastEventsTriggeredCount / (float)Manager.LastEventsEvaluatedCount;
+            }
+
+            InfoText.text += "\nSuccess Rate: " + successRate.ToString("P");
+            InfoText.text += "\n";
+
+            foreach (KeyValuePair<string, World.EventEvalStats> pair in Manager.LastEventEvalStatsPerType)
+            {
+                InfoText.text += "\nEvents Evaluated (" + pair.Key + "): " + pair.Value.EvaluationCount;
+                InfoText.text += "\nEvents Triggered (" + pair.Key + "): " + pair.Value.TriggerCount;
+
+                successRate = 0;
+                if (Manager.LastEventsEvaluatedCount > 0)
+                {
+                    successRate = pair.Value.TriggerCount / (float)pair.Value.EvaluationCount;
+                }
+
+                InfoText.text += "\nSuccess Rate (" + pair.Key + "): " + successRate.ToString("P");
+                InfoText.text += "\n";
+            }
 
             InfoText.text += "\n";
             InfoText.text += "\nMap Updates Per Second: " + Manager.LastMapUpdateCount;
@@ -60,7 +88,8 @@ public class InfoPanelScript : MonoBehaviour
             {
                 float pixelUpdatesPerMapUpdate = Manager.LastPixelUpdateCount / (float)Manager.LastMapUpdateCount;
 
-                InfoText.text += "\nPixel Updates Per Map Update: " + pixelUpdatesPerMapUpdate.ToString("0.00");
+                InfoText.text +=
+                    "\nPixel Updates Per Map Update: " + pixelUpdatesPerMapUpdate.ToString("0.00");
             }
 
             InfoText.text += "\n";
