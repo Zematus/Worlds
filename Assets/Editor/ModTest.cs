@@ -644,7 +644,7 @@ public class ModTest
     [Test]
     public void TriggerDemandInfluenceDecision()
     {
-        Manager.DebugModeEnabled = true;
+        Manager.CurrentDevMode = DevMode.Advanced;
 
         InitializeTestFactions();
 

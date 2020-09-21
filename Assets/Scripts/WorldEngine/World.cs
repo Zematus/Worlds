@@ -1169,7 +1169,13 @@ public class World : ISynchronizable
     /// <param name="worldEvent">the event that was evaluated</param>
     public void IncreaseEvaluatedEventCount(WorldEvent worldEvent)
     {
+        if (Manager.CurrentDevMode == DevMode.None)
+            return;
+
         EventsEvaluated++;
+
+        if (Manager.CurrentDevMode == DevMode.Basic)
+            return;
 
         string idString = worldEvent.GetType().ToString();
 
@@ -1196,7 +1202,13 @@ public class World : ISynchronizable
     /// <param name="worldEvent">the event that was triggered</param>
     public void IncreaseTriggeredEventCount(WorldEvent worldEvent)
     {
+        if (Manager.CurrentDevMode == DevMode.None)
+            return;
+
         EventsTriggered++;
+
+        if (Manager.CurrentDevMode == DevMode.Basic)
+            return;
 
         string idString = worldEvent.GetType().ToString();
 
@@ -1332,10 +1344,7 @@ public class World : ISynchronizable
                 Profiler.EndSample();
             }
 
-            if (Manager.DebugModeEnabled)
-            {
-                IncreaseEvaluatedEventCount(eventToHappen);
-            }
+            IncreaseEvaluatedEventCount(eventToHappen);
         }
 
         foreach (WorldEvent eventToHappen in _eventsToHappenNow)
@@ -1358,10 +1367,7 @@ public class World : ISynchronizable
 
             eventToHappen.Trigger();
 
-            if (Manager.DebugModeEnabled)
-            {
-                IncreaseTriggeredEventCount(eventToHappen);
-            }
+            IncreaseTriggeredEventCount(eventToHappen);
 
 #if DEBUG
             Profiler.EndSample();

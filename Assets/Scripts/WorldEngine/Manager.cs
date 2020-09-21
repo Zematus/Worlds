@@ -86,6 +86,13 @@ public enum OverlayColorId
     RiverBasins = 14,
 }
 
+public enum DevMode
+{
+    None = 0,
+    Basic = 1,
+    Advanced = 2
+}
+
 public class Manager
 {
 #if DEBUG
@@ -189,8 +196,9 @@ public class Manager
 
     public static bool FullScreenEnabled = false;
     public static bool UIScalingEnabled = false;
-    public static bool DebugModeEnabled = false;
     public static bool AnimationShadersEnabled = true;
+
+    public static DevMode CurrentDevMode = DevMode.None;
 
     public static List<string> ActiveModPaths = new List<string>() { Path.Combine(@"Mods", "Base") };
     public static bool ModsAlreadyLoaded = false;
@@ -1021,7 +1029,7 @@ public class Manager
 
     public static void GenerateTextures(bool doMapTexture, bool doOverlayMapTexture)
     {
-        if (DebugModeEnabled)
+        if (CurrentDevMode != DevMode.None)
         {
             UpdatedPixelCount = 0;
         }
@@ -2209,7 +2217,7 @@ public class Manager
 
     public static void UpdateTextures()
     {
-        if (DebugModeEnabled)
+        if (CurrentDevMode != DevMode.None)
         {
             UpdatedPixelCount = 0;
         }
@@ -2440,7 +2448,7 @@ public class Manager
 
                 textureColors[offsetY + offsetX] = cellColor;
 
-                if (DebugModeEnabled)
+                if (CurrentDevMode != DevMode.None)
                 {
                     UpdatedPixelCount++;
                 }
@@ -2470,7 +2478,7 @@ public class Manager
 
                 textureColors[offsetY + offsetX] = cellColor;
 
-                if (DebugModeEnabled)
+                if (CurrentDevMode != DevMode.None)
                 {
                     UpdatedPixelCount++;
                 }
@@ -2500,7 +2508,7 @@ public class Manager
 
                 textureColors[offsetY + offsetX] = cellColor;
 
-                if (DebugModeEnabled)
+                if (CurrentDevMode != DevMode.None)
                 {
                     UpdatedPixelCount++;
                 }
@@ -2530,7 +2538,7 @@ public class Manager
 
                 textureColors[offsetY + offsetX] = cellColor;
 
-                if (DebugModeEnabled)
+                if (CurrentDevMode != DevMode.None)
                 {
                     UpdatedPixelCount++;
                 }
@@ -2604,7 +2612,7 @@ public class Manager
 
                         textureColors[offsetY + offsetX] = cellColor;
 
-                        if (DebugModeEnabled)
+                        if (CurrentDevMode != DevMode.None)
                         {
                             UpdatedPixelCount++;
                         }

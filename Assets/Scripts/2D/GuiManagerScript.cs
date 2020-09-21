@@ -410,7 +410,7 @@ public class GuiManagerScript : MonoBehaviour
 
         ReadKeyboardInput();
 
-        if (Manager.DebugModeEnabled && Manager.WorldIsReady)
+        if ((Manager.CurrentDevMode != DevMode.None) && Manager.WorldIsReady)
         {
             _timeSinceLastMapUpdate += Time.deltaTime;
 
@@ -623,7 +623,7 @@ public class GuiManagerScript : MonoBehaviour
 
             Profiler.EndSample();
 
-            if (Manager.DebugModeEnabled)
+            if (Manager.CurrentDevMode != DevMode.None)
             {
                 _pixelUpdateCount += Manager.UpdatedPixelCount;
                 _mapUpdateCount++;
@@ -640,7 +640,7 @@ public class GuiManagerScript : MonoBehaviour
 
             Manager.UpdateTextures();
 
-            if (Manager.DebugModeEnabled)
+            if (Manager.CurrentDevMode != DevMode.None)
             {
                 _pixelUpdateCount += Manager.UpdatedPixelCount;
                 _mapUpdateCount++;
@@ -862,7 +862,7 @@ public class GuiManagerScript : MonoBehaviour
             Manager.HandleKeyUp(KeyCode.O, false, false, ActivatePopOverlay);
             Manager.HandleKeyUp(KeyCode.P, false, false, ActivatePolityOverlay);
 
-            if (Manager.DebugModeEnabled)
+            if (Manager.CurrentDevMode != DevMode.None)
             {
                 Manager.HandleKeyUp(KeyCode.D, false, false, ActivateDebugOverlay);
             }
@@ -914,9 +914,9 @@ public class GuiManagerScript : MonoBehaviour
         ChangePlanetOverlay(_popOverlays[_currentPopOverlay]);
     }
 
-    private void SkipDebugOverlaysIfNotEnabled()
+    private void SkipDevOverlaysIfNotEnabled()
     {
-        if ((!Manager.DebugModeEnabled) &&
+        if ((Manager.CurrentDevMode == DevMode.None) &&
             ((_polityOverlays[_currentPolityOverlay] == PlanetOverlay.FactionCoreDistance) ||
             (_polityOverlays[_currentPolityOverlay] == PlanetOverlay.PolityCluster)))
         {
@@ -931,7 +931,7 @@ public class GuiManagerScript : MonoBehaviour
             _currentPolityOverlay = (_currentPolityOverlay + 1) % _polityOverlays.Count;
         }
 
-        SkipDebugOverlaysIfNotEnabled();
+        SkipDevOverlaysIfNotEnabled();
 
         ChangePlanetOverlay(_polityOverlays[_currentPolityOverlay]);
     }
@@ -1221,8 +1221,9 @@ public class GuiManagerScript : MonoBehaviour
 
         SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
         SettingsDialogPanelScript.UIScalingToggle.isOn = Manager.UIScalingEnabled;
-        SettingsDialogPanelScript.DebugModeToggle.isOn = Manager.DebugModeEnabled;
         SettingsDialogPanelScript.AnimationShadersToggle.isOn = Manager.AnimationShadersEnabled;
+
+        SettingsDialogPanelScript.RefreshDevButtonText();
 
         SettingsDialogPanelScript.SetVisible(true);
 
@@ -1257,11 +1258,30 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void ToogleDebugMode(bool state)
+    public void ToogleDevMode()
     {
-        Manager.DebugModeEnabled = state;
+        DevMode nextDevMode;
 
-        if (state)
+        switch (Manager.CurrentDevMode)
+        {
+            case DevMode.None:
+                nextDevMode = DevMode.Basic;
+                break;
+            case DevMode.Basic:
+                nextDevMode = DevMode.Advanced;
+                break;
+            case DevMode.Advanced:
+                nextDevMode = DevMode.None;
+                break;
+            default:
+                throw new System.Exception("Unhandled Dev Mode: " + Manager.CurrentDevMode);
+        }
+
+        Manager.CurrentDevMode = nextDevMode;
+
+        SettingsDialogPanelScript.RefreshDevButtonText();
+
+        if (nextDevMode != DevMode.None)
         {
             Manager.CurrentWorld.EventsTriggered = 0;
             Manager.CurrentWorld.EventsEvaluated = 0;
