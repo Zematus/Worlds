@@ -5,65 +5,57 @@
       "name": "tribe decide fostering relationship",
       "target": "faction",
       "parameters": [
-        { "id": "dominant_faction", "type": "faction" },
-        { "id": "chance_of_making_demand", "type": "number" }
+        { "id": "contact_polity", "type": "polity" },
+        { "id": "chance_of_making_attempt", "type": "number" }
+      ],
+      "properties": [
+        { "id": "target_polity", "value": "target.polity" },
+        { "id": "target_isolation", "value": "target.preferences.isolation" },
+        { "id": "contact_dominant_faction", "value": "target.polity" }
       ],
       "description": [
         {
           "id": "description_intro",
-          "text": "Members of clan <<target>> have suggested for the clan leader, <<target.leader>>, to demand more influence within the <<target.polity>> tribe from the current dominant clan, <<dominant_faction>>.\n\nShould <<target.leader>> make the demand?"
+          "text": "The clan's tribal elders suggest that the relationship between the dominant factions of <<contact_polity>> and <<target_polity>> could be improved.\n\nShould <<target.leader>> make an attempt to improve the relationship with <<contact_polity>>?"
         }
       ],
       "options": [
         {
-          "id": "make_demand",
-          "text": "Demand more influence from <<dominant_faction>>...",
-          "weight": "max(0, chance_of_making_demand)",
+          "id": "make_attempt",
+          "text": "Attempt to improve relationship with <<contact_polity>>...",
+          "weight": "max(0, chance_of_making_attempt)",
           "effects": [
             {
-              "id": "increase_authority",
+              "id": "decrease_isolation",
               "properties": [
-                { "id": "wisdom_factor", "value": "0.5 + target.leader.wisdom" },
-                { "id": "target_authority", "value": "target.preferences.authority" },
-                { "id": "authority_min", "value": "lerp(target_authority, 1, (0.1 * wisdom_factor))" },
-                { "id": "authority_max", "value": "lerp(target_authority, 1, (0.2 * wisdom_factor))" }
+                { "id": "charisma_factor", "value": "1.5 + target.leader.charisma" },
+                { "id": "isolation_min", "value": "lerp(target_isolation, 0, (0.2 * charisma_factor))" },
+                { "id": "isolation_max", "value": "lerp(target_isolation, 0, (0.1 * charisma_factor))" }
               ],
-              "text": "Clan <<target>>: authority preference (<<target_authority>>) increases to: <<authority_min>> - <<authority_max>>",
-              "result": "target.preferences.authority = random(authority_min, authority_max)"
+              "text": "<<target>>: isolation preference (<<target_isolation>>) decreases to: <<isolation_min>> - <<isolation_max>>",
+              "result": "target.preferences.isolation = random(isolation_min, isolation_max)"
             },
             {
-              "id": "demand",
-              "text": "The current leader of clan <<dominant_faction>> will receive a demand for infuence from clan <<target>>",
-              "result": "dominant_faction.trigger_decision(influence_demanded_from_clan, target)"
+              "id": "attempt",
+              "text": "The current leader of <<contact_polity>> will receive an offer from tribe <<target_polity>>",
+              "result": "contact_dominant_faction.trigger_decision(tribe_decide_accept_foster_relationship_attempt, target_polity)"
             }
           ]
         },
         {
-          "id": "dont_make_demand",
-          "text": "Avoid making any demands at this time...",
-          "weight": "1 - min(1, chance_of_making_demand)",
+          "id": "dont_make_attempt",
+          "text": "Don't waste time trying to foster relationships...",
+          "weight": "1 - min(1, chance_of_making_attempt)",
           "effects": [
             {
-              "id": "decrease_authority",
-              "properties": [
-                { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
-                { "id": "target_authority", "value": "target.preferences.authority" },
-                { "id": "authority_min", "value": "lerp(target_authority, 0, (0.2 * wisdom_factor))" },
-                { "id": "authority_max", "value": "lerp(target_authority, 0, (0.1 * wisdom_factor))" }
-              ],
-              "text": "Clan <<target>>: authority preference (<<target_authority>>) decreases to: <<authority_min>> - <<authority_max>>",
-              "result": "target.preferences.authority = random(authority_min, authority_max)"
-            },
-            {
-              "id": "increase_relation",
+              "id": "increase_isolation",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
-                { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
-                { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
+                { "id": "isolation_min", "value": "lerp(target_isolation, 1, (0.1 * charisma_factor))" },
+                { "id": "isolation_max", "value": "lerp(target_isolation, 1, (0.2 * charisma_factor))" }
               ],
-              "text": "Clan <<target>>: relationship with <<dominant_faction>> increases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
-              "result": "target.set_relationship(dominant_faction, random(relationship_min, relationship_max))"
+              "text": "<<target>>: isolation preference (<<target_isolation>>) increases to: <<isolation_min>> - <<isolation_max>>",
+              "result": "target.preferences.isolation = random(isolation_min, isolation_max)"
             }
           ]
         }

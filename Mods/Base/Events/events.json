@@ -60,15 +60,16 @@
       "repeatable" : true
     },
     {
-      "id": "tribe_decide_fostering_influence",
-      "name": "tribe decide fostering influence",
+      "id": "tribe_decide_fostering_relationship",
+      "name": "tribe decide fostering relationship",
       "target": "faction",
       "assignOn" : ["spawn", "status_change", "polity_contact_change"],
       "properties": [
         { "id": "target_polity", "value": "target.polity" },
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "contact", "value": "target_polity.get_random_contact()" },
-        { "id": "contact_dominant_faction", "value": "contact.polity.dominant_faction" },
+        { "id": "contact_polity", "value": "contact.polity" },
+        { "id": "contact_dominant_faction", "value": "contact_polity.dominant_faction" },
         { "id": "contact_strength", "value": "target_polity.calculate_contact_strength(contact)" },
         { "id": "relationship_value", "value": "target.get_relationship_value(contact_dominant_faction)" },
         { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * (contact_strength * 3) * (1 - target_isolation)" }
@@ -83,7 +84,7 @@
       ],
       "timeToTrigger": "9125 + random(91250 * target_isolation)",
       "effects": [
-        "target.trigger_decision(tribe_decide_fostering_relationship, contact, chance_of_making_attempt)"
+        "target.trigger_decision(tribe_decide_fostering_relationship, contact_polity, chance_of_making_attempt)"
       ],
       "repeatable" : true
     }
