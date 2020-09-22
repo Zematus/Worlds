@@ -4,7 +4,7 @@
       "id": "clan_decide_split",
       "name": "clan decide split",
       "target": "faction",
-      "assignOn" : ["spawn", "status_change"],
+      "assignOn" : ["status_change"],
       "properties": [
         { "id": "new_core_group", "value": "target.polity.get_random_group()" },
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" }
@@ -56,34 +56,6 @@
       "timeToTrigger": "9125 + random(91250 * (1 - saturation(200000, target.administrative_load)) * target_authority)",
       "effects": [
         "target.trigger_decision(clan_decide_performing_influence_demand, dominant_faction, chance_of_making_demand)"
-      ],
-      "repeatable" : true
-    },
-    {
-      "id": "tribe_decide_fostering_influence",
-      "name": "tribe decide fostering influence",
-      "target": "faction",
-      "assignOn" : ["spawn", "status_change", "polity_contact_change"],
-      "properties": [
-        { "id": "target_polity", "value": "target.polity" },
-        { "id": "target_isolation", "value": "target.preferences.isolation" },
-        { "id": "contact", "value": "target_polity.get_random_contact()" },
-        { "id": "contact_dominant_faction", "value": "contact.polity.dominant_faction" },
-        { "id": "contact_strength", "value": "target_polity.calculate_contact_strength(contact)" },
-        { "id": "relationship_value", "value": "target.get_relationship_value(contact_dominant_faction)" },
-        { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * (contact_strength * 3) * (1 - target_isolation)" }
-      ],
-      "assignmentConditions": [
-        "target == target_polity.dominant_faction",
-        "target_polity.type == tribe",
-        "target_polity.contacts.count >= 1"
-      ],
-      "triggerConditions": [
-        "chance_of_making_attempt > 0"
-      ],
-      "timeToTrigger": "9125 + random(91250 * target_isolation)",
-      "effects": [
-        "target.trigger_decision(tribe_decide_fostering_relationship, contact, chance_of_making_attempt)"
       ],
       "repeatable" : true
     }
