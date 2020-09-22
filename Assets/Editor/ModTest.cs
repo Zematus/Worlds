@@ -568,7 +568,7 @@ public class ModTest
 
     private void LoadBaseDecisionsMod()
     {
-        Debug.Log("loading clans split decision mod file...");
+        Debug.Log("loading decision mod files...");
 
         CulturalPreference.InitializePreferences();
 
@@ -578,6 +578,8 @@ public class ModTest
             Path.Combine("Mods", "Base", "Decisions", "clan_split.json"));
         ModDecision.LoadDecisionFile(
             Path.Combine("Mods", "Base", "Decisions", "influence_demand.json"));
+        ModDecision.LoadDecisionFile(
+            Path.Combine("Mods", "Base", "Decisions", "relationship_fostering.json"));
     }
 
     [Test]
