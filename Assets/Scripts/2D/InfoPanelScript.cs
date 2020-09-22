@@ -64,25 +64,34 @@ public class InfoPanelScript : MonoBehaviour
 
             InfoText.text += "\nSuccess Rate: " + successRate.ToString("P");
 
-            if (Manager.CurrentDevMode == DevMode.Advanced)
+            if ((Manager.CurrentDevMode == DevMode.Advanced) &&
+                (Manager.LastEventEvalStatsPerType.Count > 0))
             {
+                InfoText.text += "\n";
+                InfoText.text += "Breakdown by type";
+
                 foreach (KeyValuePair<string, World.EventEvalStats> pair in Manager.LastEventEvalStatsPerType)
                 {
-                    InfoText.text += "\n";
-                    InfoText.text += "\nEvents Evaluated (" + pair.Key + "): " + pair.Value.EvaluationCount;
-                    InfoText.text += "\nEvents Triggered (" + pair.Key + "): " + pair.Value.TriggerCount;
+                    int evalCount = pair.Value.EvaluationCount;
 
-                    successRate = 0;
-                    if (Manager.LastEventsEvaluatedCount > 0)
+                    if (evalCount <= 0)
                     {
-                        successRate = pair.Value.TriggerCount / (float)pair.Value.EvaluationCount;
+                        throw new System.Exception("Event of type ("+ pair.Key + ") has 0 evaluations");
                     }
 
-                    InfoText.text += "\nSuccess Rate (" + pair.Key + "): " + successRate.ToString("P");
+                    float percentOfTotal = evalCount / (float)Manager.LastEventsEvaluatedCount;
+
+                    successRate = pair.Value.TriggerCount / (float)evalCount;
+
+                    InfoText.text += "\n" + pair.Key + ": ";
+                    InfoText.text += "\nEvaluated: " + pair.Value.EvaluationCount +
+                        " (" + percentOfTotal.ToString("P") + " of all evaluated events)";
+                    InfoText.text += "\nTriggered: " + pair.Value.TriggerCount +
+                        " (" + successRate.ToString("P") + " success rate)";
+                    InfoText.text += "\n";
                 }
             }
 
-            InfoText.text += "\n";
             InfoText.text += "\nMap Updates Per Second: " + Manager.LastMapUpdateCount;
             InfoText.text += "\nPixel Updates Per Second: " + Manager.LastPixelUpdateCount;
 
