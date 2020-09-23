@@ -8,7 +8,9 @@ public class PolityEntity : Entity
     public const string GetRandomGroupAttributeId = "get_random_group";
     public const string DominantFactionAttributeId = "dominant_faction";
     public const string TransferInfluenceAttributeId = "transfer_influence";
+    public const string ContactStrengthId = "contact_strength";
     public const string TypeAttributeId = "type";
+    public const string LeaderAttributeId = "leader";
 
     public virtual Polity Polity { get; protected set; }
 
@@ -18,6 +20,7 @@ public class PolityEntity : Entity
 
     private ValueGetterEntityAttribute<string> _typeAttribute;
 
+    private DelayedSetAgentEntity _leaderEntity = null;
     private DelayedSetFactionEntity _dominantFactionEntity = null;
 
     private bool _alreadyReset = false;
@@ -48,6 +51,17 @@ public class PolityEntity : Entity
             BuildAttributeId(DominantFactionAttributeId));
 
         return _dominantFactionEntity.GetThisEntityAttribute(this);
+    }
+
+    public EntityAttribute GetLeaderAttribute()
+    {
+        _leaderEntity =
+            _leaderEntity ?? new DelayedSetAgentEntity(
+                GetLeader,
+                Context,
+                BuildAttributeId(LeaderAttributeId));
+
+        return _leaderEntity.GetThisEntityAttribute(this);
     }
 
     private class RandomGroupEntity : GroupEntity
@@ -104,6 +118,8 @@ public class PolityEntity : Entity
 
     public Faction GetDominantFaction() => Polity.DominantFaction;
 
+    public Agent GetLeader() => Polity.CurrentLeader;
+
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)
@@ -114,6 +130,9 @@ public class PolityEntity : Entity
                         TypeAttributeId, this, () => Polity.Type);
                 return _typeAttribute;
 
+            case LeaderAttributeId:
+                return GetLeaderAttribute();
+
             case GetRandomGroupAttributeId:
                 return GenerateRandomGroupEntityAttribute();
 
@@ -122,6 +141,9 @@ public class PolityEntity : Entity
 
             case TransferInfluenceAttributeId:
                 return new TransferInfluenceAttribute(this, arguments);
+
+            case ContactStrengthId:
+                return new ContactStrengthAttribute(this, arguments);
         }
 
         throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);
@@ -139,6 +161,7 @@ public class PolityEntity : Entity
             groupEntity.Reset();
         }
 
+        _leaderEntity?.Reset();
         _dominantFactionEntity?.Reset();
 
         _alreadyReset = true;

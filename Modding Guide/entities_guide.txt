@@ -46,11 +46,20 @@ Here's a list of currently supported entities and their attributes:
     polity's prominence sphere.
     Example: "polity.get_random_group()"
   - dominant_faction:
-    Attribute that returns the current dominant faction entity
+    Attribute that returns the current dominant faction entity.
     Example: "target == polity.dominant_faction"
   - transfer_influence:
-    Attribute function that transfers influence between to of the polity's factions
+    Attribute function that transfers influence between two of the polity's factions.
     Example: "polity.transfer_influence(source_faction, target_faction, influence_to_transfer)"
+  - contact_strength:
+    Attribute function that returns the contact strength between this polity and
+    another one. Contact strength will be greater than 0 if both polities share a
+    border with each other.
+    Example: "polity.contact_strength(neighbor_polity)"
+  - leader:
+    Attribute that returns the leader of the polity's current dominant faction as
+    an agent entity.
+    Examples: "polity.leader.wisdom"
 
 - AGENT:
   This type of entity encapsulates any individual that is or was present within the
