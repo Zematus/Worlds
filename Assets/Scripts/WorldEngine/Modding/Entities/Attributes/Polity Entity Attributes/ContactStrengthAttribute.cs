@@ -7,6 +7,8 @@ public class ContactStrengthAttribute : ValueEntityAttribute<float>
 {
     private PolityEntity _polityEntity;
 
+    private readonly IValueExpression<Entity> _argumentExp;
+
     private readonly PolityEntity _targetPolityEntity;
 
     public ContactStrengthAttribute(PolityEntity polityEntity, IExpression[] arguments)
@@ -14,25 +16,22 @@ public class ContactStrengthAttribute : ValueEntityAttribute<float>
     {
         _polityEntity = polityEntity;
 
-        IValueExpression<Entity> argumentExp =
-            ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);
-
-        _targetPolityEntity = argumentExp.Value as PolityEntity;
-
-        if (_targetPolityEntity == null)
-        {
-            throw new System.Exception(
-                "Input parameter is not of a valid polity entity: " + argumentExp.Value.GetType() +
-                "\n - expression: " + argumentExp.ToString() +
-                "\n - value: " + argumentExp.ToPartiallyEvaluatedString());
-        }
+        _argumentExp = ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);
     }
 
     public override float Value
     {
         get
         {
-            return _polityEntity.Polity.CalculateContactStrength(_targetPolityEntity.Polity);
+            if (_argumentExp.Value is PolityEntity pEntity)
+            {
+                return _polityEntity.Polity.GetRelationshipValue(pEntity.Polity);
+            }
+
+            throw new System.Exception(
+                "Input parameter is not of a valid polity entity: " + _argumentExp.Value.GetType() +
+                "\n - expression: " + _argumentExp.ToString() +
+                "\n - value: " + _argumentExp.ToPartiallyEvaluatedString());
         }
     }
 }
