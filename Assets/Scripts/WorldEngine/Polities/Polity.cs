@@ -1500,7 +1500,34 @@ public abstract class Polity : ISynchronizable
         return CollectionUtility.WeightedSelection(weightedFactions, totalWeight, GetNextLocalRandomFloat(rngOffset));
     }
 
-    public PolityContact GetRandomPolityContact(int rngOffset, PolityContactValueCalculationDelegate calculateContactValue, bool nullIfNoValidContact = false)
+    /// <summary>
+    /// Returns a default weight value for all existing contacts
+    /// </summary>
+    /// <param name="contact">the contact to get the default weight for</param>
+    /// <returns>the default weight value (1)</returns>
+    private float GetDefaultContactWeight(PolityContact contact)
+    {
+        return 1;
+    }
+
+    /// <summary>
+    /// Returns a random contact associated with this polity, using default weighting
+    /// </summary>
+    /// <param name="rngOffset">the offset to use for the local RNG</param>
+    /// <returns>A contact, or null if there are no valid contacts to choose from</returns>
+    public PolityContact GetRandomPolityContact(int rngOffset)
+    {
+        return GetRandomPolityContact(rngOffset, GetDefaultContactWeight);
+    }
+
+    /// <summary>
+    /// Returns a random contact associated with this polity
+    /// </summary>
+    /// <param name="rngOffset">the offset to use for the local RNG</param>
+    /// <param name="calculateContactValue">delegate to calculate the weight of a contact</param>
+    /// <returns>A contact, or null if there are no valid contacts to choose from</returns>
+    public PolityContact GetRandomPolityContact(
+        int rngOffset, PolityContactValueCalculationDelegate calculateContactValue)
     {
         WeightedPolityContact[] weightedContacts = new WeightedPolityContact[_contacts.Count];
 
@@ -1512,7 +1539,8 @@ public abstract class Polity : ISynchronizable
             float weight = calculateContactValue(contact);
 
             if (weight < 0)
-                throw new System.Exception("calculateContactValue method returned weight value less than zero: " + weight);
+                throw new System.Exception(
+                    "calculateContactValue method returned weight value less than zero: " + weight);
 
             totalWeight += weight;
 
@@ -1522,36 +1550,12 @@ public abstract class Polity : ISynchronizable
 
         float selectionValue = GetNextLocalRandomFloat(rngOffset);
 
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Id == Manager.TracingData.PolityId)
-        //            {
-        //                string contactWeights = "";
-
-        //                foreach (WeightedPolityContact wc in weightedContacts)
-        //                {
-        //                    contactWeights += "\n\tPolity.Id: " + wc.Value.Id + ", weight: " + wc.Weight;
-        //                }
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                "Polity:GetRandomPolityContact - Polity.Id:" + Id,
-        //                "selectionValue: " + selectionValue +
-        //                ", Contact Weights: " + contactWeights +
-        //                "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
-
         if (totalWeight < 0)
         {
-
             throw new System.Exception("Total weight can't be less than zero: " + totalWeight);
         }
 
-        if ((totalWeight == 0) && nullIfNoValidContact)
+        if (totalWeight == 0)
         {
             return null;
         }

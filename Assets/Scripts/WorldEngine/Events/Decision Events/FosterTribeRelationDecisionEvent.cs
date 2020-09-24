@@ -99,7 +99,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent
 
         int rngOffset = unchecked((int)(RngOffsets.EVENT_CAN_TRIGGER + Id));
 
-        _targetContact = _sourceTribe.GetRandomPolityContact(rngOffset++, GetContactWeight, true);
+        _targetContact = _sourceTribe.GetRandomPolityContact(rngOffset++, GetContactWeight);
 
         if (_targetContact == null)
             return false;

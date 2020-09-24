@@ -206,7 +206,6 @@ public class ModTest
 
         Knowledge.ResetKnowledges();
         Knowledge.InitializeKnowledges();
-        CulturalPreference.InitializePreferences();
 
         _testWorld = new World(400, 200, 1);
         _testWorld.TerrainInitialization();
@@ -547,8 +546,6 @@ public class ModTest
     {
         Debug.Log("loading event mod file...");
 
-        CulturalPreference.InitializePreferences();
-
         EventGenerator.ResetGenerators();
         EventGenerator.LoadEventFile(Path.Combine("Mods", "Base", "Events", "events.json"));
     }
@@ -569,8 +566,6 @@ public class ModTest
     private void LoadBaseDecisionsMod()
     {
         Debug.Log("loading decision mod files...");
-
-        CulturalPreference.InitializePreferences();
 
         ModDecision.ResetDecisions();
 
