@@ -4130,14 +4130,11 @@ public class Manager
 
         Discovery.ResetDiscoveries();
         Knowledge.ResetKnowledges();
+
         PreferenceGenerator.ResetPreferenceGenerators();
-
         EventGenerator.ResetGenerators();
-        ModDecision.ResetDecisions();
 
-        // TODO: This should happend after mods are loaded. And preferences
-        // should be loaded from mods...
-        CulturalPreference.InitializePreferences();
+        ModDecision.ResetDecisions();
 
         float progressPerMod = 0.1f / paths.Count;
 

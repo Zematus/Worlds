@@ -28,8 +28,13 @@ public class ContactStrengthAttribute : ValueEntityAttribute<float>
                 return _polityEntity.Polity.GetRelationshipValue(pEntity.Polity);
             }
 
+            if (_argumentExp.Value is ContactEntity cEntity)
+            {
+                return _polityEntity.Polity.GetRelationshipValue(cEntity.Contact.Polity);
+            }
+
             throw new System.Exception(
-                "Input parameter is not of a valid polity entity: " + _argumentExp.Value.GetType() +
+                "Input parameter is not of a valid polity or contact entity: " + _argumentExp.Value.GetType() +
                 "\n - expression: " + _argumentExp.ToString() +
                 "\n - value: " + _argumentExp.ToPartiallyEvaluatedString());
         }

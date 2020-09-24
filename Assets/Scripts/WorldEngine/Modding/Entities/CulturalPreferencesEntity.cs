@@ -66,7 +66,7 @@ public class CulturalPreferencesEntity : Entity
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
-        if (!CulturalPreference.Preferences.Contains(attributeId))
+        if (!PreferenceGenerator.Generators.ContainsKey(attributeId))
         {
             throw new System.ArgumentException(
                 "Unrecognized cultural preference in entity attribute: " + attributeId);

@@ -6,15 +6,18 @@ using System.Text.RegularExpressions;
 public class PolityEntity : Entity
 {
     public const string GetRandomGroupAttributeId = "get_random_group";
+    public const string GetRandomContactAttributeId = "get_random_contact";
     public const string DominantFactionAttributeId = "dominant_faction";
     public const string TransferInfluenceAttributeId = "transfer_influence";
     public const string ContactStrengthId = "contact_strength";
     public const string TypeAttributeId = "type";
     public const string LeaderAttributeId = "leader";
+    public const string ContactsAttributeId = "contacts";
 
     public virtual Polity Polity { get; protected set; }
 
     public int RandomGroupIndex = 0;
+    public int RandomContactIndex = 0;
 
     protected override object _reference => Polity;
 
@@ -27,6 +30,9 @@ public class PolityEntity : Entity
 
     private readonly List<RandomGroupEntity>
         _randomGroupEntitiesToSet = new List<RandomGroupEntity>();
+
+    private readonly List<RandomContactEntity>
+        _randomContactEntitiesToSet = new List<RandomContactEntity>();
 
     public override string GetDebugString()
     {
@@ -105,6 +111,47 @@ public class PolityEntity : Entity
         }
     }
 
+    private class RandomContactEntity : ContactEntity
+    {
+        private int _index;
+        private int _iterOffset;
+        private PolityEntity _polityEntity;
+
+        private PolityContact _contact = null;
+
+        public RandomContactEntity(int index, PolityEntity entity)
+            : base(entity.Context, entity.Id + ".random_contact_" + index)
+        {
+            _index = index;
+            _iterOffset = entity.Context.GetNextIterOffset() + index;
+            _polityEntity = entity;
+        }
+
+        public void Reset()
+        {
+            _contact = null;
+        }
+
+        public override PolityContact Contact
+        {
+            get
+            {
+                if (_contact == null)
+                {
+                    Polity polity = _polityEntity.Polity;
+
+                    int offset = polity.GetHashCode() + _iterOffset + Context.GetBaseOffset();
+
+                    _contact = polity.GetRandomPolityContact(offset);
+
+                    Set(_contact);
+                }
+
+                return _contact;
+            }
+        }
+    }
+
     private EntityAttribute GenerateRandomGroupEntityAttribute()
     {
         int groupIndex = RandomGroupIndex++;
@@ -112,6 +159,17 @@ public class PolityEntity : Entity
         RandomGroupEntity entity = new RandomGroupEntity(groupIndex, this);
 
         _randomGroupEntitiesToSet.Add(entity);
+
+        return entity.GetThisEntityAttribute(this);
+    }
+
+    private EntityAttribute GenerateRandomContactEntityAttribute()
+    {
+        int contactIndex = RandomContactIndex++;
+
+        RandomContactEntity entity = new RandomContactEntity(contactIndex, this);
+
+        _randomContactEntitiesToSet.Add(entity);
 
         return entity.GetThisEntityAttribute(this);
     }
@@ -136,6 +194,9 @@ public class PolityEntity : Entity
             case GetRandomGroupAttributeId:
                 return GenerateRandomGroupEntityAttribute();
 
+            case GetRandomContactAttributeId:
+                return GenerateRandomContactEntityAttribute();
+
             case DominantFactionAttributeId:
                 return GetDominantFactionAttribute();
 
@@ -159,6 +220,11 @@ public class PolityEntity : Entity
         foreach (RandomGroupEntity groupEntity in _randomGroupEntitiesToSet)
         {
             groupEntity.Reset();
+        }
+
+        foreach (RandomContactEntity contactEntity in _randomContactEntitiesToSet)
+        {
+            contactEntity.Reset();
         }
 
         _leaderEntity?.Reset();
