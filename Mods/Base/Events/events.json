@@ -77,7 +77,7 @@
       "assignmentConditions": [
         "target == target_polity.dominant_faction",
         "target_polity.type == tribe",
-        "target_polity.contacts.count >= 1"
+        "target_polity.contact_count >= 1"
       ],
       "triggerConditions": [
         "chance_of_making_attempt > 0"
