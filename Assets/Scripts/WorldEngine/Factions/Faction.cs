@@ -9,6 +9,9 @@ using System;
 [XmlInclude(typeof(Clan))]
 public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 {
+    public static List<IFactionEventGenerator> OnSpawnEventGenerators;
+    public static List<IFactionEventGenerator> OnStatusChangeEventGenerators;
+
     [XmlAttribute("Inf")]
     public float InfluenceInternal;
 
@@ -55,9 +58,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     [XmlIgnore]
     public bool HasBeenUpdated = false;
-
-    public static List<IFactionEventGenerator> OnSpawnEventGenerators;
-    public static List<IFactionEventGenerator> OnStatusChangeEventGenerators;
 
     public List<string> Flags;
 

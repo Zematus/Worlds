@@ -33,6 +33,11 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         Faction.OnStatusChangeEventGenerators.Add(this);
     }
 
+    public override void SetToAssignOnPolityContactChange()
+    {
+        Polity.OnPolityContactChangeEventGenerators.Add(this);
+    }
+
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
         FactionModEvent modEvent = new FactionModEvent(this, Target.Faction, triggerDate);

@@ -12,7 +12,7 @@ public class PolityEntity : Entity
     public const string ContactStrengthId = "contact_strength";
     public const string TypeAttributeId = "type";
     public const string LeaderAttributeId = "leader";
-    public const string ContactsAttributeId = "contacts";
+    public const string ContactCountAttributeId = "contact_count";
 
     public virtual Polity Polity { get; protected set; }
 
@@ -22,6 +22,7 @@ public class PolityEntity : Entity
     protected override object _reference => Polity;
 
     private ValueGetterEntityAttribute<string> _typeAttribute;
+    private ValueGetterEntityAttribute<float> _contactCountAttribute;
 
     private DelayedSetAgentEntity _leaderEntity = null;
     private DelayedSetFactionEntity _dominantFactionEntity = null;
@@ -187,6 +188,12 @@ public class PolityEntity : Entity
                     _typeAttribute ?? new ValueGetterEntityAttribute<string>(
                         TypeAttributeId, this, () => Polity.Type);
                 return _typeAttribute;
+
+            case ContactCountAttributeId:
+                _contactCountAttribute =
+                    _contactCountAttribute ?? new ValueGetterEntityAttribute<float>(
+                        ContactCountAttributeId, this, () => Polity.GetPolityContacts().Count);
+                return _contactCountAttribute;
 
             case LeaderAttributeId:
                 return GetLeaderAttribute();

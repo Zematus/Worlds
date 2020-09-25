@@ -15,12 +15,11 @@ public delegate float PolityContactValueCalculationDelegate(PolityContact contac
 public abstract class Polity : ISynchronizable
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 2500;
-
     public const float CoreDistanceEffectConstant = 10000;
-
     public const float MinPolityProminenceValue = 0.01f;
-
     public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
+
+    public static List<IWorldEventGenerator> OnPolityContactChangeEventGenerators;
 
     [XmlAttribute("AC")]
     public float TotalAdministrativeCost_Internal = 0; // This is public to be XML-serializable (I know there are more proper solutions. I'm just being lazy)
@@ -119,6 +118,14 @@ public abstract class Polity : ISynchronizable
 
             return TotalAdministrativeCost_Internal;
         }
+    }
+
+    /// <summary>
+    /// Resets the event generators associated with polities
+    /// </summary>
+    public static void ResetEventGenerators()
+    {
+        OnPolityContactChangeEventGenerators = new List<IWorldEventGenerator>();
     }
 
     /// <summary>
@@ -478,6 +485,11 @@ public abstract class Polity : ISynchronizable
         return _eventMessageIds.Contains(id);
     }
 
+    public ICollection<PolityContact> GetPolityContacts()
+    {
+        return _contacts.Values;
+    }
+
     public void SetCoreGroup(CellGroup coreGroup)
     {
         if (CoreGroup != null)
@@ -649,6 +661,8 @@ public abstract class Polity : ISynchronizable
             throw new System.Exception("Unable to modify existing polity contact. polityA: " +
                 Id + ", polityB: " + polity.Id);
         }
+
+        ApplyPolityContactChange();
     }
 
     public static void RemoveContact(Polity polityA, Polity polityB)
@@ -667,6 +681,8 @@ public abstract class Polity : ISynchronizable
         _contacts.Remove(polity.Id);
 
         SetContactUpdatedCells(polity);
+
+        ApplyPolityContactChange();
     }
 
     public ICollection<PolityContact> GetContacts()
@@ -1594,6 +1610,23 @@ public abstract class Polity : ISynchronizable
         float countFactor = contact.GroupCount / minGroupCount;
 
         return countFactor;
+    }
+
+    /// <summary>
+    /// Applies the effects of adding or removing a contact from this polity
+    /// </summary>
+    public void ApplyPolityContactChange()
+    {
+        foreach (IWorldEventGenerator generator in OnPolityContactChangeEventGenerators)
+        {
+            if (generator is IFactionEventGenerator fGenerator)
+            {
+                foreach (Faction faction in _factions.Values)
+                {
+                    fGenerator.TryGenerateEventAndAssign(faction);
+                }
+            }
+        }
     }
 
     public void MergePolity(Polity polity)

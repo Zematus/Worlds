@@ -4120,6 +4120,7 @@ public class Manager
         World.ResetStaticModData();
         CellGroup.ResetEventGenerators();
         Faction.ResetEventGenerators();
+        Polity.ResetEventGenerators();
 
         Layer.ResetLayers();
         Biome.ResetBiomes();

@@ -13,6 +13,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public const string AssignOnSpawn = "spawn";
     public const string AssignOnEvent = "event";
     public const string AssignOnStatusChange = "status_change";
+    public const string AssignOnPolityContactChange = "polity_contact_change";
 
     public const string FactionTargetType = "faction";
     public const string GroupTargetType = "group";
@@ -105,6 +106,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public abstract void SetToAssignOnSpawn();
     public abstract void SetToAssignOnEvent();
     public abstract void SetToAssignOnStatusChange();
+    public abstract void SetToAssignOnPolityContactChange();
 
     public virtual void Initialize()
     {
@@ -126,6 +128,10 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
                 case AssignOnStatusChange:
                     SetToAssignOnStatusChange();
+                    break;
+
+                case AssignOnPolityContactChange:
+                    SetToAssignOnPolityContactChange();
                     break;
 
                 default:

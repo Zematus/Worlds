@@ -28,6 +28,108 @@ public class ModTest
     TestPolity _testPolity1;
     TestPolity _testPolity2;
 
+    private void LoadBiomes()
+    {
+        Debug.Log("loading biome mod file...");
+
+        Biome.ResetBiomes();
+        Biome.LoadBiomesFile(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
+    }
+
+    [Test]
+    public void LoadBiomeModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        LoadBiomes();
+
+        foreach (Biome biome in Biome.Biomes.Values)
+        {
+            Debug.Log("loaded biome: " + biome.Name);
+        }
+    }
+
+    private void LoadCulturalPreferences()
+    {
+        Debug.Log("loading cultural preferences mod file...");
+
+        PreferenceGenerator.ResetPreferenceGenerators();
+        PreferenceGenerator.LoadPreferencesFile(Path.Combine("Mods", "Base", "Preferences", "preferences.json"));
+    }
+
+    [Test]
+    public void LoadCulturalPreferenceModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        LoadCulturalPreferences();
+
+        foreach (PreferenceGenerator generator in PreferenceGenerator.Generators.Values)
+        {
+            Debug.Log("loaded preference generator: " + generator.Name);
+        }
+    }
+
+    [Test]
+    public void LoadLayersModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        Debug.Log("loading layer mod file...");
+
+        Layer.ResetLayers();
+        Layer.LoadLayersFile(Path.Combine("Mods", "WeirdBiomesMod", "Layers", "weirdLayers.json"));
+
+        foreach (Layer layer in Layer.Layers.Values)
+        {
+            Debug.Log("loaded layer: " + layer.Name);
+        }
+    }
+
+    private void LoadRegionAttributes()
+    {
+        Debug.Log("loading region attribute mod file...");
+
+        Adjective.ResetAdjectives();
+        RegionAttribute.ResetAttributes();
+        RegionAttribute.LoadRegionAttributesFile(Path.Combine("Mods", "Base", "RegionAttributes", "region_attributes.json"));
+    }
+
+    [Test]
+    public void LoadRegionAttributeModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        LoadRegionAttributes();
+
+        foreach (RegionAttribute regionAttribute in RegionAttribute.Attributes.Values)
+        {
+            Debug.Log("loaded region attribute: " + regionAttribute.Name);
+        }
+    }
+
+    private void LoadElements()
+    {
+        Debug.Log("loading element mod file...");
+
+        Adjective.ResetAdjectives();
+        Element.ResetElements();
+        Element.LoadElementsFile(Path.Combine("Mods", "Base", "Elements", "elements.json"));
+    }
+
+    [Test]
+    public void LoadElementModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        LoadElements();
+
+        foreach (Element element in Element.Elements.Values)
+        {
+            Debug.Log("loaded element: " + element.SingularName);
+        }
+    }
+
     [Test]
     public void ModTextParseTest()
     {
@@ -193,6 +295,7 @@ public class ModTest
         World.ResetStaticModData();
         CellGroup.ResetEventGenerators();
         Faction.ResetEventGenerators();
+        Polity.ResetEventGenerators();
     }
 
     private void InitializeTestWorld()
@@ -201,8 +304,11 @@ public class ModTest
 
         InitializeModData();
 
-        Biome.ResetBiomes();
-        Biome.LoadBiomesFile(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
+        LoadBiomes();
+        LoadRegionAttributes();
+        LoadElements();
+
+        LoadCulturalPreferences();
 
         Knowledge.ResetKnowledges();
         Knowledge.InitializeKnowledges();
