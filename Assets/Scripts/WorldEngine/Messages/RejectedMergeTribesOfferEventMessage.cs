@@ -15,7 +15,7 @@ public class RejectedMergeTribesOfferEventMessage : PolityEventMessage
 
     }
 
-    public RejectedMergeTribesOfferEventMessage(Tribe sourceTribe, Tribe targetTribe, Agent agent, long date) : base(sourceTribe, WorldEvent.RejectInfluenceDemandDecisionEventId, date)
+    public RejectedMergeTribesOfferEventMessage(Tribe sourceTribe, Tribe targetTribe, Agent agent, long date) : base(sourceTribe, WorldEvent.RejectMergeTribesOfferDecisionEventId, date)
     {
         sourceTribe.World.AddMemorableAgent(agent);
 

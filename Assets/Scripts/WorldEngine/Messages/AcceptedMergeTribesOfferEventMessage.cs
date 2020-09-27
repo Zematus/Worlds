@@ -17,7 +17,7 @@ public class AcceptedMergeTribesOfferEventMessage : PolityEventMessage
 
     public AcceptedMergeTribesOfferEventMessage(
         Tribe sourceTribe, Tribe targetTribe, Agent targetTribeLeader, long date) :
-        base(sourceTribe, WorldEvent.AcceptFosterTribeRelationDecisionEventId, date)
+        base(sourceTribe, WorldEvent.AcceptMergeTribesOfferDecisionEventId, date)
     {
         sourceTribe.World.AddMemorableAgent(targetTribeLeader);
 

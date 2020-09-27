@@ -130,9 +130,6 @@ public class Tribe : Polity
         {
             switch (eData.TypeId)
             {
-                //case WorldEvent.FosterTribeRelationDecisionEventId:
-                //    AddEvent(new FosterTribeRelationDecisionEvent(this, eData));
-                //    break;
                 case WorldEvent.MergeTribesDecisionEventId:
                     AddEvent(new MergeTribesDecisionEvent(this, eData));
                     break;

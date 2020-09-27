@@ -321,20 +321,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         return _relationships.ContainsKey(faction.Id);
     }
 
-    [Obsolete]
-    public void SetToSplit(CellGroup splitFactionCoreGroup, float splitFactionMinInfluence, float splitFactionMaxInfluence, long eventId)
-    {
-        _splitFactionEventId = eventId;
-        _splitFactionCoreGroup = splitFactionCoreGroup;
-        _splitFactionMinInfluence = splitFactionMinInfluence;
-        _splitFactionMaxInfluence = splitFactionMaxInfluence;
-
-        // obsolete call
-        //_splitFactionCoreGroup.SetToBecomeFactionCore();
-
-        World.AddFactionToSplit(this);
-    }
-
     protected abstract void GenerateName(Faction parentFaction);
 
     protected Agent RequestCurrentLeader(int leadershipSpan, int minStartAge, int maxStartAge, int offset)
@@ -486,9 +472,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         newPolity.AddEventMessage(new FactionSplitEventMessage(this, newFaction, World.CurrentDate));
     }
-
-    [Obsolete]
-    public abstract void Split();
 
     public virtual void HandleUpdateEvent()
     {

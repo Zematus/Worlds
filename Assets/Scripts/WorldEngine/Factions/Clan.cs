@@ -135,13 +135,6 @@ public class Clan : Faction
                 case WorldEvent.TribeSplitDecisionEventId:
                     AddEvent(new TribeSplitDecisionEvent(this, eData));
                     break;
-                // TODO: cleanup
-                //case WorldEvent.ClanSplitDecisionEventId:
-                //    AddEvent(new ClanSplitDecisionEvent(this, eData));
-                //    break;
-                //case WorldEvent.ClanDemandsInfluenceDecisionEventId:
-                //    AddEvent(new ClanDemandsInfluenceDecisionEvent(this, eData));
-                //    break;
                 default:
                     throw new System.Exception("Unhandled faction event type id: " + eData.TypeId);
             }
@@ -471,90 +464,6 @@ public class Clan : Faction
         //#endif
 
         return (randomValue > migrateCoreFactor);
-    }
-
-    [Obsolete]
-    public override void Split()
-    {
-        int randomOffset = unchecked(RngOffsets.CLAN_SPLIT + GetHashCode());
-
-        float randomValue = GetNextLocalRandomFloat(randomOffset++);
-        float splitFactionInfluence = _splitFactionMinInfluence + (randomValue * (_splitFactionMaxInfluence - _splitFactionMinInfluence));
-
-        Influence -= splitFactionInfluence;
-
-        if (_splitFactionCoreGroup == null)
-        {
-            throw new System.Exception("_splitFactionCoreGroup is null - Clan Id: " + Id + ", Event Id: " + _splitFactionEventId);
-        }
-
-        float polityProminenceValue = _splitFactionCoreGroup.GetPolityProminenceValue(Polity);
-        PolityProminence highestPolityProminence = _splitFactionCoreGroup.HighestPolityProminence;
-
-        if (highestPolityProminence == null)
-        {
-            throw new System.Exception(
-                "highestPolityProminence is null - Clan Id: " + Id +
-                ", Group Id: " + _splitFactionCoreGroup +
-                ", Event Id: " + _splitFactionEventId);
-        }
-
-        if (CurrentLeader == null)
-        {
-            throw new System.Exception("CurrentLeader is null - Clan Id: " + Id + ", Event Id: " + _splitFactionEventId);
-        }
-
-        Tribe parentTribe = Polity as Tribe;
-
-        if (parentTribe == null)
-        {
-            throw new System.Exception("parentTribe is null - Clan Id: " + Id + ", Event Id: " + _splitFactionEventId);
-        }
-
-        // If the polity with the highest prominence is different than the source clan's polity and it's value is twice greater switch the new clan's polity to this one.
-        // NOTE: This is sort of a hack to avoid issues with clan/tribe split coincidences (issue #8 github). Try finding a better solution...
-        if (highestPolityProminence.Value > (polityProminenceValue * 2))
-        {
-
-            if (highestPolityProminence.Polity is Tribe)
-            {
-                parentTribe = highestPolityProminence.Polity as Tribe;
-
-                //#if DEBUG
-                //                Debug.Log("parent tribe replaced from " + Polity.Id + " to " + parentTribe.Id + " due to low polity prominence value in new core: " + polityProminenceValue);
-                //#endif
-            }
-            else
-            {
-                throw new System.Exception("Failed to replace new parent polity as it is not a Tribe. Id: " + highestPolityProminence.Polity.Id + ", Event Id: " + _splitFactionEventId);
-            }
-        }
-
-        Clan newClan = new Clan(parentTribe, _splitFactionCoreGroup, splitFactionInfluence, this);
-
-        if (newClan == null)
-        {
-            throw new System.Exception("newClan is null - Clan Id: " + Id + ", Event Id: " + _splitFactionEventId);
-        }
-
-        newClan.Initialize(); // We can initialize right away since the containing polity is already initialized
-
-        // set relationship with parent clan
-
-        float parentClanRelationshipValue = AvgClanSplitRelationshipValue + (CurrentLeader.Charisma - 10) / ClanSplitRelationshipValueCharismaFactor;
-
-        randomValue = GetNextLocalRandomFloat(randomOffset++);
-        float relationshipValue = parentClanRelationshipValue + (ClanSplitRelationshipValueSpread * (2f * randomValue - 1f));
-
-        SetRelationship(this, newClan, relationshipValue);
-
-        parentTribe.AddFaction(newClan);
-
-        World.AddFactionToUpdate(this);
-        World.AddFactionToUpdate(newClan);
-        World.AddPolityToUpdate(Polity);
-
-        parentTribe.AddEventMessage(new ClanSplitEventMessage(this, newClan, World.CurrentDate));
     }
 
     protected override float CalculateAdministrativeLoad()
