@@ -18,6 +18,8 @@ public class DelayedSetGroupEntity : GroupEntity
     public void Reset()
     {
         _group = null;
+
+        ResetInternal();
     }
 
     public override CellGroup Group

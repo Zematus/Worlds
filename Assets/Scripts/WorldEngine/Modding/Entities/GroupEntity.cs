@@ -11,6 +11,8 @@ public class GroupEntity : Entity
 
     private DelayedSetCellEntity _cellEntity = null;
 
+    private bool _alreadyReset = false;
+
     public GroupEntity(Context c, string id) : base(c, id)
     {
     }
@@ -52,6 +54,22 @@ public class GroupEntity : Entity
     public void Set(CellGroup g)
     {
         Group = g;
+
+        ResetInternal();
+
+        _alreadyReset = false;
+    }
+
+    protected void ResetInternal()
+    {
+        if (_alreadyReset)
+        {
+            return;
+        }
+
+        _cellEntity?.Reset();
+
+        _alreadyReset = true;
     }
 
     public TerrainCell GetCell() => Group.Cell;

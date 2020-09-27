@@ -7,6 +7,8 @@ public class ContactEntity : Entity
 
     private DelayedSetPolityEntity _polityEntity = null;
 
+    private bool _alreadyReset = false;
+
     public ContactEntity(Context c, string id) : base(c, id)
     {
     }
@@ -48,6 +50,22 @@ public class ContactEntity : Entity
     public void Set(PolityContact c)
     {
         Contact = c;
+
+        ResetInternal();
+
+        _alreadyReset = false;
+    }
+
+    protected void ResetInternal()
+    {
+        if (_alreadyReset)
+        {
+            return;
+        }
+
+        _polityEntity?.Reset();
+
+        _alreadyReset = true;
     }
 
     public Polity GetPolity() => Contact.Polity;
