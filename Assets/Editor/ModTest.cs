@@ -419,7 +419,7 @@ public class ModTest
 
         _testPolity1 = new TestPolity("tribe", _testGroup1);
         _testFaction0 = new TestFaction("clan", _testPolity1, _testGroup1, 0.5f, null, 200000f);
-        _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup2, 0.3f, null, 300000f);
+        _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup2, 0.3f, null, 150000f);
         _testFaction2 = new TestFaction("clan", _testPolity1, _testGroup3, 0.2f, null, 200000f);
 
         _testPolity1.SetDominantFaction(_testFaction0);
@@ -494,6 +494,10 @@ public class ModTest
 
         _testPolity1.ClusterUpdate();
         _testPolity2.ClusterUpdate();
+
+        Faction.SetRelationship(_testFaction0, _testFaction1, 0.6f);
+
+        Polity.AddContact(_testPolity1, _testPolity2, 1);
     }
 
     [Test]
@@ -519,7 +523,7 @@ public class ModTest
         testFactionEntity.Set(_testFaction0);
 
         string type = (expression as IValueExpression<string>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + type);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + type);
         Assert.AreEqual("clan", type);
 
         ////
@@ -530,7 +534,7 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         bool boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
         Assert.IsTrue(boolResult);
 
         ////
@@ -541,33 +545,33 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         float floatResult = (expression as IValueExpression<float>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + floatResult);
         Assert.AreEqual(200000f, floatResult);
 
         testFactionEntity.Set(_testFaction1);
 
         floatResult = (expression as IValueExpression<float>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
-        Assert.AreEqual(300000f, floatResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + floatResult);
+        Assert.AreEqual(150000f, floatResult);
 
         ////
 
         expression =
-            ExpressionBuilder.BuildExpression(testContext, "target.administrative_load > 250000");
+            ExpressionBuilder.BuildExpression(testContext, "target.administrative_load > 170000");
 
         testFactionEntity.Set(_testFaction0);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
-        Assert.IsFalse(boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
+        Assert.IsTrue(boolResult);
 
         testFactionEntity.Set(_testFaction1);
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
-        Assert.IsTrue(boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + boolResult);
+        Assert.IsFalse(boolResult);
 
         ////
 
@@ -579,13 +583,13 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
         Assert.IsTrue(boolResult);
 
         testFactionEntity.Set(_testFaction1);
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + boolResult);
         Assert.IsFalse(boolResult);
 
         ////
@@ -598,13 +602,13 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
         Assert.IsFalse(boolResult);
 
         testFactionEntity.Set(_testFaction1);
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + boolResult);
         Assert.IsTrue(boolResult);
 
         ////
@@ -618,14 +622,14 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         floatResult = (expression as IValueExpression<float>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + floatResult);
         Assert.AreEqual(45625, floatResult);
 
         testFactionEntity.Set(_testFaction1);
 
         floatResult = (expression as IValueExpression<float>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
-        Assert.AreEqual(50839.2852f, floatResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + floatResult);
+        Assert.AreEqual(62215.9141f, floatResult);
 
         ////
 
@@ -638,13 +642,13 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
         Assert.IsTrue(boolResult);
 
         testFactionEntity.Set(_testFaction1);
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + boolResult);
         Assert.IsFalse(boolResult);
     }
 
@@ -696,7 +700,12 @@ public class ModTest
         }
     }
 
-    private void TriggerModEventTest(Faction testFaction, string eventId)
+    /// <summary>
+    /// Tests triggering a specific faction event
+    /// </summary>
+    /// <param name="testFaction">the test faction to use</param>
+    /// <param name="eventId">the event generator id</param>
+    private void TriggerFactionModEventTest(Faction testFaction, string eventId)
     {
         List<WorldEvent> eventsToHappen = _testWorld.GetEventsToHappen();
 
@@ -706,26 +715,21 @@ public class ModTest
 
         foreach (FactionModEvent e in eventsToHappen)
         {
-            if (e.GeneratorId == "clan_decide_split")
+            if ((e.GeneratorId == eventId) &&
+                (e.Generator.Target.Faction == testFaction))
             {
                 modEvent = e;
-
-                if (modEvent.Generator.Target.Faction == testFaction)
-                {
-                    break;
-                }
-
-                modEvent = null;
+                break;
             }
         }
 
-        Debug.Log("Assert.IsNotNull(splitEvent)");
+        Debug.Log("Assert.IsNotNull(modEvent)");
         Assert.IsNotNull(modEvent);
 
         Debug.Log("Assert.IsTrue(modEvent.CanTrigger())");
         Assert.IsTrue(modEvent.CanTrigger());
 
-        Debug.Log("splitEvent.Trigger()");
+        Debug.Log("modEvent.Trigger()");
         modEvent.Trigger();
     }
 
@@ -741,7 +745,7 @@ public class ModTest
 
         _testFaction2.InitializeDefaultEvents();
 
-        TriggerModEventTest(_testFaction2, "clan_decide_split");
+        TriggerFactionModEventTest(_testFaction2, "clan_decide_split");
     }
 
     [Test]
@@ -756,8 +760,25 @@ public class ModTest
 
         EventGenerator.InitializeGenerators();
 
+        _testFaction1.InitializeDefaultEvents();
+
+        TriggerFactionModEventTest(_testFaction1, "clan_decide_performing_influence_demand");
+    }
+
+    [Test]
+    public void TriggerFosterRelationshipDecision()
+    {
+        Manager.CurrentDevMode = DevMode.Advanced;
+
+        InitializeTestFactions();
+
+        LoadBaseEventsMod();
+        LoadBaseDecisionsMod();
+
+        EventGenerator.InitializeGenerators();
+
         _testFaction0.InitializeDefaultEvents();
 
-        TriggerModEventTest(_testFaction0, "clan_decide_performing_influence_demand");
+        TriggerFactionModEventTest(_testFaction0, "tribe_decide_fostering_relationship");
     }
 }

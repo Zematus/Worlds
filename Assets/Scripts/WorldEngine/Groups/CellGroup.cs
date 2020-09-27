@@ -2401,12 +2401,12 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>'true' if there was a change in prominence values</returns>
     private bool CalculateNewPolityProminenceValues(bool afterPolityUpdates = false)
     {
-#if DEBUG
-        if ((Id == "0000000000053130607:8730498093635295900") && (World.CurrentDate == 223877150))
-        {
-            Debug.LogWarning("Debugging CalculateNewPolityProminenceValues...");
-        }
-#endif
+//#if DEBUG
+//        if ((Id == "0000000000053130607:8730498093635295900") && (World.CurrentDate == 223877150))
+//        {
+//            Debug.LogWarning("Debugging CalculateNewPolityProminenceValues...");
+//        }
+//#endif
 
         // There was no new deltas so there's nothing to calculate
         // NOTE: after polity updates there might be no deltas, bu we still need to recalculate
