@@ -151,7 +151,7 @@ public class World : ISynchronizable
         //XmlArrayItem(Type = typeof(ClanDemandsInfluenceDecisionEvent)),
         XmlArrayItem(Type = typeof(TribeSplitDecisionEvent)),
         XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
-        XmlArrayItem(Type = typeof(FosterTribeRelationDecisionEvent)),
+        //XmlArrayItem(Type = typeof(FosterTribeRelationDecisionEvent)),
         XmlArrayItem(Type = typeof(MergeTribesDecisionEvent)),
         XmlArrayItem(Type = typeof(OpenTribeDecisionEvent)),
         XmlArrayItem(Type = typeof(Discovery.DiscoveryEvent)),

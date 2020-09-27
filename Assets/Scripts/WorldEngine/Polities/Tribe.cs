@@ -79,20 +79,20 @@ public class Tribe : Polity
 
     public override void InitializeInternal()
     {
-        long triggerDate = FosterTribeRelationDecisionEvent.CalculateTriggerDate(this);
-        if (triggerDate > 0)
-        {
-            if (triggerDate <= World.CurrentDate)
-            {
-                throw new System.Exception(
-                    "FosterTribeRelationDecisionEvent Trigger Date (" + triggerDate +
-                    ") less or equal to current date: " + World.CurrentDate);
-            }
+        //long triggerDate = FosterTribeRelationDecisionEvent.CalculateTriggerDate(this);
+        //if (triggerDate > 0)
+        //{
+        //    if (triggerDate <= World.CurrentDate)
+        //    {
+        //        throw new System.Exception(
+        //            "FosterTribeRelationDecisionEvent Trigger Date (" + triggerDate +
+        //            ") less or equal to current date: " + World.CurrentDate);
+        //    }
 
-            AddEvent(new FosterTribeRelationDecisionEvent(this, triggerDate));
-        }
+        //    AddEvent(new FosterTribeRelationDecisionEvent(this, triggerDate));
+        //}
 
-        triggerDate = MergeTribesDecisionEvent.CalculateTriggerDate(this);
+        long triggerDate = MergeTribesDecisionEvent.CalculateTriggerDate(this);
         if (triggerDate > 0)
         {
             if (triggerDate <= World.CurrentDate)
@@ -130,9 +130,9 @@ public class Tribe : Polity
         {
             switch (eData.TypeId)
             {
-                case WorldEvent.FosterTribeRelationDecisionEventId:
-                    AddEvent(new FosterTribeRelationDecisionEvent(this, eData));
-                    break;
+                //case WorldEvent.FosterTribeRelationDecisionEventId:
+                //    AddEvent(new FosterTribeRelationDecisionEvent(this, eData));
+                //    break;
                 case WorldEvent.MergeTribesDecisionEventId:
                     AddEvent(new MergeTribesDecisionEvent(this, eData));
                     break;
