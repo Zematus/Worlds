@@ -86,8 +86,7 @@
       "effects": [
         "target.trigger_decision(tribe_decide_fostering_relationship, contact_polity, chance_of_making_attempt)"
       ],
-      "repeatable" : true,
-      "debug" : true
+      "repeatable" : true
     }
   ]
 }

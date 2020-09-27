@@ -7,7 +7,7 @@ public class CellEntity : Entity
 {
     public const string BiomeTraitPresenceAttributeId = "biome_trait_presence";
 
-    public TerrainCell Cell;
+    public virtual TerrainCell Cell { get; private set; }
 
     protected override object _reference => Cell;
 

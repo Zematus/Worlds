@@ -9,7 +9,7 @@ public class GroupEntity : Entity
 
     public virtual CellGroup Group { get; private set; }
 
-    private CellEntity _cellEntity = null;
+    private DelayedSetCellEntity _cellEntity = null;
 
     public GroupEntity(Context c, string id) : base(c, id)
     {
@@ -18,7 +18,8 @@ public class GroupEntity : Entity
     public EntityAttribute GetCellAttribute()
     {
         _cellEntity =
-            _cellEntity ?? new CellEntity(
+            _cellEntity ?? new DelayedSetCellEntity(
+                GetCell,
                 Context,
                 BuildAttributeId(CellAttributeId));
 
@@ -51,9 +52,9 @@ public class GroupEntity : Entity
     public void Set(CellGroup g)
     {
         Group = g;
-
-        _cellEntity?.Set(Group.Cell);
     }
+
+    public TerrainCell GetCell() => Group.Cell;
 
     public override void Set(object o)
     {

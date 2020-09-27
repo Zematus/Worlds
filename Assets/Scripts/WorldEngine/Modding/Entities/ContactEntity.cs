@@ -5,7 +5,7 @@ public class ContactEntity : Entity
 
     public virtual PolityContact Contact { get; private set; }
 
-    private PolityEntity _polityEntity = null;
+    private DelayedSetPolityEntity _polityEntity = null;
 
     public ContactEntity(Context c, string id) : base(c, id)
     {
@@ -14,7 +14,8 @@ public class ContactEntity : Entity
     public EntityAttribute GetPolityAttribute()
     {
         _polityEntity =
-            _polityEntity ?? new PolityEntity(
+            _polityEntity ?? new DelayedSetPolityEntity(
+                GetPolity,
                 Context,
                 BuildAttributeId(PolityAttributeId));
 
@@ -47,9 +48,9 @@ public class ContactEntity : Entity
     public void Set(PolityContact c)
     {
         Contact = c;
-
-        _polityEntity?.Set(Contact.Polity);
     }
+
+    public Polity GetPolity() => Contact.Polity;
 
     public override void Set(object o)
     {
