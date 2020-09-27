@@ -75,7 +75,7 @@ public class ValueEntity<T> : BaseValueEntity
         get
         {
             _valueExpression = _valueExpression ??
-                new ValueGetterExpression<T>(GetValue, _partialEvalStringConverter);
+                new ValueGetterExpression<T>(Id, GetValue, _partialEvalStringConverter);
 
             return _valueExpression;
         }
