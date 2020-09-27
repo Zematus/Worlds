@@ -146,12 +146,8 @@ public class World : ISynchronizable
     [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
         XmlArrayItem(Type = typeof(MigratePopulationEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
-        // TODO: cleanup
-        //XmlArrayItem(Type = typeof(ClanSplitDecisionEvent)),
-        //XmlArrayItem(Type = typeof(ClanDemandsInfluenceDecisionEvent)),
         XmlArrayItem(Type = typeof(TribeSplitDecisionEvent)),
         XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
-        //XmlArrayItem(Type = typeof(FosterTribeRelationDecisionEvent)),
         XmlArrayItem(Type = typeof(MergeTribesDecisionEvent)),
         XmlArrayItem(Type = typeof(OpenTribeDecisionEvent)),
         XmlArrayItem(Type = typeof(Discovery.DiscoveryEvent)),
@@ -313,7 +309,6 @@ public class World : ISynchronizable
     private Dictionary<Identifier, Agent> _memorableAgents =
         new Dictionary<Identifier, Agent>();
 
-    private HashSet<Faction> _factionsToSplit = new HashSet<Faction>();
     private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
     private HashSet<Faction> _factionsWithStatusChanges = new HashSet<Faction>();
     private HashSet<Faction> _factionsToCleanup = new HashSet<Faction>();
@@ -1059,16 +1054,6 @@ public class World : ISynchronizable
         _groupsToCleanupAfterUpdate.Clear();
     }
 
-    private void SplitFactions()
-    {
-        foreach (Faction faction in _factionsToSplit)
-        {
-            faction.Split();
-        }
-
-        _factionsToSplit.Clear();
-    }
-
     /// <summary>
     /// Updates all factions marked for update
     /// </summary>
@@ -1435,12 +1420,6 @@ public class World : ISynchronizable
 
         //Profiler.EndSample();
 
-        //Profiler.BeginSample("SplitFactions");
-
-        SplitFactions();
-
-        //Profiler.EndSample();
-
         //Profiler.BeginSample("RemoveFactions");
 
         RemoveFactions();
@@ -1787,17 +1766,6 @@ public class World : ISynchronizable
     public bool ContainsFactionInfo(Identifier id)
     {
         return _factionInfos.ContainsKey(id);
-    }
-
-    [System.Obsolete]
-    public void AddFactionToSplit(Faction faction)
-    {
-        if (!faction.StillPresent)
-        {
-            Debug.LogWarning("Faction to split no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
-        }
-
-        _factionsToSplit.Add(faction);
     }
 
     public void AddFactionToUpdate(Faction faction)

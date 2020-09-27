@@ -15,27 +15,12 @@ public abstract class WorldEvent : ISynchronizable
     public const long BoatMakingDiscoveryEventId = 500;
     public const long PlantCultivationDiscoveryEventId = 600;
 
-    //[Obsolete]
-    //public const long ClanSplitDecisionEventId = 7;
-    //[Obsolete]
-    //public const long PreventClanSplitEventId = 8;
-
     public const long TribeSplitDecisionEventId = 10;
     public const long SplitClanPreventTribeSplitEventId = 11;
     public const long PreventTribeSplitEventId = 12;
 
     public const long PolityFormationEventId = 13;
     public const long ClanCoreMigrationEventId = 14;
-
-    //public const long ClanDemandsInfluenceDecisionEventId = 15;
-    //public const long ClanAvoidsInfluenceDemandDecisionEventId = 16;
-    //public const long RejectInfluenceDemandDecisionEventId = 17;
-    //public const long AcceptInfluenceDemandDecisionEventId = 18;
-
-    //public const long FosterTribeRelationDecisionEventId = 20;
-    //public const long AvoidFosterTribeRelationDecisionEventId = 21;
-    //public const long RejectFosterTribeRelationDecisionEventId = 22;
-    //public const long AcceptFosterTribeRelationDecisionEventId = 23;
 
     public const long MergeTribesDecisionEventId = 25;
     public const long AvoidMergeTribesAttemptDecisionEventId = 26;

@@ -235,12 +235,6 @@ public class TestFaction : Faction
         return "<b>test faction " + _testId + "</b>";
     }
 
-    [Obsolete]
-    public override void Split()
-    {
-        throw new NotImplementedException();
-    }
-
     protected override float CalculateAdministrativeLoad()
     {
         return _adminLoad;
