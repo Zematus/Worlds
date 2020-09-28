@@ -1143,15 +1143,23 @@ public class Manager
         }
     }
 
-    public static void AddHighlightedCell(TerrainCell cell, CellUpdateType updateType)
+    public static void AddCellToHighlight(TerrainCell cell, CellUpdateType updateType)
     {
         HighlightedCells.Add(cell);
+
+        // Add to updated cells to make sure that it gets displayed correctly
+        UpdatedCells.Add(cell);
     }
 
-    public static void AddHighlightedCells(ICollection<TerrainCell> cells, CellUpdateType updateType)
+    public static void AddCellsToHighlight(ICollection<TerrainCell> cells, CellUpdateType updateType)
     {
         foreach (TerrainCell cell in cells)
+        {
             HighlightedCells.Add(cell);
+
+            // Add to updated cells to make sure that it gets displayed correctly
+            UpdatedCells.Add(cell);
+        }
     }
 
     public static void GenerateRandomHumanGroup(int initialPopulation)
@@ -1708,7 +1716,7 @@ public class Manager
     {
         if (CurrentWorld.SelectedRegion != null)
         {
-            AddHighlightedCells(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
+            AddCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
 
             CurrentWorld.SelectedRegion.IsSelected = false;
             CurrentWorld.SelectedRegion = null;
@@ -1719,7 +1727,7 @@ public class Manager
             CurrentWorld.SelectedRegion = region;
             CurrentWorld.SelectedRegion.IsSelected = true;
 
-            AddHighlightedCells(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
+            AddCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
         }
     }
 
@@ -1727,7 +1735,7 @@ public class Manager
     {
         if (CurrentWorld.SelectedTerritory != null)
         {
-            AddHighlightedCells(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
+            AddCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
 
             Polity selectedPolity = CurrentWorld.SelectedTerritory.Polity;
 
@@ -1738,7 +1746,7 @@ public class Manager
             {
                 foreach (PolityContact contact in selectedPolity.GetContacts())
                 {
-                    AddHighlightedCells(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
+                    AddCellsToHighlight(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
                 }
             }
         }
@@ -1748,7 +1756,7 @@ public class Manager
             CurrentWorld.SelectedTerritory = territory;
             CurrentWorld.SelectedTerritory.IsSelected = true;
 
-            AddHighlightedCells(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
+            AddCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
 
             if (_planetOverlay == PlanetOverlay.PolityContacts)
             {
@@ -1756,7 +1764,7 @@ public class Manager
 
                 foreach (PolityContact contact in selectedPolity.GetContacts())
                 {
-                    AddHighlightedCells(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
+                    AddCellsToHighlight(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
                 }
             }
         }
@@ -1766,7 +1774,7 @@ public class Manager
     {
         if (CurrentWorld.SelectedCell != null)
         {
-            AddHighlightedCell(CurrentWorld.SelectedCell, CellUpdateType.All);
+            AddCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
 
             CurrentWorld.SelectedCell.IsSelected = false;
             CurrentWorld.SelectedCell = null;
@@ -1778,7 +1786,7 @@ public class Manager
         CurrentWorld.SelectedCell = cell;
         CurrentWorld.SelectedCell.IsSelected = true;
 
-        AddHighlightedCell(CurrentWorld.SelectedCell, CellUpdateType.All);
+        AddCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
 
         SetSelectedRegion(cell.Region);
         SetSelectedTerritory(cell.EncompassingTerritory);

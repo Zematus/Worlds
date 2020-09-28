@@ -147,12 +147,12 @@ public abstract class Polity : ISynchronizable
             return 1;
         }
 
-#if DEBUG
-        if (group.Cell.IsSelected)
-        {
-            Debug.LogWarning("Debugging cell " + group.Cell.Position);
-        }
-#endif
+//#if DEBUG
+//        if (group.Cell.IsSelected)
+//        {
+//            Debug.LogWarning("Debugging cell " + group.Cell.Position);
+//        }
+//#endif
 
         // if the population is not near its optimum then don't add pressure
         if (populationFactor < 0.9f)

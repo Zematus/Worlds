@@ -1232,12 +1232,12 @@ public class CellGroup : Identifiable, IFlagHolder
         TerrainCell targetCell = Cell.NeighborList[targetCellIndex];
         Direction migrationDirection = Cell.DirectionList[targetCellIndex];
 
-#if DEBUG
-        if (Cell.IsSelected)
-        {
-            Debug.LogWarning("Debugging ConsiderLandMigration for cell " + Cell.Position);
-        }
-#endif
+//#if DEBUG
+//        if (Cell.IsSelected)
+//        {
+//            Debug.LogWarning("Debugging ConsiderLandMigration for cell " + Cell.Position);
+//        }
+//#endif
 
         float cellChance = CalculateMigrationChance(targetCell, polity);
 
@@ -1854,12 +1854,12 @@ public class CellGroup : Identifiable, IFlagHolder
             return 1;
         }
 
-#if DEBUG
-        if (Cell.IsSelected)
-        {
-            Debug.LogWarning("Debugging cell " + Cell.Position);
-        }
-#endif
+//#if DEBUG
+//        if (Cell.IsSelected)
+//        {
+//            Debug.LogWarning("Debugging cell " + Cell.Position);
+//        }
+//#endif
 
         // if the population is not near its optimum then don't add pressure
         if (populationFactor < 0.9f)
