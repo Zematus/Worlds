@@ -67,8 +67,7 @@ public class InfoPanelScript : MonoBehaviour
             if ((Manager.CurrentDevMode == DevMode.Advanced) &&
                 (Manager.LastEventEvalStatsPerType.Count > 0))
             {
-                InfoText.text += "\n";
-                InfoText.text += "Breakdown by type";
+                InfoText.text += "\n\n-- Breakdown by type --\n";
 
                 foreach (KeyValuePair<string, World.EventEvalStats> pair in Manager.LastEventEvalStatsPerType)
                 {
