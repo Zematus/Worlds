@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 public class GroupEntity : Entity
 {
     public const string CellAttributeId = "cell";
+    public const string ProminenceAttributeId = "prominence";
 
     public virtual CellGroup Group { get; private set; }
 
@@ -36,6 +37,9 @@ public class GroupEntity : Entity
         {
             case CellAttributeId:
                 return GetCellAttribute();
+
+            case ProminenceAttributeId:
+                return new ProminenceAttribute(this, arguments);
         }
 
         throw new System.ArgumentException("Group: Unable to find attribute: " + attributeId);

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
+[System.Obsolete]
 public class GroupCanBeCoreAttribute : ValueEntityAttribute<bool>
 {
     private FactionEntity _factionEntity;

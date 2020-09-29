@@ -16,8 +16,9 @@ must have the .json extension and have the following file structure:
                                        Has to be either "group" or "faction".
 
       "assignOn":                   -- (optional) List of types of situations that
-                                       would make an event of this type to be assigned
-                                       to the target. Defaults to "event" (see notes 3).
+                                       would make an event of this type to attempt to
+                                       be assigned to the target. Defaults to "event"
+                                       (see notes 3).
 
       "properties":                 -- (optional) List of PROPERTIES that are available
                                        to the event definition. Properties are predefined
@@ -80,7 +81,9 @@ must have the .json extension and have the following file structure:
 2. Do not duplicate event ids unless you want to specifically replace another event
    already loaded.
 3. List of valid assignment types:
-  - "event": This event type can be assigned by other events (default).
-  - "spawn": This event type is assigned when the target entity spawns.
-  - "status_change" This event type is assigned when a status change occurs to the
-    target entity (only applicable to faction target types).
+  - "event": This event type might be assigned by other events (default).
+  - "spawn": This event type might be assigned when the target entity spawns.
+  - "status_change" This event type might be assigned when a status change occurs to
+    the target entity (only applicable to faction target types).
+  - "polity_contact_change" This event type might be assigned when the target's polity
+    adds or removes a contact (only applicable to faction target types).

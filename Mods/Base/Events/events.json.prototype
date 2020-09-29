@@ -4,22 +4,22 @@
       "id": "clan_decide_split",
       "name": "clan decide split",
       "target": "faction",
-      "assignOn" : ["spawn"],
+      "assignOn" : ["spawn", "status_change"],
       "properties": [
         { "id": "new_core_group", "value": "target.polity.get_random_group()" },
-        { "id": "polity_prominence", "value": "new_core_group.prominence(target.polity)" }
+        { "id": "dominant_faction", "value": "target.polity.dominant_faction" }
       ],
       "assignmentConditions": [
-        "target.type == clan"
+        "target.type == clan",
+        "target.polity.type == tribe",
+        "dominant_faction.type == clan",
+        "target != dominant_faction"
       ],
       "triggerConditions": [
         "target.administrative_load > 100000",
-        "target.preferences.cohesion < 0.7",
-        "new_core_group.faction_cores_count == 0",
-        "new_core_group.faction_core_distance(target.polity) > 1000",
-        "new_core_group.knowledges.social_organization.level >= 6",
-        "polity_prominence > 0.3",
-        "new_core_group.polity_with_highest_prominence == target.polity"
+        "!(target.preferences.cohesion > 0.7)",
+        "target.core_group != new_core_group",
+        "target.group_can_be_core(new_core_group)"
       ],
       "timeToTrigger": "9125 + random(91250 * (1 - saturation(400000, target.administrative_load)) * target.preferences.cohesion)",
       "effects": [
@@ -31,7 +31,7 @@
       "id": "clan_decide_performing_influence_demand",
       "name": "clan decide performing influence demand",
       "target": "faction",
-      "assignOn" : ["spawn", "status_change", "core_prominence_change"],
+      "assignOn" : ["spawn", "status_change"],
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
@@ -78,6 +78,36 @@
         "target == target_polity.dominant_faction",
         "target_polity.type == tribe",
         "target_polity.contact_count >= 1"
+      ],
+      "triggerConditions": [
+        "chance_of_making_attempt > 0"
+      ],
+      "timeToTrigger": "9125 + random(91250 * target_isolation)",
+      "effects": [
+        "target.trigger_decision(tribe_decide_fostering_relationship, contact_polity, chance_of_making_attempt)"
+      ],
+      "repeatable" : true
+    },
+    {
+      "id": "clan_decide_split_tribe",
+      "name": "clan decide split tribe",
+      "target": "faction",
+      "assignOn" : ["spawn", "status_change", "polity_contact_change"],
+      "properties": [
+        { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
+        { "id": "target_polity", "value": "target.polity" },
+        { "id": "target_isolation", "value": "target.preferences.isolation" },
+        { "id": "contact", "value": "target_polity.get_random_contact()" },
+        { "id": "contact_polity", "value": "contact.polity" },
+        { "id": "contact_dominant_faction", "value": "contact_polity.dominant_faction" },
+        { "id": "contact_strength", "value": "target_polity.contact_strength(contact)" },
+        { "id": "relationship_value", "value": "target.relationship(contact_dominant_faction)" },
+        { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * (contact_strength * 3) * (1 - target_isolation)" }
+      ],
+      "assignmentConditions": [
+        "target.type == clan",
+        "target_polity.type == tribe",
+        "target != dominant_faction"
       ],
       "triggerConditions": [
         "chance_of_making_attempt > 0"

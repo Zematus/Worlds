@@ -1143,7 +1143,13 @@ public class Manager
         }
     }
 
-    public static void AddCellToHighlight(TerrainCell cell, CellUpdateType updateType)
+    /// <summary>
+    /// Adds a cell that has just been selected to the list of cells to highlight on the map
+    /// </summary>
+    /// <param name="cell">the selected cell</param>
+    /// <param name="updateType">the type of update on which to highlight the cell</param>
+    public static void AddSelectedCellToHighlight(
+        TerrainCell cell, CellUpdateType updateType)
     {
         HighlightedCells.Add(cell);
 
@@ -1151,7 +1157,14 @@ public class Manager
         UpdatedCells.Add(cell);
     }
 
-    public static void AddCellsToHighlight(ICollection<TerrainCell> cells, CellUpdateType updateType)
+    /// <summary>
+    /// Adds a collection of cells that have just been selected to the list of cells to
+    /// highlight on the map
+    /// </summary>
+    /// <param name="cells">the collection of selected cells</param>
+    /// <param name="updateType">the type of update on which to highlight the cells</param>
+    public static void AddSelectedCellsToHighlight(
+        ICollection<TerrainCell> cells, CellUpdateType updateType)
     {
         foreach (TerrainCell cell in cells)
         {
@@ -1716,7 +1729,7 @@ public class Manager
     {
         if (CurrentWorld.SelectedRegion != null)
         {
-            AddCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
+            AddSelectedCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
 
             CurrentWorld.SelectedRegion.IsSelected = false;
             CurrentWorld.SelectedRegion = null;
@@ -1727,7 +1740,7 @@ public class Manager
             CurrentWorld.SelectedRegion = region;
             CurrentWorld.SelectedRegion.IsSelected = true;
 
-            AddCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
+            AddSelectedCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
         }
     }
 
@@ -1735,7 +1748,7 @@ public class Manager
     {
         if (CurrentWorld.SelectedTerritory != null)
         {
-            AddCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
+            AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
 
             Polity selectedPolity = CurrentWorld.SelectedTerritory.Polity;
 
@@ -1746,7 +1759,7 @@ public class Manager
             {
                 foreach (PolityContact contact in selectedPolity.GetContacts())
                 {
-                    AddCellsToHighlight(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
+                    AddSelectedCellsToHighlight(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
                 }
             }
         }
@@ -1756,7 +1769,7 @@ public class Manager
             CurrentWorld.SelectedTerritory = territory;
             CurrentWorld.SelectedTerritory.IsSelected = true;
 
-            AddCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
+            AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
 
             if (_planetOverlay == PlanetOverlay.PolityContacts)
             {
@@ -1764,7 +1777,7 @@ public class Manager
 
                 foreach (PolityContact contact in selectedPolity.GetContacts())
                 {
-                    AddCellsToHighlight(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
+                    AddSelectedCellsToHighlight(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
                 }
             }
         }
@@ -1774,7 +1787,7 @@ public class Manager
     {
         if (CurrentWorld.SelectedCell != null)
         {
-            AddCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
+            AddSelectedCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
 
             CurrentWorld.SelectedCell.IsSelected = false;
             CurrentWorld.SelectedCell = null;
@@ -1786,7 +1799,7 @@ public class Manager
         CurrentWorld.SelectedCell = cell;
         CurrentWorld.SelectedCell.IsSelected = true;
 
-        AddCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
+        AddSelectedCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
 
         SetSelectedRegion(cell.Region);
         SetSelectedTerritory(cell.EncompassingTerritory);
