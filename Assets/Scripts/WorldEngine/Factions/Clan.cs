@@ -286,6 +286,7 @@ public class Clan : Faction
         return RequestNewLeader(LeadershipAvgSpan, MinClanLeaderStartAge, MaxClanLeaderStartAge, RngOffsets.CLAN_LEADER_GEN_OFFSET);
     }
 
+    [Obsolete]
     public static bool CanBeClanCore(CellGroup group)
     {
         if (!group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
