@@ -7,10 +7,18 @@ public class GroupEntity : Entity
 {
     public const string CellAttributeId = "cell";
     public const string ProminenceAttributeId = "prominence";
+    public const string FactionCoresCountAttributeId = "faction_cores_count";
+    public const string FactionCoreDistanceAttributeId = "faction_core_distance";
+    public const string PreferencesAttributeId = "preferences";
+    public const string KnowledgesAttributeId = "knowledges";
 
     public virtual CellGroup Group { get; private set; }
 
+    private ValueGetterEntityAttribute<float> _factionCoresCountAttribute;
+
     private DelayedSetCellEntity _cellEntity = null;
+
+    private CulturalPreferencesEntity _preferencesEntity = null;
 
     private bool _alreadyReset = false;
 
@@ -29,6 +37,16 @@ public class GroupEntity : Entity
         return _cellEntity.GetThisEntityAttribute(this);
     }
 
+    public EntityAttribute GetPreferencesAttribute()
+    {
+        _preferencesEntity =
+            _preferencesEntity ?? new CulturalPreferencesEntity(
+                Context,
+                BuildAttributeId(PreferencesAttributeId));
+
+        return _preferencesEntity.GetThisEntityAttribute(this);
+    }
+
     protected override object _reference => Group;
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -40,6 +58,18 @@ public class GroupEntity : Entity
 
             case ProminenceAttributeId:
                 return new ProminenceAttribute(this, arguments);
+
+            case FactionCoresCountAttributeId:
+                _factionCoresCountAttribute =
+                    _factionCoresCountAttribute ?? new ValueGetterEntityAttribute<float>(
+                        FactionCoresCountAttributeId, this, () => Group.GetFactionCores().Count);
+                return _factionCoresCountAttribute;
+
+            case FactionCoreDistanceAttributeId:
+                return new FactionCoreDistanceAttribute(this, arguments);
+
+            case PreferencesAttributeId:
+                return GetPreferencesAttribute();
         }
 
         throw new System.ArgumentException("Group: Unable to find attribute: " + attributeId);
