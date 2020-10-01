@@ -27,8 +27,15 @@ public class CulturalPreference : CulturalPreferenceInfo
     [System.Obsolete]
     public const int IsolationPreferenceRngOffset = 2;
 
-    [XmlAttribute]
-    public float Value;
+    [XmlAttribute("V")]
+    public float ValueInternal;
+
+    [XmlIgnore]
+    public virtual float Value
+    {
+        get => ValueInternal;
+        set => ValueInternal = value;
+    }
 
     public CulturalPreference()
     {

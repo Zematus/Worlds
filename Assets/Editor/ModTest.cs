@@ -665,6 +665,8 @@ public class ModTest
     {
         Manager.UpdateMainThreadReference();
 
+        LoadCulturalPreferences();
+
         LoadBaseEventsMod();
 
         foreach (EventGenerator generator in EventGenerator.Generators.Values)

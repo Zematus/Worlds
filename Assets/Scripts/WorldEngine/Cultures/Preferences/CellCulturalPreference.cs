@@ -15,6 +15,15 @@ public class CellCulturalPreference : CulturalPreference
 
     private float _newValue;
 
+    [XmlIgnore]
+    public override float Value
+    {
+        set
+        {
+            _newValue = value;
+        }
+    }
+
     public CellCulturalPreference()
     {
     }
@@ -63,7 +72,7 @@ public class CellCulturalPreference : CulturalPreference
     // This method should be called only once after a Cultural Value is copied from another source group
     public void DecreaseValue(float percentage)
     {
-        _newValue = _newValue * percentage;
+        _newValue *= percentage;
     }
 
     public void Update(long timeSpan)
@@ -76,7 +85,7 @@ public class CellCulturalPreference : CulturalPreference
 
         float maxTargetValue = 1f;
         float minTargetValue = 0f;
-        float targetValue = 0;
+        float targetValue;
 
         if (randomFactor > 0)
         {
@@ -110,12 +119,12 @@ public class CellCulturalPreference : CulturalPreference
         // _newvalue should have been set correctly either by the constructor or by the Update function
         float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;
 
-        _newValue = _newValue + change;
+        _newValue += change;
     }
 
     public void PostUpdate()
     {
-        Value = Mathf.Clamp01(_newValue);
+        ValueInternal = Mathf.Clamp01(_newValue);
     }
 
     public override void FinalizeLoad()
