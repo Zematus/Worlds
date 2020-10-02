@@ -31,7 +31,7 @@ public class FactionEntity : Entity
     private DelayedSetPolityEntity _polityEntity = null;
     private DelayedSetGroupEntity _coreGroupEntity = null;
 
-    private CulturalPreferencesEntity _preferencesEntity = null;
+    private AssignableCulturalPreferencesEntity _preferencesEntity = null;
 
     protected override object _reference => Faction;
 
@@ -52,7 +52,7 @@ public class FactionEntity : Entity
     public EntityAttribute GetPreferencesAttribute()
     {
         _preferencesEntity =
-            _preferencesEntity ?? new CulturalPreferencesEntity(
+            _preferencesEntity ?? new AssignableCulturalPreferencesEntity(
                 Context,
                 BuildAttributeId(PreferencesAttributeId));
 
@@ -161,21 +161,13 @@ public class FactionEntity : Entity
 
     public virtual void Set(Faction f)
     {
-        Profiler.BeginSample("FactionEntity.Set - f.PreUpdate");
-
         f.PreUpdate();
-
-        Profiler.EndSample(); // "FactionEntity.Set - f.PreUpdate"
 
         Faction = f;
 
         _preferencesEntity?.Set(Faction.Culture);
 
-        Profiler.BeginSample("FactionEntity.Set - ResetInternal");
-
         ResetInternal();
-
-        Profiler.EndSample(); // "FactionEntity.Set - ResetInternal"
 
         _alreadyReset = false;
     }
