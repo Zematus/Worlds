@@ -18,7 +18,8 @@ public class GroupEntity : Entity
 
     private DelayedSetCellEntity _cellEntity = null;
 
-    private CulturalPreferencesEntity _preferencesEntity = null;
+    private AssignableCulturalPreferencesEntity _preferencesEntity = null;
+    private AssignableCulturalKnowledgesEntity _knowledgesEntity = null;
 
     private bool _alreadyReset = false;
 
@@ -40,11 +41,21 @@ public class GroupEntity : Entity
     public EntityAttribute GetPreferencesAttribute()
     {
         _preferencesEntity =
-            _preferencesEntity ?? new CulturalPreferencesEntity(
+            _preferencesEntity ?? new AssignableCulturalPreferencesEntity(
                 Context,
                 BuildAttributeId(PreferencesAttributeId));
 
         return _preferencesEntity.GetThisEntityAttribute(this);
+    }
+
+    public EntityAttribute GetKnowledgesAttribute()
+    {
+        _knowledgesEntity =
+            _knowledgesEntity ?? new AssignableCulturalKnowledgesEntity(
+                Context,
+                BuildAttributeId(KnowledgesAttributeId));
+
+        return _knowledgesEntity.GetThisEntityAttribute(this);
     }
 
     protected override object _reference => Group;
@@ -70,6 +81,9 @@ public class GroupEntity : Entity
 
             case PreferencesAttributeId:
                 return GetPreferencesAttribute();
+
+            case KnowledgesAttributeId:
+                return GetKnowledgesAttribute();
         }
 
         throw new System.ArgumentException("Group: Unable to find attribute: " + attributeId);
@@ -88,6 +102,8 @@ public class GroupEntity : Entity
     public void Set(CellGroup g)
     {
         Group = g;
+
+        _preferencesEntity?.Set(Group.Culture);
 
         ResetInternal();
 

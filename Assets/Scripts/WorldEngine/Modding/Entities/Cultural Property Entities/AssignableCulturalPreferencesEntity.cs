@@ -3,19 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class CulturalPreferencesEntity : Entity
+public class AssignableCulturalPreferencesEntity : CulturalPreferencesEntity
 {
-    public Culture Culture;
-
-    protected override object _reference => Culture;
-
-    public class PreferenceAttribute : AssignableValueEntityAttribute<float>
+    public class AssignablePreferenceAttribute : AssignableValueEntityAttribute<float>
     {
-        private CulturalPreferencesEntity _preferencesEntity;
+        private AssignableCulturalPreferencesEntity _preferencesEntity;
         private string _preferenceId;
 
-        public PreferenceAttribute(
-            CulturalPreferencesEntity preferencesEntity,
+        public AssignablePreferenceAttribute(
+            AssignableCulturalPreferencesEntity preferencesEntity,
             string preferenceId,
             IExpression[] arguments)
             : base(preferenceId, preferencesEntity, arguments)
@@ -68,46 +64,13 @@ public class CulturalPreferencesEntity : Entity
         }
     }
 
-    public CulturalPreferencesEntity(Context c, string id) : base(c, id)
+    public AssignableCulturalPreferencesEntity(Context c, string id) : base(c, id)
     {
     }
 
-    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
+    protected override EntityAttribute CreatePreferenceAttribute(
+        string attributeId, IExpression[] arguments = null)
     {
-        if (!PreferenceGenerator.Generators.ContainsKey(attributeId))
-        {
-            throw new System.ArgumentException(
-                "Unrecognized cultural preference in entity attribute: " + attributeId);
-        }
-
-        return new PreferenceAttribute(this, attributeId, arguments);
-    }
-
-    public override string GetDebugString()
-    {
-        return "cultural_preferences";
-    }
-
-    public override string GetFormattedString()
-    {
-        return "<i>cultural preferences</i>";
-    }
-
-    public void Set(Culture c) => Culture = c;
-
-    public override void Set(object o)
-    {
-        if (o is CulturalPreferencesEntity e)
-        {
-            Set(e.Culture);
-        }
-        else if (o is Culture c)
-        {
-            Set(c);
-        }
-        else
-        {
-            throw new System.ArgumentException("Unexpected type: " + o.GetType());
-        }
+        return new AssignablePreferenceAttribute(this, attributeId, arguments);
     }
 }
