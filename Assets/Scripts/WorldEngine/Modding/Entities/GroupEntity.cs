@@ -11,15 +11,17 @@ public class GroupEntity : Entity
     public const string FactionCoreDistanceAttributeId = "faction_core_distance";
     public const string PreferencesAttributeId = "preferences";
     public const string KnowledgesAttributeId = "knowledges";
+    public const string PolityWithHighestProminenceAttributeId = "polity_with_highest_prominence";
 
     public virtual CellGroup Group { get; private set; }
 
     private ValueGetterEntityAttribute<float> _factionCoresCountAttribute;
 
     private DelayedSetCellEntity _cellEntity = null;
+    private DelayedSetPolityEntity _polityWithHighestProminenceEntity = null;
 
     private AssignableCulturalPreferencesEntity _preferencesEntity = null;
-    private AssignableCulturalKnowledgesEntity _knowledgesEntity = null;
+    private CulturalKnowledgesEntity _knowledgesEntity = null;
 
     private bool _alreadyReset = false;
 
@@ -38,6 +40,17 @@ public class GroupEntity : Entity
         return _cellEntity.GetThisEntityAttribute(this);
     }
 
+    public EntityAttribute GetPolityWithHighestProminenceAttribute()
+    {
+        _polityWithHighestProminenceEntity =
+            _polityWithHighestProminenceEntity ?? new DelayedSetPolityEntity(
+                GetPolityWithHighestProminence,
+                Context,
+                BuildAttributeId(PolityWithHighestProminenceAttributeId));
+
+        return _polityWithHighestProminenceEntity.GetThisEntityAttribute(this);
+    }
+
     public EntityAttribute GetPreferencesAttribute()
     {
         _preferencesEntity =
@@ -51,7 +64,7 @@ public class GroupEntity : Entity
     public EntityAttribute GetKnowledgesAttribute()
     {
         _knowledgesEntity =
-            _knowledgesEntity ?? new AssignableCulturalKnowledgesEntity(
+            _knowledgesEntity ?? new CulturalKnowledgesEntity(
                 Context,
                 BuildAttributeId(KnowledgesAttributeId));
 
@@ -84,6 +97,9 @@ public class GroupEntity : Entity
 
             case KnowledgesAttributeId:
                 return GetKnowledgesAttribute();
+
+            case PolityWithHighestProminenceAttributeId:
+                return GetPolityWithHighestProminenceAttribute();
         }
 
         throw new System.ArgumentException("Group: Unable to find attribute: " + attributeId);
@@ -104,6 +120,7 @@ public class GroupEntity : Entity
         Group = g;
 
         _preferencesEntity?.Set(Group.Culture);
+        _knowledgesEntity?.Set(Group.Culture);
 
         ResetInternal();
 
@@ -123,6 +140,8 @@ public class GroupEntity : Entity
     }
 
     public TerrainCell GetCell() => Group.Cell;
+
+    public Polity GetPolityWithHighestProminence() => Group.HighestPolityProminence?.Polity;
 
     public override void Set(object o)
     {

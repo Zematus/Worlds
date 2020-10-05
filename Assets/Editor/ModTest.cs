@@ -492,6 +492,13 @@ public class ModTest
         _testGroup5.UpdatePolityProminences_test();
         _testGroup6.UpdatePolityProminences_test();
 
+        _testGroup1.SetProminenceCoreDistances_test(_testPolity1, 1001, 1001);
+        _testGroup2.SetProminenceCoreDistances_test(_testPolity1, 1001, 1001);
+        _testGroup3.SetProminenceCoreDistances_test(_testPolity1, 1001, 1001);
+        _testGroup4.SetProminenceCoreDistances_test(_testPolity1, 1001, 1001);
+        _testGroup5.SetProminenceCoreDistances_test(_testPolity2, 1001, 1001);
+        _testGroup6.SetProminenceCoreDistances_test(_testPolity2, 1001, 1001);
+
         _testPolity1.ClusterUpdate();
         _testPolity2.ClusterUpdate();
 
@@ -665,6 +672,9 @@ public class ModTest
     {
         Manager.UpdateMainThreadReference();
 
+        Knowledge.ResetKnowledges();
+        Knowledge.InitializeKnowledges();
+
         LoadCulturalPreferences();
 
         LoadBaseEventsMod();
@@ -738,6 +748,8 @@ public class ModTest
     [Test]
     public void TriggerSplitClanDecision()
     {
+        Manager.CurrentDevMode = DevMode.Advanced;
+
         InitializeTestFactions();
 
         LoadBaseEventsMod();

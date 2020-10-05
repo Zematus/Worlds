@@ -38,6 +38,11 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         Polity.OnPolityContactChangeEventGenerators.Add(this);
     }
 
+    public override void SetToAssignOnCoreHighestProminenceChange()
+    {
+        CellGroup.OnCoreHighestProminenceChangeEventGenerators.Add(this);
+    }
+
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
         FactionModEvent modEvent = new FactionModEvent(this, Target.Faction, triggerDate);

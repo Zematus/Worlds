@@ -37,7 +37,7 @@ public class PolityEntity : Entity
 
     public override string GetDebugString()
     {
-        return "polity:" + Polity.Name.Text;
+        return "polity:" + Polity.GetName();
     }
 
     public override string GetFormattedString()

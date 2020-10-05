@@ -457,6 +457,11 @@ public abstract class Polity : ISynchronizable
         }
     }
 
+    public virtual string GetName()
+    {
+        return Info.Name.Text;
+    }
+
     public string GetNameAndTypeString()
     {
         return Info.GetNameAndTypeString();

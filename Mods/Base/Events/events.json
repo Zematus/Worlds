@@ -25,13 +25,14 @@
       "effects": [
         "target.trigger_decision(clan_decide_split, new_core_group)"
       ],
-      "repeatable" : true
+      "repeatable" : true,
+      "debug" : true
     },
     {
       "id": "clan_decide_performing_influence_demand",
       "name": "clan decide performing influence demand",
       "target": "faction",
-      "assignOn" : ["spawn", "status_change", "core_prominence_change"],
+      "assignOn" : ["spawn", "status_change"],
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },

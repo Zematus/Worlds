@@ -39,6 +39,12 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
             "OnAssign does not support 'polity_contact_change' for Cell Groups");
     }
 
+    public override void SetToAssignOnCoreHighestProminenceChange()
+    {
+        throw new System.InvalidOperationException(
+            "OnAssign does not support 'core_highest_prominence_change' for Cell Groups");
+    }
+
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
         CellGroupModEvent modEvent =

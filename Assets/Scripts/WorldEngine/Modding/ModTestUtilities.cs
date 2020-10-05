@@ -151,8 +151,13 @@ public class TestEntity : Entity
 
 public class TestPolity : Polity
 {
+    public static int _testCounter = 0;
+
+    private int _testId;
+
     public TestPolity(string type, CellGroup coreGroup) : base(type, coreGroup)
     {
+        _testId = _testCounter++;
     }
 
     public override float CalculateGroupProminenceExpansionValue(CellGroup sourceGroup, CellGroup targetGroup, float sourceValue)
@@ -178,6 +183,11 @@ public class TestPolity : Polity
     protected override void UpdateInternal()
     {
         throw new NotImplementedException();
+    }
+
+    public override string GetName()
+    {
+        return "test_polity_" + _testId;
     }
 }
 

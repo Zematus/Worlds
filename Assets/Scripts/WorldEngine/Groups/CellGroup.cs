@@ -31,6 +31,8 @@ public class CellGroup : Identifiable, IFlagHolder
 
     public static List<ICellGroupEventGenerator> OnSpawnEventGenerators;
 
+    public static List<IWorldEventGenerator> OnCoreHighestProminenceChangeEventGenerators;
+
     [XmlAttribute("MT")]
     public bool MigrationTagged = false;
 
@@ -561,6 +563,7 @@ public class CellGroup : Identifiable, IFlagHolder
     public static void ResetEventGenerators()
     {
         OnSpawnEventGenerators = new List<ICellGroupEventGenerator>();
+        OnCoreHighestProminenceChangeEventGenerators = new List<IWorldEventGenerator>();
     }
 
     private void InitializeOnSpawnEvents()
@@ -568,6 +571,23 @@ public class CellGroup : Identifiable, IFlagHolder
         foreach (ICellGroupEventGenerator generator in OnSpawnEventGenerators)
         {
             generator.TryGenerateEventAndAssign(this);
+        }
+    }
+
+    /// <summary>
+    /// Applies the effects of changing the highest prominence on a core group
+    /// </summary>
+    public void ApplyCoreHighestProminenceChange()
+    {
+        foreach (IWorldEventGenerator generator in OnCoreHighestProminenceChangeEventGenerators)
+        {
+            if (generator is IFactionEventGenerator fGenerator)
+            {
+                foreach (Faction faction in FactionCores.Values)
+                {
+                    fGenerator.TryGenerateEventAndAssign(faction);
+                }
+            }
         }
     }
 
@@ -632,6 +652,11 @@ public class CellGroup : Identifiable, IFlagHolder
         if (prominence != null)
         {
             prominence.Polity.Territory.AddCell(Cell);
+        }
+
+        if (FactionCores.Count > 0)
+        {
+            ApplyCoreHighestProminenceChange();
         }
     }
 
@@ -2230,6 +2255,7 @@ public class CellGroup : Identifiable, IFlagHolder
         return cost;
     }
 
+#if DEBUG
     /// <summary>
     /// Updates polity prominences and values (for unit tests only)
     /// TODO: try get rid of this function without making UpdatePolityProminences public
@@ -2238,6 +2264,20 @@ public class CellGroup : Identifiable, IFlagHolder
     {
         UpdatePolityProminences();
     }
+
+    /// <summary>
+    /// Sets a prominence polity and faction core distances (for unit tests only)
+    /// TODO: try get rid of this function
+    /// </summary>
+    public void SetProminenceCoreDistances_test(
+        Polity polity, float polityCoreDistance, float factionCoreDistance)
+    {
+        PolityProminence prominence = GetPolityProminence(polity);
+
+        prominence.PolityCoreDistance = polityCoreDistance;
+        prominence.FactionCoreDistance = factionCoreDistance;
+    }
+#endif
 
     /// <summary>
     /// Updates polity prominences and values
