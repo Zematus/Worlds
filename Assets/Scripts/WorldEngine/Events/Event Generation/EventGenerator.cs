@@ -14,6 +14,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public const string AssignOnEvent = "event";
     public const string AssignOnStatusChange = "status_change";
     public const string AssignOnPolityContactChange = "polity_contact_change";
+    public const string AssignOnCoreHighestProminenceChange = "core_highest_prominence_change";
 
     public const string FactionTargetType = "faction";
     public const string GroupTargetType = "group";
@@ -107,6 +108,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public abstract void SetToAssignOnEvent();
     public abstract void SetToAssignOnStatusChange();
     public abstract void SetToAssignOnPolityContactChange();
+    public abstract void SetToAssignOnCoreHighestProminenceChange();
 
     public virtual void Initialize()
     {
@@ -132,6 +134,10 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
                 case AssignOnPolityContactChange:
                     SetToAssignOnPolityContactChange();
+                    break;
+
+                case AssignOnCoreHighestProminenceChange:
+                    SetToAssignOnCoreHighestProminenceChange();
                     break;
 
                 default:

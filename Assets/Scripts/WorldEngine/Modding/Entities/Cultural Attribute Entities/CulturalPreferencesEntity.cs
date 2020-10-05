@@ -3,54 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class CulturalKnowledgesEntity : Entity
+public class CulturalPreferencesEntity : Entity
 {
     public Culture Culture;
 
     protected override object _reference => Culture;
 
-    public class KnowledgeAttribute : ValueEntityAttribute<float>
-    {
-        private CulturalKnowledgesEntity _knowledgesEntity;
-        private string _knowledgeId;
-
-        public KnowledgeAttribute(
-            CulturalKnowledgesEntity knowledgesEntity,
-            string knowledgeId,
-            IExpression[] arguments)
-            : base(knowledgeId, knowledgesEntity, arguments)
-        {
-            _knowledgesEntity = knowledgesEntity;
-            _knowledgeId = knowledgeId;
-        }
-
-        public override float Value
-        {
-            get => GetValue();
-        }
-
-        private float GetValue()
-        {
-            CulturalKnowledge knowledge =
-                _knowledgesEntity.Culture.GetKnowledge(_knowledgeId);
-
-            if (knowledge == null)
-            {
-                return 0;
-            }
-
-            return knowledge.ProgressLevel;
-        }
-    }
-
     public CulturalPreferencesEntity(Context c, string id) : base(c, id)
     {
     }
 
-    protected virtual EntityAttribute CreatePreferenceAttribute(
-        string attributeId, IExpression[] arguments = null)
+    protected virtual EntityAttribute CreatePreferenceAttribute(string attributeId)
     {
-        return new PreferenceAttribute(this, attributeId, arguments);
+        return new PreferenceAttribute(this, attributeId);
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -61,7 +26,7 @@ public class CulturalKnowledgesEntity : Entity
                 "Unrecognized cultural preference in entity attribute: " + attributeId);
         }
 
-        return CreatePreferenceAttribute(attributeId, arguments);
+        return CreatePreferenceAttribute(attributeId);
     }
 
     public override string GetDebugString()
