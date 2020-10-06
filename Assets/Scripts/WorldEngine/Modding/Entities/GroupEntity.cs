@@ -65,6 +65,7 @@ public class GroupEntity : Entity
     {
         _knowledgesEntity =
             _knowledgesEntity ?? new CulturalKnowledgesEntity(
+                GetCulture,
                 Context,
                 BuildAttributeId(KnowledgesAttributeId));
 
@@ -120,7 +121,6 @@ public class GroupEntity : Entity
         Group = g;
 
         _preferencesEntity?.Set(Group.Culture);
-        _knowledgesEntity?.Set(Group.Culture);
 
         ResetInternal();
 
@@ -135,6 +135,9 @@ public class GroupEntity : Entity
         }
 
         _cellEntity?.Reset();
+        _polityWithHighestProminenceEntity?.Reset();
+
+        _knowledgesEntity?.Reset();
 
         _alreadyReset = true;
     }
@@ -142,6 +145,8 @@ public class GroupEntity : Entity
     public TerrainCell GetCell() => Group.Cell;
 
     public Polity GetPolityWithHighestProminence() => Group.HighestPolityProminence?.Polity;
+
+    public Culture GetCulture() => Group.Culture;
 
     public override void Set(object o)
     {

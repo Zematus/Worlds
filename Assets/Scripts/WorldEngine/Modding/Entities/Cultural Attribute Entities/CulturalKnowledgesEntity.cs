@@ -3,28 +3,35 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class CulturalKnowledgesEntity : Entity
+public class CulturalKnowledgesEntity : DelayedSetEntity<Culture>
 {
-    public Culture Culture;
+    public virtual Culture Culture
+    {
+        get => Setable;
+        private set => Setable = value;
+    }
 
     protected override object _reference => Culture;
 
-    private Dictionary<string, DelayedSetKnowledgeEntity> _knowledgeEntities =
-        new Dictionary<string, DelayedSetKnowledgeEntity>();
-
-    private bool _alreadyReset = false;
+    private readonly Dictionary<string, KnowledgeEntity> _knowledgeEntities =
+        new Dictionary<string, KnowledgeEntity>();
 
     public CulturalKnowledgesEntity(Context c, string id) : base(c, id)
     {
     }
 
+    public CulturalKnowledgesEntity(
+        ValueGetterMethod<Culture> getterMethod, Context c, string id)
+        : base(getterMethod, c, id)
+    {
+    }
+
     protected virtual EntityAttribute CreateKnowledgeAttribute(string attributeId)
     {
-        if (!_knowledgeEntities.TryGetValue(attributeId, out DelayedSetKnowledgeEntity entity))
+        if (!_knowledgeEntities.TryGetValue(attributeId, out KnowledgeEntity entity))
         {
-            entity = new DelayedSetKnowledgeEntity(
-                Culture,
-                attributeId,
+            entity = new KnowledgeEntity(
+                () => Culture.GetKnowledge(attributeId),
                 Context,
                 BuildAttributeId(attributeId));
 
@@ -55,43 +62,13 @@ public class CulturalKnowledgesEntity : Entity
         return "<i>cultural knowledges</i>";
     }
 
-    public void Set(Culture c)
+    protected override void ResetInternal()
     {
-        Culture = c;
+        if (_isReset) return;
 
-        ResetInternal();
-
-        _alreadyReset = false;
-    }
-
-    protected void ResetInternal()
-    {
-        if (_alreadyReset)
-        {
-            return;
-        }
-
-        foreach (DelayedSetKnowledgeEntity entity in _knowledgeEntities.Values)
+        foreach (KnowledgeEntity entity in _knowledgeEntities.Values)
         {
             entity.Reset();
-        }
-
-        _alreadyReset = true;
-    }
-
-    public override void Set(object o)
-    {
-        if (o is CulturalKnowledgesEntity e)
-        {
-            Set(e.Culture);
-        }
-        else if (o is Culture c)
-        {
-            Set(c);
-        }
-        else
-        {
-            throw new System.ArgumentException("Unexpected type: " + o.GetType());
         }
     }
 }
