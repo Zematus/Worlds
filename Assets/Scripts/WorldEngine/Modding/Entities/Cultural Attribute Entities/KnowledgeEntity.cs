@@ -3,15 +3,25 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class KnowledgeEntity : Entity
+public class KnowledgeEntity : DelayedSetEntity<CulturalKnowledge>
 {
     public const string LevelAttributeId = "level";
 
-    public virtual CulturalKnowledge Knowledge { get; private set; }
+    public virtual CulturalKnowledge Knowledge
+    {
+        get => Setable;
+        private set => Setable = value;
+    }
 
     private ValueGetterEntityAttribute<float> _levelAttribute;
 
     protected override object _reference => Knowledge;
+
+    public KnowledgeEntity(
+        ValueGetterMethod<CulturalKnowledge> getterMethod, Context c, string id)
+        : base(getterMethod, c, id)
+    {
+    }
 
     public KnowledgeEntity(Context c, string id) : base(c, id)
     {
@@ -49,23 +59,5 @@ public class KnowledgeEntity : Entity
     public override string GetFormattedString()
     {
         return "<i>" + Knowledge.Name + "</i>";
-    }
-
-    public void Set(CulturalKnowledge k) => Knowledge = k;
-
-    public override void Set(object o)
-    {
-        if (o is KnowledgeEntity e)
-        {
-            Set(e.Knowledge);
-        }
-        else if (o is CulturalKnowledge c)
-        {
-            Set(c);
-        }
-        else
-        {
-            throw new System.ArgumentException("Unexpected type: " + o.GetType());
-        }
     }
 }
