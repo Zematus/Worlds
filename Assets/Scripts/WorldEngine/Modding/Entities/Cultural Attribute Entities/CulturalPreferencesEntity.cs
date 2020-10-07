@@ -3,13 +3,23 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class CulturalPreferencesEntity : Entity
+public class CulturalPreferencesEntity : DelayedSetEntity<Culture>
 {
-    public Culture Culture;
+    public virtual Culture Culture
+    {
+        get => Setable;
+        private set => Setable = value;
+    }
 
     protected override object _reference => Culture;
 
     public CulturalPreferencesEntity(Context c, string id) : base(c, id)
+    {
+    }
+
+    public CulturalPreferencesEntity(
+        ValueGetterMethod<Culture> getterMethod, Context c, string id)
+        : base(getterMethod, c, id)
     {
     }
 
@@ -37,23 +47,5 @@ public class CulturalPreferencesEntity : Entity
     public override string GetFormattedString()
     {
         return "<i>cultural preferences</i>";
-    }
-
-    public void Set(Culture c) => Culture = c;
-
-    public override void Set(object o)
-    {
-        if (o is CulturalPreferencesEntity e)
-        {
-            Set(e.Culture);
-        }
-        else if (o is Culture c)
-        {
-            Set(c);
-        }
-        else
-        {
-            throw new System.ArgumentException("Unexpected type: " + o.GetType());
-        }
     }
 }

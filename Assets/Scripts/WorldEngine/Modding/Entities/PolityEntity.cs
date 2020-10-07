@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class PolityEntity : Entity
+public class PolityEntity : DelayedSetEntity<Polity>
 {
     public const string GetRandomGroupAttributeId = "get_random_group";
     public const string GetRandomContactAttributeId = "get_random_contact";
@@ -14,7 +14,11 @@ public class PolityEntity : Entity
     public const string LeaderAttributeId = "leader";
     public const string ContactCountAttributeId = "contact_count";
 
-    public virtual Polity Polity { get; protected set; }
+    public virtual Polity Polity
+    {
+        get => Setable;
+        private set => Setable = value;
+    }
 
     public int RandomGroupIndex = 0;
     public int RandomContactIndex = 0;
@@ -27,13 +31,11 @@ public class PolityEntity : Entity
     private DelayedSetAgentEntity _leaderEntity = null;
     private DelayedSetFactionEntity _dominantFactionEntity = null;
 
-    private bool _alreadyReset = false;
+    private readonly List<DelayedSetGroupEntity>
+        _randomGroupEntitiesToSet = new List<DelayedSetGroupEntity>();
 
-    private readonly List<RandomGroupEntity>
-        _randomGroupEntitiesToSet = new List<RandomGroupEntity>();
-
-    private readonly List<RandomContactEntity>
-        _randomContactEntitiesToSet = new List<RandomContactEntity>();
+    private readonly List<ContactEntity>
+        _randomContactEntitiesToSet = new List<ContactEntity>();
 
     public override string GetDebugString()
     {
@@ -46,6 +48,12 @@ public class PolityEntity : Entity
     }
 
     public PolityEntity(Context c, string id) : base(c, id)
+    {
+    }
+
+    public PolityEntity(
+        ValueGetterMethod<Polity> getterMethod, Context c, string id)
+        : base(getterMethod, c, id)
     {
     }
 
@@ -71,93 +79,18 @@ public class PolityEntity : Entity
         return _leaderEntity.GetThisEntityAttribute(this);
     }
 
-    private class RandomGroupEntity : GroupEntity
-    {
-        private int _index;
-        private int _iterOffset;
-        private PolityEntity _polityEntity;
-
-        private CellGroup _group = null;
-
-        public RandomGroupEntity(int index, PolityEntity entity)
-            : base(entity.Context, entity.Id + ".random_group_" + index)
-        {
-            _index = index;
-            _iterOffset = entity.Context.GetNextIterOffset() + index;
-            _polityEntity = entity;
-        }
-
-        public void Reset()
-        {
-            _group = null;
-        }
-
-        public override CellGroup Group
-        {
-            get
-            {
-                if (_group == null)
-                {
-                    Polity polity = _polityEntity.Polity;
-
-                    int offset = polity.GetHashCode() + _iterOffset + Context.GetBaseOffset();
-
-                    _group = polity.GetRandomGroup(offset);
-
-                    Set(_group);
-                }
-
-                return _group;
-            }
-        }
-    }
-
-    private class RandomContactEntity : ContactEntity
-    {
-        private int _index;
-        private int _iterOffset;
-        private PolityEntity _polityEntity;
-
-        private PolityContact _contact = null;
-
-        public RandomContactEntity(int index, PolityEntity entity)
-            : base(entity.Context, entity.Id + ".random_contact_" + index)
-        {
-            _index = index;
-            _iterOffset = entity.Context.GetNextIterOffset() + index;
-            _polityEntity = entity;
-        }
-
-        public void Reset()
-        {
-            _contact = null;
-        }
-
-        public override PolityContact Contact
-        {
-            get
-            {
-                if (_contact == null)
-                {
-                    Polity polity = _polityEntity.Polity;
-
-                    int offset = polity.GetHashCode() + _iterOffset + Context.GetBaseOffset();
-
-                    _contact = polity.GetRandomPolityContact(offset);
-
-                    Set(_contact);
-                }
-
-                return _contact;
-            }
-        }
-    }
-
     private EntityAttribute GenerateRandomGroupEntityAttribute()
     {
-        int groupIndex = RandomGroupIndex++;
+        int index = RandomGroupIndex++;
+        int iterOffset = Context.GetNextIterOffset() + index;
 
-        RandomGroupEntity entity = new RandomGroupEntity(groupIndex, this);
+        DelayedSetGroupEntity entity = new DelayedSetGroupEntity(
+            () => {
+                int offset = Polity.GetHashCode() + iterOffset + Context.GetBaseOffset();
+                return Polity.GetRandomGroup(offset);
+            },
+            Context,
+            BuildAttributeId("random_group_" + index));
 
         _randomGroupEntitiesToSet.Add(entity);
 
@@ -166,9 +99,16 @@ public class PolityEntity : Entity
 
     private EntityAttribute GenerateRandomContactEntityAttribute()
     {
-        int contactIndex = RandomContactIndex++;
+        int index = RandomContactIndex++;
+        int iterOffset = Context.GetNextIterOffset() + index;
 
-        RandomContactEntity entity = new RandomContactEntity(contactIndex, this);
+        ContactEntity entity = new ContactEntity(
+            () => {
+                int offset = Polity.GetHashCode() + iterOffset + Context.GetBaseOffset();
+                return Polity.GetRandomPolityContact(offset);
+            },
+            Context,
+            BuildAttributeId("random_contact_" + index));
 
         _randomContactEntitiesToSet.Add(entity);
 
@@ -217,51 +157,21 @@ public class PolityEntity : Entity
         throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);
     }
 
-    protected void ResetInternal()
+    protected override void ResetInternal()
     {
-        if (_alreadyReset)
-        {
-            return;
-        }
+        if (_isReset) return;
 
-        foreach (RandomGroupEntity groupEntity in _randomGroupEntitiesToSet)
+        foreach (DelayedSetGroupEntity groupEntity in _randomGroupEntitiesToSet)
         {
             groupEntity.Reset();
         }
 
-        foreach (RandomContactEntity contactEntity in _randomContactEntitiesToSet)
+        foreach (ContactEntity contactEntity in _randomContactEntitiesToSet)
         {
             contactEntity.Reset();
         }
 
         _leaderEntity?.Reset();
         _dominantFactionEntity?.Reset();
-
-        _alreadyReset = true;
-    }
-
-    public void Set(Polity p)
-    {
-        Polity = p;
-
-        ResetInternal();
-
-        _alreadyReset = false;
-    }
-
-    public override void Set(object o)
-    {
-        if (o is PolityEntity e)
-        {
-            Set(e.Polity);
-        }
-        else if (o is Polity p)
-        {
-            Set(p);
-        }
-        else
-        {
-            throw new System.ArgumentException("Unexpected type: " + o.GetType());
-        }
     }
 }

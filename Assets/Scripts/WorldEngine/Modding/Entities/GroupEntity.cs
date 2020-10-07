@@ -17,7 +17,7 @@ public class GroupEntity : Entity
 
     private ValueGetterEntityAttribute<float> _factionCoresCountAttribute;
 
-    private DelayedSetCellEntity _cellEntity = null;
+    private CellEntity _cellEntity = null;
     private DelayedSetPolityEntity _polityWithHighestProminenceEntity = null;
 
     private AssignableCulturalPreferencesEntity _preferencesEntity = null;
@@ -32,7 +32,7 @@ public class GroupEntity : Entity
     public EntityAttribute GetCellAttribute()
     {
         _cellEntity =
-            _cellEntity ?? new DelayedSetCellEntity(
+            _cellEntity ?? new CellEntity(
                 GetCell,
                 Context,
                 BuildAttributeId(CellAttributeId));
@@ -137,6 +137,7 @@ public class GroupEntity : Entity
         _cellEntity?.Reset();
         _polityWithHighestProminenceEntity?.Reset();
 
+        _preferencesEntity?.Reset();
         _knowledgesEntity?.Reset();
 
         _alreadyReset = true;

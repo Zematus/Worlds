@@ -3,11 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class CellEntity : Entity
+public class CellEntity : DelayedSetEntity<TerrainCell>
 {
     public const string BiomeTraitPresenceAttributeId = "biome_trait_presence";
 
-    public virtual TerrainCell Cell { get; private set; }
+    public virtual TerrainCell Cell
+    {
+        get => Setable;
+        private set => Setable = value;
+    }
 
     protected override object _reference => Cell;
 
@@ -37,6 +41,12 @@ public class CellEntity : Entity
     {
     }
 
+    public CellEntity(
+        ValueGetterMethod<TerrainCell> getterMethod, Context c, string id)
+        : base(getterMethod, c, id)
+    {
+    }
+
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)
@@ -56,23 +66,5 @@ public class CellEntity : Entity
     public override string GetFormattedString()
     {
         return Cell.Position.ToString().ToBoldFormat();
-    }
-
-    public void Set(TerrainCell c) => Cell = c;
-
-    public override void Set(object o)
-    {
-        if (o is CellEntity e)
-        {
-            Set(e.Cell);
-        }
-        else if (o is TerrainCell c)
-        {
-            Set(c);
-        }
-        else
-        {
-            throw new System.ArgumentException("Unexpected type: " + o.GetType());
-        }
     }
 }
