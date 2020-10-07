@@ -9,7 +9,7 @@ public class ContactEntity : DelayedSetEntity<PolityContact>
         private set => Setable = value;
     }
 
-    private DelayedSetPolityEntity _polityEntity = null;
+    private PolityEntity _polityEntity = null;
 
     private bool _alreadyReset = false;
 
@@ -26,7 +26,7 @@ public class ContactEntity : DelayedSetEntity<PolityContact>
     public EntityAttribute GetPolityAttribute()
     {
         _polityEntity =
-            _polityEntity ?? new DelayedSetPolityEntity(
+            _polityEntity ?? new PolityEntity(
                 GetPolity,
                 Context,
                 BuildAttributeId(PolityAttributeId));
