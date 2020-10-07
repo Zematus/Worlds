@@ -1,15 +1,25 @@
 ﻿
-public class ContactEntity : Entity
+public class ContactEntity : DelayedSetEntity<PolityContact>
 {
     public const string PolityAttributeId = "polity";
 
-    public virtual PolityContact Contact { get; private set; }
+    public virtual PolityContact Contact
+    {
+        get => Setable;
+        private set => Setable = value;
+    }
 
     private DelayedSetPolityEntity _polityEntity = null;
 
     private bool _alreadyReset = false;
 
     public ContactEntity(Context c, string id) : base(c, id)
+    {
+    }
+
+    public ContactEntity(
+        ValueGetterMethod<PolityContact> getterMethod, Context c, string id)
+        : base(getterMethod, c, id)
     {
     }
 
@@ -47,42 +57,15 @@ public class ContactEntity : Entity
         return Contact.Polity.Name.BoldText;
     }
 
-    public void Set(PolityContact c)
+    protected override void ResetInternal()
     {
-        Contact = c;
-
-        ResetInternal();
-
-        _alreadyReset = false;
-    }
-
-    protected void ResetInternal()
-    {
-        if (_alreadyReset)
+        if (_isReset)
         {
             return;
         }
 
         _polityEntity?.Reset();
-
-        _alreadyReset = true;
     }
 
     public Polity GetPolity() => Contact.Polity;
-
-    public override void Set(object o)
-    {
-        if (o is ContactEntity e)
-        {
-            Set(e.Contact);
-        }
-        else if (o is PolityContact c)
-        {
-            Set(c);
-        }
-        else
-        {
-            throw new System.ArgumentException("Unexpected type: " + o.GetType());
-        }
-    }
 }
