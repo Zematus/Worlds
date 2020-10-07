@@ -18,7 +18,7 @@ public class GroupEntity : Entity
     private ValueGetterEntityAttribute<float> _factionCoresCountAttribute;
 
     private CellEntity _cellEntity = null;
-    private DelayedSetPolityEntity _polityWithHighestProminenceEntity = null;
+    private PolityEntity _polityWithHighestProminenceEntity = null;
 
     private AssignableCulturalPreferencesEntity _preferencesEntity = null;
     private CulturalKnowledgesEntity _knowledgesEntity = null;
@@ -43,7 +43,7 @@ public class GroupEntity : Entity
     public EntityAttribute GetPolityWithHighestProminenceAttribute()
     {
         _polityWithHighestProminenceEntity =
-            _polityWithHighestProminenceEntity ?? new DelayedSetPolityEntity(
+            _polityWithHighestProminenceEntity ?? new PolityEntity(
                 GetPolityWithHighestProminence,
                 Context,
                 BuildAttributeId(PolityWithHighestProminenceAttributeId));

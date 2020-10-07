@@ -28,7 +28,7 @@ public class FactionEntity : Entity
     private ValueGetterEntityAttribute<float> _influenceAttribute;
 
     private DelayedSetAgentEntity _leaderEntity = null;
-    private DelayedSetPolityEntity _polityEntity = null;
+    private PolityEntity _polityEntity = null;
     private DelayedSetGroupEntity _coreGroupEntity = null;
 
     private AssignableCulturalPreferencesEntity _preferencesEntity = null;
@@ -73,7 +73,7 @@ public class FactionEntity : Entity
     public EntityAttribute GetPolityAttribute()
     {
         _polityEntity =
-            _polityEntity ?? new DelayedSetPolityEntity(
+            _polityEntity ?? new PolityEntity(
                 GetPolity,
                 Context,
                 BuildAttributeId(PolityAttributeId));
