@@ -61,6 +61,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
     {
         _preferencesEntity =
             _preferencesEntity ?? new AssignableCulturalPreferencesEntity(
+                GetCulture,
                 Context,
                 BuildAttributeId(PreferencesAttributeId));
 
@@ -172,4 +173,6 @@ public class FactionEntity : DelayedSetEntity<Faction>
     public Polity GetPolity() => Faction.Polity;
 
     public CellGroup GetCoreGroup() => Faction.CoreGroup;
+
+    public Culture GetCulture() => Faction.Culture;
 }

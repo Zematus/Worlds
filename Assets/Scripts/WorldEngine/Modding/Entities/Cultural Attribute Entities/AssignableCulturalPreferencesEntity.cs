@@ -9,6 +9,12 @@ public class AssignableCulturalPreferencesEntity : CulturalPreferencesEntity
     {
     }
 
+    public AssignableCulturalPreferencesEntity(
+        ValueGetterMethod<Culture> getterMethod, Context c, string id)
+        : base(getterMethod, c, id)
+    {
+    }
+
     protected override EntityAttribute CreatePreferenceAttribute(string attributeId)
     {
         return new AssignablePreferenceAttribute(this, attributeId);
