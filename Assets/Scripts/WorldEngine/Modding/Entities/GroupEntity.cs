@@ -63,6 +63,7 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
     {
         _preferencesEntity =
             _preferencesEntity ?? new AssignableCulturalPreferencesEntity(
+                GetCulture,
                 Context,
                 BuildAttributeId(PreferencesAttributeId));
 
