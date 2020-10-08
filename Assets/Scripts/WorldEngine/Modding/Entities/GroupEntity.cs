@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class GroupEntity : Entity
+public class GroupEntity : DelayedSetEntity<CellGroup>
 {
     public const string CellAttributeId = "cell";
     public const string ProminenceAttributeId = "prominence";
@@ -13,7 +13,11 @@ public class GroupEntity : Entity
     public const string KnowledgesAttributeId = "knowledges";
     public const string PolityWithHighestProminenceAttributeId = "polity_with_highest_prominence";
 
-    public virtual CellGroup Group { get; private set; }
+    public virtual CellGroup Group
+    {
+        get => Setable;
+        private set => Setable = value;
+    }
 
     private ValueGetterEntityAttribute<float> _factionCoresCountAttribute;
 
@@ -23,9 +27,13 @@ public class GroupEntity : Entity
     private AssignableCulturalPreferencesEntity _preferencesEntity = null;
     private CulturalKnowledgesEntity _knowledgesEntity = null;
 
-    private bool _alreadyReset = false;
-
     public GroupEntity(Context c, string id) : base(c, id)
+    {
+    }
+
+    public GroupEntity(
+        ValueGetterMethod<CellGroup> getterMethod, Context c, string id)
+        : base(getterMethod, c, id)
     {
     }
 
@@ -116,20 +124,9 @@ public class GroupEntity : Entity
         return Group.Cell.Position.ToString().ToBoldFormat();
     }
 
-    public void Set(CellGroup g)
+    protected override void ResetInternal()
     {
-        Group = g;
-
-        _preferencesEntity?.Set(Group.Culture);
-
-        ResetInternal();
-
-        _alreadyReset = false;
-    }
-
-    protected void ResetInternal()
-    {
-        if (_alreadyReset)
+        if (_isReset)
         {
             return;
         }
@@ -139,8 +136,6 @@ public class GroupEntity : Entity
 
         _preferencesEntity?.Reset();
         _knowledgesEntity?.Reset();
-
-        _alreadyReset = true;
     }
 
     public TerrainCell GetCell() => Group.Cell;
@@ -148,20 +143,4 @@ public class GroupEntity : Entity
     public Polity GetPolityWithHighestProminence() => Group.HighestPolityProminence?.Polity;
 
     public Culture GetCulture() => Group.Culture;
-
-    public override void Set(object o)
-    {
-        if (o is GroupEntity e)
-        {
-            Set(e.Group);
-        }
-        else if (o is CellGroup g)
-        {
-            Set(g);
-        }
-        else
-        {
-            throw new System.ArgumentException("Unexpected type: " + o.GetType());
-        }
-    }
 }
