@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine.Profiling;
 
-public class FactionEntity : Entity
+public class FactionEntity : DelayedSetEntity<Faction>
 {
     public const string AdministrativeLoadAttributeId = "administrative_load";
     public const string InfluenceAttributeId = "influence";
@@ -19,17 +19,19 @@ public class FactionEntity : Entity
     public const string RelationshipAttributeId = "relationship";
     public const string SetRelationshipAttributeId = "set_relationship";
 
-    public virtual Faction Faction { get; private set; }
-
-    private bool _alreadyReset = false;
+    public virtual Faction Faction
+    {
+        get => Setable;
+        private set => Setable = value;
+    }
 
     private ValueGetterEntityAttribute<string> _typeAttribute;
     private ValueGetterEntityAttribute<float> _administrativeLoadAttribute;
     private ValueGetterEntityAttribute<float> _influenceAttribute;
 
-    private DelayedSetAgentEntity _leaderEntity = null;
+    private AgentEntity _leaderEntity = null;
     private PolityEntity _polityEntity = null;
-    private DelayedSetGroupEntity _coreGroupEntity = null;
+    private GroupEntity _coreGroupEntity = null;
 
     private AssignableCulturalPreferencesEntity _preferencesEntity = null;
 
@@ -49,6 +51,12 @@ public class FactionEntity : Entity
     {
     }
 
+    public FactionEntity(
+        ValueGetterMethod<Faction> getterMethod, Context c, string id)
+        : base(getterMethod, c, id)
+    {
+    }
+
     public EntityAttribute GetPreferencesAttribute()
     {
         _preferencesEntity =
@@ -62,7 +70,7 @@ public class FactionEntity : Entity
     public EntityAttribute GetLeaderAttribute()
     {
         _leaderEntity =
-            _leaderEntity ?? new DelayedSetAgentEntity(
+            _leaderEntity ?? new AgentEntity(
                 GetLeader,
                 Context,
                 BuildAttributeId(LeaderAttributeId));
@@ -84,7 +92,7 @@ public class FactionEntity : Entity
     public EntityAttribute GetCoreGroupAttribute()
     {
         _coreGroupEntity =
-            _coreGroupEntity ?? new DelayedSetGroupEntity(
+            _coreGroupEntity ?? new GroupEntity(
                 GetCoreGroup,
                 Context,
                 BuildAttributeId(CoreGroupAttributeId));
@@ -145,9 +153,9 @@ public class FactionEntity : Entity
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
     }
 
-    protected void ResetInternal()
+    protected override void ResetInternal()
     {
-        if (_alreadyReset)
+        if (_isReset)
         {
             return;
         }
@@ -156,20 +164,7 @@ public class FactionEntity : Entity
         _polityEntity?.Reset();
         _coreGroupEntity?.Reset();
 
-        _alreadyReset = true;
-    }
-
-    public virtual void Set(Faction f)
-    {
-        f.PreUpdate();
-
-        Faction = f;
-
-        _preferencesEntity?.Set(Faction.Culture);
-
-        ResetInternal();
-
-        _alreadyReset = false;
+        _preferencesEntity?.Reset();
     }
 
     public Agent GetLeader() => Faction.CurrentLeader;
@@ -177,20 +172,4 @@ public class FactionEntity : Entity
     public Polity GetPolity() => Faction.Polity;
 
     public CellGroup GetCoreGroup() => Faction.CoreGroup;
-
-    public override void Set(object o)
-    {
-        if (o is FactionEntity e)
-        {
-            Set(e.Faction);
-        }
-        else if (o is Faction f)
-        {
-            Set(f);
-        }
-        else
-        {
-            throw new System.ArgumentException("Unexpected type: " + o.GetType());
-        }
-    }
 }

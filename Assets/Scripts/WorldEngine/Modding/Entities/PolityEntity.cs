@@ -28,11 +28,11 @@ public class PolityEntity : DelayedSetEntity<Polity>
     private ValueGetterEntityAttribute<string> _typeAttribute;
     private ValueGetterEntityAttribute<float> _contactCountAttribute;
 
-    private DelayedSetAgentEntity _leaderEntity = null;
-    private DelayedSetFactionEntity _dominantFactionEntity = null;
+    private AgentEntity _leaderEntity = null;
+    private FactionEntity _dominantFactionEntity = null;
 
-    private readonly List<DelayedSetGroupEntity>
-        _randomGroupEntitiesToSet = new List<DelayedSetGroupEntity>();
+    private readonly List<GroupEntity>
+        _randomGroupEntitiesToSet = new List<GroupEntity>();
 
     private readonly List<ContactEntity>
         _randomContactEntitiesToSet = new List<ContactEntity>();
@@ -60,7 +60,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public EntityAttribute GetDominantFactionAttribute()
     {
         _dominantFactionEntity =
-            _dominantFactionEntity ?? new DelayedSetFactionEntity(
+            _dominantFactionEntity ?? new FactionEntity(
             GetDominantFaction,
             Context,
             BuildAttributeId(DominantFactionAttributeId));
@@ -71,7 +71,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public EntityAttribute GetLeaderAttribute()
     {
         _leaderEntity =
-            _leaderEntity ?? new DelayedSetAgentEntity(
+            _leaderEntity ?? new AgentEntity(
                 GetLeader,
                 Context,
                 BuildAttributeId(LeaderAttributeId));
@@ -84,7 +84,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
         int index = RandomGroupIndex++;
         int iterOffset = Context.GetNextIterOffset() + index;
 
-        DelayedSetGroupEntity entity = new DelayedSetGroupEntity(
+        GroupEntity entity = new GroupEntity(
             () => {
                 int offset = Polity.GetHashCode() + iterOffset + Context.GetBaseOffset();
                 return Polity.GetRandomGroup(offset);
@@ -161,7 +161,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     {
         if (_isReset) return;
 
-        foreach (DelayedSetGroupEntity groupEntity in _randomGroupEntitiesToSet)
+        foreach (GroupEntity groupEntity in _randomGroupEntitiesToSet)
         {
             groupEntity.Reset();
         }
