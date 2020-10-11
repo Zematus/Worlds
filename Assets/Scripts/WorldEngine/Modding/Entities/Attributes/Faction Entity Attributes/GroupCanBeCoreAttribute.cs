@@ -8,14 +8,14 @@ public class GroupCanBeCoreAttribute : ValueEntityAttribute<bool>
 {
     private FactionEntity _factionEntity;
 
-    private readonly IValueExpression<Entity> _argumentExp;
+    private readonly IValueExpression<IEntity> _argumentExp;
 
     public GroupCanBeCoreAttribute(FactionEntity factionEntity, IExpression[] arguments)
         : base(FactionEntity.GroupCanBeCoreAttributeId, factionEntity, arguments, 1)
     {
         _factionEntity = factionEntity;
 
-        _argumentExp = ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);
+        _argumentExp = ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
     }
 
     public override bool Value

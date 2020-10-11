@@ -6,12 +6,12 @@ using System.Text.RegularExpressions;
 public abstract class EntityAttribute
 {
     public string Id;
-    public Entity Entity;
+    public IEntity Entity;
     public IExpression[] Arguments;
 
     private EntityAttributeExpression _attrExpression = null;
 
-    public EntityAttribute(string id, Entity entity, IExpression[] arguments)
+    public EntityAttribute(string id, IEntity entity, IExpression[] arguments)
     {
         Id = id;
         Entity = entity;

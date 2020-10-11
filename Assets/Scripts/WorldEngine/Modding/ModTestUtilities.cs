@@ -102,7 +102,7 @@ public class TestEntity : Entity
 
     private readonly TestBooleanEntityAttribute _boolAttribute;
 
-    private readonly FixedValueEntityAttribute<Entity> _entityAttribute;
+    private readonly FixedValueEntityAttribute<IEntity> _entityAttribute;
 
     protected override object _reference => this;
 
@@ -113,7 +113,7 @@ public class TestEntity : Entity
         _boolAttribute =
             new TestBooleanEntityAttribute(this, false);
         _entityAttribute =
-            new FixedValueEntityAttribute<Entity>(_internalEntity, TestEntityAttributeId, this);
+            new FixedValueEntityAttribute<IEntity>(_internalEntity, TestEntityAttributeId, this);
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)

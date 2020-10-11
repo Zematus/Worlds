@@ -7,14 +7,14 @@ public class ProminenceAttribute : ValueEntityAttribute<float>
 {
     private GroupEntity _groupEntity;
 
-    private readonly IValueExpression<Entity> _argumentExp;
+    private readonly IValueExpression<IEntity> _argumentExp;
 
     public ProminenceAttribute(GroupEntity groupEntity, IExpression[] arguments)
         : base(GroupEntity.ProminenceAttributeId, groupEntity, arguments, 1)
     {
         _groupEntity = groupEntity;
 
-        _argumentExp = ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);
+        _argumentExp = ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
     }
 
     public override float Value

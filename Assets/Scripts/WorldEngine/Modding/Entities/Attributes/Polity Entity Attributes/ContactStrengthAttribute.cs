@@ -7,7 +7,7 @@ public class ContactStrengthAttribute : ValueEntityAttribute<float>
 {
     private PolityEntity _polityEntity;
 
-    private readonly IValueExpression<Entity> _argumentExp;
+    private readonly IValueExpression<IEntity> _argumentExp;
 
     private readonly PolityEntity _targetPolityEntity;
 
@@ -16,7 +16,7 @@ public class ContactStrengthAttribute : ValueEntityAttribute<float>
     {
         _polityEntity = polityEntity;
 
-        _argumentExp = ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);
+        _argumentExp = ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
     }
 
     public override float Value

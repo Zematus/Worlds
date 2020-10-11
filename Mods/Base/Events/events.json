@@ -17,7 +17,7 @@
         "target.preferences.cohesion < 0.7",
         "new_core_group.faction_cores_count == 0",
         "new_core_group.faction_core_distance(target.polity) > 1000",
-        "new_core_group.knowledges.social_organization.level >= 6",
+        "new_core_group.knowledges.social_organization >= 6",
         "polity_prominence > 0.3",
         "new_core_group.polity_with_highest_prominence == target.polity"
       ],

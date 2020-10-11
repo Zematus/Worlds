@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class KnowledgeEntity : DelayedSetEntity<CulturalKnowledge>
+public class KnowledgeEntity : DelayedSetEntity<CulturalKnowledge>, IValueEntity<float>
 {
-    public const string LevelAttributeId = "level";
+    public const string ValueAttributeId = "value";
 
     public virtual CulturalKnowledge Knowledge
     {
@@ -13,9 +13,36 @@ public class KnowledgeEntity : DelayedSetEntity<CulturalKnowledge>
         private set => Setable = value;
     }
 
-    private ValueGetterEntityAttribute<float> _levelAttribute;
+    private ValueGetterEntityAttribute<float> _valueAttribute;
+
+    private IValueExpression<float> _valueExpression = null;
 
     protected override object _reference => Knowledge;
+
+    public float Value => GetValue();
+
+    public IValueExpression<float> ValueExpression
+    {
+        get
+        {
+            _valueExpression = _valueExpression ??
+                new ValueGetterExpression<float>(Id, GetValue, ToPartiallyEvaluatedString);
+
+            return _valueExpression;
+        }
+    }
+
+    public IBaseValueExpression BaseValueExpression => ValueExpression;
+
+    public override IValueExpression<IEntity> Expression
+    {
+        get
+        {
+            _expression = _expression ?? new ValueEntityExpression<float>(this);
+
+            return _expression;
+        }
+    }
 
     public KnowledgeEntity(
         ValueGetterMethod<CulturalKnowledge> getterMethod, Context c, string id)
@@ -27,11 +54,11 @@ public class KnowledgeEntity : DelayedSetEntity<CulturalKnowledge>
     {
     }
 
-    private float GetProgressLevel()
+    public float GetValue()
     {
         if (Knowledge != null)
         {
-            return Knowledge.ProgressLevel;
+            return Knowledge.ScaledValue;
         }
 
         return 0;
@@ -41,11 +68,11 @@ public class KnowledgeEntity : DelayedSetEntity<CulturalKnowledge>
     {
         switch (attributeId)
         {
-            case LevelAttributeId:
-                _levelAttribute =
-                    _levelAttribute ?? new ValueGetterEntityAttribute<float>(
-                        LevelAttributeId, this, GetProgressLevel);
-                return _levelAttribute;
+            case ValueAttributeId:
+                _valueAttribute =
+                    _valueAttribute ?? new ValueGetterEntityAttribute<float>(
+                        ValueAttributeId, this, GetValue);
+                return _valueAttribute;
         }
 
         throw new System.ArgumentException("Knowledge: Unable to find attribute: " + attributeId);
@@ -53,11 +80,16 @@ public class KnowledgeEntity : DelayedSetEntity<CulturalKnowledge>
 
     public override string GetDebugString()
     {
-        return "knowledge:" + Knowledge.Id;
+        return GetValue().ToString();
     }
 
     public override string GetFormattedString()
     {
         return "<i>" + Knowledge.Name + "</i>";
+    }
+
+    public void Set(float v)
+    {
+        throw new System.InvalidOperationException("Knowledge attribute is read-only");
     }
 }

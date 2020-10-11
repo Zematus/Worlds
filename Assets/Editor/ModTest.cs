@@ -454,6 +454,19 @@ public class ModTest
         _testGroup5.Culture.Language = _testPolity2.Culture.Language;
         _testGroup6.Culture.Language = _testPolity2.Culture.Language;
 
+        _testGroup1.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup1, 600, 600));
+        _testGroup2.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup2, 600, 600));
+        _testGroup3.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup3, 600, 600));
+        _testGroup4.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup4, 600, 600));
+        _testGroup5.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup5, 600, 600));
+        _testGroup6.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup6, 600, 600));
+
         _testRegion1 = new TestCellRegion(_testCell1, _testGroup1.Culture.Language);
         _testCell1.Region = _testRegion1;
         _testCell2.Region = _testRegion1;
@@ -469,6 +482,12 @@ public class ModTest
         _testFaction2.TestLeader = new Agent(_testFaction2.CoreGroup, 0, 0);
         _testFaction3.TestLeader = new Agent(_testFaction3.CoreGroup, 0, 0);
         _testFaction4.TestLeader = new Agent(_testFaction4.CoreGroup, 0, 0);
+
+        _testFaction0.Culture.AddKnowledge(
+            new CulturalKnowledge(
+                SocialOrganizationKnowledge.KnowledgeId,
+                SocialOrganizationKnowledge.KnowledgeName,
+                600));
 
         _testFaction0.Culture.GetPreference("authority").Value = 0.4f;
         _testFaction0.Culture.GetPreference("cohesion").Value = 0.6f;
@@ -703,6 +722,8 @@ public class ModTest
     public void LoadDecisionsModTest()
     {
         Manager.UpdateMainThreadReference();
+
+        LoadCulturalPreferences();
 
         LoadBaseDecisionsMod();
 

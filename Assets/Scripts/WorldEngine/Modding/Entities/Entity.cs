@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
 using System;
 
-public abstract class Entity : IComparable<object>
+public abstract class Entity : IEntity
 {
-    public string Id;
+    public string Id { get; private set; }
 
-    public Context Context;
+    protected Context Context;
 
     protected abstract object _reference { get; }
 
-    protected IValueExpression<Entity> _expression = null;
+    protected IValueExpression<IEntity> _expression = null;
 
     private EntityAttribute _thisAttribute;
 
@@ -67,7 +67,7 @@ public abstract class Entity : IComparable<object>
         return !left.Equals(right);
     }
 
-    public virtual IValueExpression<Entity> Expression
+    public virtual IValueExpression<IEntity> Expression
     {
         get
         {
@@ -89,7 +89,7 @@ public abstract class Entity : IComparable<object>
     public EntityAttribute GetThisEntityAttribute(Entity parent)
     {
         _thisAttribute =
-            _thisAttribute ?? new FixedValueEntityAttribute<Entity>(
+            _thisAttribute ?? new FixedValueEntityAttribute<IEntity>(
                 this, Id, parent);
 
         return _thisAttribute;
