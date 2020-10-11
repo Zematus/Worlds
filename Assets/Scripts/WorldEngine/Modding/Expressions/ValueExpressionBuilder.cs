@@ -77,7 +77,7 @@ public static class ValueExpressionBuilder
             return "number";
         }
 
-        if (type == typeof(Entity))
+        if (type == typeof(IEntity))
         {
             return "entity";
         }
