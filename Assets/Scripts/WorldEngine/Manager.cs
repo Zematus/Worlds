@@ -4158,6 +4158,8 @@ public class Manager
 
         ModDecision.ResetDecisions();
 
+        Knowledge.InitializeKnowledges();
+
         float progressPerMod = 0.1f / paths.Count;
 
         foreach (string path in paths)
@@ -4175,7 +4177,6 @@ public class Manager
         }
 
         PreferenceGenerator.InitializePreferenceGenerators();
-        Knowledge.InitializeKnowledges();
         Discovery.InitializeDiscoveries();
 
         EventGenerator.InitializeGenerators();

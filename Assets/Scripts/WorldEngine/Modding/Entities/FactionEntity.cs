@@ -13,7 +13,6 @@ public class FactionEntity : DelayedSetEntity<Faction>
     public const string PreferencesAttributeId = "preferences";
     public const string TriggerDecisionAttributeId = "trigger_decision";
     public const string SplitAttributeId = "split";
-    public const string GroupCanBeCoreAttributeId = "group_can_be_core";
     public const string CoreGroupAttributeId = "core_group";
     public const string TypeAttributeId = "type";
     public const string RelationshipAttributeId = "relationship";
@@ -131,9 +130,6 @@ public class FactionEntity : DelayedSetEntity<Faction>
 
             case SplitAttributeId:
                 return new SplitFactionAttribute(this, arguments);
-
-            case GroupCanBeCoreAttributeId:
-                return new GroupCanBeCoreAttribute(this, arguments);
 
             case RelationshipAttributeId:
                 return new RelationshipAttribute(this, arguments);

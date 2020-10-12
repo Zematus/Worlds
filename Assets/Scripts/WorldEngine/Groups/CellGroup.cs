@@ -2147,10 +2147,7 @@ public class CellGroup : Identifiable, IFlagHolder
     public float GetFactionCoreDistance(Polity polity)
     {
         if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
-        {
-            throw new System.ArgumentException(
-                "GetFactionCoreDistance: Polity " + polity.Id + " is not present in group " + Id);
-        }
+            return float.MaxValue;
 
         return polityProminence.FactionCoreDistance;
     }
