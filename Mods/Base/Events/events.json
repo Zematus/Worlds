@@ -21,7 +21,7 @@
         "polity_prominence > 0.3",
         "new_core_group.polity_with_highest_prominence == target.polity"
       ],
-      "timeToTrigger": "9125 + random(91250 * (1 - saturation(400000, target.administrative_load)) * target.preferences.cohesion)",
+      "timeToTrigger": "9125 + random(912500 * (1 - saturation(100000, target.administrative_load)) * target.preferences.cohesion)",
       "effects": [
         "target.trigger_decision(clan_decide_split, new_core_group)"
       ],

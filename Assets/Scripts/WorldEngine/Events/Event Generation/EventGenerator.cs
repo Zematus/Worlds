@@ -255,7 +255,20 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     protected long CalculateEventTriggerDate(World world)
     {
+        OpenDebugOutput("Calculating Trigger Date:");
+        AddDebugOutput("  CurrentDate: " + world.CurrentDate);
+
         float timeToTrigger = TimeToTrigger.Value;
+
+        if (DebugEnabled)
+        {
+            string expStr = TimeToTrigger.ToString();
+            string expPartialStr = TimeToTrigger.ToPartiallyEvaluatedString();
+
+            AddDebugOutput("  TimeToTrigger: " + expStr +
+             "\n   - Partial eval: " + expPartialStr +
+             "\n   - Result (days): " + timeToTrigger);
+        }
 
         if (timeToTrigger < 0)
         {
@@ -277,9 +290,11 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
                 "\n - timeToTrigger expression: " + TimeToTrigger.ToPartiallyEvaluatedString() +
                 "\n - time to trigger (days): " + timeToTrigger);
 
+            CloseDebugOutput("Unable to calculate trigger date...");
             return long.MinValue;
         }
 
+        CloseDebugOutput("Calculated trigger date: " + targetDate);
         return targetDate;
     }
 

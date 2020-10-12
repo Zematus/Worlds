@@ -652,12 +652,12 @@ public class TerrainCell
     /// </summary>
     public void UpdateDrainage()
     {
-#if DEBUG
-        if ((Longitude == 229) && (Latitude == 133))
-        {
-            Debug.Log("Debugging cell " + Position);
-        }
-#endif
+//#if DEBUG
+//        if ((Longitude == 229) && (Latitude == 133))
+//        {
+//            Debug.Log("Debugging cell " + Position);
+//        }
+//#endif
 
         WaterAccumulation = Rainfall;
 
