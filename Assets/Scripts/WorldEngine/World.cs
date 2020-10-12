@@ -3655,12 +3655,12 @@ public class World : ISynchronizable
 
         Dictionary<TerrainCell, float> nAltitudes = new Dictionary<TerrainCell, float>();
 
-#if DEBUG
-        if ((cell.Longitude == 250) && (cell.Latitude == 125))
-        {
-            Debug.Log("Debugging drainage on cell " + cell.Position);
-        }
-#endif
+//#if DEBUG
+//        if ((cell.Longitude == 250) && (cell.Latitude == 125))
+//        {
+//            Debug.Log("Debugging drainage on cell " + cell.Position);
+//        }
+//#endif
 
         float totalAltDifference = 0;
         foreach (TerrainCell nCell in cell.NeighborList)
@@ -4254,12 +4254,12 @@ public class World : ISynchronizable
 
     private void GenerateTerrainBiomes(TerrainCell cell)
     {
-#if DEBUG
-        if ((cell.Longitude == 229) && (cell.Latitude == 133))
-        {
-            Debug.Log("Debugging cell " + cell.Position);
-        }
-#endif
+//#if DEBUG
+//        if ((cell.Longitude == 229) && (cell.Latitude == 133))
+//        {
+//            Debug.Log("Debugging cell " + cell.Position);
+//        }
+//#endif
 
         float totalBiomePresence = 0;
 
