@@ -32,7 +32,7 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
                 return _valueAttribute;
         }
 
-        throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
+        throw new System.ArgumentException("ValueEntity: Unable to find attribute: " + attributeId);
     }
 
     public virtual T GetValue() => Value;

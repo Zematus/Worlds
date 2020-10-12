@@ -32,10 +32,10 @@ public static class NotEqualsExpressionBuilder
             return new NotEqualsExpression<string>(expressionA, expressionB);
         }
 
-        if ((expressionA is IValueExpression<Entity>) &&
-            (expressionB is IValueExpression<Entity>))
+        if ((expressionA is IValueExpression<IEntity>) &&
+            (expressionB is IValueExpression<IEntity>))
         {
-            return new NotEqualsExpression<Entity>(expressionA, expressionB);
+            return new NotEqualsExpression<IEntity>(expressionA, expressionB);
         }
 
         throw new System.Exception(
