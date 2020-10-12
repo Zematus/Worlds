@@ -32,10 +32,10 @@ public static class EqualsExpressionBuilder
             return new EqualsExpression<string>(expressionA, expressionB);
         }
 
-        if ((expressionA is IValueExpression<Entity>) &&
-            (expressionB is IValueExpression<Entity>))
+        if ((expressionA is IValueExpression<IEntity>) &&
+            (expressionB is IValueExpression<IEntity>))
         {
-            return new EqualsExpression<Entity>(expressionA, expressionB);
+            return new EqualsExpression<IEntity>(expressionA, expressionB);
         }
 
         throw new System.Exception(

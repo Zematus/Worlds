@@ -9,7 +9,7 @@ public abstract class EntityAttribute
     public IEntity Entity;
     public IExpression[] Arguments;
 
-    private EntityAttributeExpression _attrExpression = null;
+    private IExpression _attrExpression = null;
 
     public EntityAttribute(string id, IEntity entity, IExpression[] arguments)
     {
@@ -18,9 +18,9 @@ public abstract class EntityAttribute
         Arguments = arguments;
     }
 
-    protected abstract EntityAttributeExpression BuildExpression();
+    protected abstract IExpression BuildExpression();
 
-    public EntityAttributeExpression GetExpression()
+    public IExpression GetExpression()
     {
         _attrExpression = _attrExpression ?? BuildExpression();
 

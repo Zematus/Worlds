@@ -18,14 +18,14 @@ public abstract class ValueEntityAttribute<T> : EntityAttribute
 
     public abstract T Value { get; }
 
-    protected override EntityAttributeExpression BuildExpression()
+    protected override IExpression BuildExpression()
     {
         return new ValueEntityAttributeExpression<T>(this);
     }
 
     public override string ToPartiallyEvaluatedString(bool evaluate)
     {
-        if (Value is Entity e)
+        if (Value is IEntity e)
         {
             return e.ToPartiallyEvaluatedString(evaluate);
         }

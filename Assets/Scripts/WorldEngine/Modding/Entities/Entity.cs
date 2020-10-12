@@ -11,7 +11,7 @@ public abstract class Entity : IEntity
 
     protected IValueExpression<IEntity> _expression = null;
 
-    private EntityAttribute _thisAttribute;
+    protected EntityAttribute _thisAttribute;
 
     public Entity(Context context, string id)
     {
@@ -86,7 +86,7 @@ public abstract class Entity : IEntity
         Set(o);
     }
 
-    public EntityAttribute GetThisEntityAttribute(Entity parent)
+    public virtual EntityAttribute GetThisEntityAttribute(Entity parent)
     {
         _thisAttribute =
             _thisAttribute ?? new FixedValueEntityAttribute<IEntity>(

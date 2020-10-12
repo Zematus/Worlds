@@ -21,8 +21,6 @@ public class ValueGetterExpression<T> : IValueExpression<T>
     public override string ToString()
     {
         return _sourceId;
-
-        //return Value.ToString();
     }
 
     public string GetFormattedString() => Value.ToString().ToBoldFormat();

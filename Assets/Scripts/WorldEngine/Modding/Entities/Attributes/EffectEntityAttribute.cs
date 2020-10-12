@@ -18,7 +18,7 @@ public abstract class EffectEntityAttribute : EntityAttribute
 
     public abstract void Apply();
 
-    protected override EntityAttributeExpression BuildExpression()
+    protected override IExpression BuildExpression()
     {
         return new EffectEntityAttributeExpression(this);
     }
