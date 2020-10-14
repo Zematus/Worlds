@@ -13,6 +13,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string TypeAttributeId = "type";
     public const string LeaderAttributeId = "leader";
     public const string ContactCountAttributeId = "contact_count";
+    public const string FactionCountAttributeId = "faction_count";
 
     public virtual Polity Polity
     {
@@ -27,6 +28,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
     private ValueGetterEntityAttribute<string> _typeAttribute;
     private ValueGetterEntityAttribute<float> _contactCountAttribute;
+    private ValueGetterEntityAttribute<float> _factionCountAttribute;
 
     private AgentEntity _leaderEntity = null;
     private FactionEntity _dominantFactionEntity = null;
@@ -134,6 +136,12 @@ public class PolityEntity : DelayedSetEntity<Polity>
                     _contactCountAttribute ?? new ValueGetterEntityAttribute<float>(
                         ContactCountAttributeId, this, () => Polity.GetPolityContacts().Count);
                 return _contactCountAttribute;
+
+            case FactionCountAttributeId:
+                _factionCountAttribute =
+                    _factionCountAttribute ?? new ValueGetterEntityAttribute<float>(
+                        FactionCountAttributeId, this, () => Polity.FactionCount);
+                return _factionCountAttribute;
 
             case LeaderAttributeId:
                 return GetLeaderAttribute();

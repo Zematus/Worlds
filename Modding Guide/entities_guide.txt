@@ -99,10 +99,6 @@ Here's a list of currently supported entities and their attributes:
     core, and a percentage of influence (as a value between 0 and 1) to transfer from
     the parent faction.
     Examples: "target.split(new_core_group, 0.5)"
-  - group_can_be_core:
-    Attribute function that will return the BOOLEAN value, "True", if a specific group
-    entity can become the core of a faction. "False" if otherwise.
-    Examples: "dominant_faction.group_can_be_core(chossen_group)"
   - relationship:
     Attribute function that will return a NUMERIC value corresponding to the current
     relationship value between this faction and the faction given as parameter.
