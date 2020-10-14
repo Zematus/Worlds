@@ -16,12 +16,12 @@
         "target.administrative_load > 100000",
         "target.preferences.cohesion < 0.7",
         "new_core_group.faction_cores_count == 0",
-        "new_core_group.faction_core_distance(target.polity) > 1000",
+        "new_core_group.faction_core_distance(target.polity) > 500",
         "new_core_group.knowledges.social_organization >= 6",
         "polity_prominence > 0.3",
         "new_core_group.polity_with_highest_prominence == target.polity"
       ],
-      "timeToTrigger": "9125 + random(912500 * (1 - saturation(100000, target.administrative_load)) * target.preferences.cohesion)",
+      "timeToTrigger": "9125 + random(9125000 * (1 - saturation(100000, target.administrative_load)) * target.preferences.cohesion)",
       "effects": [
         "target.trigger_decision(clan_decide_split, new_core_group)"
       ],
