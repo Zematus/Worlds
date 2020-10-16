@@ -66,7 +66,7 @@ list of each value type and its properties.
   agents, cells, groups, etc. AN entity can have one more attributes that can be
   accessed through the '.' operator. Entity attributes can have a value type (number,
   boolean, string, entity) or return a function with resolves into a value or an
-  effect. See entities_guide.txt for more details on entities.
+  effect. See entities_guide.md for more details on entities.
 
 -- EFFECTS --
 
@@ -74,4 +74,4 @@ Effect expressions are a special kind of expression that do not resolve into a v
 Instead, they produce an in-game effect which depends on the type of expression.
 Most effects are associated with with entity attributes. Some others are associated
 with function expressions. More details about specific effect expressions can be
-found in either entities_guide.txt, function_expressions_guide.txt, or expression_operators_guide.txt
+found in either entities_guide.md, function_expressions_guide.txt, or expression_operators_guide.txt
