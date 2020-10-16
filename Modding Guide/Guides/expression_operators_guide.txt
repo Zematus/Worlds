@@ -65,7 +65,7 @@ in single quotes.
   and assign it to the authority preference of the 'target' entity.
   NOTE A: An assignment expression is an EFFECT expression. Not a VALUE expression.
   NOTE B: Only certain entity attributes, like faction preferences, are considered
-  assignable. Specific entity assignable attributes are described in entities_guide.txt
+  assignable. Specific entity assignable attributes are described in entities_guide.md
 
 - Equality: '=='
   This operator will compare the result of the left-side VALUE expression and compare

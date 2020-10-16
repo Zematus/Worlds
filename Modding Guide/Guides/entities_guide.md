@@ -5,19 +5,22 @@
 
 An access operation is handled as an expression and as such, can either ver resolved into a value or an effect. A value returned by an access operator can be of any of the supported types: **numbers**, **booleans**, **strings** or other **entities**. Certain attributes are function-like and expect one or more parameters, and they should be invoked in this manner: `"<entity>.<attribute>(<parameters>)"`
 
-Here's a list of currently supported entities and their attributes:
+## Currently Supported Entities:
 
-- **CELL**
+### CELL
+
   This type of entity encapsulates a fixed area on the world map and has general information about that area's characteristics: longitude, latitude, altitude, temperature, rainfall, present biomes, etc.
+
   ***Properties:***
 
   - **biome_trait_presence**
     Attribute function that returns the presence of a specific biome trait within a cell as a **numeric** value between 0 and 1.
     *Examples:* `"cell.biome_trait_presence(wood)"`, `"target.cell.biome_trait_presence(sea)"`
 
+### GROUP
 
-- **GROUP**
   This type of entity encapsulates a population group occupying a cell on the surface of the map and contains information about characteristics like: population, cultural attributes, influences, etc.
+
   ***Properties:***
 
   - **cell**
@@ -49,8 +52,10 @@ Here's a list of currently supported entities and their attributes:
     *Examples:* `"group.polity_with_highest_prominence"`, `"target.polity_with_highest_prominence"`
 
 
-- **POLITY**
+### POLITY
+
   This type of entity encapsulates a polity in the planet and information about it's culture, territory, factions, etc.
+
   ***Properties:***
 
   - **type**
@@ -82,8 +87,10 @@ Here's a list of currently supported entities and their attributes:
     *Examples:* `"polity.leader.wisdom"`
 
 
-- **CONTACT**
+### CONTACT
+
   This type of entity encapsulates relationship information between two polities.
+
   ***Properties:***
 
   - **polity**
@@ -91,8 +98,10 @@ Here's a list of currently supported entities and their attributes:
     *Examples:* `"contact.polity"`, `"polity.get_random_contact().polity"`
 
 
-- **AGENT**
+### AGENT
+
   This type of entity encapsulates any individual that is or was present within the simulation. That includes faction leaders.
+
   ***Properties:***
 
   - **charisma**
@@ -104,8 +113,10 @@ Here's a list of currently supported entities and their attributes:
     *Example:* `"0.3 >= current_leader.wisdom"`
 
 
-- **FACTION**
+### FACTION
+
   This type of entity encapsulates any faction that can be part of a polity. most decisions have a faction as target entity.
+  
   ***Properties:***
 
   - **type**
@@ -132,26 +143,22 @@ Here's a list of currently supported entities and their attributes:
     Attribute that returns the **polity entity** to which this faction belongs to.
     *Example:* `"faction.polity.type == tribe"`
 
-  - trigger_decision:
-    Attribute function that will trigger a decision referenced by the given id.
-    The function needs to receive as extra parameters all of the parameters needed to
-    execute the given decision
-    Examples: "dominant_faction.trigger_decision(influence_demanded_from_clan, target)"
-  - split:
-    Attribute function that will trigger a faction to split a new faction from
-    itself. The function expects two parameters: a group to become the new faction's
-    core, and a percentage of influence (as a value between 0 and 1) to transfer from
-    the parent faction.
-    Examples: "target.split(new_core_group, 0.5)"
-  - relationship:
-    Attribute function that will return a NUMERIC value corresponding to the current
-    relationship value between this faction and the faction given as parameter.
-    Examples: "target.relationship(dominant_faction)"
-  - set_relationship:
-    Attribute function that will update the relationship value between this faction
-    and the faction given as first parameter, using the NUMERIC value given in the
-    second parameter.
-    Examples: "dominant_faction.set_relationship(target, input_value / 2)"
-  - core_group:
-    Attribute that returns the core of this faction as a group entity.
-    Examples: "target.core_group != new_core_group"
+  - **trigger_decision**
+    Attribute function that will trigger a decision referenced by the given *id*. The function needs to receive as extra parameters all of the parameters needed to execute the given decision.
+    *Example:* `"dominant_faction.trigger_decision(influence_demanded_from_clan, target)"`
+
+  - **split**
+    Attribute function that will trigger a faction to split a new faction from itself. The function expects two parameters: a group to become the new faction's core, and a percentage of influence (as a value between 0 and 1) to transfer from the parent faction.
+    *Example:* `"target.split(new_core_group, 0.5)"`
+
+  - **relationship**
+    Attribute function that will return a **numeric** value corresponding to the current relationship value between this faction and the faction given as parameter.
+    *Example:* `"target.relationship(dominant_faction)"`
+
+  - **set_relationship**
+    Attribute function that will update the relationship value between this faction and the faction given as first parameter, using the **numeric** value given in the second parameter.
+    *Example:* `"dominant_faction.set_relationship(target, input_value / 2)"`
+
+  - **core_group**
+    Attribute that returns the core of this faction as a **group entity**.
+    *Example:* `"target.core_group != new_core_group"`
