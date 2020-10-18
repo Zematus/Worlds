@@ -25,8 +25,7 @@
       "effects": [
         "target.trigger_decision(clan_decide_split, new_core_group)"
       ],
-      "repeatable" : true,
-      "debug" : true
+      "repeatable" : true
     },
     {
       "id": "clan_decide_performing_influence_demand",
@@ -88,6 +87,36 @@
         "target.trigger_decision(tribe_decide_fostering_relationship, contact_polity, chance_of_making_attempt)"
       ],
       "repeatable" : true
+    },
+    {
+      "id": "clan_decide_form_new_tribe",
+      "name": "clan decide form new tribe",
+      "target": "faction",
+      "assignOn" : ["spawn", "status_change"],
+      "properties": [
+        { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
+        { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
+        { "id": "influence_delta", "value": "max(0, dominant_faction.influence - target.influence)" },
+        { "id": "admin_factors", "value": "relationship_value * influence_delta * target.preferences.cohesion" },
+        { "id": "min_admin_load", "value": "100000 * admin_factors" },
+        { "id": "max_admin_load", "value": "5000000 * admin_factors" },
+        { "id": "chance_of_making_attempt", "value": "normalize(dominant_faction.administrative_load, min_admin_load, max_admin_load)" }
+      ],
+      "assignmentConditions": [
+        "target.type == clan",
+        "target.polity.type == tribe",
+        "target != dominant_faction"
+      ],
+      "triggerConditions": [
+        "target.administrative_load > min_admin_load",
+        "target.core_group.polity_with_highest_prominence == target.polity"
+      ],
+      "timeToTrigger": "9125 + random(9125000 * (1 - saturation(max_admin_load, dominant_faction.administrative_load)))",
+      "effects": [
+        "target.trigger_decision(clan_decide_form_new_tribe, chance_of_making_attempt)"
+      ],
+      "repeatable" : true,
+      "debug" : true
     }
   ]
 }

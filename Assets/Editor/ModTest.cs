@@ -716,6 +716,8 @@ public class ModTest
             Path.Combine("Mods", "Base", "Decisions", "influence_demand.json"));
         ModDecision.LoadDecisionFile(
             Path.Combine("Mods", "Base", "Decisions", "relationship_fostering.json"));
+        ModDecision.LoadDecisionFile(
+            Path.Combine("Mods", "Base", "Decisions", "split_tribe.json"));
     }
 
     [Test]
@@ -815,5 +817,22 @@ public class ModTest
         _testFaction0.InitializeDefaultEvents();
 
         TriggerFactionModEventTest(_testFaction0, "tribe_decide_fostering_relationship");
+    }
+
+    [Test]
+    public void TriggerFormNewTribeDecision()
+    {
+        Manager.CurrentDevMode = DevMode.Advanced;
+
+        InitializeTestFactions();
+
+        LoadBaseEventsMod();
+        LoadBaseDecisionsMod();
+
+        EventGenerator.InitializeGenerators();
+
+        _testFaction1.InitializeDefaultEvents();
+
+        TriggerFactionModEventTest(_testFaction1, "clan_decide_form_new_tribe");
     }
 }

@@ -1,0 +1,184 @@
+{
+  "decisions": [
+    {
+      "id": "clan_decide_form_new_tribe",
+      "name": "clan decide form new tribe",
+      "target": "faction",
+      "parameters": [
+        { "id": "chance_of_making_attempt", "type": "number" }
+      ],
+      "description": [
+        {
+          "id": "description_intro",
+          "text": "Members of clan <<target>> have suggested for the clan leader, <<target.leader>>, to split from <<target.polity>> and form a new tribe.\n\nShould <<target.leader>> make an attempt to do so?"
+        }
+      ],
+      "options": [
+        {
+          "id": "make_attempt",
+          "text": "Attempt to split from <<target.polity>> and form a new tribe...",
+          "weight": "max(0, chance_of_making_attempt)",
+          "effects": [
+            {
+              "id": "increase_authority",
+              "properties": [
+                { "id": "wisdom_factor", "value": "0.5 + target.leader.wisdom" },
+                { "id": "target_authority", "value": "target.preferences.authority" },
+                { "id": "authority_min", "value": "lerp(target_authority, 1, (0.1 * wisdom_factor))" },
+                { "id": "authority_max", "value": "lerp(target_authority, 1, (0.2 * wisdom_factor))" }
+              ],
+              "text": "Clan <<target>>: authority preference (<<target_authority>>) increases to: <<authority_min>> - <<authority_max>>",
+              "result": "target.preferences.authority = random(authority_min, authority_max)"
+            },
+            {
+              "id": "decrease_cohesion",
+              "properties": [
+                { "id": "charisma_factor", "value": "1.5 + target.leader.charisma" },
+                { "id": "target_cohesion", "value": "target.preferences.cohesion" },
+                { "id": "cohesion_min", "value": "lerp(target_cohesion, 0, (0.2 * charisma_factor))" },
+                { "id": "cohesion_max", "value": "lerp(target_cohesion, 0, (0.1 * charisma_factor))" }
+              ],
+              "text": "Clan <<target>>: cohesion preference (<<target_cohesion>>) decreases to: <<cohesion_min>> - <<cohesion_max>>",
+              "result": "target.preferences.cohesion = random(cohesion_min, cohesion_max)"
+            },
+            {
+              "id": "attempt",
+              "text": "The current leader of the <<target.polity>> tribe will be notified of the attempt to split made by clan <<target>>...",
+              "result": "target.polity.dominant_faction.trigger_decision(clan_attempts_form_new_tribe, target)"
+            }
+          ]
+        },
+        {
+          "id": "dont_make_attempt",
+          "text": "Do not attempt to form a new tribe...",
+          "weight": "1 - min(1, chance_of_making_attempt)",
+          "effects": [
+            {
+              "id": "decrease_authority",
+              "properties": [
+                { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
+                { "id": "target_authority", "value": "target.preferences.authority" },
+                { "id": "authority_min", "value": "lerp(target_authority, 0, (0.2 * wisdom_factor))" },
+                { "id": "authority_max", "value": "lerp(target_authority, 0, (0.1 * wisdom_factor))" }
+              ],
+              "text": "Clan <<target>>: authority preference (<<target_authority>>) decreases to: <<authority_min>> - <<authority_max>>",
+              "result": "target.preferences.authority = random(authority_min, authority_max)"
+            },
+            {
+              "id": "increase_cohesion",
+              "properties": [
+                { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
+                { "id": "target_cohesion", "value": "target.preferences.cohesion" },
+                { "id": "cohesion_min", "value": "lerp(target_cohesion, 1, (0.1 * charisma_factor))" },
+                { "id": "cohesion_max", "value": "lerp(target_cohesion, 1, (0.2 * charisma_factor))" }
+              ],
+              "text": "Clan <<target>>: cohesion preference (<<target_cohesion>>) increases to: <<cohesion_min>> - <<cohesion_max>>",
+              "result": "target.preferences.cohesion = random(cohesion_min, cohesion_max)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "clan_attempts_form_new_tribe",
+      "name": "clan attempts to form new tribe",
+      "target": "faction",
+      "parameters": [
+        { "id": "splitting_faction", "type": "faction" }
+      ],
+      "properties": [
+        { "id": "relationship_value", "value": "target.relationship(splitting_faction)" },
+        { "id": "leader_charisma", "value": "target.leader.charisma" },
+        { "id": "target_authority", "value": "target.preferences.authority" },
+        { "id": "admin_factors", "value": "relationship_value * target_authority * leader_charisma" },
+        { "id": "min_admin_load", "value": "0" },
+        { "id": "max_admin_load", "value": "6000000 * admin_factors" },
+        { "id": "chance_of_preventing_split", "value": "1 - normalize(target.administrative_load, min_admin_load, max_admin_load)" }
+      ],
+      "description": [
+        {
+          "id": "description_intro",
+          "text": "clan <<splitting_faction>>, is attempting to split from <<target.polity>> tribe to form a new tribe.\n"
+        },
+        {
+          "id": "description_can_not_prevent_attempt_high_admin_load",
+          "text": "Unfortunately, the situation is beyond control for the clan leader, <<target.leader>>, to be able to do anything other than to allow clan <<splitting_faction>> to split from the <<target.polity>> tribe...",
+          "conditions": [ "chance_of_preventing_split <= 0" ]
+        },
+        {
+          "id": "description_can_prevent_attempt",
+          "text": "Should the leader of clan <<target>>, <<target.leader>>, allow clan <<splitting_faction>> to split apart from <<target.polity>>?",
+          "conditions": [ "chance_of_preventing_split > 0" ]
+        }
+      ],
+      "options": [
+        {
+          "id": "prevent_attempt",
+          "text": "Convince <<splitting_faction>> from abandoning the tribe...",
+          "conditions": [ "chance_of_preventing_split > 0" ],
+          "weight": "max(0, chance_of_preventing_split)",
+          "effects": [
+            {
+              "id": "increase_authority",
+              "properties": [
+                { "id": "wisdom_factor", "value": "0.5 + target.leader.wisdom" },
+                { "id": "target_authority", "value": "target.preferences.authority" },
+                { "id": "authority_min", "value": "lerp(target_authority, 1, (0.1 * wisdom_factor))" },
+                { "id": "authority_max", "value": "lerp(target_authority, 1, (0.2 * wisdom_factor))" }
+              ],
+              "text": "Clan <<target>>: authority preference (<<target_authority>>) increases to: <<authority_min>> - <<authority_max>>",
+              "result": "target.preferences.authority = random(authority_min, authority_max)"
+            },
+            {
+              "id": "increase_cohesion",
+              "properties": [
+                { "id": "charisma_factor", "value": "0.5 + leader_charisma" },
+                { "id": "target_cohesion", "value": "target.preferences.cohesion" },
+                { "id": "cohesion_min", "value": "lerp(target_cohesion, 1, (0.1 * charisma_factor))" },
+                { "id": "cohesion_max", "value": "lerp(target_cohesion, 1, (0.2 * charisma_factor))" }
+              ],
+              "text": "Clan <<target>>: cohesion preference (<<target_cohesion>>) increases to: <<cohesion_min>> - <<cohesion_max>>",
+              "result": "target.preferences.cohesion = random(cohesion_min, cohesion_max)"
+            },
+            {
+              "id": "decrease_relation",
+              "properties": [
+                { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
+                { "id": "relationship_value", "value": "target.relationship(splitting_faction)" },
+                { "id": "relationship_min", "value": "lerp(relationship_value, 0, (0.2 * charisma_factor))" },
+                { "id": "relationship_max", "value": "lerp(relationship_value, 0, (0.1 * charisma_factor))" }
+              ],
+              "text": "Clan <<target>>: relationship with <<splitting_faction>> decreases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
+              "result": "target.set_relationship(splitting_faction, random(relationship_min, relationship_max))"
+            }
+          ]
+        },
+        {
+          "id": "allow attempt to split",
+          "text": "Allow clan <<splitting_faction>> to split from <<target.polity>>...",
+          "conditions": [ "chance_of_preventing_split > 0" ],
+          "weight": "1 - min(1, chance_of_preventing_split)",
+          "effects": [
+            {
+              "id": "split_tribe",
+              "text": "Clan <<splitting_faction>> leaves <<target.polity>> and forms a new tribe...",
+              "result": "target.polity.split(splitting_faction)"
+            }
+          ]
+        },
+        {
+          "id": "cant_reject_demand",
+          "text": "Oh well...",
+          "conditions": [ "chance_of_preventing_split <= 0" ],
+          "effects": [
+            {
+              "id": "split_tribe",
+              "text": "Clan <<splitting_faction>> leaves <<target.polity>> and forms a new tribe...",
+              "result": "target.polity.split(splitting_faction)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
