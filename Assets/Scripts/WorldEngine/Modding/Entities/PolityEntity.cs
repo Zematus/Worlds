@@ -14,6 +14,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string LeaderAttributeId = "leader";
     public const string ContactCountAttributeId = "contact_count";
     public const string FactionCountAttributeId = "faction_count";
+    public const string SplitAttributeId = "split";
 
     public virtual Polity Polity
     {
@@ -160,6 +161,9 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
             case ContactStrengthId:
                 return new ContactStrengthAttribute(this, arguments);
+
+            case SplitAttributeId:
+                return new SplitPolityAttribute(this, arguments);
         }
 
         throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);

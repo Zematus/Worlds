@@ -393,68 +393,45 @@ public abstract class Polity : ISynchronizable
         StillPresent = false;
     }
 
-    public override int GetHashCode()
+    public static bool ValidateType(string polityType)
     {
-        return Info.GetHashCode();
-    }
-
-    // WARNING: This method does not set a group to be updated. 
-    public static bool TryGenerateNewPolity(PolityType type, CellGroup coreGroup)
-    {
-        World world = coreGroup.World;
-
-        if (coreGroup.GetPolityProminences().Count <= 0)
+        switch (polityType)
         {
-            Polity polity = null;
-
-            switch (type)
-            {
-                case PolityType.Tribe:
-                    polity = new Tribe(coreGroup);
-                    break;
-                default:
-                    throw new System.Exception("TryGeneratePolity: Unhandled polity type: " + type);
-            }
-
-            polity.Initialize();
-
-            world.AddPolityInfo(polity);
-            world.AddPolityToUpdate(polity);
-
-            TryGenerateNewPolityMessages(polity);
-
-            return true;
+            case Tribe.PolityTypeStr:
+                return true;
         }
 
         return false;
     }
 
-    public static void TryGenerateNewPolityMessages(Polity polity)
+    public void Split(string polityType, Faction splittingFaction)
     {
-        World world = polity.World;
-        CellGroup coreGroup = polity.CoreGroup;
+        Polity newPolity = null;
 
-        PolityFormationEventMessage formationEventMessage = null;
-
-        if (!world.HasEventMessage(WorldEvent.PolityFormationEventId))
+        switch (polityType)
         {
-            formationEventMessage = new PolityFormationEventMessage(polity, world.CurrentDate);
+            case Tribe.PolityTypeStr:
+                Tribe newTribe = new Tribe(splittingFaction as Clan, this as Tribe);
 
-            world.AddEventMessage(formationEventMessage);
-            formationEventMessage.First = true;
+                AddEventMessage(new TribeSplitEventMessage(
+                    splittingFaction as Clan,
+                    this as Tribe, newTribe, World.CurrentDate));
+                break;
+
+            default:
+                throw new System.ArgumentException("Unhandled polity type: " + polityType);
         }
 
-        if (coreGroup.Cell.EncompassingTerritory != null)
-        {
-            Polity encompassingPolity = coreGroup.Cell.EncompassingTerritory.Polity;
+        newPolity.Initialize();
+        World.AddPolityInfo(newPolity);
 
-            if (formationEventMessage == null)
-            {
-                formationEventMessage = new PolityFormationEventMessage(polity, world.CurrentDate);
-            }
+        splittingFaction.SetToUpdate();
+        DominantFaction.SetToUpdate();
+    }
 
-            encompassingPolity.AddEventMessage(formationEventMessage);
-        }
+    public override int GetHashCode()
+    {
+        return Info.GetHashCode();
     }
 
     public virtual string GetName()
