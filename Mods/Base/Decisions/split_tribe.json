@@ -162,7 +162,7 @@
             {
               "id": "split_tribe",
               "text": "Clan <<splitting_faction>> leaves <<target.polity>> and forms a new tribe...",
-              "result": "target.polity.split(splitting_faction)"
+              "result": "target.polity.split(tribe, splitting_faction)"
             }
           ]
         },
@@ -174,7 +174,7 @@
             {
               "id": "split_tribe",
               "text": "Clan <<splitting_faction>> leaves <<target.polity>> and forms a new tribe...",
-              "result": "target.polity.split(splitting_faction)"
+              "result": "target.polity.split(tribe, splitting_faction)"
             }
           ]
         }

@@ -79,19 +79,6 @@ public class Tribe : Polity
 
     public override void InitializeInternal()
     {
-        //long triggerDate = FosterTribeRelationDecisionEvent.CalculateTriggerDate(this);
-        //if (triggerDate > 0)
-        //{
-        //    if (triggerDate <= World.CurrentDate)
-        //    {
-        //        throw new System.Exception(
-        //            "FosterTribeRelationDecisionEvent Trigger Date (" + triggerDate +
-        //            ") less or equal to current date: " + World.CurrentDate);
-        //    }
-
-        //    AddEvent(new FosterTribeRelationDecisionEvent(this, triggerDate));
-        //}
-
         long triggerDate = MergeTribesDecisionEvent.CalculateTriggerDate(this);
         if (triggerDate > 0)
         {

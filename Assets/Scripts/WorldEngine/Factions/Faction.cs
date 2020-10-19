@@ -365,7 +365,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         Faction parentFaction = null)
     {
 
-#if DEBUG //TODO: Make sure we don't need this in unit tests
+#if DEBUG //TODO: Make sure we don't need to do this in unit tests
         if (parentFaction is TestFaction)
         {
             TestFaction testFaction =
