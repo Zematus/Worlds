@@ -146,7 +146,6 @@ public class World : ISynchronizable
     [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
         XmlArrayItem(Type = typeof(MigratePopulationEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
-        XmlArrayItem(Type = typeof(TribeSplitDecisionEvent)),
         XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
         XmlArrayItem(Type = typeof(MergeTribesDecisionEvent)),
         XmlArrayItem(Type = typeof(OpenTribeDecisionEvent)),
