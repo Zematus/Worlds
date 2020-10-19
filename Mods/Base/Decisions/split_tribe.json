@@ -150,19 +150,40 @@
               ],
               "text": "Clan <<target>>: relationship with <<splitting_faction>> decreases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
               "result": "target.set_relationship(splitting_faction, random(relationship_min, relationship_max))"
+            },
+            {
+              "id": "notify",
+              "text": "The current leader of clan <<splitting_faction>> will be notified of our decision...",
+              "result": "splitting_faction.trigger_decision(tribe_prevented_split)"
             }
           ]
         },
         {
-          "id": "allow attempt to split",
+          "id": "allow_split",
           "text": "Allow clan <<splitting_faction>> to split from <<target.polity>>...",
           "conditions": [ "chance_of_preventing_split > 0" ],
           "weight": "1 - min(1, chance_of_preventing_split)",
           "effects": [
             {
+              "id": "increase_relation",
+              "properties": [
+                { "id": "charisma_factor", "value": "0.5 - target.leader.charisma" },
+                { "id": "relationship_value", "value": "target.relationship(splitting_faction)" },
+                { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
+                { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
+              ],
+              "text": "Clan <<target>>: relationship with <<splitting_faction>> increases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
+              "result": "target.set_relationship(splitting_faction, random(relationship_min, relationship_max))"
+            },
+            {
               "id": "split_tribe",
               "text": "Clan <<splitting_faction>> leaves <<target.polity>> and forms a new tribe...",
               "result": "target.polity.split(tribe, splitting_faction)"
+            },
+            {
+              "id": "notify",
+              "text": "The current leader of clan <<splitting_faction>> will be notified of our decision...",
+              "result": "splitting_faction.trigger_decision(tribe_allowed_split, target.polity)"
             }
           ]
         },
@@ -175,8 +196,50 @@
               "id": "split_tribe",
               "text": "Clan <<splitting_faction>> leaves <<target.polity>> and forms a new tribe...",
               "result": "target.polity.split(tribe, splitting_faction)"
+            },
+            {
+              "id": "notify",
+              "text": "The current leader of clan <<splitting_faction>> will be notified of our decision...",
+              "result": "splitting_faction.trigger_decision(tribe_allowed_split, target.polity)"
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "tribe_allowed_split",
+      "name": "tribe allowed split",
+      "target": "faction",
+      "parameters": [
+        { "id": "original_tribe", "type": "polity" }
+      ],
+      "description": [
+        {
+          "id": "description",
+          "text": "The leader of the <<original_tribe>> tribe, <<original_tribe.leader>> has allowed our clan, <<target>>, to separate from it and form our own tribe, <<target.polity>>."
+        }
+      ],
+      "options": [
+        {
+          "id": "acknowledge",
+          "text": "Perfect..."
+        }
+      ]
+    },
+    {
+      "id": "tribe_prevented_split",
+      "name": "tribe prevented split",
+      "target": "faction",
+      "description": [
+        {
+          "id": "description",
+          "text": "The leader of the <<target.polity>> tribe, <<target.polity.leader>> has prevented our clan, <<target>>, from separating from it. Our relationship with clan <<target.polity.dominant_faction>> has suffered for it"
+        }
+      ],
+      "options": [
+        {
+          "id": "acknowledge",
+          "text": "Another time, then..."
         }
       ]
     }
