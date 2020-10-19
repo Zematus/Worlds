@@ -216,7 +216,7 @@
       "description": [
         {
           "id": "description",
-          "text": "The leader of the <<original_tribe>> tribe, <<original_tribe.leader>> has allowed our clan, <<target>>, to separate from it and form our own tribe, <<target.polity>>."
+          "text": "The leader of the <<original_tribe>> tribe, <<original_tribe.leader>>, has allowed our clan, <<target>>, to separate from it and form our own tribe, <<target.polity>>."
         }
       ],
       "options": [
@@ -233,7 +233,7 @@
       "description": [
         {
           "id": "description",
-          "text": "The leader of the <<target.polity>> tribe, <<target.polity.leader>> has prevented our clan, <<target>>, from separating from it. Our relationship with clan <<target.polity.dominant_faction>> has suffered for it"
+          "text": "The leader of the <<target.polity>> tribe, <<target.polity.leader>>, has prevented our clan, <<target>>, from separating from it. Our relationship with clan <<target.polity.dominant_faction>> has suffered for it."
         }
       ],
       "options": [

@@ -129,6 +129,11 @@
               ],
               "text": "Clan <<target>>: relationship with <<demanding_faction>> decreases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
               "result": "target.set_relationship(demanding_faction, random(relationship_min, relationship_max))"
+            },
+            {
+              "id": "notify",
+              "text": "The current leader of clan <<demanding_faction>> will be notified of our decision...",
+              "result": "demanding_faction.trigger_decision(faction_accede_demand)"
             }
           ]
         },
@@ -169,6 +174,11 @@
               ],
               "text": "Clan <<target>>: relationship with <<demanding_faction>> increases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
               "result": "target.set_relationship(demanding_faction, random(relationship_min, relationship_max))"
+            },
+            {
+              "id": "notify",
+              "text": "The current leader of clan <<demanding_faction>> will be notified of our decision...",
+              "result": "demanding_faction.trigger_decision(faction_refuse_demand)"
             }
           ]
         },
@@ -210,6 +220,45 @@
               "result": "target.set_relationship(demanding_faction, random(relationship_min, relationship_max))"
             }
           ]
+        },
+        {
+          "id": "notify",
+          "text": "The current leader of clan <<demanding_faction>> will be notified of our decision...",
+          "result": "demanding_faction.trigger_decision(faction_refuse_demand)"
+        }
+      ]
+    },
+    {
+      "id": "faction_accede_demand",
+      "name": "faction accede to demand",
+      "target": "faction",
+      "description": [
+        {
+          "id": "description",
+          "text": "The leader of clan <<target.polity.dominant_faction>>, <<target.polity.dominant_faction.leader>>, has acceded to our demand for more influence on the <<target.polity>> tribe."
+        }
+      ],
+      "options": [
+        {
+          "id": "acknowledge",
+          "text": "Perfect..."
+        }
+      ]
+    },
+    {
+      "id": "faction_refuse_demand",
+      "name": "faction refuse demand",
+      "target": "faction",
+      "description": [
+        {
+          "id": "description",
+          "text": "The leader of clan <<target.polity.dominant_faction>>, <<target.polity.dominant_faction.leader>>, has refused our demand for more influence on the <<target.polity>> tribe."
+        }
+      ],
+      "options": [
+        {
+          "id": "acknowledge",
+          "text": "Another time, then..."
         }
       ]
     }
