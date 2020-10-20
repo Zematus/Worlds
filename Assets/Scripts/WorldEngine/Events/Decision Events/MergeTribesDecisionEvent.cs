@@ -94,7 +94,7 @@ public class MergeTribesDecisionEvent : PolityEvent
 
     public float GetContactWeight(PolityContact contact)
     {
-        if (contact.Polity is Tribe)
+        if (contact.NeighborPolity is Tribe)
             return _sourceTribe.CalculateContactStrength(contact);
 
         return 0;
@@ -133,7 +133,7 @@ public class MergeTribesDecisionEvent : PolityEvent
         if (_targetContact == null)
             return false;
 
-        _targetTribe = _targetContact.Polity as Tribe;
+        _targetTribe = _targetContact.NeighborPolity as Tribe;
         _targetDominantClan = _targetTribe.DominantFaction as Clan;
 
 //#if DEBUG

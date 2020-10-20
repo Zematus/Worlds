@@ -1759,7 +1759,7 @@ public class Manager
             {
                 foreach (PolityContact contact in selectedPolity.GetContacts())
                 {
-                    AddSelectedCellsToHighlight(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
+                    AddSelectedCellsToHighlight(contact.NeighborPolity.Territory.GetCells(), CellUpdateType.Territory);
                 }
             }
         }
@@ -1777,7 +1777,7 @@ public class Manager
 
                 foreach (PolityContact contact in selectedPolity.GetContacts())
                 {
-                    AddSelectedCellsToHighlight(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
+                    AddSelectedCellsToHighlight(contact.NeighborPolity.Territory.GetCells(), CellUpdateType.Territory);
                 }
             }
         }

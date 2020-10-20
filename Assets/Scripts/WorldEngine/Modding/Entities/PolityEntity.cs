@@ -9,7 +9,6 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string GetRandomContactAttributeId = "get_random_contact";
     public const string DominantFactionAttributeId = "dominant_faction";
     public const string TransferInfluenceAttributeId = "transfer_influence";
-    public const string ContactStrengthId = "contact_strength";
     public const string TypeAttributeId = "type";
     public const string LeaderAttributeId = "leader";
     public const string ContactCountAttributeId = "contact_count";
@@ -158,9 +157,6 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
             case TransferInfluenceAttributeId:
                 return new TransferInfluenceAttribute(this, arguments);
-
-            case ContactStrengthId:
-                return new ContactStrengthAttribute(this, arguments);
 
             case SplitAttributeId:
                 return new SplitPolityAttribute(this, arguments);
