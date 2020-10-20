@@ -513,7 +513,7 @@ public class InfoPanelScript : MonoBehaviour
 
         foreach (PolityContact contact in polity.GetContacts())
         {
-            Polity contactPolity = contact.Polity;
+            Polity contactPolity = contact.NeighborPolity;
 
             InfoText.text += "\n\n\tPolity: " + contactPolity.Name.Text + " " + contactPolity.Type.ToLower();
 

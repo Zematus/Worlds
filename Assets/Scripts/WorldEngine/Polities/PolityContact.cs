@@ -5,30 +5,56 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class PolityContact// : IKeyedValue<long>
+public class PolityContact
 {
-	public Identifier Id;
+    public Identifier Id;
 
-	[XmlAttribute("GCount")]
-	public int GroupCount;
+    [XmlAttribute("GCount")]
+    public int GroupCount;
 
-	[XmlIgnore]
-	public Polity Polity;
+    [XmlIgnore]
+    public Polity NeighborPolity;
 
-	public PolityContact () {
-	}
+    [XmlIgnore]
+    public Polity ThisPolity;
 
-	public PolityContact (Polity polity, int initialGroupCount = 0) {
+    [XmlIgnore]
+    public float Strength => _strength.Value;
 
-		Polity = polity;
+    private readonly DatedValue<float> _strength;
 
-		Id = polity.Id;
+    public PolityContact()
+    {
+    }
 
-		GroupCount = initialGroupCount;
-	}
+    public PolityContact(
+        Polity thisPolity,
+        Polity neighborPolity,
+        int initialGroupCount = 0)
+    {
+        ThisPolity = thisPolity;
+        NeighborPolity = neighborPolity;
 
-    //public Identifier GetKey()
-    //{
-    //    return Id;
-    //}
+        Id = neighborPolity.Id;
+
+        _strength =
+            new DatedValue<float>(ThisPolity.World, CalculateStrength);
+
+        GroupCount = initialGroupCount;
+    }
+
+    private float CalculateStrength()
+    {
+        int thisGroupCount = ThisPolity.Groups.Count;
+        int neighborGroupCount = NeighborPolity.Groups.Count;
+
+        float minPolityGroupCount = Mathf.Min(thisGroupCount, neighborGroupCount);
+
+        if (minPolityGroupCount == 0)
+        {
+            throw new System.Exception("Min polity group count can't be zero");
+        }
+
+        return GroupCount / minPolityGroupCount;
+    }
 }

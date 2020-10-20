@@ -2,12 +2,15 @@
 public class ContactEntity : DelayedSetEntity<PolityContact>
 {
     public const string PolityAttributeId = "polity";
+    public const string StrenghtAttributeId = "strength";
 
     public virtual PolityContact Contact
     {
         get => Setable;
         private set => Setable = value;
     }
+
+    private ValueGetterEntityAttribute<float> _strengthAttribute;
 
     private PolityEntity _polityEntity = null;
 
@@ -42,6 +45,12 @@ public class ContactEntity : DelayedSetEntity<PolityContact>
         {
             case PolityAttributeId:
                 return GetPolityAttribute();
+
+            case StrenghtAttributeId:
+                _strengthAttribute =
+                    _strengthAttribute ?? new ValueGetterEntityAttribute<float>(
+                        StrenghtAttributeId, this, () => Contact.Strength);
+                return _strengthAttribute;
         }
 
         throw new System.ArgumentException("Group: Unable to find attribute: " + attributeId);
@@ -49,23 +58,17 @@ public class ContactEntity : DelayedSetEntity<PolityContact>
 
     public override string GetDebugString()
     {
-        return "contact:" + Contact.Polity.Id;
+        return "contact:" + Contact.NeighborPolity.Id;
     }
 
-    public override string GetFormattedString()
-    {
-        return Contact.Polity.Name.BoldText;
-    }
+    public override string GetFormattedString() => Contact.NeighborPolity.Name.BoldText;
 
     protected override void ResetInternal()
     {
-        if (_isReset)
-        {
-            return;
-        }
+        if (_isReset) return;
 
         _polityEntity?.Reset();
     }
 
-    public Polity GetPolity() => Contact.Polity;
+    public Polity GetPolity() => Contact.NeighborPolity;
 }

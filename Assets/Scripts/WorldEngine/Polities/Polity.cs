@@ -371,7 +371,7 @@ public abstract class Polity : ISynchronizable
 
         foreach (PolityContact contact in contacts)
         {
-            Polity.RemoveContact(this, contact.Polity);
+            Polity.RemoveContact(this, contact.NeighborPolity);
         }
 
         List<Faction> factions = new List<Faction>(_factions.Values);
@@ -599,9 +599,9 @@ public abstract class Polity : ISynchronizable
 
             foreach (PolityContact contact in _contacts.Values)
             {
-                if (!faction.HasRelationship(contact.Polity.DominantFaction))
+                if (!faction.HasRelationship(contact.NeighborPolity.DominantFaction))
                 {
-                    Faction.SetRelationship(faction, contact.Polity.DominantFaction, 0.5f);
+                    Faction.SetRelationship(faction, contact.NeighborPolity.DominantFaction, 0.5f);
                 }
             }
         }
@@ -627,7 +627,7 @@ public abstract class Polity : ISynchronizable
     {
         if (!_contacts.ContainsKey(polity.Id))
         {
-            PolityContact contact = new PolityContact(polity, initialGroupCount);
+            PolityContact contact = new PolityContact(this, polity, initialGroupCount);
 
             _contacts.Add(polity.Id, contact);
 
@@ -690,7 +690,7 @@ public abstract class Polity : ISynchronizable
     {
         if (!_contacts.ContainsKey(polity.Id))
         {
-            PolityContact contact = new PolityContact(polity);
+            PolityContact contact = new PolityContact(this, polity);
 
             _contacts.Add(polity.Id, contact);
 
@@ -1249,9 +1249,9 @@ public abstract class Polity : ISynchronizable
 
         foreach (PolityContact contact in _contacts.Values)
         {
-            contact.Polity = World.GetPolity(contact.Id);
+            contact.NeighborPolity = World.GetPolity(contact.Id);
 
-            if (contact.Polity == null)
+            if (contact.NeighborPolity == null)
             {
                 throw new System.Exception("Polity is null, Id: " + contact.Id);
             }
@@ -1573,6 +1573,7 @@ public abstract class Polity : ISynchronizable
         return 0;
     }
 
+    [System.Obsolete]
     public float CalculateContactStrength(Polity polity)
     {
         if (!_contacts.ContainsKey(polity.Id))
@@ -1583,9 +1584,10 @@ public abstract class Polity : ISynchronizable
         return CalculateContactStrength(_contacts[polity.Id]);
     }
 
+    [System.Obsolete]
     public float CalculateContactStrength(PolityContact contact)
     {
-        int contacGroupCount = contact.Polity.Groups.Count;
+        int contacGroupCount = contact.NeighborPolity.Groups.Count;
 
         float minGroupCount = Mathf.Min(contacGroupCount, Groups.Count);
 

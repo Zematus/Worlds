@@ -21,7 +21,7 @@ public enum GenerationType
 }
 
 [XmlRoot]
-public class World : ISynchronizable
+public class World : ISynchronizable, IWorldDateGetter
 {
     //public const long MaxSupportedDate = 9223372036L;
     public const long MaxSupportedDate = long.MaxValue;

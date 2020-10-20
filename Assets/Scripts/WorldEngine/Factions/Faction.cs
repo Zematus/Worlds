@@ -70,8 +70,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     // Do not call this property directly, only for serialization
     public Agent LastLeader = null;
 
-    //public List<string> Flags;
-
     [XmlIgnore]
     public FactionInfo Info;
 
@@ -134,8 +132,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public Faction()
     {
-        _administrativeLoad = new DatedValue<float>(this, CalculateAdministrativeLoad);
-        _currentLeader = new DatedValue<Agent>(this, RequestCurrentLeader);
+        _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
+        _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
     }
 
     public Faction(
