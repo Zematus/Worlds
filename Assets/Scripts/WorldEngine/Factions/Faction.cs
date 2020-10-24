@@ -123,8 +123,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     protected Dictionary<long, FactionEvent> _events =
         new Dictionary<long, FactionEvent>();
 
-    private readonly DatedValue<float> _administrativeLoad;
-    private readonly DatedValue<Agent> _currentLeader;
+    private DatedValue<float> _administrativeLoad;
+    private DatedValue<Agent> _currentLeader;
 
     private HashSet<string> _flags = new HashSet<string>();
 
@@ -132,8 +132,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public Faction()
     {
-        _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
-        _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
     }
 
     public Faction(
@@ -142,7 +140,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         CellGroup coreGroup,
         float influence,
         Faction parentFaction = null)
-        : this()
     {
         World = polity.World;
 
@@ -176,6 +173,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public void Initialize()
     {
+        _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
+        _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
+
         InitializeInternal();
 
         InitializeDefaultEvents();

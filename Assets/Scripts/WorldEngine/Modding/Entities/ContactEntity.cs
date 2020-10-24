@@ -49,7 +49,7 @@ public class ContactEntity : DelayedSetEntity<PolityContact>
             case StrenghtAttributeId:
                 _strengthAttribute =
                     _strengthAttribute ?? new ValueGetterEntityAttribute<float>(
-                        StrenghtAttributeId, this, () => Contact.Strength);
+                        StrenghtAttributeId, this, GetStrength);
                 return _strengthAttribute;
         }
 
@@ -70,5 +70,23 @@ public class ContactEntity : DelayedSetEntity<PolityContact>
         _polityEntity?.Reset();
     }
 
-    public Polity GetPolity() => Contact.NeighborPolity;
+    public float GetStrength()
+    {
+        if (Contact == null)
+        {
+            return 0;
+        }
+
+        return Contact.Strength;
+    }
+
+    public Polity GetPolity()
+    {
+        if (Contact == null)
+        {
+            return null;
+        }
+
+        return Contact.NeighborPolity;
+    }
 }
