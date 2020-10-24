@@ -467,11 +467,6 @@ public abstract class Polity : ISynchronizable
         return _eventMessageIds.Contains(id);
     }
 
-    public ICollection<PolityContact> GetPolityContacts()
-    {
-        return _contacts.Values;
-    }
-
     public void SetCoreGroup(CellGroup coreGroup)
     {
         if (CoreGroup != null)
@@ -670,6 +665,16 @@ public abstract class Polity : ISynchronizable
     public ICollection<PolityContact> GetContacts()
     {
         return _contacts.Values;
+    }
+
+    public PolityContact GetContact(Polity polity)
+    {
+        if (_contacts.TryGetValue(polity.Id, out PolityContact contact))
+        {
+            return contact;
+        }
+
+        return null;
     }
 
     public int GetContactGroupCount(Polity polity)

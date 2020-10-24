@@ -7,6 +7,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
 {
     public const string GetRandomGroupAttributeId = "get_random_group";
     public const string GetRandomContactAttributeId = "get_random_contact";
+    public const string GetContactAttributeId = "get_contact";
     public const string DominantFactionAttributeId = "dominant_faction";
     public const string TransferInfluenceAttributeId = "transfer_influence";
     public const string TypeAttributeId = "type";
@@ -21,10 +22,10 @@ public class PolityEntity : DelayedSetEntity<Polity>
         private set => Setable = value;
     }
 
-    public int RandomGroupIndex = 0;
-    public int RandomContactIndex = 0;
-
     protected override object _reference => Polity;
+
+    private int _groupIndex = 0;
+    private int _contactIndex = 0;
 
     private ValueGetterEntityAttribute<string> _typeAttribute;
     private ValueGetterEntityAttribute<float> _contactCountAttribute;
@@ -34,10 +35,10 @@ public class PolityEntity : DelayedSetEntity<Polity>
     private FactionEntity _dominantFactionEntity = null;
 
     private readonly List<GroupEntity>
-        _randomGroupEntitiesToSet = new List<GroupEntity>();
+        _groupEntitiesToSet = new List<GroupEntity>();
 
     private readonly List<ContactEntity>
-        _randomContactEntitiesToSet = new List<ContactEntity>();
+        _contactEntitiesToSet = new List<ContactEntity>();
 
     public override string GetDebugString()
     {
@@ -83,7 +84,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
     private EntityAttribute GenerateRandomGroupEntityAttribute()
     {
-        int index = RandomGroupIndex++;
+        int index = _groupIndex++;
         int iterOffset = Context.GetNextIterOffset() + index;
 
         GroupEntity entity = new GroupEntity(
@@ -94,14 +95,14 @@ public class PolityEntity : DelayedSetEntity<Polity>
             Context,
             BuildAttributeId("random_group_" + index));
 
-        _randomGroupEntitiesToSet.Add(entity);
+        _groupEntitiesToSet.Add(entity);
 
         return entity.GetThisEntityAttribute(this);
     }
 
     private EntityAttribute GenerateRandomContactEntityAttribute()
     {
-        int index = RandomContactIndex++;
+        int index = _contactIndex++;
         int iterOffset = Context.GetNextIterOffset() + index;
 
         ContactEntity entity = new ContactEntity(
@@ -112,7 +113,42 @@ public class PolityEntity : DelayedSetEntity<Polity>
             Context,
             BuildAttributeId("random_contact_" + index));
 
-        _randomContactEntitiesToSet.Add(entity);
+        _contactEntitiesToSet.Add(entity);
+
+        return entity.GetThisEntityAttribute(this);
+    }
+
+    private EntityAttribute GenerateContactEntityAttribute(IExpression[] arguments)
+    {
+        if ((arguments == null) || (arguments.Length < 1))
+        {
+            throw new System.ArgumentException(
+                GetContactAttributeId + ": number of arguments given less than 1");
+        }
+
+        IValueExpression<IEntity> polityArgument =
+            ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
+
+        int index = _contactIndex++;
+
+        ContactEntity entity = new ContactEntity(
+            () => {
+                PolityEntity polityEntity = polityArgument.Value as PolityEntity;
+
+                if (polityEntity == null)
+                {
+                    throw new System.ArgumentException(
+                        "split: invalid contact polity: " +
+                        "\n - expression: " + ToString() +
+                        "\n - contact polity: " + polityArgument.ToPartiallyEvaluatedString());
+                }
+
+                return Polity.GetContact(polityEntity.Polity);
+            },
+            Context,
+            BuildAttributeId("contact_" + index));
+
+        _contactEntitiesToSet.Add(entity);
 
         return entity.GetThisEntityAttribute(this);
     }
@@ -134,7 +170,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
             case ContactCountAttributeId:
                 _contactCountAttribute =
                     _contactCountAttribute ?? new ValueGetterEntityAttribute<float>(
-                        ContactCountAttributeId, this, () => Polity.GetPolityContacts().Count);
+                        ContactCountAttributeId, this, () => Polity.GetContacts().Count);
                 return _contactCountAttribute;
 
             case FactionCountAttributeId:
@@ -158,6 +194,9 @@ public class PolityEntity : DelayedSetEntity<Polity>
             case TransferInfluenceAttributeId:
                 return new TransferInfluenceAttribute(this, arguments);
 
+            case GetContactAttributeId:
+                return GenerateContactEntityAttribute(arguments);
+
             case SplitAttributeId:
                 return new SplitPolityAttribute(this, arguments);
         }
@@ -169,12 +208,12 @@ public class PolityEntity : DelayedSetEntity<Polity>
     {
         if (_isReset) return;
 
-        foreach (GroupEntity groupEntity in _randomGroupEntitiesToSet)
+        foreach (GroupEntity groupEntity in _groupEntitiesToSet)
         {
             groupEntity.Reset();
         }
 
-        foreach (ContactEntity contactEntity in _randomContactEntitiesToSet)
+        foreach (ContactEntity contactEntity in _contactEntitiesToSet)
         {
             contactEntity.Reset();
         }

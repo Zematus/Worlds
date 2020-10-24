@@ -641,7 +641,7 @@ public class ModTest
 
         expression = ExpressionBuilder.BuildExpression(
             testContext,
-            "9125 + (91250 * (1 - saturation(400000, target.administrative_load)) * target.preferences.cohesion)");
+            "9125 + (91250 * (1 - saturation(target.administrative_load, 400000)) * target.preferences.cohesion)");
 
         testFactionEntity.Set(_testFaction0);
 

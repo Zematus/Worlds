@@ -5,7 +5,7 @@ public abstract class Entity : IEntity
 {
     public string Id { get; private set; }
 
-    protected Context Context;
+    public Context Context;
 
     protected abstract object _reference { get; }
 
