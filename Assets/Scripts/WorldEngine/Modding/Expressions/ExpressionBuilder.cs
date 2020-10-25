@@ -237,6 +237,8 @@ public static class ExpressionBuilder
                 return new MaxFunctionExpression(context, argExpressions);
             case MinFunctionExpression.FunctionId:
                 return new MinFunctionExpression(context, argExpressions);
+            case ClampFunctionExpression.FunctionId:
+                return new ClampFunctionExpression(context, argExpressions);
         }
 
         if (string.IsNullOrWhiteSpace(arguments))

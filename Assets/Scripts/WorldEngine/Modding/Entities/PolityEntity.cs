@@ -15,6 +15,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string ContactCountAttributeId = "contact_count";
     public const string FactionCountAttributeId = "faction_count";
     public const string SplitAttributeId = "split";
+    public const string MergeAttributeId = "merge";
 
     public virtual Polity Polity
     {
@@ -199,6 +200,9 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
             case SplitAttributeId:
                 return new SplitPolityAttribute(this, arguments);
+
+            case MergeAttributeId:
+                return new MergePolityAttribute(this, arguments);
         }
 
         throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);
