@@ -79,20 +79,7 @@ public class Tribe : Polity
 
     public override void InitializeInternal()
     {
-        long triggerDate = MergeTribesDecisionEvent.CalculateTriggerDate(this);
-        if (triggerDate > 0)
-        {
-            if (triggerDate <= World.CurrentDate)
-            {
-                throw new System.Exception(
-                    "MergeTribesDecisionEvent Trigger Date (" + triggerDate +
-                    ") less or equal to current date: " + World.CurrentDate);
-            }
-
-            AddEvent(new MergeTribesDecisionEvent(this, triggerDate));
-        }
-
-        triggerDate = OpenTribeDecisionEvent.CalculateTriggerDate(this);
+        long triggerDate = OpenTribeDecisionEvent.CalculateTriggerDate(this);
         if (triggerDate > 0)
         {
             if (triggerDate <= World.CurrentDate)
@@ -117,9 +104,6 @@ public class Tribe : Polity
         {
             switch (eData.TypeId)
             {
-                case WorldEvent.MergeTribesDecisionEventId:
-                    AddEvent(new MergeTribesDecisionEvent(this, eData));
-                    break;
                 case WorldEvent.OpenTribeDecisionEventId:
                     AddEvent(new OpenTribeDecisionEvent(this, eData));
                     break;

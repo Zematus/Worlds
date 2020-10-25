@@ -147,7 +147,6 @@ public class World : ISynchronizable, IWorldDateGetter
         XmlArrayItem(Type = typeof(MigratePopulationEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
         XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
-        XmlArrayItem(Type = typeof(MergeTribesDecisionEvent)),
         XmlArrayItem(Type = typeof(OpenTribeDecisionEvent)),
         XmlArrayItem(Type = typeof(Discovery.DiscoveryEvent)),
         XmlArrayItem(Type = typeof(FactionModEvent)),
