@@ -710,14 +710,17 @@ public class ModTest
 
         ModDecision.ResetDecisions();
 
-        ModDecision.LoadDecisionFile(
-            Path.Combine("Mods", "Base", "Decisions", "clan_split.json"));
-        ModDecision.LoadDecisionFile(
-            Path.Combine("Mods", "Base", "Decisions", "influence_demand.json"));
-        ModDecision.LoadDecisionFile(
-            Path.Combine("Mods", "Base", "Decisions", "relationship_fostering.json"));
-        ModDecision.LoadDecisionFile(
-            Path.Combine("Mods", "Base", "Decisions", "split_tribe.json"));
+        string path = Path.Combine("Mods", "Base", "Decisions");
+
+        string[] files = Directory.GetFiles(path, "*.json");
+
+        if (files.Length > 0)
+        {
+            foreach (string file in files)
+            {
+                ModDecision.LoadDecisionFile(file);
+            }
+        }
     }
 
     [Test]
@@ -817,6 +820,23 @@ public class ModTest
         _testFaction0.InitializeDefaultEvents();
 
         TriggerFactionModEventTest(_testFaction0, "tribe_decide_fostering_relationship");
+    }
+
+    [Test]
+    public void TriggerMergeTribeDecision()
+    {
+        Manager.CurrentDevMode = DevMode.Advanced;
+
+        InitializeTestFactions();
+
+        LoadBaseEventsMod();
+        LoadBaseDecisionsMod();
+
+        EventGenerator.InitializeGenerators();
+
+        _testFaction0.InitializeDefaultEvents();
+
+        TriggerFactionModEventTest(_testFaction0, "tribe_decide_merge");
     }
 
     [Test]

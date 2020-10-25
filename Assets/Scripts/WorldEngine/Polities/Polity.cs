@@ -1623,6 +1623,8 @@ public abstract class Polity : ISynchronizable
         World.AddPolityToRemove(polity);
         World.AddPolityToUpdate(this);
 
+        World.AddFactionToUpdate(DominantFaction);
+
         float polPopulation = Mathf.Floor(polity.TotalPopulation);
 
 #if DEBUG

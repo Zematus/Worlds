@@ -1,49 +1,38 @@
 {
   "decisions": [
     {
-      "id": "tribe_decide_fostering_relationship",
-      "name": "tribe decide fostering relationship",
+      "id": "tribe_decide_merge",
+      "name": "tribe decide to attempt merge",
       "target": "faction",
       "parameters": [
         { "id": "contact_polity", "type": "polity" },
         { "id": "chance_of_making_attempt", "type": "number" }
       ],
       "properties": [
-        { "id": "target_polity", "value": "target.polity" },
         { "id": "target_isolation", "value": "target.preferences.isolation" }
       ],
       "description": [
         {
           "id": "description_intro",
-          "text": "The clan's tribal elders suggest that the relationship between the dominant factions of <<contact_polity>> and <<target_polity>> could be improved.\n\nShould <<target.leader>> make an attempt to improve the relationship with <<contact_polity>>?"
+          "text": "The people of the <<target.polity>> tribe and the <<contact_polity>> tribe have grown very close over many generations to the point some members can barely distingish between both. Elders of clan <<target>> suggest we should try convincing the leaders of <<target_polity>> into becoming part of our tribe.\n\nShould <<target.leader>> make an attempt to convince <<contact_polity>> to merge into <<target.polity>>?"
         }
       ],
       "options": [
         {
           "id": "make_attempt",
-          "text": "Attempt to improve relationship with <<contact_polity>>...",
+          "text": "Attempt to convince <<contact_polity>> into merging with <<target.polity>>...",
           "weight": "max(0, chance_of_making_attempt)",
           "effects": [
             {
-              "id": "decrease_isolation",
-              "properties": [
-                { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
-                { "id": "isolation_min", "value": "lerp(target_isolation, 0, (0.2 * charisma_factor))" },
-                { "id": "isolation_max", "value": "lerp(target_isolation, 0, (0.1 * charisma_factor))" }
-              ],
-              "text": "<<target>>: isolation preference (<<target_isolation>>) decreases to: <<isolation_min>> - <<isolation_max>>",
-              "result": "target.preferences.isolation = random(isolation_min, isolation_max)"
-            },
-            {
               "id": "attempt",
               "text": "The current leader of <<contact_polity>> will receive an offer from tribe <<target_polity>>",
-              "result": "contact_polity.dominant_faction.trigger_decision(tribe_decide_offer_relationship_foster, target_polity)"
+              "result": "contact_polity.dominant_faction.trigger_decision(tribe_decide_merge_offer, target_polity)"
             }
           ]
         },
         {
           "id": "dont_make_attempt",
-          "text": "Don't waste time trying to foster relationships...",
+          "text": "Don't waste time trying to merge the tribes...",
           "weight": "1 - min(1, chance_of_making_attempt)",
           "effects": [
             {
@@ -61,8 +50,8 @@
       ]
     },
     {
-      "id": "tribe_decide_offer_relationship_foster",
-      "name": "tribe decide on offer to foster relationship",
+      "id": "tribe_decide_merge_offer",
+      "name": "tribe decide on merge offer",
       "target": "faction",
       "parameters": [
         { "id": "attempting_polity", "type": "polity" }
@@ -73,19 +62,19 @@
         { "id": "relationship_value", "value": "target.relationship(attempting_faction)" },
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "contact_strength", "value": "target_polity.get_contact(attempting_polity).strength" },
-        { "id": "chance_of_rejecting_attempt", "value": "relationship_value * (1 - (contact_strength * 3)) * target_isolation" }
+        { "id": "chance_of_rejecting_offer", "value": "(1 - relationship_value) * (1 - (contact_strength * 3)) * target_isolation" }
       ],
       "description": [
         {
           "id": "description_intro",
-          "text": "<<attempting_polity.leader>>, leader of <<attempting_polity>>, is attempting to improve the relationship between our tribes.\n\nShould <<target.leader>> foster the relationship with <<attempting_polity>>?"
+          "text": "<<attempting_polity.leader>>, leader of <<attempting_polity>>, wants to convince us to merge our tribe into theirs.\n\nShould <<target.leader>> allow <<target.polity>> to merge into <<attempting_polity>>?"
         }
       ],
       "options": [
         {
-          "id": "reject_attempt",
-          "text": "Reject attempt from <<attempting_polity>>...",
-          "weight": "max(0, chance_of_rejecting_attempt)",
+          "id": "reject_offer",
+          "text": "Reject offer to merge into <<attempting_polity>>...",
+          "weight": "max(0, chance_of_rejecting_offer)",
           "effects": [
             {
               "id": "increase_isolation",
@@ -110,25 +99,15 @@
             {
               "id": "notify",
               "text": "The current leader of the <<attempting_polity>> tribe will be notified of our decision...",
-              "result": "attempting_polity.dominant_faction.trigger_decision(tribe_rejected_attempt_foster_relationship, target.polity)"
+              "result": "attempting_polity.dominant_faction.trigger_decision(tribe_rejected_tribe_merge, target.polity)"
             }
           ]
         },
         {
-          "id": "foster_relationship",
-          "text": "Foster relationship with <<attempting_polity>>...",
-          "weight": "1 - clamp(0, 1, chance_of_rejecting_attempt)",
+          "id": "accept_offer",
+          "text": "Accept offer to merge into <<attempting_polity>>...",
+          "weight": "1 - clamp(chance_of_rejecting_offer, 0, 1)",
           "effects": [
-            {
-              "id": "decrease_isolation",
-              "properties": [
-                { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
-                { "id": "isolation_min", "value": "lerp(target_isolation, 0, (0.2 * charisma_factor))" },
-                { "id": "isolation_max", "value": "lerp(target_isolation, 0, (0.1 * charisma_factor))" }
-              ],
-              "text": "<<target>>: isolation preference (<<target_isolation>>) decreases to: <<isolation_min>> - <<isolation_max>>",
-              "result": "target.preferences.isolation = random(isolation_min, isolation_max)"
-            },
             {
               "id": "increase_relation",
               "properties": [
@@ -142,15 +121,20 @@
             {
               "id": "notify",
               "text": "The current leader of the <<attempting_polity>> tribe will be notified of our decision...",
-              "result": "attempting_polity.dominant_faction.trigger_decision(tribe_accepted_attempt_foster_relationship, target.polity)"
+              "result": "attempting_polity.dominant_faction.trigger_decision(tribe_accepted_tribe_merge, target.polity)"
+            },
+            {
+              "id": "merge_tribe",
+              "text": "the <<target.polity>> tribe merges into <<attempting_polity>>...",
+              "result": "attempting_polity.merge(target.polity)"
             }
           ]
         }
       ]
     },
     {
-      "id": "tribe_accepted_attempt_foster_relationship",
-      "name": "tribe accepted attempt to foster relationship",
+      "id": "tribe_accepted_tribe_merge",
+      "name": "tribe accepted offer to merge tribes",
       "target": "faction",
       "parameters": [
         { "id": "accepting_tribe", "type": "polity" }
@@ -158,7 +142,7 @@
       "description": [
         {
           "id": "description",
-          "text": "The leader of the <<accepting_tribe>> tribe, <<accepting_tribe.leader>>, has embraced our attempt to improve the relationship between our tribes."
+          "text": "The leader of the <<accepting_tribe>> tribe, <<accepting_tribe.leader>>, has decided to merge their tribe with ours."
         }
       ],
       "options": [
@@ -169,8 +153,8 @@
       ]
     },
     {
-      "id": "tribe_rejected_attempt_foster_relationship",
-      "name": "tribe rejected attempt to foster relationship",
+      "id": "tribe_rejected_tribe_merge",
+      "name": "tribe rejected offer to merge tribes",
       "target": "faction",
       "parameters": [
         { "id": "rejecting_tribe", "type": "polity" }
@@ -178,7 +162,7 @@
       "description": [
         {
           "id": "description",
-          "text": "The leader of the <<rejecting_tribe>> tribe, <<rejecting_tribe.leader>>, has rejected our attempt to improve the relationship between our tribes."
+          "text": "The leader of the <<rejecting_tribe>> tribe, <<rejecting_tribe.leader>>, has decided to reject our offer for them to merge their tribe with ours."
         }
       ],
       "options": [

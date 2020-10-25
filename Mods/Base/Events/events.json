@@ -116,8 +116,8 @@
       "repeatable" : true
     },
     {
-      "id": "tribes_decide_merge",
-      "name": "tribes decide merge",
+      "id": "tribe_decide_merge",
+      "name": "tribe decide merge",
       "target": "faction",
       "assignOn" : ["spawn", "status_change", "polity_contact_change"],
       "properties": [
@@ -139,9 +139,10 @@
       ],
       "timeToTrigger": "9125 + random(9125000 * target_isolation)",
       "effects": [
-        "target.trigger_decision(tribe_decide_fostering_relationship, contact.polity, chance_of_making_attempt)"
+        "target.trigger_decision(tribe_decide_merge, contact.polity, chance_of_making_attempt)"
       ],
-      "repeatable" : true
+      "repeatable" : true,
+      "debug" : true
     }
   ]
 }
