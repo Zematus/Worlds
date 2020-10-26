@@ -15,11 +15,11 @@
       "triggerConditions": [
         "target.administrative_load > 100000",
         "target.preferences.cohesion < 0.7",
-        "new_core_group.faction_cores_count == 0",
         "new_core_group.faction_core_distance(target.polity) > 500",
-        "new_core_group.knowledges.social_organization >= 6",
+        "new_core_group.polity_with_highest_prominence == target.polity",
         "polity_prominence > 0.3",
-        "new_core_group.polity_with_highest_prominence == target.polity"
+        "new_core_group.knowledges.social_organization >= 6",
+        "new_core_group.faction_cores_count == 0"
       ],
       "timeToTrigger": "9125 + random(9125000 * (1 - saturation(target.administrative_load, 400000)) * target.preferences.cohesion)",
       "effects": [
@@ -40,7 +40,7 @@
         { "id": "admin_factors", "value": "relationship_value * influence_delta * target.preferences.authority" },
         { "id": "min_admin_load", "value": "100000 * admin_factors" },
         { "id": "max_admin_load", "value": "5000000 * admin_factors" },
-        { "id": "chance_of_making_demand", "value": "1 - normalize(target.administrative_load, min_admin_load, max_admin_load)" }
+        { "id": "chance_of_making_demand", "value": "(1 - normalize(target.administrative_load, min_admin_load, max_admin_load) * target_authority * 2)" }
       ],
       "assignmentConditions": [
         "target.type == clan",
@@ -50,10 +50,9 @@
       ],
       "triggerConditions": [
         "chance_of_making_demand > 0",
-        "target_authority > 0.5",
         "(target_authority > dominant_faction.preferences.authority) || (dominant_faction.administrative_load > 100000)"
       ],
-      "timeToTrigger": "9125 + random(91250 * (1 - saturation(target.administrative_load, 200000)) * target_authority)",
+      "timeToTrigger": "9125 + random(9125000 * (1 - saturation(target.administrative_load, 200000)) * target_authority)",
       "effects": [
         "target.trigger_decision(clan_decide_performing_influence_demand, dominant_faction, chance_of_making_demand)"
       ],
@@ -141,8 +140,7 @@
       "effects": [
         "target.trigger_decision(tribe_decide_merge, contact.polity, chance_of_making_attempt)"
       ],
-      "repeatable" : true,
-      "debug" : true
+      "repeatable" : true
     }
   ]
 }
