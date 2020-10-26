@@ -83,7 +83,7 @@
         { "id": "admin_factors", "value": "relationship_value * influence_delta * target_authority" },
         { "id": "min_admin_load", "value": "0 * admin_factors" },
         { "id": "max_admin_load", "value": "3000000 * admin_factors" },
-        { "id": "chance_of_rejecting_demand", "value": "1 - normalize(target.administrative_load, min_admin_load, max_admin_load)" }
+        { "id": "chance_of_rejecting_demand", "value": "(1 - normalize(target.administrative_load, min_admin_load, max_admin_load) * target_authority * 2)" }
       ],
       "description": [
         {

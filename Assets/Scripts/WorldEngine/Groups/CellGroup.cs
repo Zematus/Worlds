@@ -2221,19 +2221,6 @@ public class CellGroup : Identifiable, IFlagHolder
         return shortestDistance;
     }
 
-    private void UpdateCoreDistances()
-    {
-        foreach (PolityProminence pi in _polityProminences.Values)
-        {
-            pi.NewFactionCoreDistance = CalculateShortestFactionCoreDistance(pi.Polity);
-        }
-
-        foreach (PolityProminence pi in _polityProminences.Values)
-        {
-            pi.NewPolityCoreDistance = CalculateShortestPolityCoreDistance(pi.Polity);
-        }
-    }
-
     public float CalculateAdministrativeCost(PolityProminence pi)
     {
         float polityPopulation = Population * pi.Value;

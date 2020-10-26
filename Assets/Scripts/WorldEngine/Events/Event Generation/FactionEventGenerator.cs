@@ -1,9 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
+﻿using UnityEngine.Profiling;
 
 public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 {

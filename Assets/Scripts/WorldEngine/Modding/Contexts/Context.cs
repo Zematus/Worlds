@@ -6,7 +6,7 @@ using UnityEngine;
 /// Context objects contain data used by sets of expressions to resolve references and receive input
 /// from the simulation
 /// </summary>
-public abstract class Context
+public abstract class Context : IDebugLogger
 {
     public string Id;
 

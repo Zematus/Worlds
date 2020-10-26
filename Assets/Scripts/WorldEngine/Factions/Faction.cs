@@ -788,7 +788,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     {
         foreach (IFactionEventGenerator generator in OnStatusChangeEventGenerators)
         {
+            //generator.OpenDebugOutput("Evaluating Assigment on Status Change:");
+
             generator.TryGenerateEventAndAssign(this);
+
+            //generator.CloseDebugOutput("Finished: Evaluating Assigment on Status Change");
         }
     }
 
