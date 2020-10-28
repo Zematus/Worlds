@@ -117,7 +117,7 @@
         {
           "id": "foster_relationship",
           "text": "Foster relationship with <<attempting_polity>>...",
-          "weight": "1 - clamp(0, 1, chance_of_rejecting_attempt)",
+          "weight": "1 - clamp(chance_of_rejecting_attempt, 0, 1)",
           "effects": [
             {
               "id": "decrease_isolation",
