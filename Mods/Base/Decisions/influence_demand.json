@@ -58,7 +58,7 @@
               "id": "increase_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
+                { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
               ],
@@ -77,7 +77,7 @@
         { "id": "demanding_faction", "type": "faction" }
       ],
       "properties": [
-        { "id": "relationship_value", "value": "target.relationship(demanding_faction)" },
+        { "id": "relationship_value", "value": "target.get_relationship(demanding_faction)" },
         { "id": "influence_delta", "value": "max(0, target.influence - demanding_faction.influence)" },
         { "id": "target_authority", "value": "target.preferences.authority" },
         { "id": "admin_factors", "value": "relationship_value * influence_delta * target_authority" },
@@ -123,7 +123,7 @@
               "id": "decrease_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(demanding_faction)" },
+                { "id": "relationship_value", "value": "target.get_relationship(demanding_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 0, (0.2 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 0, (0.1 * charisma_factor))" }
               ],
@@ -168,7 +168,7 @@
               "id": "increase_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(demanding_faction)" },
+                { "id": "relationship_value", "value": "target.get_relationship(demanding_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
               ],
@@ -212,7 +212,7 @@
               "id": "increase_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(demanding_faction)" },
+                { "id": "relationship_value", "value": "target.get_relationship(demanding_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
               ],

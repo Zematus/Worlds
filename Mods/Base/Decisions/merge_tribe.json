@@ -59,7 +59,7 @@
       "properties": [
         { "id": "target_polity", "value": "target.polity" },
         { "id": "attempting_faction", "value": "attempting_polity.dominant_faction" },
-        { "id": "relationship_value", "value": "target.relationship(attempting_faction)" },
+        { "id": "relationship_value", "value": "target.get_relationship(attempting_faction)" },
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "contact_strength", "value": "target_polity.get_contact(attempting_polity).strength" },
         { "id": "chance_of_rejecting_offer", "value": "(1 - relationship_value) * (1 - (contact_strength * 3)) * target_isolation" }

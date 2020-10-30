@@ -87,7 +87,7 @@
         { "id": "splitting_faction", "type": "faction" }
       ],
       "properties": [
-        { "id": "relationship_value", "value": "target.relationship(splitting_faction)" },
+        { "id": "relationship_value", "value": "target.get_relationship(splitting_faction)" },
         { "id": "leader_charisma", "value": "target.leader.charisma" },
         { "id": "target_authority", "value": "target.preferences.authority" },
         { "id": "admin_factors", "value": "relationship_value * target_authority * leader_charisma" },
@@ -144,7 +144,7 @@
               "id": "decrease_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(splitting_faction)" },
+                { "id": "relationship_value", "value": "target.get_relationship(splitting_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 0, (0.2 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 0, (0.1 * charisma_factor))" }
               ],
@@ -168,7 +168,7 @@
               "id": "increase_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 - target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(splitting_faction)" },
+                { "id": "relationship_value", "value": "target.get_relationship(splitting_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
               ],

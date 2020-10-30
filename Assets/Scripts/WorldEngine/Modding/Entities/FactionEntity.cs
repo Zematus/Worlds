@@ -15,7 +15,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
     public const string SplitAttributeId = "split";
     public const string CoreGroupAttributeId = "core_group";
     public const string TypeAttributeId = "type";
-    public const string RelationshipAttributeId = "relationship";
+    public const string GetRelationshipAttributeId = "get_relationship";
     public const string SetRelationshipAttributeId = "set_relationship";
 
     public virtual Faction Faction
@@ -131,8 +131,8 @@ public class FactionEntity : DelayedSetEntity<Faction>
             case SplitAttributeId:
                 return new SplitFactionAttribute(this, arguments);
 
-            case RelationshipAttributeId:
-                return new RelationshipAttribute(this, arguments);
+            case GetRelationshipAttributeId:
+                return new GetRelationshipAttribute(this, arguments);
 
             case SetRelationshipAttributeId:
                 return new SetRelationshipAttribute(this, arguments);
