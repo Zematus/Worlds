@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class RelationshipAttribute : ValueEntityAttribute<float>
+public class GetRelationshipAttribute : ValueEntityAttribute<float>
 {
     private FactionEntity _factionEntity;
 
     private readonly IValueExpression<IEntity> _argumentExp;
 
-    public RelationshipAttribute(FactionEntity factionEntity, IExpression[] arguments)
-        : base(FactionEntity.RelationshipAttributeId, factionEntity, arguments, 1)
+    public GetRelationshipAttribute(FactionEntity factionEntity, IExpression[] arguments)
+        : base(FactionEntity.GetRelationshipAttributeId, factionEntity, arguments, 1)
     {
         _factionEntity = factionEntity;
 

@@ -34,7 +34,7 @@
       "assignOn" : ["spawn", "status_change"],
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
-        { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
+        { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
         { "id": "influence_delta", "value": "max(0, dominant_faction.influence - target.influence)" },
         { "id": "target_authority", "value": "target.preferences.authority" },
         { "id": "admin_factors", "value": "relationship_value * influence_delta * target.preferences.authority" },
@@ -68,7 +68,7 @@
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "contact", "value": "target_polity.get_random_contact()" },
         { "id": "contact_dominant_faction", "value": "contact.polity.dominant_faction" },
-        { "id": "relationship_value", "value": "target.relationship(contact_dominant_faction)" },
+        { "id": "relationship_value", "value": "target.get_relationship(contact_dominant_faction)" },
         { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * (contact.strength * 3) * (1 - target_isolation)" }
       ],
       "assignmentConditions": [
@@ -92,7 +92,7 @@
       "assignOn" : ["spawn", "status_change"],
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
-        { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
+        { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
         { "id": "influence_delta", "value": "max(0, dominant_faction.influence - target.influence)" },
         { "id": "admin_factors", "value": "relationship_value * influence_delta * target.preferences.cohesion" },
         { "id": "min_admin_load", "value": "100000 * admin_factors" },
@@ -124,7 +124,7 @@
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "contact", "value": "target_polity.get_random_contact()" },
         { "id": "contact_dominant_faction", "value": "contact.polity.dominant_faction" },
-        { "id": "relationship_value", "value": "target.relationship(contact_dominant_faction)" },
+        { "id": "relationship_value", "value": "target.get_relationship(contact_dominant_faction)" },
         { "id": "chance_of_making_attempt", "value": "relationship_value * (contact.strength * 3) * (1 - target_isolation)" }
       ],
       "assignmentConditions": [

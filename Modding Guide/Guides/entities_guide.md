@@ -27,7 +27,7 @@ An access operation is handled as an expression and as such, can either ver reso
     Attribute that returns the **cell entity** where this group is located.
     *Examples:* `"group.cell"`, `"target.cell"`
 
-  - **prominence**
+  - **prominence(*polity*)**
     Attribute function that returns the prominence that a particular polity has on the group as a **numeric** value.
     *Examples:* `"group.prominence(target.polity)"`, `"target.prominence(polity)"`
 
@@ -35,7 +35,7 @@ An access operation is handled as an expression and as such, can either ver reso
     Attribute that returns the amount of faction cores located in the group as a **numeric** value.
     *Examples:* `"group.faction_cores_count"`, `"target.faction_cores_count"`
 
-  - **faction_core_distance**
+  - **faction_core_distance(*polity*)**
     Attribute function that returns the distance between this group's cell and the closest faction core cell in the given polity as a **numeric** value.
     *Examples:* `"group.faction_core_distance(target.polity)"`, `"target.faction_core_distance(polity)"`
 
@@ -62,25 +62,34 @@ An access operation is handled as an expression and as such, can either ver reso
     Attribute that returns the type of polity. Current available type: **tribe**
     *Example:* `"polity.type == tribe"`
 
-  - **get_random_group**
+  - **get_random_group()**
     Attribute that selects and returns a random **group entity** that falls within the polity's prominence sphere.
     *Example:* `"polity.get_random_group()"`
 
-  - **get_random_contact**
+  - **get_random_contact()**
     Attribute that selects and returns a random **contact entity** encapsulating another polity that is currently in contact with this polity.
     *Example:* `"polity.get_random_contact()"`
+
+  - **get_contact(*polity*)**
+    Attribute that returns the **contact entity** available for *polity*, if any.
+    *Example:* `"polity.get_contact(polity)"`
 
   - **dominant_faction**
     Attribute that returns the polity's current *dominant* **faction entity**.
     *Example:* `"target == polity.dominant_faction"`
 
-  - **transfer_influence**
-    Attribute function that transfers influence between two factions within the polity.
-    *Example:* `"polity.transfer_influence(source_faction, target_faction, influence_to_transfer)"`
+  - **transfer_influence(*source_faction*,*target_faction*,*influence_to_transfer*)**
+    Attribute function that transfers a percentage of influence, *influence_to_transfer*, from *source_faction* towards *target_faction*.
+    *Example:* `"polity.transfer_influence(source_faction, target_faction, 0.2)"`
 
-  - **contact_strength**
-    Attribute function that returns the contact strength between this polity and another one. Contact strength will be greater than 0 if both polities share a border with each other.
-    *Example:* `"polity.contact_strength(neighbor_polity)"`
+  - **split(*polity_type*,*splitting_faction*)**
+    Attribute function that splits the polity by creating a new polity of type *polity_type*, with *splitting_faction* as the source of the split.
+    NOTE: supported polity types: *tribe*
+    *Example:* `"polity.split(tribe, faction)"`
+
+  - **merge(*polity_to_merge*)**
+    Attribute function that merges *polity_to_merge* into the calling polity entity.
+    *Example:* `"polity.merge(other_polity)"`
 
   - **leader**
     Attribute that returns the leader of the polity's current dominant faction as an **agent entity**.
@@ -96,6 +105,10 @@ An access operation is handled as an expression and as such, can either ver reso
   - **polity**
     Attribute that returns the **polity entity** that this contact encapsulates relationship information for.
     *Examples:* `"contact.polity"`, `"polity.get_random_contact().polity"`
+
+  - **strength**
+    Attribute that returns the contact strength between the polity that contained this contact entity and the polity contained in the contact. Contact strength will be greater than `0` if both polities share a border with each other.
+    *Examples:* `"contact.strength"`, `"target_polity.get_contact(polity).strength"`
 
 
 ### AGENT
@@ -116,7 +129,7 @@ An access operation is handled as an expression and as such, can either ver reso
 ### FACTION
 
   This type of entity encapsulates any faction that can be part of a polity. most decisions have a faction as target entity.
-  
+
   ***Properties:***
 
   - **type**
@@ -143,20 +156,20 @@ An access operation is handled as an expression and as such, can either ver reso
     Attribute that returns the **polity entity** to which this faction belongs to.
     *Example:* `"faction.polity.type == tribe"`
 
-  - **trigger_decision**
-    Attribute function that will trigger a decision referenced by the given *id*. The function needs to receive as extra parameters all of the parameters needed to execute the given decision.
+  - **trigger_decision(*decision_id*,*...*)**
+    Attribute function that will trigger a decision referenced by the given *decision_id*. The function needs to receive as extra parameters all of the parameters needed to execute the given decision.
     *Example:* `"dominant_faction.trigger_decision(influence_demanded_from_clan, target)"`
 
-  - **split**
-    Attribute function that will trigger a faction to split a new faction from itself. The function expects two parameters: a group to become the new faction's core, and a percentage of influence (as a value between 0 and 1) to transfer from the parent faction.
+  - **split(*core_group*,*influence_to_transfer*)**
+    Attribute function that will trigger a faction to split a new faction from itself. The function expects two parameters: a group to become the new faction's core, *core_group*, and a percentage of influence, *influence_to_transfer*, (as a value between 0 and 1) to transfer from the parent faction.
     *Example:* `"target.split(new_core_group, 0.5)"`
 
-  - **relationship**
-    Attribute function that will return a **numeric** value corresponding to the current relationship value between this faction and the faction given as parameter.
-    *Example:* `"target.relationship(dominant_faction)"`
+  - **get_relationship(*faction*)**
+    Attribute function that will return a **numeric** value corresponding to the current relationship value between this faction and the faction given as parameter, *faction*.
+    *Example:* `"target.get_relationship(dominant_faction)"`
 
-  - **set_relationship**
-    Attribute function that will update the relationship value between this faction and the faction given as first parameter, using the **numeric** value given in the second parameter.
+  - **set_relationship(*faction*,*value*)**
+    Attribute function that will update the relationship value between this faction and the faction given as the first parameter *faction*, using the **numeric** value given in the second parameter, *value*.
     *Example:* `"dominant_faction.set_relationship(target, input_value / 2)"`
 
   - **core_group**
