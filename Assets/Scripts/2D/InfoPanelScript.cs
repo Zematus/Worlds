@@ -14,6 +14,9 @@ public class InfoPanelScript : MonoBehaviour
         _infoTextMinimized = state;
     }
 
+    /// <summary>
+    /// Updates the upper left corner info panel
+    /// </summary>
     public void UpdateInfoPanel()
     {
         World world = Manager.CurrentWorld;
@@ -37,7 +40,7 @@ public class InfoPanelScript : MonoBehaviour
 
         InfoText.text += "\n";
 
-        if (Manager.DebugModeEnabled)
+        if (Manager.CurrentDevMode != DevMode.None)
         {
             InfoText.text += "\n -- Debug Data -- ";
 
@@ -50,9 +53,44 @@ public class InfoPanelScript : MonoBehaviour
             }
 
             InfoText.text += "\n";
+            InfoText.text += "\nEvents Evaluated Per Second: " + Manager.LastEventsEvaluatedCount;
             InfoText.text += "\nEvents Triggered Per Second: " + Manager.LastEventsTriggeredCount;
 
-            InfoText.text += "\n";
+            float successRate = 0;
+            if (Manager.LastEventsEvaluatedCount > 0)
+            {
+                successRate = Manager.LastEventsTriggeredCount / (float)Manager.LastEventsEvaluatedCount;
+            }
+
+            InfoText.text += "\nSuccess Rate: " + successRate.ToString("P");
+
+            if ((Manager.CurrentDevMode == DevMode.Advanced) &&
+                (Manager.LastEventEvalStatsPerType.Count > 0))
+            {
+                InfoText.text += "\n\n-- Breakdown by type --\n";
+
+                foreach (KeyValuePair<string, World.EventEvalStats> pair in Manager.LastEventEvalStatsPerType)
+                {
+                    int evalCount = pair.Value.EvaluationCount;
+
+                    if (evalCount <= 0)
+                    {
+                        throw new System.Exception("Event of type ("+ pair.Key + ") has 0 evaluations");
+                    }
+
+                    float percentOfTotal = evalCount / (float)Manager.LastEventsEvaluatedCount;
+
+                    successRate = pair.Value.TriggerCount / (float)evalCount;
+
+                    InfoText.text += "\n" + pair.Key + ": ";
+                    InfoText.text += "\nEvaluated: " + pair.Value.EvaluationCount +
+                        " (" + percentOfTotal.ToString("P") + " of all evaluated events)";
+                    InfoText.text += "\nTriggered: " + pair.Value.TriggerCount +
+                        " (" + successRate.ToString("P") + " success rate)";
+                    InfoText.text += "\n";
+                }
+            }
+
             InfoText.text += "\nMap Updates Per Second: " + Manager.LastMapUpdateCount;
             InfoText.text += "\nPixel Updates Per Second: " + Manager.LastPixelUpdateCount;
 
@@ -60,7 +98,8 @@ public class InfoPanelScript : MonoBehaviour
             {
                 float pixelUpdatesPerMapUpdate = Manager.LastPixelUpdateCount / (float)Manager.LastMapUpdateCount;
 
-                InfoText.text += "\nPixel Updates Per Map Update: " + pixelUpdatesPerMapUpdate.ToString("0.00");
+                InfoText.text +=
+                    "\nPixel Updates Per Map Update: " + pixelUpdatesPerMapUpdate.ToString("0.00");
             }
 
             InfoText.text += "\n";
@@ -474,7 +513,7 @@ public class InfoPanelScript : MonoBehaviour
 
         foreach (PolityContact contact in polity.GetContacts())
         {
-            Polity contactPolity = contact.Polity;
+            Polity contactPolity = contact.NeighborPolity;
 
             InfoText.text += "\n\n\tPolity: " + contactPolity.Name.Text + " " + contactPolity.Type.ToLower();
 

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class ValueEntity<T> : BaseValueEntity
+public class ValueEntity<T> : Entity, IValueEntity<T>
 {
     public const string ValueAttributeId = "value";
 
@@ -32,7 +32,7 @@ public class ValueEntity<T> : BaseValueEntity
                 return _valueAttribute;
         }
 
-        throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
+        throw new System.ArgumentException("ValueEntity: Unable to find attribute: " + attributeId);
     }
 
     public virtual T GetValue() => Value;
@@ -75,13 +75,13 @@ public class ValueEntity<T> : BaseValueEntity
         get
         {
             _valueExpression = _valueExpression ??
-                new ValueGetterExpression<T>(GetValue, _partialEvalStringConverter);
+                new ValueGetterExpression<T>(Id, GetValue, _partialEvalStringConverter);
 
             return _valueExpression;
         }
     }
 
-    public override IValueExpression<Entity> Expression
+    public override IValueExpression<IEntity> Expression
     {
         get
         {
@@ -91,5 +91,5 @@ public class ValueEntity<T> : BaseValueEntity
         }
     }
 
-    public override IBaseValueExpression BaseValueExpression => ValueExpression;
+    public IBaseValueExpression BaseValueExpression => ValueExpression;
 }

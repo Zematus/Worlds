@@ -325,8 +325,9 @@ public class StartGuiManagerScript : MonoBehaviour
 
         SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
         SettingsDialogPanelScript.UIScalingToggle.isOn = Manager.UIScalingEnabled;
-        SettingsDialogPanelScript.DebugModeToggle.isOn = Manager.DebugModeEnabled;
         SettingsDialogPanelScript.AnimationShadersToggle.isOn = Manager.AnimationShadersEnabled;
+
+        SettingsDialogPanelScript.RefreshDevButtonText();
 
         SettingsDialogPanelScript.SetVisible(true);
     }

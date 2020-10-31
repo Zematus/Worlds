@@ -6,9 +6,9 @@ using System;
 
 public class ValueEntityExpression<T> : BaseValueEntityExpression
 {
-    public readonly ValueEntity<T> ValueEntity;
+    public readonly IValueEntity<T> ValueEntity;
 
-    public ValueEntityExpression(ValueEntity<T> entity) : base(entity)
+    public ValueEntityExpression(IValueEntity<T> entity) : base(entity)
     {
         ValueEntity = entity;
     }

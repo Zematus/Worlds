@@ -69,8 +69,8 @@ public static class ExpressionBuilder
     {
         string entityStr = match.Groups["statement"].Value.Trim();
 
-        IValueExpression<Entity> entExpression =
-            ValueExpressionBuilder.BuildValueExpression<Entity>(context, entityStr);
+        IValueExpression<IEntity> entExpression =
+            ValueExpressionBuilder.BuildValueExpression<IEntity>(context, entityStr);
 
         string identifier = match.Groups["identifier"].Value.Trim();
         string arguments = match.Groups["arguments"].Value.Trim();
@@ -237,6 +237,8 @@ public static class ExpressionBuilder
                 return new MaxFunctionExpression(context, argExpressions);
             case MinFunctionExpression.FunctionId:
                 return new MinFunctionExpression(context, argExpressions);
+            case ClampFunctionExpression.FunctionId:
+                return new ClampFunctionExpression(context, argExpressions);
         }
 
         if (string.IsNullOrWhiteSpace(arguments))

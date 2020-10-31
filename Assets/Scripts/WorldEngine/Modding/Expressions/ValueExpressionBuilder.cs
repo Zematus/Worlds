@@ -31,6 +31,11 @@ public static class ValueExpressionBuilder
 
     public static IValueExpression<T> ValidateValueExpression<T>(IExpression expression)
     {
+        if (expression is ValueEntityAttributeExpression<IValueEntity<T>> vEntityAttrExp)
+        {
+            return vEntityAttrExp.Value.ValueExpression;
+        }
+
         if (expression is ValueEntityExpression<T> vEntityExp)
         {
             return vEntityExp.ValueEntity.ValueExpression;
@@ -77,7 +82,7 @@ public static class ValueExpressionBuilder
             return "number";
         }
 
-        if (type == typeof(Entity))
+        if (type == typeof(IEntity))
         {
             return "entity";
         }

@@ -86,6 +86,13 @@ public enum OverlayColorId
     RiverBasins = 14,
 }
 
+public enum DevMode
+{
+    None = 0,
+    Basic = 1,
+    Advanced = 2
+}
+
 public class Manager
 {
 #if DEBUG
@@ -189,19 +196,26 @@ public class Manager
 
     public static bool FullScreenEnabled = false;
     public static bool UIScalingEnabled = false;
-    public static bool DebugModeEnabled = false;
     public static bool AnimationShadersEnabled = true;
+
+    public static DevMode CurrentDevMode = DevMode.None;
 
     public static List<string> ActiveModPaths = new List<string>() { Path.Combine(@"Mods", "Base") };
     public static bool ModsAlreadyLoaded = false;
 
-    public static Dictionary<string, LayerSettings> LayerSettings = new Dictionary<string, LayerSettings>();
+    public static Dictionary<string, LayerSettings> LayerSettings =
+        new Dictionary<string, LayerSettings>();
 
     public static GameMode GameMode = GameMode.None;
 
     public static bool ViewingGlobe = false;
 
     public static int LastEventsTriggeredCount = 0;
+    public static int LastEventsEvaluatedCount = 0;
+
+    public static Dictionary<string, World.EventEvalStats> LastEventEvalStatsPerType =
+        new Dictionary<string, World.EventEvalStats>();
+
     public static int LastMapUpdateCount = 0;
     public static int LastPixelUpdateCount = 0;
     public static long LastDateSpan = 0;
@@ -1015,7 +1029,7 @@ public class Manager
 
     public static void GenerateTextures(bool doMapTexture, bool doOverlayMapTexture)
     {
-        if (DebugModeEnabled)
+        if (CurrentDevMode != DevMode.None)
         {
             UpdatedPixelCount = 0;
         }
@@ -1129,15 +1143,36 @@ public class Manager
         }
     }
 
-    public static void AddHighlightedCell(TerrainCell cell, CellUpdateType updateType)
+    /// <summary>
+    /// Adds a cell that has just been selected to the list of cells to highlight on the map
+    /// </summary>
+    /// <param name="cell">the selected cell</param>
+    /// <param name="updateType">the type of update on which to highlight the cell</param>
+    public static void AddSelectedCellToHighlight(
+        TerrainCell cell, CellUpdateType updateType)
     {
         HighlightedCells.Add(cell);
+
+        // Add to updated cells to make sure that it gets displayed correctly
+        UpdatedCells.Add(cell);
     }
 
-    public static void AddHighlightedCells(ICollection<TerrainCell> cells, CellUpdateType updateType)
+    /// <summary>
+    /// Adds a collection of cells that have just been selected to the list of cells to
+    /// highlight on the map
+    /// </summary>
+    /// <param name="cells">the collection of selected cells</param>
+    /// <param name="updateType">the type of update on which to highlight the cells</param>
+    public static void AddSelectedCellsToHighlight(
+        ICollection<TerrainCell> cells, CellUpdateType updateType)
     {
         foreach (TerrainCell cell in cells)
+        {
             HighlightedCells.Add(cell);
+
+            // Add to updated cells to make sure that it gets displayed correctly
+            UpdatedCells.Add(cell);
+        }
     }
 
     public static void GenerateRandomHumanGroup(int initialPopulation)
@@ -1694,7 +1729,7 @@ public class Manager
     {
         if (CurrentWorld.SelectedRegion != null)
         {
-            AddHighlightedCells(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
+            AddSelectedCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
 
             CurrentWorld.SelectedRegion.IsSelected = false;
             CurrentWorld.SelectedRegion = null;
@@ -1705,7 +1740,7 @@ public class Manager
             CurrentWorld.SelectedRegion = region;
             CurrentWorld.SelectedRegion.IsSelected = true;
 
-            AddHighlightedCells(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
+            AddSelectedCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
         }
     }
 
@@ -1713,7 +1748,7 @@ public class Manager
     {
         if (CurrentWorld.SelectedTerritory != null)
         {
-            AddHighlightedCells(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
+            AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
 
             Polity selectedPolity = CurrentWorld.SelectedTerritory.Polity;
 
@@ -1724,7 +1759,7 @@ public class Manager
             {
                 foreach (PolityContact contact in selectedPolity.GetContacts())
                 {
-                    AddHighlightedCells(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
+                    AddSelectedCellsToHighlight(contact.NeighborPolity.Territory.GetCells(), CellUpdateType.Territory);
                 }
             }
         }
@@ -1734,7 +1769,7 @@ public class Manager
             CurrentWorld.SelectedTerritory = territory;
             CurrentWorld.SelectedTerritory.IsSelected = true;
 
-            AddHighlightedCells(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
+            AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
 
             if (_planetOverlay == PlanetOverlay.PolityContacts)
             {
@@ -1742,7 +1777,7 @@ public class Manager
 
                 foreach (PolityContact contact in selectedPolity.GetContacts())
                 {
-                    AddHighlightedCells(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
+                    AddSelectedCellsToHighlight(contact.NeighborPolity.Territory.GetCells(), CellUpdateType.Territory);
                 }
             }
         }
@@ -1752,7 +1787,7 @@ public class Manager
     {
         if (CurrentWorld.SelectedCell != null)
         {
-            AddHighlightedCell(CurrentWorld.SelectedCell, CellUpdateType.All);
+            AddSelectedCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
 
             CurrentWorld.SelectedCell.IsSelected = false;
             CurrentWorld.SelectedCell = null;
@@ -1764,7 +1799,7 @@ public class Manager
         CurrentWorld.SelectedCell = cell;
         CurrentWorld.SelectedCell.IsSelected = true;
 
-        AddHighlightedCell(CurrentWorld.SelectedCell, CellUpdateType.All);
+        AddSelectedCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
 
         SetSelectedRegion(cell.Region);
         SetSelectedTerritory(cell.EncompassingTerritory);
@@ -2203,12 +2238,10 @@ public class Manager
 
     public static void UpdateTextures()
     {
-        if (DebugModeEnabled)
+        if (CurrentDevMode != DevMode.None)
         {
             UpdatedPixelCount = 0;
         }
-
-        //Profiler.BeginSample("UpdateMapTextureColors");
 
         UpdateMapTextureColors();
         UpdateMapOverlayTextureColors();
@@ -2219,10 +2252,6 @@ public class Manager
             UpdateMapOverlayShaderTextureColors();
         }
 
-        //Profiler.EndSample();
-
-        //Profiler.BeginSample("CurrentMapTexture.SetPixels32");
-
         CurrentMapTexture.SetPixels32(_manager._currentMapTextureColors);
         CurrentMapOverlayTexture.SetPixels32(_manager._currentMapOverlayTextureColors);
         CurrentMapActivityTexture.SetPixels32(_manager._currentMapActivityTextureColors);
@@ -2231,10 +2260,6 @@ public class Manager
         {
             CurrentMapOverlayShaderInfoTexture.SetPixels32(_manager._currentMapOverlayShaderInfoColor);
         }
-
-        //Profiler.EndSample();
-
-        //Profiler.BeginSample("CurrentMapTexture.Apply");
 
         CurrentMapTexture.Apply();
         CurrentMapOverlayTexture.Apply();
@@ -2245,13 +2270,7 @@ public class Manager
             CurrentMapOverlayShaderInfoTexture.Apply();
         }
 
-        //Profiler.EndSample();
-
-        //Profiler.BeginSample("ResetUpdatedAndHighlightedCells");
-
         ResetUpdatedAndHighlightedCells();
-
-        //Profiler.EndSample();
     }
 
     public static void UpdatePointerOverlayTextureColors(Color32[] textureColors)
@@ -2450,7 +2469,7 @@ public class Manager
 
                 textureColors[offsetY + offsetX] = cellColor;
 
-                if (DebugModeEnabled)
+                if (CurrentDevMode != DevMode.None)
                 {
                     UpdatedPixelCount++;
                 }
@@ -2480,7 +2499,7 @@ public class Manager
 
                 textureColors[offsetY + offsetX] = cellColor;
 
-                if (DebugModeEnabled)
+                if (CurrentDevMode != DevMode.None)
                 {
                     UpdatedPixelCount++;
                 }
@@ -2510,7 +2529,7 @@ public class Manager
 
                 textureColors[offsetY + offsetX] = cellColor;
 
-                if (DebugModeEnabled)
+                if (CurrentDevMode != DevMode.None)
                 {
                     UpdatedPixelCount++;
                 }
@@ -2540,7 +2559,7 @@ public class Manager
 
                 textureColors[offsetY + offsetX] = cellColor;
 
-                if (DebugModeEnabled)
+                if (CurrentDevMode != DevMode.None)
                 {
                     UpdatedPixelCount++;
                 }
@@ -2614,7 +2633,7 @@ public class Manager
 
                         textureColors[offsetY + offsetX] = cellColor;
 
-                        if (DebugModeEnabled)
+                        if (CurrentDevMode != DevMode.None)
                         {
                             UpdatedPixelCount++;
                         }
@@ -3261,9 +3280,9 @@ public class Manager
 
                 Color territoryColor = GenerateColorFromId(territoryPolity.Id);
 
-                PolityProminence pi = cell.Group.GetPolityProminence(territoryPolity);
+                float factionCoreDistance = cell.Group.GetFactionCoreDistance(territoryPolity);
 
-                float distanceFactor = Mathf.Sqrt(pi.FactionCoreDistance);
+                float distanceFactor = Mathf.Sqrt(factionCoreDistance);
                 distanceFactor = 1 - 0.9f * Mathf.Min(1, distanceFactor / 50f);
 
                 color = territoryColor * distanceFactor;
@@ -3907,6 +3926,16 @@ public class Manager
 
             Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
+            if (cell.Group != null)
+            {
+                if (cell.Group.GetPolityProminence(territoryPolity) == null)
+                {
+                    throw new System.Exception(
+                        "The polity prominence is null. Polity: " + territoryPolity.Id +
+                        ", Group: " + cell.Group.Id);
+                }
+            }
+
             groupColor = GenerateColorFromId(territoryPolity.Id);
 
             bool isTerritoryBorder = IsTerritoryBorder(cell.EncompassingTerritory, cell);
@@ -4112,6 +4141,7 @@ public class Manager
         World.ResetStaticModData();
         CellGroup.ResetEventGenerators();
         Faction.ResetEventGenerators();
+        Polity.ResetEventGenerators();
 
         Layer.ResetLayers();
         Biome.ResetBiomes();
@@ -4122,14 +4152,13 @@ public class Manager
 
         Discovery.ResetDiscoveries();
         Knowledge.ResetKnowledges();
-        PreferenceGenerator.ResetPreferenceGenerators();
 
+        PreferenceGenerator.ResetPreferenceGenerators();
         EventGenerator.ResetGenerators();
+
         ModDecision.ResetDecisions();
 
-        // TODO: This should happend after mods are loaded. And preferences
-        // should be loaded from mods...
-        CulturalPreference.InitializePreferences();
+        Knowledge.InitializeKnowledges();
 
         float progressPerMod = 0.1f / paths.Count;
 
@@ -4148,7 +4177,6 @@ public class Manager
         }
 
         PreferenceGenerator.InitializePreferenceGenerators();
-        Knowledge.InitializeKnowledges();
         Discovery.InitializeDiscoveries();
 
         EventGenerator.InitializeGenerators();

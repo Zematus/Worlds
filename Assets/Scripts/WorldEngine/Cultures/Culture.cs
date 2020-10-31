@@ -165,7 +165,7 @@ public class Culture : ISynchronizable
         }
     }
 
-    protected void AddKnowledge(CulturalKnowledge knowledge)
+    public void AddKnowledge(CulturalKnowledge knowledge)
     {
         if (_knowledges.ContainsKey(knowledge.Id))
             return;

@@ -69,11 +69,7 @@ public class Agent : Identifiable
         {
             if (_name == null)
             {
-                Profiler.BeginSample("Agent - GenerateName");
-
                 GenerateName();
-
-                Profiler.EndSample();
             }
 
             return _name;
@@ -119,19 +115,11 @@ public class Agent : Identifiable
 
         idOffset += birthGroup.GetHashCode();
 
-        Profiler.BeginSample("new Agent - GenerateUniqueIdentifier");
-
         long initId = birthGroup.GenerateInitId(idOffset);
 
         Init(birthDate, initId);
 
-        Profiler.EndSample();
-
-        Profiler.BeginSample("new Agent - GenerateBio");
-
         GenerateBio(birthGroup);
-
-        Profiler.EndSample();
     }
 
     public void Destroy()
@@ -257,17 +245,9 @@ public class Agent : Identifiable
     {
         _rngOffset = RngOffsets.AGENT_GENERATE_NAME + unchecked(GetHashCode());
 
-        Profiler.BeginSample("region.Elements.Where");
-
         List<Element.Instance> elements = BirthRegionInfo.Elements;
 
-        Profiler.EndSample();
-
-        Profiler.BeginSample("region.Attributes.Where");
-
         List<RegionAttribute.Instance> attributes = BirthRegionInfo.AttributeList;
-
-        Profiler.EndSample();
 
         int optionCount = elements.Count + attributes.Count;
 
@@ -276,38 +256,18 @@ public class Agent : Identifiable
             throw new System.Exception("No elements nor attributes to choose name from");
         }
 
-        Profiler.BeginSample("remainingElements.Count > getRandomInt");
-
         if (elements.Count > GetRandomInt(optionCount))
         {
-            Profiler.BeginSample("RandomSelectAndRemove");
-
             Element.Instance element = elements.RandomSelect(GetRandomInt);
 
-            Profiler.EndSample();
-
-            Profiler.BeginSample("GenerateName - GenerateNameFromElement");
-
             GenerateNameFromElement(element, GetRandomInt);
-
-            Profiler.EndSample();
         }
         else
         {
-            Profiler.BeginSample("RandomSelectAndRemove");
-
             RegionAttribute.Instance attribute = attributes.RandomSelect(GetRandomInt);
 
-            Profiler.EndSample();
-
-            Profiler.BeginSample("GenerateName - GenerateNameFromRegionAttribute");
-
             GenerateNameFromRegionAttribute(attribute, GetRandomInt);
-
-            Profiler.EndSample();
         }
-
-        Profiler.EndSample();
     }
 
     public override void FinalizeLoad()

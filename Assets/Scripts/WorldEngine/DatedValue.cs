@@ -38,12 +38,9 @@ public class DatedValue<T>
 
     public DatedValue(
         IWorldDateGetter dateGetter,
-        ValueUpdateMethod<T> updateMethod,
-        T initialValue = default)
+        ValueUpdateMethod<T> updateMethod)
     {
         _dateGetter = dateGetter;
         _updateMethod = updateMethod;
-
-        _value = initialValue;
     }
 }

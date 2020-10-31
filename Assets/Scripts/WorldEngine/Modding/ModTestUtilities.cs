@@ -102,7 +102,7 @@ public class TestEntity : Entity
 
     private readonly TestBooleanEntityAttribute _boolAttribute;
 
-    private readonly FixedValueEntityAttribute<Entity> _entityAttribute;
+    private readonly FixedValueEntityAttribute<IEntity> _entityAttribute;
 
     protected override object _reference => this;
 
@@ -113,7 +113,7 @@ public class TestEntity : Entity
         _boolAttribute =
             new TestBooleanEntityAttribute(this, false);
         _entityAttribute =
-            new FixedValueEntityAttribute<Entity>(_internalEntity, TestEntityAttributeId, this);
+            new FixedValueEntityAttribute<IEntity>(_internalEntity, TestEntityAttributeId, this);
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -151,8 +151,13 @@ public class TestEntity : Entity
 
 public class TestPolity : Polity
 {
+    public static int _testCounter = 0;
+
+    private int _testId;
+
     public TestPolity(string type, CellGroup coreGroup) : base(type, coreGroup)
     {
+        _testId = _testCounter++;
     }
 
     public override float CalculateGroupProminenceExpansionValue(CellGroup sourceGroup, CellGroup targetGroup, float sourceValue)
@@ -178,6 +183,11 @@ public class TestPolity : Polity
     protected override void UpdateInternal()
     {
         throw new NotImplementedException();
+    }
+
+    public override string GetName()
+    {
+        return "test_polity_" + _testId;
     }
 }
 
@@ -233,12 +243,6 @@ public class TestFaction : Faction
     public override string GetNameBold()
     {
         return "<b>test faction " + _testId + "</b>";
-    }
-
-    [Obsolete]
-    public override void Split()
-    {
-        throw new NotImplementedException();
     }
 
     protected override float CalculateAdministrativeLoad()

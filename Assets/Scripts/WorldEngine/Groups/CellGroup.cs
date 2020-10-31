@@ -31,6 +31,8 @@ public class CellGroup : Identifiable, IFlagHolder
 
     public static List<ICellGroupEventGenerator> OnSpawnEventGenerators;
 
+    public static List<IWorldEventGenerator> OnCoreHighestProminenceChangeEventGenerators;
+
     [XmlAttribute("MT")]
     public bool MigrationTagged = false;
 
@@ -231,6 +233,7 @@ public class CellGroup : Identifiable, IFlagHolder
     private HashSet<string> _propertiesToAquire = new HashSet<string>();
     private HashSet<string> _propertiesToLose = new HashSet<string>();
 
+    private bool _hasRemovedProminences = false;
     private bool _hasPromValueDeltas = false;
     private float _unorgBandsPromDelta = 0;
     private Dictionary<Polity, float> _polityPromDeltas =
@@ -560,6 +563,7 @@ public class CellGroup : Identifiable, IFlagHolder
     public static void ResetEventGenerators()
     {
         OnSpawnEventGenerators = new List<ICellGroupEventGenerator>();
+        OnCoreHighestProminenceChangeEventGenerators = new List<IWorldEventGenerator>();
     }
 
     private void InitializeOnSpawnEvents()
@@ -567,6 +571,23 @@ public class CellGroup : Identifiable, IFlagHolder
         foreach (ICellGroupEventGenerator generator in OnSpawnEventGenerators)
         {
             generator.TryGenerateEventAndAssign(this);
+        }
+    }
+
+    /// <summary>
+    /// Applies the effects of changing the highest prominence on a core group
+    /// </summary>
+    public void ApplyCoreHighestProminenceChange()
+    {
+        foreach (IWorldEventGenerator generator in OnCoreHighestProminenceChangeEventGenerators)
+        {
+            if (generator is IFactionEventGenerator fGenerator)
+            {
+                foreach (Faction faction in FactionCores.Values)
+                {
+                    fGenerator.TryGenerateEventAndAssign(faction);
+                }
+            }
         }
     }
 
@@ -631,6 +652,11 @@ public class CellGroup : Identifiable, IFlagHolder
         if (prominence != null)
         {
             prominence.Polity.Territory.AddCell(Cell);
+        }
+
+        if (FactionCores.Count > 0)
+        {
+            ApplyCoreHighestProminenceChange();
         }
     }
 
@@ -933,29 +959,29 @@ public class CellGroup : Identifiable, IFlagHolder
 
         World.UpdateMostPopulousGroup(this);
 
-        Profiler.BeginSample("Calculate Optimal Population");
+        //Profiler.BeginSample("Calculate Optimal Population");
 
         OptimalPopulation = Cell.EstimateOptimalPopulation(Culture);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Consider Land Migration");
+        //Profiler.BeginSample("Consider Land Migration");
 
         ConsiderLandMigration();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Consider Sea Migration");
+        //Profiler.BeginSample("Consider Sea Migration");
 
         ConsiderSeaMigration();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Calculate Next Update Date");
+        //Profiler.BeginSample("Calculate Next Update Date");
 
         NextUpdateDate = CalculateNextUpdateDate();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
         LastUpdateDate = World.CurrentDate;
 
@@ -1162,6 +1188,22 @@ public class CellGroup : Identifiable, IFlagHolder
     }
 
     /// <summary>
+    /// Estimates how encroached are unorganized bands on this cell
+    /// </summary>
+    /// <returns>the encroachment value on unorganized bands</returns>
+    public float CalculateEncroachmentOnUnorganizedBands()
+    {
+        float value = 0;
+
+        foreach (PolityProminence p in _polityProminences.Values)
+        {
+            value += p.Value * p.Polity.Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+        }
+
+        return value;
+    }
+
+    /// <summary>
     /// Calculates the current value of a cell considered as a migration target
     /// The value returned will be a value between 0 and 1.
     /// </summary>
@@ -1200,7 +1242,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <summary>
     /// Evaluates and chooses a neighbor land cell as a migration target
     /// </summary>
-    public void ConsiderLandMigration()
+    private void ConsiderLandMigration()
     {
         if (HasMigrationEvent)
             return;
@@ -1215,12 +1257,12 @@ public class CellGroup : Identifiable, IFlagHolder
         TerrainCell targetCell = Cell.NeighborList[targetCellIndex];
         Direction migrationDirection = Cell.DirectionList[targetCellIndex];
 
-#if DEBUG
-        if (Cell.IsSelected)
-        {
-            Debug.LogWarning("Debugging ConsiderLandMigration for cell " + Cell.Position);
-        }
-#endif
+//#if DEBUG
+//        if (Cell.IsSelected)
+//        {
+//            Debug.LogWarning("Debugging ConsiderLandMigration for cell " + Cell.Position);
+//        }
+//#endif
 
         float cellChance = CalculateMigrationChance(targetCell, polity);
 
@@ -1282,7 +1324,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <summary>
     /// Evaluates and chooses a land cell across a body of water as a migration target
     /// </summary>
-    public void ConsiderSeaMigration()
+    private void ConsiderSeaMigration()
     {
         if (SeaTravelFactor <= 0)
             return;
@@ -1513,41 +1555,41 @@ public class CellGroup : Identifiable, IFlagHolder
 
         _alreadyUpdated = true;
 
-        Profiler.BeginSample("Update Population");
+        //Profiler.BeginSample("Update Population");
 
         UpdatePopulation(timeSpan);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Update Culture");
+        //Profiler.BeginSample("Update Culture");
 
         Culture.Update(timeSpan);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Update Polity Cultural Prominences");
+        //Profiler.BeginSample("Update Polity Cultural Prominences");
 
         UpdatePolityCulturalProminences(timeSpan);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Polity Update Effects");
+        //Profiler.BeginSample("Polity Update Effects");
 
         PolityUpdateEffects(timeSpan);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Update Travel Factors");
+        //Profiler.BeginSample("Update Travel Factors");
 
         UpdateSeaTravelFactor();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Update Add Updated Group");
+        //Profiler.BeginSample("Update Add Updated Group");
 
         World.AddUpdatedGroup(this);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
     }
 
     private void SetFactionUpdates()
@@ -1837,12 +1879,12 @@ public class CellGroup : Identifiable, IFlagHolder
             return 1;
         }
 
-#if DEBUG
-        if (Cell.IsSelected)
-        {
-            Debug.LogWarning("Debugging cell " + Cell.Position);
-        }
-#endif
+//#if DEBUG
+//        if (Cell.IsSelected)
+//        {
+//            Debug.LogWarning("Debugging cell " + Cell.Position);
+//        }
+//#endif
 
         // if the population is not near its optimum then don't add pressure
         if (populationFactor < 0.9f)
@@ -2105,9 +2147,7 @@ public class CellGroup : Identifiable, IFlagHolder
     public float GetFactionCoreDistance(Polity polity)
     {
         if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
-        {
             return float.MaxValue;
-        }
 
         return polityProminence.FactionCoreDistance;
     }
@@ -2181,19 +2221,6 @@ public class CellGroup : Identifiable, IFlagHolder
         return shortestDistance;
     }
 
-    private void UpdateCoreDistances()
-    {
-        foreach (PolityProminence pi in _polityProminences.Values)
-        {
-            pi.NewFactionCoreDistance = CalculateShortestFactionCoreDistance(pi.Polity);
-        }
-
-        foreach (PolityProminence pi in _polityProminences.Values)
-        {
-            pi.NewPolityCoreDistance = CalculateShortestPolityCoreDistance(pi.Polity);
-        }
-    }
-
     public float CalculateAdministrativeCost(PolityProminence pi)
     {
         float polityPopulation = Population * pi.Value;
@@ -2212,6 +2239,7 @@ public class CellGroup : Identifiable, IFlagHolder
         return cost;
     }
 
+#if DEBUG
     /// <summary>
     /// Updates polity prominences and values (for unit tests only)
     /// TODO: try get rid of this function without making UpdatePolityProminences public
@@ -2220,6 +2248,20 @@ public class CellGroup : Identifiable, IFlagHolder
     {
         UpdatePolityProminences();
     }
+
+    /// <summary>
+    /// Sets a prominence polity and faction core distances (for unit tests only)
+    /// TODO: try get rid of this function
+    /// </summary>
+    public void SetProminenceCoreDistances_test(
+        Polity polity, float polityCoreDistance, float factionCoreDistance)
+    {
+        PolityProminence prominence = GetPolityProminence(polity);
+
+        prominence.PolityCoreDistance = polityCoreDistance;
+        prominence.FactionCoreDistance = factionCoreDistance;
+    }
+#endif
 
     /// <summary>
     /// Updates polity prominences and values
@@ -2241,10 +2283,12 @@ public class CellGroup : Identifiable, IFlagHolder
         }
 #endif
 
-        if (CalculateNewPolityProminenceValues(afterPolityUpdates))
+        if (CalculateNewPolityProminenceValues(afterPolityUpdates) || _hasRemovedProminences)
         {
             // Only update if there was a change in values
             CalculateProminenceValueTotals();
+
+            _hasRemovedProminences = false;
         }
     }
 
@@ -2383,7 +2427,7 @@ public class CellGroup : Identifiable, IFlagHolder
     private bool CalculateNewPolityProminenceValues(bool afterPolityUpdates = false)
     {
 //#if DEBUG
-//        if ((World.CurrentDate == 181517346L) && (Cell.Longitude == 64) && (Cell.Latitude == 151))
+//        if ((Id == "0000000000053130607:8730498093635295900") && (World.CurrentDate == 223877150))
 //        {
 //            Debug.LogWarning("Debugging CalculateNewPolityProminenceValues...");
 //        }
@@ -2500,7 +2544,7 @@ public class CellGroup : Identifiable, IFlagHolder
         // normalize values
         foreach (PolityProminence prom in _polityProminences.Values)
         {
-            if (_polityProminencesToRemove.Contains(prom.Id))
+            if (_polityProminencesToRemove.Contains(prom.PolityId))
                 continue;
 
             float prevValue = prom.Value;
@@ -2510,7 +2554,8 @@ public class CellGroup : Identifiable, IFlagHolder
             if (!finalValue.IsInsideRange(0, 1))
             {
                 Debug.LogWarning("prominence value outside of (0,1) range: " + finalValue +
-                    ", prev value: " + prevValue + ", total value: " + totalValue);
+                    ", prev value: " + prevValue + ", total value: " + totalValue +
+                    ", group: " + Id + ", date: " + World.CurrentDate);
             }
 #endif
 
@@ -2658,6 +2703,8 @@ public class CellGroup : Identifiable, IFlagHolder
                 // We want to update the polity if a group is removed.
                 SetPolityUpdate(polityProminence, true);
             }
+
+            _hasRemovedProminences = true;
         }
 
         _polityProminencesToRemove.Clear();
