@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class AgentEntity : Entity
+public class AgentEntity : DelayedSetEntity<Agent>
 {
     public const string CharismaAttributeId = "charisma";
     public const string WisdomAttributeId = "wisdom";
@@ -11,11 +11,21 @@ public class AgentEntity : Entity
     private ValueGetterEntityAttribute<float> _charismaAttribute;
     private ValueGetterEntityAttribute<float> _wisdomAttribute;
 
-    public virtual Agent Agent { get; private set; }
+    public virtual Agent Agent
+    {
+        get => Setable;
+        private set => Setable = value;
+    }
 
     protected override object _reference => Agent;
 
     public AgentEntity(Context c, string id) : base(c, id)
+    {
+    }
+
+    public AgentEntity(
+        ValueGetterMethod<Agent> getterMethod, Context c, string id)
+        : base(getterMethod, c, id)
     {
     }
 
@@ -47,23 +57,5 @@ public class AgentEntity : Entity
     public override string GetFormattedString()
     {
         return Agent.Name.BoldText;
-    }
-
-    public void Set(Agent a) => Agent = a;
-
-    public override void Set(object o)
-    {
-        if (o is AgentEntity e)
-        {
-            Set(e.Agent);
-        }
-        else if (o is Agent a)
-        {
-            Set(a);
-        }
-        else
-        {
-            throw new System.ArgumentException("Unexpected type: " + o.GetType());
-        }
     }
 }

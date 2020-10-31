@@ -9,7 +9,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
     public Toggle PopDataToggle;
     public Toggle PolityDataToggle;
     public Toggle MiscDataToggle;
-    public Toggle DebugDataToggle;
+    public Toggle DevDataToggle;
 
     public Toggle PopDensityToggle;
     public Toggle FarmlandToggle;
@@ -56,14 +56,16 @@ public class OverlayDialogPanelScript : MenuPanelScript
     // Use this for initialization
     void Start()
     {
-        UpdateDebugOverlays();
+        UpdateDevOverlays();
     }
 
-    public void UpdateDebugOverlays()
+    public void UpdateDevOverlays()
     {
-        DebugDataToggle.gameObject.SetActive(Manager.DebugModeEnabled);
-        DistancesToCoresToggle.gameObject.SetActive(Manager.DebugModeEnabled);
-        PolityClustersToggle.gameObject.SetActive(Manager.DebugModeEnabled);
+        bool validDevMode = Manager.CurrentDevMode != DevMode.None;
+
+        DevDataToggle.gameObject.SetActive(validDevMode);
+        DistancesToCoresToggle.gameObject.SetActive(validDevMode);
+        PolityClustersToggle.gameObject.SetActive(validDevMode);
     }
 
     public void SetLayerOverlay(bool state)
@@ -117,7 +119,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
             LanguageToggle.isOn = false;
         }
 
-        if (!DebugDataToggle.isOn)
+        if (!DevDataToggle.isOn)
         {
             PopChangeToggle.isOn = false;
             UpdateSpanToggle.isOn = false;
@@ -176,7 +178,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
             (Manager.PlanetOverlay == PlanetOverlay.Region) ||
             (Manager.PlanetOverlay == PlanetOverlay.Language)
         );
-        DebugDataToggle.isOn = (
+        DevDataToggle.isOn = (
             (Manager.PlanetOverlay == PlanetOverlay.PopChange) ||
             (Manager.PlanetOverlay == PlanetOverlay.UpdateSpan)
         );

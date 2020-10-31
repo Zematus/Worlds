@@ -9,6 +9,9 @@ using System;
 [XmlInclude(typeof(Clan))]
 public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 {
+    public static List<IFactionEventGenerator> OnSpawnEventGenerators;
+    public static List<IFactionEventGenerator> OnStatusChangeEventGenerators;
+
     [XmlAttribute("Inf")]
     public float InfluenceInternal;
 
@@ -54,10 +57,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public Identifier CoreGroupId;
 
     [XmlIgnore]
-    public bool IsBeingUpdated = false;
-
-    public static List<IFactionEventGenerator> OnSpawnEventGenerators;
-    public static List<IFactionEventGenerator> OnStatusChangeEventGenerators;
+    public bool HasBeenUpdated = false;
 
     public List<string> Flags;
 
@@ -69,8 +69,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     // Do not call this property directly, only for serialization
     public Agent LastLeader = null;
-
-    //public List<string> Flags;
 
     [XmlIgnore]
     public FactionInfo Info;
@@ -125,19 +123,15 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     protected Dictionary<long, FactionEvent> _events =
         new Dictionary<long, FactionEvent>();
 
-    private readonly DatedValue<float> _administrativeLoad;
-    private readonly DatedValue<Agent> _currentLeader;
+    private DatedValue<float> _administrativeLoad;
+    private DatedValue<Agent> _currentLeader;
 
     private HashSet<string> _flags = new HashSet<string>();
 
     private bool _preupdated = false;
 
-    private bool _statusChanged = false;
-
     public Faction()
     {
-        _administrativeLoad = new DatedValue<float>(this, CalculateAdministrativeLoad);
-        _currentLeader = new DatedValue<Agent>(this, RequestCurrentLeader);
     }
 
     public Faction(
@@ -146,7 +140,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         CellGroup coreGroup,
         float influence,
         Faction parentFaction = null)
-        : this()
     {
         World = polity.World;
 
@@ -180,6 +173,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public void Initialize()
     {
+        _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
+        _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
+
         InitializeInternal();
 
         InitializeDefaultEvents();
@@ -323,49 +319,22 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         return _relationships.ContainsKey(faction.Id);
     }
 
-    [Obsolete]
-    public void SetToSplit(CellGroup splitFactionCoreGroup, float splitFactionMinInfluence, float splitFactionMaxInfluence, long eventId)
-    {
-        _splitFactionEventId = eventId;
-        _splitFactionCoreGroup = splitFactionCoreGroup;
-        _splitFactionMinInfluence = splitFactionMinInfluence;
-        _splitFactionMaxInfluence = splitFactionMaxInfluence;
-
-        // obsolete call
-        //_splitFactionCoreGroup.SetToBecomeFactionCore();
-
-        World.AddFactionToSplit(this);
-    }
-
     protected abstract void GenerateName(Faction parentFaction);
 
     protected Agent RequestCurrentLeader(int leadershipSpan, int minStartAge, int maxStartAge, int offset)
     {
-        //		Profiler.BeginSample ("RequestCurrentLeader - GeneratePastSpawnDate");
-
         long spawnDate = CoreGroup.GeneratePastSpawnDate(CoreGroup.LastUpdateDate, leadershipSpan, offset++);
-
-        //		Profiler.EndSample ();
 
         if ((LastLeader != null) && (spawnDate < LeaderStartDate))
         {
-
             return LastLeader;
         }
-
-        //		Profiler.BeginSample ("RequestCurrentLeader - GetLocalRandomInt");
 
         // Generate a birthdate from the leader spawnDate (when the leader takes over)
         int startAge = minStartAge + CoreGroup.GetLocalRandomInt(spawnDate, offset++, maxStartAge - minStartAge);
 
-        //		Profiler.EndSample ();
-
-        Profiler.BeginSample("RequestCurrentLeader - new Agent");
-
         LastLeader = new Agent(CoreGroup, spawnDate - startAge, GetHashCode());
         LeaderStartDate = spawnDate;
-
-        Profiler.EndSample();
 
         return LastLeader;
     }
@@ -394,7 +363,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         Faction parentFaction = null)
     {
 
-#if DEBUG //TODO: Make sure we don't need this in unit tests
+#if DEBUG //TODO: Make sure we don't need to do this in unit tests
         if (parentFaction is TestFaction)
         {
             TestFaction testFaction =
@@ -502,14 +471,14 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         newPolity.AddEventMessage(new FactionSplitEventMessage(this, newFaction, World.CurrentDate));
     }
 
-    [Obsolete]
-    public abstract void Split();
-
     public virtual void HandleUpdateEvent()
     {
 
     }
 
+    /// <summary>
+    /// Tries to update all the faction properties before being accessed by other entities
+    /// </summary>
     public void PreUpdate()
     {
         if (!IsInitialized)
@@ -522,80 +491,30 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
             return;
         }
 
-        Profiler.BeginSample("Faction - PreUpdate");
-
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Manager.TracingData.FactionId == Id)
-        //            {
-        //                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-
-        //                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-        //                string callingMethod = method.Name;
-        //                string callingClass = method.DeclaringType.ToString();
-
-        //                int knowledgeValue = 0;
-
-        //                Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out knowledgeValue);
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "Faction:PreUpdate - Faction Id:" + Id,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", Polity.Id: " + Polity.Id +
-        //                    ", preupdated: " + _preupdated +
-        //                    ", Social organization knowledge value: " + knowledgeValue +
-        //                    ", Calling method: " + callingClass + "." + callingMethod +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
-
-        if (World.FactionsHaveBeenUpdated && !IsBeingUpdated)
-        {
-            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-
-            Debug.LogWarning(
-                "Trying to  preupdate faction after or during faction update. Id: " +
-                Id + ", stackTrace:\n" + stackTrace);
-        }
-
         if (!StillPresent)
         {
-            throw new System.Exception("Faction is no longer present. Id: " + Id + ", Date: " + World.CurrentDate);
+            throw new System.Exception(
+                "Faction is no longer present. Id: " + Id + ", Date: " + World.CurrentDate);
         }
 
         if (!Polity.StillPresent)
         {
-            throw new System.Exception("Faction's polity is no longer present. Id: " + Id + " Polity Id: " + Polity.Id + ", Date: " + World.CurrentDate);
+            throw new System.Exception(
+                "Faction's polity is no longer present. Id: " + Id + " Polity Id: " + Polity.Id + ", Date: " + World.CurrentDate);
         }
-
-        Profiler.BeginSample("RequestCurrentLeader");
 
         RequestCurrentLeader();
 
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Culture.Update");
-
         Culture.Update();
 
-        Profiler.EndSample();
-
-        if (!IsBeingUpdated)
+        if (!World.FactionsHaveBeenUpdated)
         {
-            Profiler.BeginSample("World.AddFactionToUpdate");
-
             World.AddFactionToUpdate(this);
-
-            Profiler.EndSample();
         }
 
-        _preupdated = true;
+        World.AddFactionToCleanup(this);
 
-        Profiler.EndSample();
+        _preupdated = true;
     }
 
     public void Update()
@@ -603,21 +522,24 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if (!StillPresent)
             return;
 
-        IsBeingUpdated = true;
+        HasBeenUpdated = true;
 
         PreUpdate();
 
-        _preupdated = false;
-
         UpdateInternal();
-
-        ValidateStatusChange();
 
         LastUpdateDate = World.CurrentDate;
 
         World.AddPolityToUpdate(Polity);
+    }
 
-        IsBeingUpdated = false;
+    /// <summary>
+    /// Cleans up all state flags
+    /// </summary>
+    public void Cleanup()
+    {
+        _preupdated = false;
+        HasBeenUpdated = false;
     }
 
     public void PrepareNewCoreGroup(CellGroup coreGroup)
@@ -749,7 +671,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     {
         IsDominant = state;
 
-        SetStatusChange(true);
+        SetStatusChange();
     }
 
     public void SetUnderPlayerGuidance(bool state)
@@ -851,33 +773,27 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         }
     }
 
-    public void SetStatusChange(bool state)
+    /// <summary>
+    /// set that the status of the faction has changed (for example when it becomes dominant)
+    /// </summary>
+    public void SetStatusChange()
     {
-        if (World.FactionsHaveBeenUpdated && !IsBeingUpdated)
-        {
-            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-
-            Debug.LogWarning(
-                "Trying to set faction's status change after or during faction update. Id: " +
-                Id + ", stackTrace:\n" + stackTrace);
-        }
-
-        _statusChanged = state;
+        World.AddFactionWithStatusChange(this);
     }
 
-    private void ValidateStatusChange()
+    /// <summary>
+    /// Applies the effects of having the faction status changed
+    /// </summary>
+    public void ApplyStatusChange()
     {
-        if (!_statusChanged)
-        {
-            return;
-        }
-
         foreach (IFactionEventGenerator generator in OnStatusChangeEventGenerators)
         {
-            generator.TryGenerateEventAndAssign(this);
-        }
+            //generator.OpenDebugOutput("Evaluating Assigment on Status Change:");
 
-        _statusChanged = false;
+            generator.TryGenerateEventAndAssign(this);
+
+            //generator.CloseDebugOutput("Finished: Evaluating Assigment on Status Change");
+        }
     }
 
     public void InitializeDefaultEvents()

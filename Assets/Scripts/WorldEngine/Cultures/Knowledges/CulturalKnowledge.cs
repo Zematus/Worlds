@@ -44,21 +44,15 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
 
     public int GetHighestLimit()
     {
-        //Profiler.BeginSample("Reflection...");
-
         System.Type knowledgeType = this.GetType();
 
         System.Reflection.FieldInfo fInfo = knowledgeType.GetField("HighestLimit"); // TODO: avoid using reflection
-
-        //Profiler.EndSample();
 
         return (int)fInfo.GetValue(this);
     }
 
     public void SetHighestLimit(int value)
     {
-        //Profiler.BeginSample("Reflection...");
-
         System.Type knowledgeType = this.GetType();
 
         System.Reflection.FieldInfo fInfo = knowledgeType.GetField("HighestLimit"); // TODO: avoid using reflection
@@ -69,8 +63,6 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
         {
             fInfo.SetValue(this, value);
         }
-
-        //Profiler.EndSample();
     }
 
     public virtual void Reset()

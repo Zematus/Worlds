@@ -7,8 +7,6 @@ using System.Xml.Serialization;
 [XmlInclude(typeof(CellCulturalPreference))]
 public class CulturalPreference : CulturalPreferenceInfo
 {
-    public static HashSet<string> Preferences;
-
     // NOTE: Some preference value Ids might need to remain hardcoded
     public const string AuthorityPreferenceId = "authority";
     public const string CohesionPreferenceId = "cohesion";
@@ -29,17 +27,14 @@ public class CulturalPreference : CulturalPreferenceInfo
     [System.Obsolete]
     public const int IsolationPreferenceRngOffset = 2;
 
-    [XmlAttribute]
-    public float Value;
+    [XmlAttribute("V")]
+    public float ValueInternal;
 
-    public static void InitializePreferences()
+    [XmlIgnore]
+    public virtual float Value
     {
-        Preferences = new HashSet<string>
-        {
-            AuthorityPreferenceId,
-            CohesionPreferenceId,
-            IsolationPreferenceId
-        };
+        get => ValueInternal;
+        set => ValueInternal = value;
     }
 
     public CulturalPreference()

@@ -7,8 +7,8 @@ public class TransferInfluenceAttribute : EffectEntityAttribute
 {
     private PolityEntity _polityEntity;
 
-    private readonly IValueExpression<Entity> _sourceFactionExp;
-    private readonly IValueExpression<Entity> _targetFactionExp;
+    private readonly IValueExpression<IEntity> _sourceFactionExp;
+    private readonly IValueExpression<IEntity> _targetFactionExp;
     private readonly IValueExpression<float> _percentExp;
 
     public TransferInfluenceAttribute(PolityEntity polityEntity, IExpression[] arguments)
@@ -16,8 +16,8 @@ public class TransferInfluenceAttribute : EffectEntityAttribute
     {
         _polityEntity = polityEntity;
 
-        _sourceFactionExp = ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);
-        _targetFactionExp = ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[1]);
+        _sourceFactionExp = ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
+        _targetFactionExp = ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[1]);
         _percentExp = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[2]);
     }
 

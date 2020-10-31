@@ -6,9 +6,9 @@ using System;
 
 public abstract class BaseValueEntityExpression : EntityExpression
 {
-    public readonly BaseValueEntity BaseValueEntity;
+    public readonly IBaseValueEntity BaseValueEntity;
 
-    public BaseValueEntityExpression(BaseValueEntity entity) : base(entity)
+    public BaseValueEntityExpression(IBaseValueEntity entity) : base(entity)
     {
         BaseValueEntity = entity;
     }

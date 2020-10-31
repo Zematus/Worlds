@@ -8,6 +8,8 @@ public delegate string PartiallyEvaluatedStringConverter(bool evaluate);
 
 public class ValueGetterExpression<T> : IValueExpression<T>
 {
+    private readonly string _sourceId;
+
     private readonly ValueGetterMethod<T> _getterMethod;
 
     private readonly PartiallyEvaluatedStringConverter _partialEvalStringConverter;
@@ -16,14 +18,19 @@ public class ValueGetterExpression<T> : IValueExpression<T>
 
     public object ValueObject => Value;
 
-    public override string ToString() => Value.ToString();
+    public override string ToString()
+    {
+        return _sourceId;
+    }
 
     public string GetFormattedString() => Value.ToString().ToBoldFormat();
 
     public ValueGetterExpression(
+        string sourceId,
         ValueGetterMethod<T> getterMethod,
         PartiallyEvaluatedStringConverter partialEvalStringConverter = null)
     {
+        _sourceId = sourceId;
         _getterMethod = getterMethod;
         _partialEvalStringConverter = partialEvalStringConverter;
     }

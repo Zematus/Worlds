@@ -21,7 +21,7 @@ public enum GenerationType
 }
 
 [XmlRoot]
-public class World : ISynchronizable
+public class World : ISynchronizable, IWorldDateGetter
 {
     //public const long MaxSupportedDate = 9223372036L;
     public const long MaxSupportedDate = long.MaxValue;
@@ -73,6 +73,16 @@ public class World : ISynchronizable
     public static Dictionary<string, PreferenceGenerator> PreferenceGenerators;
 
     public int EventsTriggered = 0;
+    public int EventsEvaluated = 0;
+
+    public class EventEvalStats
+    {
+        public int EvaluationCount = 0;
+        public int TriggerCount = 0;
+    }
+
+    public Dictionary<string, EventEvalStats> EventEvalStatsPerType =
+        new Dictionary<string, EventEvalStats>();
 
     [XmlAttribute]
     public int Width { get; set; }
@@ -136,13 +146,7 @@ public class World : ISynchronizable
     [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
         XmlArrayItem(Type = typeof(MigratePopulationEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
-        // TODO: cleanup
-        //XmlArrayItem(Type = typeof(ClanSplitDecisionEvent)),
-        //XmlArrayItem(Type = typeof(ClanDemandsInfluenceDecisionEvent)),
-        XmlArrayItem(Type = typeof(TribeSplitDecisionEvent)),
         XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
-        XmlArrayItem(Type = typeof(FosterTribeRelationDecisionEvent)),
-        XmlArrayItem(Type = typeof(MergeTribesDecisionEvent)),
         XmlArrayItem(Type = typeof(OpenTribeDecisionEvent)),
         XmlArrayItem(Type = typeof(Discovery.DiscoveryEvent)),
         XmlArrayItem(Type = typeof(FactionModEvent)),
@@ -303,8 +307,9 @@ public class World : ISynchronizable
     private Dictionary<Identifier, Agent> _memorableAgents =
         new Dictionary<Identifier, Agent>();
 
-    private HashSet<Faction> _factionsToSplit = new HashSet<Faction>();
     private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
+    private HashSet<Faction> _factionsWithStatusChanges = new HashSet<Faction>();
+    private HashSet<Faction> _factionsToCleanup = new HashSet<Faction>();
     private HashSet<Faction> _factionsToRemove = new HashSet<Faction>();
 
     private HashSet<Polity> _politiesToUpdate = new HashSet<Polity>();
@@ -1047,16 +1052,9 @@ public class World : ISynchronizable
         _groupsToCleanupAfterUpdate.Clear();
     }
 
-    private void SplitFactions()
-    {
-        foreach (Faction faction in _factionsToSplit)
-        {
-            faction.Split();
-        }
-
-        _factionsToSplit.Clear();
-    }
-
+    /// <summary>
+    /// Updates all factions marked for update
+    /// </summary>
     private void UpdateFactions()
     {
         FactionsHaveBeenUpdated = true;
@@ -1067,6 +1065,31 @@ public class World : ISynchronizable
         }
 
         _factionsToUpdate.Clear();
+    }
+
+    private void ApplyFactionStatusChanges()
+    {
+        foreach (Faction faction in _factionsWithStatusChanges)
+        {
+            faction.ApplyStatusChange();
+        }
+
+        _factionsWithStatusChanges.Clear();
+    }
+
+    /// <summary>
+    /// Cleans up all factions that were marked for cleanup
+    /// </summary>
+    private void CleanupFactions()
+    {
+        FactionsHaveBeenUpdated = false;
+
+        foreach (Faction faction in _factionsToCleanup)
+        {
+            faction.Cleanup();
+        }
+
+        _factionsToCleanup.Clear();
     }
 
     private void RemoveFactions()
@@ -1123,6 +1146,76 @@ public class World : ISynchronizable
         return Update();
     }
 
+    /// <summary>
+    /// Increases the count of evaluated events (for debug mode)
+    /// </summary>
+    /// <param name="worldEvent">the event that was evaluated</param>
+    public void IncreaseEvaluatedEventCount(WorldEvent worldEvent)
+    {
+        if (Manager.CurrentDevMode == DevMode.None)
+            return;
+
+        EventsEvaluated++;
+
+        if (Manager.CurrentDevMode == DevMode.Basic)
+            return;
+
+        string idString = worldEvent.GetType().ToString();
+
+        if (worldEvent is FactionModEvent)
+        {
+            idString = (worldEvent as FactionModEvent).GeneratorId;
+        }
+        else if (worldEvent is CellGroupModEvent)
+        {
+            idString = (worldEvent as CellGroupModEvent).GeneratorId;
+        }
+
+        if (!EventEvalStatsPerType.ContainsKey(idString))
+        {
+            EventEvalStatsPerType[idString] = new EventEvalStats();
+        }
+
+        EventEvalStatsPerType[idString].EvaluationCount++;
+    }
+
+    /// <summary>
+    /// Increases the count of triggered events (for debug mode)
+    /// </summary>
+    /// <param name="worldEvent">the event that was triggered</param>
+    public void IncreaseTriggeredEventCount(WorldEvent worldEvent)
+    {
+        if (Manager.CurrentDevMode == DevMode.None)
+            return;
+
+        EventsTriggered++;
+
+        if (Manager.CurrentDevMode == DevMode.Basic)
+            return;
+
+        string idString = worldEvent.GetType().ToString();
+
+        if (worldEvent is FactionModEvent)
+        {
+            idString = (worldEvent as FactionModEvent).GeneratorId;
+        }
+        else if (worldEvent is CellGroupModEvent)
+        {
+            idString = (worldEvent as CellGroupModEvent).GeneratorId;
+        }
+
+        if (!EventEvalStatsPerType.ContainsKey(idString))
+        {
+            throw new System.Exception("triggering event that wasn't evaluated: " + idString);
+        }
+
+        EventEvalStatsPerType[idString].TriggerCount++;
+    }
+
+    /// <summary>
+    /// Tries to evaluate any event that should happen at the current world date
+    /// </summary>
+    /// <returns></returns>
     public bool EvaluateEventsToHappen()
     {
         if (CellGroupCount <= 0)
@@ -1140,7 +1233,11 @@ public class World : ISynchronizable
         {
             //if (_eventsToHappen.Count <= 0) break;
 
+            Profiler.BeginSample("Find Leftmost");
+
             _eventsToHappen.FindLeftmost(ValidateEventsToHappenNode, InvalidEventsToHappenNodeEffect);
+
+            Profiler.EndSample();
 
             // FindLeftMost() might have removed events so we need to check if there are events to happen left
             if (_eventsToHappen.Count <= 0) break;
@@ -1157,6 +1254,8 @@ public class World : ISynchronizable
                 throw new System.Exception("World.EvaluateEventsToHappen - eventToHappen.TriggerDate (" + eventToHappen.TriggerDate +
                     ") greater than MaxSupportedDate (" + MaxSupportedDate + "), eventToHappen: " + eventToHappen);
             }
+
+            //Profiler.BeginSample("eventToHappen.TriggerDate > CurrentDate");
 
             if (eventToHappen.TriggerDate > CurrentDate)
             {
@@ -1191,29 +1290,26 @@ public class World : ISynchronizable
                 break;
             }
 
+            //Profiler.EndSample();
+
+            Profiler.BeginSample("Remove Leftmost Event");
+
             _eventsToHappen.RemoveLeftmost();
             EventsToHappenCount--;
 
-            //#if DEBUG
-            //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-            //            {
-            //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Being Triggered", "Triggering");
-
-            //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            //            }
-            //#endif
+            Profiler.EndSample();
 
 #if DEBUG
-            //string eventTypeName = eventToHappen.GetType().ToString();
+            string eventTypeName = eventToHappen.GetType().ToString();
 
             Profiler.BeginSample("Event CanTrigger");
-            //Profiler.BeginSample("Event CanTrigger - " + eventTypeName);
+            Profiler.BeginSample("Event CanTrigger - " + eventTypeName);
 #endif
 
             bool canTrigger = eventToHappen.CanTrigger();
 
 #if DEBUG
-            //Profiler.EndSample();
+            Profiler.EndSample();
             Profiler.EndSample();
 #endif
 
@@ -1223,9 +1319,15 @@ public class World : ISynchronizable
             }
             else
             {
+                Profiler.BeginSample("Event failed to trigger");
+
                 eventToHappen.FailedToTrigger = true;
                 eventToHappen.Destroy();
+
+                Profiler.EndSample();
             }
+
+            IncreaseEvaluatedEventCount(eventToHappen);
         }
 
         foreach (WorldEvent eventToHappen in _eventsToHappenNow)
@@ -1248,16 +1350,18 @@ public class World : ISynchronizable
 
             eventToHappen.Trigger();
 
-            if (Manager.DebugModeEnabled)
-            {
-                EventsTriggered++;
-            }
+            IncreaseTriggeredEventCount(eventToHappen);
 
 #if DEBUG
             Profiler.EndSample();
             Profiler.EndSample();
 #endif
+
+            Profiler.BeginSample("Destroy Event");
+
             eventToHappen.Destroy();
+
+            Profiler.EndSample();
         }
 
         _eventsToHappenNow.Clear();
@@ -1272,89 +1376,89 @@ public class World : ISynchronizable
         if (CellGroupCount <= 0)
             return 0;
 
-        Profiler.BeginSample("UpdateGroups");
+        //Profiler.BeginSample("UpdateGroups");
 
         UpdateGroups();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("MigrateBands");
+        //Profiler.BeginSample("MigrateBands");
 
         MigratePopulations();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("PostUpdateGroups_BeforePolityUpdates");
+        //Profiler.BeginSample("PostUpdateGroups_BeforePolityUpdates");
 
         PostUpdateGroups_BeforePolityUpdates();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("ExecuteDeferredEffectsOnGroups");
+        //Profiler.BeginSample("ExecuteDeferredEffectsOnGroups");
 
         ExecuteDeferredEffectsOnGroups();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("RemoveGroups");
+        //Profiler.BeginSample("RemoveGroups");
 
         RemoveGroups();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("UpdatePolityClusters");
+        //Profiler.BeginSample("UpdatePolityClusters");
 
         UpdatePolityClusters();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("SetNextGroupUpdates");
+        //Profiler.BeginSample("SetNextGroupUpdates");
 
         SetNextGroupUpdates();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("SplitFactions");
-
-        SplitFactions();
-
-        Profiler.EndSample();
-
-        Profiler.BeginSample("RemoveFactions");
+        //Profiler.BeginSample("RemoveFactions");
 
         RemoveFactions();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("UpdateFactions");
+        //Profiler.BeginSample("UpdateFactions");
 
         UpdateFactions();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("UpdatePolities");
+        //Profiler.BeginSample("UpdatePolities");
 
         UpdatePolities();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("RemovePolities");
+        //Profiler.BeginSample("RemovePolities");
 
         RemovePolities();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("PostUpdateGroups_AfterPolityUpdates");
+        //Profiler.BeginSample("PostUpdateGroups_AfterPolityUpdates");
 
         PostUpdateGroups_AfterPolityUpdates();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("AfterUpdateGroupCleanup");
+        //Profiler.BeginSample("AfterUpdateGroupCleanup");
 
         AfterUpdateGroupCleanup();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
+
+        //Profiler.BeginSample("ApplyFactionStatusChanges");
+
+        ApplyFactionStatusChanges();
+
+        //Profiler.EndSample();
 
         //
         // Skip to Next Event's Date
@@ -1410,9 +1514,10 @@ public class World : ISynchronizable
 
         // reset update flags
         GroupsHaveBeenUpdated = false;
-        FactionsHaveBeenUpdated = false;
         PolitiesHaveBeenUpdated = false;
         PolityClustersHaveBeenUpdated = false;
+
+        CleanupFactions();
 
         return dateSpan;
     }
@@ -1424,7 +1529,7 @@ public class World : ISynchronizable
 
     public void InsertEventToHappen(WorldEvent eventToHappen)
     {
-        //		Profiler.BeginSample ("Insert Event To Happen");
+        Profiler.BeginSample("Insert Event To Happen");
 
         EventsToHappenCount++;
 
@@ -1438,7 +1543,7 @@ public class World : ISynchronizable
         //		}
         //		#endif
 
-        //		Profiler.EndSample ();
+        Profiler.EndSample();
     }
 
 #if DEBUG
@@ -1661,17 +1766,6 @@ public class World : ISynchronizable
         return _factionInfos.ContainsKey(id);
     }
 
-    [System.Obsolete]
-    public void AddFactionToSplit(Faction faction)
-    {
-        if (!faction.StillPresent)
-        {
-            Debug.LogWarning("Faction to split no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
-        }
-
-        _factionsToSplit.Add(faction);
-    }
-
     public void AddFactionToUpdate(Faction faction)
     {
 #if DEBUG
@@ -1721,10 +1815,41 @@ public class World : ISynchronizable
 
         if (!faction.StillPresent)
         {
-            Debug.LogWarning("Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+            Debug.LogWarning(
+                "Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
         }
 
         _factionsToUpdate.Add(faction);
+    }
+
+    /// <summary>
+    /// Adds a new faction to cleanup during the cleanup phase
+    /// </summary>
+    /// <param name="faction">faction to cleanup</param>
+    public void AddFactionToCleanup(Faction faction)
+    {
+        if (!faction.StillPresent)
+        {
+            Debug.LogWarning(
+                "Faction to cleanup no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+        }
+
+        _factionsToCleanup.Add(faction);
+    }
+
+    /// <summary>
+    /// Adds a faction that had a status change
+    /// </summary>
+    /// <param name="faction">faction that had a status change</param>
+    public void AddFactionWithStatusChange(Faction faction)
+    {
+        if (!faction.StillPresent)
+        {
+            Debug.LogWarning(
+                "Faction with status change no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+        }
+
+        _factionsWithStatusChanges.Add(faction);
     }
 
     public void AddFactionToRemove(Faction faction)
@@ -3528,12 +3653,12 @@ public class World : ISynchronizable
 
         Dictionary<TerrainCell, float> nAltitudes = new Dictionary<TerrainCell, float>();
 
-#if DEBUG
-        if ((cell.Longitude == 250) && (cell.Latitude == 125))
-        {
-            Debug.Log("Debugging drainage on cell " + cell.Position);
-        }
-#endif
+//#if DEBUG
+//        if ((cell.Longitude == 250) && (cell.Latitude == 125))
+//        {
+//            Debug.Log("Debugging drainage on cell " + cell.Position);
+//        }
+//#endif
 
         float totalAltDifference = 0;
         foreach (TerrainCell nCell in cell.NeighborList)
@@ -4127,12 +4252,12 @@ public class World : ISynchronizable
 
     private void GenerateTerrainBiomes(TerrainCell cell)
     {
-#if DEBUG
-        if ((cell.Longitude == 229) && (cell.Latitude == 133))
-        {
-            Debug.Log("Debugging cell " + cell.Position);
-        }
-#endif
+//#if DEBUG
+//        if ((cell.Longitude == 229) && (cell.Latitude == 133))
+//        {
+//            Debug.Log("Debugging cell " + cell.Position);
+//        }
+//#endif
 
         float totalBiomePresence = 0;
 

@@ -79,33 +79,7 @@ public class Tribe : Polity
 
     public override void InitializeInternal()
     {
-        long triggerDate = FosterTribeRelationDecisionEvent.CalculateTriggerDate(this);
-        if (triggerDate > 0)
-        {
-            if (triggerDate <= World.CurrentDate)
-            {
-                throw new System.Exception(
-                    "FosterTribeRelationDecisionEvent Trigger Date (" + triggerDate +
-                    ") less or equal to current date: " + World.CurrentDate);
-            }
-
-            AddEvent(new FosterTribeRelationDecisionEvent(this, triggerDate));
-        }
-
-        triggerDate = MergeTribesDecisionEvent.CalculateTriggerDate(this);
-        if (triggerDate > 0)
-        {
-            if (triggerDate <= World.CurrentDate)
-            {
-                throw new System.Exception(
-                    "MergeTribesDecisionEvent Trigger Date (" + triggerDate +
-                    ") less or equal to current date: " + World.CurrentDate);
-            }
-
-            AddEvent(new MergeTribesDecisionEvent(this, triggerDate));
-        }
-
-        triggerDate = OpenTribeDecisionEvent.CalculateTriggerDate(this);
+        long triggerDate = OpenTribeDecisionEvent.CalculateTriggerDate(this);
         if (triggerDate > 0)
         {
             if (triggerDate <= World.CurrentDate)
@@ -130,12 +104,6 @@ public class Tribe : Polity
         {
             switch (eData.TypeId)
             {
-                case WorldEvent.FosterTribeRelationDecisionEventId:
-                    AddEvent(new FosterTribeRelationDecisionEvent(this, eData));
-                    break;
-                case WorldEvent.MergeTribesDecisionEventId:
-                    AddEvent(new MergeTribesDecisionEvent(this, eData));
-                    break;
                 case WorldEvent.OpenTribeDecisionEventId:
                     AddEvent(new OpenTribeDecisionEvent(this, eData));
                     break;
@@ -274,8 +242,6 @@ public class Tribe : Polity
         }
 
         SetDominantFaction(dominantClan);
-
-        //		Debug.Log ("SwitchCellProminences: source polity cells: " + maxGroupCount + ", reviewed cells: " + reviewedCells + ", switched cells: " + switchedCells);
     }
 
     private float CalculateShortestCoreDistance(CellGroup group, Dictionary<CellGroup, float> groupDistances)

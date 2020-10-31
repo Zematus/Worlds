@@ -58,7 +58,7 @@
               "id": "increase_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
+                { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
               ],
@@ -77,13 +77,13 @@
         { "id": "demanding_faction", "type": "faction" }
       ],
       "properties": [
-        { "id": "relationship_value", "value": "target.relationship(demanding_faction)" },
+        { "id": "relationship_value", "value": "target.get_relationship(demanding_faction)" },
         { "id": "influence_delta", "value": "max(0, target.influence - demanding_faction.influence)" },
         { "id": "target_authority", "value": "target.preferences.authority" },
         { "id": "admin_factors", "value": "relationship_value * influence_delta * target_authority" },
         { "id": "min_admin_load", "value": "0 * admin_factors" },
         { "id": "max_admin_load", "value": "3000000 * admin_factors" },
-        { "id": "chance_of_rejecting_demand", "value": "1 - normalize(target.administrative_load, min_admin_load, max_admin_load)" }
+        { "id": "chance_of_rejecting_demand", "value": "(1 - normalize(target.administrative_load, min_admin_load, max_admin_load) * target_authority * 2)" }
       ],
       "description": [
         {
@@ -123,12 +123,17 @@
               "id": "decrease_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(demanding_faction)" },
+                { "id": "relationship_value", "value": "target.get_relationship(demanding_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 0, (0.2 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 0, (0.1 * charisma_factor))" }
               ],
               "text": "Clan <<target>>: relationship with <<demanding_faction>> decreases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
               "result": "target.set_relationship(demanding_faction, random(relationship_min, relationship_max))"
+            },
+            {
+              "id": "notify",
+              "text": "The current leader of clan <<demanding_faction>> will be notified of our decision...",
+              "result": "demanding_faction.trigger_decision(faction_accede_demand)"
             }
           ]
         },
@@ -163,12 +168,17 @@
               "id": "increase_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(demanding_faction)" },
+                { "id": "relationship_value", "value": "target.get_relationship(demanding_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
               ],
               "text": "Clan <<target>>: relationship with <<demanding_faction>> increases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
               "result": "target.set_relationship(demanding_faction, random(relationship_min, relationship_max))"
+            },
+            {
+              "id": "notify",
+              "text": "The current leader of clan <<demanding_faction>> will be notified of our decision...",
+              "result": "demanding_faction.trigger_decision(faction_refuse_demand)"
             }
           ]
         },
@@ -202,7 +212,7 @@
               "id": "increase_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(demanding_faction)" },
+                { "id": "relationship_value", "value": "target.get_relationship(demanding_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
               ],
@@ -210,6 +220,45 @@
               "result": "target.set_relationship(demanding_faction, random(relationship_min, relationship_max))"
             }
           ]
+        },
+        {
+          "id": "notify",
+          "text": "The current leader of clan <<demanding_faction>> will be notified of our decision...",
+          "result": "demanding_faction.trigger_decision(faction_refuse_demand)"
+        }
+      ]
+    },
+    {
+      "id": "faction_accede_demand",
+      "name": "faction accede to demand",
+      "target": "faction",
+      "description": [
+        {
+          "id": "description",
+          "text": "The leader of clan <<target.polity.dominant_faction>>, <<target.polity.dominant_faction.leader>>, has acceded to our demand for more influence on the <<target.polity>> tribe."
+        }
+      ],
+      "options": [
+        {
+          "id": "acknowledge",
+          "text": "Perfect..."
+        }
+      ]
+    },
+    {
+      "id": "faction_refuse_demand",
+      "name": "faction refuse demand",
+      "target": "faction",
+      "description": [
+        {
+          "id": "description",
+          "text": "The leader of clan <<target.polity.dominant_faction>>, <<target.polity.dominant_faction.leader>>, has refused our demand for more influence on the <<target.polity>> tribe."
+        }
+      ],
+      "options": [
+        {
+          "id": "acknowledge",
+          "text": "Another time, then..."
         }
       ]
     }

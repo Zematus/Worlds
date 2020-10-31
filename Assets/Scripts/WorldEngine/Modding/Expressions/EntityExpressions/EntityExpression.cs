@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System;
 
-public class EntityExpression : IValueExpression<Entity>
+public class EntityExpression : IValueExpression<IEntity>
 {
-    public EntityExpression(Entity entity)
+    public EntityExpression(IEntity entity)
     {
         Value = entity;
     }
@@ -21,7 +21,7 @@ public class EntityExpression : IValueExpression<Entity>
         return Value.GetFormattedString();
     }
 
-    public Entity Value { get; }
+    public IEntity Value { get; }
 
     public object ValueObject => Value;
 

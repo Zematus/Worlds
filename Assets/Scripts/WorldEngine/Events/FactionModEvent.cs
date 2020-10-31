@@ -1,5 +1,6 @@
 ﻿using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine.Profiling;
 
 public class FactionModEvent : FactionEvent
 {
@@ -32,17 +33,29 @@ public class FactionModEvent : FactionEvent
 
     public override bool CanTrigger()
     {
+        Profiler.BeginSample("FactionModEvent - CanTrigger");
+
         if (!base.CanTrigger())
         {
+            Profiler.EndSample(); // "FactionModEvent CanTrigger"
+
             return false;
         }
+
+        Profiler.BeginSample("FactionModEvent - CanTrigger - SetTarget");
 
         Generator.SetTarget(Faction);
 
+        Profiler.EndSample(); // "FactionModEvent CanTrigger - SetTarget"
+
         if (!Generator.CanTriggerEvent())
         {
+            Profiler.EndSample(); // "FactionModEvent CanTrigger"
+
             return false;
         }
+
+        Profiler.EndSample(); // "FactionModEvent CanTrigger"
 
         return true;
     }

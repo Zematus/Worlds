@@ -65,9 +65,9 @@ public static class PropertyEntityBuilder
             return new ValuePropertyEntity<string>(context, p.id, exp);
         }
 
-        if (exp is IValueExpression<Entity>)
+        if (exp is IValueExpression<IEntity>)
         {
-            return new ValuePropertyEntity<Entity>(context, p.id, exp);
+            return new ValuePropertyEntity<IEntity>(context, p.id, exp);
         }
 
         throw new ArgumentException("Unhandled expression type: " + exp.GetType());

@@ -13,8 +13,8 @@ public class SaturationFunctionExpression : FunctionExpression, IValueExpression
     public SaturationFunctionExpression(Context c, IExpression[] arguments) :
         base(c, FunctionId, 2, arguments)
     {
-        _maxSatArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[0]);
-        _valueArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
+        _valueArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[0]);
+        _maxSatArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
     }
 
     public float Value
@@ -29,8 +29,8 @@ public class SaturationFunctionExpression : FunctionExpression, IValueExpression
                     _context.Id + " - " +
                     FunctionId + ": input value can't be lower than zero" +
                     "\n - expression: " + ToString() +
-                    "\n - max saturation: " + _maxSatArg.ToPartiallyEvaluatedString() +
-                    "\n - input value: " + _valueArg.ToPartiallyEvaluatedString());
+                    "\n - input value: " + _valueArg.ToPartiallyEvaluatedString() +
+                    "\n - max saturation: " + _maxSatArg.ToPartiallyEvaluatedString());
             }
 
             return value / (value + _maxSatArg.Value);

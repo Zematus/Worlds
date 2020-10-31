@@ -15,12 +15,11 @@ public delegate float PolityContactValueCalculationDelegate(PolityContact contac
 public abstract class Polity : ISynchronizable
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 2500;
-
     public const float CoreDistanceEffectConstant = 10000;
-
     public const float MinPolityProminenceValue = 0.01f;
-
     public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
+
+    public static List<IWorldEventGenerator> OnPolityContactChangeEventGenerators;
 
     [XmlAttribute("AC")]
     public float TotalAdministrativeCost_Internal = 0; // This is public to be XML-serializable (I know there are more proper solutions. I'm just being lazy)
@@ -114,15 +113,19 @@ public abstract class Polity : ISynchronizable
         {
             if (NeedsNewCensus)
             {
-                Profiler.BeginSample("Run Census");
-
                 RunCensus();
-
-                Profiler.EndSample();
             }
 
             return TotalAdministrativeCost_Internal;
         }
+    }
+
+    /// <summary>
+    /// Resets the event generators associated with polities
+    /// </summary>
+    public static void ResetEventGenerators()
+    {
+        OnPolityContactChangeEventGenerators = new List<IWorldEventGenerator>();
     }
 
     /// <summary>
@@ -144,12 +147,12 @@ public abstract class Polity : ISynchronizable
             return 1;
         }
 
-#if DEBUG
-        if (group.Cell.IsSelected)
-        {
-            Debug.LogWarning("Debugging cell " + group.Cell.Position);
-        }
-#endif
+//#if DEBUG
+//        if (group.Cell.IsSelected)
+//        {
+//            Debug.LogWarning("Debugging cell " + group.Cell.Position);
+//        }
+//#endif
 
         // if the population is not near its optimum then don't add pressure
         if (populationFactor < 0.9f)
@@ -230,11 +233,7 @@ public abstract class Polity : ISynchronizable
         {
             if (NeedsNewCensus)
             {
-                Profiler.BeginSample("Run Census");
-
                 RunCensus();
-
-                Profiler.EndSample();
             }
 
             return TotalPopulation_Internal;
@@ -247,11 +246,7 @@ public abstract class Polity : ISynchronizable
         {
             if (NeedsNewCensus)
             {
-                Profiler.BeginSample("Run Census");
-
                 RunCensus();
-
-                Profiler.EndSample();
             }
 
             return ProminenceArea_Internal;
@@ -376,7 +371,7 @@ public abstract class Polity : ISynchronizable
 
         foreach (PolityContact contact in contacts)
         {
-            Polity.RemoveContact(this, contact.Polity);
+            Polity.RemoveContact(this, contact.NeighborPolity);
         }
 
         List<Faction> factions = new List<Faction>(_factions.Values);
@@ -398,68 +393,50 @@ public abstract class Polity : ISynchronizable
         StillPresent = false;
     }
 
-    public override int GetHashCode()
+    public static bool ValidateType(string polityType)
     {
-        return Info.GetHashCode();
-    }
-
-    // WARNING: This method does not set a group to be updated. 
-    public static bool TryGenerateNewPolity(PolityType type, CellGroup coreGroup)
-    {
-        World world = coreGroup.World;
-
-        if (coreGroup.GetPolityProminences().Count <= 0)
+        switch (polityType)
         {
-            Polity polity = null;
-
-            switch (type)
-            {
-                case PolityType.Tribe:
-                    polity = new Tribe(coreGroup);
-                    break;
-                default:
-                    throw new System.Exception("TryGeneratePolity: Unhandled polity type: " + type);
-            }
-
-            polity.Initialize();
-
-            world.AddPolityInfo(polity);
-            world.AddPolityToUpdate(polity);
-
-            TryGenerateNewPolityMessages(polity);
-
-            return true;
+            case Tribe.PolityTypeStr:
+                return true;
         }
 
         return false;
     }
 
-    public static void TryGenerateNewPolityMessages(Polity polity)
+    public void Split(string polityType, Faction splittingFaction)
     {
-        World world = polity.World;
-        CellGroup coreGroup = polity.CoreGroup;
+        Polity newPolity = null;
 
-        PolityFormationEventMessage formationEventMessage = null;
-
-        if (!world.HasEventMessage(WorldEvent.PolityFormationEventId))
+        switch (polityType)
         {
-            formationEventMessage = new PolityFormationEventMessage(polity, world.CurrentDate);
+            case Tribe.PolityTypeStr:
+                Tribe newTribe = new Tribe(splittingFaction as Clan, this as Tribe);
 
-            world.AddEventMessage(formationEventMessage);
-            formationEventMessage.First = true;
+                AddEventMessage(new TribeSplitEventMessage(
+                    splittingFaction as Clan,
+                    this as Tribe, newTribe, World.CurrentDate));
+                break;
+
+            default:
+                throw new System.ArgumentException("Unhandled polity type: " + polityType);
         }
 
-        if (coreGroup.Cell.EncompassingTerritory != null)
-        {
-            Polity encompassingPolity = coreGroup.Cell.EncompassingTerritory.Polity;
+        newPolity.Initialize();
+        World.AddPolityInfo(newPolity);
 
-            if (formationEventMessage == null)
-            {
-                formationEventMessage = new PolityFormationEventMessage(polity, world.CurrentDate);
-            }
+        splittingFaction.SetToUpdate();
+        DominantFaction.SetToUpdate();
+    }
 
-            encompassingPolity.AddEventMessage(formationEventMessage);
-        }
+    public override int GetHashCode()
+    {
+        return Info.GetHashCode();
+    }
+
+    public virtual string GetName()
+    {
+        return Info.Name.Text;
     }
 
     public string GetNameAndTypeString()
@@ -585,6 +562,10 @@ public abstract class Polity : ISynchronizable
         SetDominantFaction(mostInfluentFaction);
     }
 
+    /// <summary>
+    /// Sets the most dominant faction within a polity
+    /// </summary>
+    /// <param name="faction">faction to set as dominant</param>
     public void SetDominantFaction(Faction faction)
     {
         if (DominantFaction == faction)
@@ -593,8 +574,6 @@ public abstract class Polity : ISynchronizable
         if (DominantFaction != null)
         {
             DominantFaction.SetDominant(false);
-
-            World.AddFactionToUpdate(DominantFaction);
         }
 
         if ((faction == null) || (!faction.StillPresent))
@@ -615,16 +594,17 @@ public abstract class Polity : ISynchronizable
 
             foreach (PolityContact contact in _contacts.Values)
             {
-                if (!faction.HasRelationship(contact.Polity.DominantFaction))
+                if (!faction.HasRelationship(contact.NeighborPolity.DominantFaction))
                 {
-                    Faction.SetRelationship(faction, contact.Polity.DominantFaction, 0.5f);
+                    Faction.SetRelationship(faction, contact.NeighborPolity.DominantFaction, 0.5f);
                 }
             }
-
-            World.AddFactionToUpdate(faction);
         }
 
-        World.AddPolityToUpdate(this);
+        if (!World.PolitiesHaveBeenUpdated)
+        {
+            World.AddPolityToUpdate(this);
+        }
     }
 
     public static void AddContact(Polity polityA, Polity polityB, int initialGroupCount)
@@ -642,7 +622,7 @@ public abstract class Polity : ISynchronizable
     {
         if (!_contacts.ContainsKey(polity.Id))
         {
-            PolityContact contact = new PolityContact(polity, initialGroupCount);
+            PolityContact contact = new PolityContact(this, polity, initialGroupCount);
 
             _contacts.Add(polity.Id, contact);
 
@@ -658,6 +638,8 @@ public abstract class Polity : ISynchronizable
             throw new System.Exception("Unable to modify existing polity contact. polityA: " +
                 Id + ", polityB: " + polity.Id);
         }
+
+        ApplyPolityContactChange();
     }
 
     public static void RemoveContact(Polity polityA, Polity polityB)
@@ -676,11 +658,23 @@ public abstract class Polity : ISynchronizable
         _contacts.Remove(polity.Id);
 
         SetContactUpdatedCells(polity);
+
+        ApplyPolityContactChange();
     }
 
     public ICollection<PolityContact> GetContacts()
     {
         return _contacts.Values;
+    }
+
+    public PolityContact GetContact(Polity polity)
+    {
+        if (_contacts.TryGetValue(polity.Id, out PolityContact contact))
+        {
+            return contact;
+        }
+
+        return null;
     }
 
     public int GetContactGroupCount(Polity polity)
@@ -701,7 +695,7 @@ public abstract class Polity : ISynchronizable
     {
         if (!_contacts.ContainsKey(polity.Id))
         {
-            PolityContact contact = new PolityContact(polity);
+            PolityContact contact = new PolityContact(this, polity);
 
             _contacts.Add(polity.Id, contact);
 
@@ -858,29 +852,13 @@ public abstract class Polity : ISynchronizable
 
         IsBeingUpdated = true;
 
-        Profiler.BeginSample("Normalize Faction Influences");
-
         NormalizeFactionInfluences();
-
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Update Dominant Faction");
 
         UpdateDominantFaction();
 
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Update Culture");
-
         Culture.Update();
 
-        Profiler.EndSample();
-
-        Profiler.BeginSample("Update Internal");
-
         UpdateInternal();
-
-        Profiler.EndSample();
 
         Manager.AddUpdatedCells(Territory.GetCells(), CellUpdateType.Territory, CellUpdateSubType.Culture, Territory.IsSelected);
 
@@ -894,8 +872,6 @@ public abstract class Polity : ISynchronizable
         TotalAdministrativeCost_Internal = 0;
         TotalPopulation_Internal = 0;
         ProminenceArea_Internal = 0;
-
-        Profiler.BeginSample("foreach cluster");
 
 #if DEBUG
         int totalClusterGroupCount = 0;
@@ -911,41 +887,23 @@ public abstract class Polity : ISynchronizable
 
             if (cluster.NeedsNewCensus)
             {
-                Profiler.BeginSample("cluster - RunCensus");
-
 #if DEBUG
                 totalUpdatedClusterGroupCount += cluster.Size;
                 updatedClusters++;
 #endif
 
                 cluster.RunCensus();
-
-                Profiler.EndSample();
             }
-
-            Profiler.BeginSample("add administrative cost");
 
             if (cluster.TotalAdministrativeCost < float.MaxValue)
                 TotalAdministrativeCost_Internal += cluster.TotalAdministrativeCost;
             else
                 TotalAdministrativeCost_Internal = float.MaxValue;
 
-            Profiler.EndSample();
-
-            Profiler.BeginSample("add pop");
-
             TotalPopulation_Internal += cluster.TotalPopulation;
 
-            Profiler.EndSample();
-
-            Profiler.BeginSample("add area");
-
             ProminenceArea_Internal += cluster.ProminenceArea;
-
-            Profiler.EndSample();
         }
-
-        Profiler.EndSample();
 
 #if DEBUG
         if (Groups.Count != totalClusterGroupCount)
@@ -1296,9 +1254,9 @@ public abstract class Polity : ISynchronizable
 
         foreach (PolityContact contact in _contacts.Values)
         {
-            contact.Polity = World.GetPolity(contact.Id);
+            contact.NeighborPolity = World.GetPolity(contact.Id);
 
-            if (contact.Polity == null)
+            if (contact.NeighborPolity == null)
             {
                 throw new System.Exception("Polity is null, Id: " + contact.Id);
             }
@@ -1487,11 +1445,7 @@ public abstract class Polity : ISynchronizable
 
             if (skipGroup) continue;
 
-            Profiler.BeginSample("GetRandomGroup - calculateGroupValue - " + calculateGroupValue.Method.Module.Name + ":" + calculateGroupValue.Method.Name);
-
             float weight = calculateGroupValue(group);
-
-            Profiler.EndSample();
 
             if (weight < 0)
                 throw new System.Exception("calculateGroupValue method returned weight value less than zero: " + weight);
@@ -1549,7 +1503,34 @@ public abstract class Polity : ISynchronizable
         return CollectionUtility.WeightedSelection(weightedFactions, totalWeight, GetNextLocalRandomFloat(rngOffset));
     }
 
-    public PolityContact GetRandomPolityContact(int rngOffset, PolityContactValueCalculationDelegate calculateContactValue, bool nullIfNoValidContact = false)
+    /// <summary>
+    /// Returns a default weight value for all existing contacts
+    /// </summary>
+    /// <param name="contact">the contact to get the default weight for</param>
+    /// <returns>the default weight value (1)</returns>
+    private float GetDefaultContactWeight(PolityContact contact)
+    {
+        return 1;
+    }
+
+    /// <summary>
+    /// Returns a random contact associated with this polity, using default weighting
+    /// </summary>
+    /// <param name="rngOffset">the offset to use for the local RNG</param>
+    /// <returns>A contact, or null if there are no valid contacts to choose from</returns>
+    public PolityContact GetRandomPolityContact(int rngOffset)
+    {
+        return GetRandomPolityContact(rngOffset, GetDefaultContactWeight);
+    }
+
+    /// <summary>
+    /// Returns a random contact associated with this polity
+    /// </summary>
+    /// <param name="rngOffset">the offset to use for the local RNG</param>
+    /// <param name="calculateContactValue">delegate to calculate the weight of a contact</param>
+    /// <returns>A contact, or null if there are no valid contacts to choose from</returns>
+    public PolityContact GetRandomPolityContact(
+        int rngOffset, PolityContactValueCalculationDelegate calculateContactValue)
     {
         WeightedPolityContact[] weightedContacts = new WeightedPolityContact[_contacts.Count];
 
@@ -1561,7 +1542,8 @@ public abstract class Polity : ISynchronizable
             float weight = calculateContactValue(contact);
 
             if (weight < 0)
-                throw new System.Exception("calculateContactValue method returned weight value less than zero: " + weight);
+                throw new System.Exception(
+                    "calculateContactValue method returned weight value less than zero: " + weight);
 
             totalWeight += weight;
 
@@ -1571,36 +1553,12 @@ public abstract class Polity : ISynchronizable
 
         float selectionValue = GetNextLocalRandomFloat(rngOffset);
 
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Id == Manager.TracingData.PolityId)
-        //            {
-        //                string contactWeights = "";
-
-        //                foreach (WeightedPolityContact wc in weightedContacts)
-        //                {
-        //                    contactWeights += "\n\tPolity.Id: " + wc.Value.Id + ", weight: " + wc.Weight;
-        //                }
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                "Polity:GetRandomPolityContact - Polity.Id:" + Id,
-        //                "selectionValue: " + selectionValue +
-        //                ", Contact Weights: " + contactWeights +
-        //                "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
-
         if (totalWeight < 0)
         {
-
             throw new System.Exception("Total weight can't be less than zero: " + totalWeight);
         }
 
-        if ((totalWeight == 0) && nullIfNoValidContact)
+        if (totalWeight == 0)
         {
             return null;
         }
@@ -1620,6 +1578,7 @@ public abstract class Polity : ISynchronizable
         return 0;
     }
 
+    [System.Obsolete]
     public float CalculateContactStrength(Polity polity)
     {
         if (!_contacts.ContainsKey(polity.Id))
@@ -1630,9 +1589,10 @@ public abstract class Polity : ISynchronizable
         return CalculateContactStrength(_contacts[polity.Id]);
     }
 
+    [System.Obsolete]
     public float CalculateContactStrength(PolityContact contact)
     {
-        int contacGroupCount = contact.Polity.Groups.Count;
+        int contacGroupCount = contact.NeighborPolity.Groups.Count;
 
         float minGroupCount = Mathf.Min(contacGroupCount, Groups.Count);
 
@@ -1641,10 +1601,29 @@ public abstract class Polity : ISynchronizable
         return countFactor;
     }
 
+    /// <summary>
+    /// Applies the effects of adding or removing a contact from this polity
+    /// </summary>
+    public void ApplyPolityContactChange()
+    {
+        foreach (IWorldEventGenerator generator in OnPolityContactChangeEventGenerators)
+        {
+            if (generator is IFactionEventGenerator fGenerator)
+            {
+                foreach (Faction faction in _factions.Values)
+                {
+                    fGenerator.TryGenerateEventAndAssign(faction);
+                }
+            }
+        }
+    }
+
     public void MergePolity(Polity polity)
     {
         World.AddPolityToRemove(polity);
         World.AddPolityToUpdate(this);
+
+        World.AddFactionToUpdate(DominantFaction);
 
         float polPopulation = Mathf.Floor(polity.TotalPopulation);
 

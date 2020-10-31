@@ -28,6 +28,108 @@ public class ModTest
     TestPolity _testPolity1;
     TestPolity _testPolity2;
 
+    private void LoadBiomes()
+    {
+        Debug.Log("loading biome mod file...");
+
+        Biome.ResetBiomes();
+        Biome.LoadBiomesFile(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
+    }
+
+    [Test]
+    public void LoadBiomeModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        LoadBiomes();
+
+        foreach (Biome biome in Biome.Biomes.Values)
+        {
+            Debug.Log("loaded biome: " + biome.Name);
+        }
+    }
+
+    private void LoadCulturalPreferences()
+    {
+        Debug.Log("loading cultural preferences mod file...");
+
+        PreferenceGenerator.ResetPreferenceGenerators();
+        PreferenceGenerator.LoadPreferencesFile(Path.Combine("Mods", "Base", "Preferences", "preferences.json"));
+    }
+
+    [Test]
+    public void LoadCulturalPreferenceModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        LoadCulturalPreferences();
+
+        foreach (PreferenceGenerator generator in PreferenceGenerator.Generators.Values)
+        {
+            Debug.Log("loaded preference generator: " + generator.Name);
+        }
+    }
+
+    [Test]
+    public void LoadLayersModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        Debug.Log("loading layer mod file...");
+
+        Layer.ResetLayers();
+        Layer.LoadLayersFile(Path.Combine("Mods", "WeirdBiomesMod", "Layers", "weirdLayers.json"));
+
+        foreach (Layer layer in Layer.Layers.Values)
+        {
+            Debug.Log("loaded layer: " + layer.Name);
+        }
+    }
+
+    private void LoadRegionAttributes()
+    {
+        Debug.Log("loading region attribute mod file...");
+
+        Adjective.ResetAdjectives();
+        RegionAttribute.ResetAttributes();
+        RegionAttribute.LoadRegionAttributesFile(Path.Combine("Mods", "Base", "RegionAttributes", "region_attributes.json"));
+    }
+
+    [Test]
+    public void LoadRegionAttributeModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        LoadRegionAttributes();
+
+        foreach (RegionAttribute regionAttribute in RegionAttribute.Attributes.Values)
+        {
+            Debug.Log("loaded region attribute: " + regionAttribute.Name);
+        }
+    }
+
+    private void LoadElements()
+    {
+        Debug.Log("loading element mod file...");
+
+        Adjective.ResetAdjectives();
+        Element.ResetElements();
+        Element.LoadElementsFile(Path.Combine("Mods", "Base", "Elements", "elements.json"));
+    }
+
+    [Test]
+    public void LoadElementModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        LoadElements();
+
+        foreach (Element element in Element.Elements.Values)
+        {
+            Debug.Log("loaded element: " + element.SingularName);
+        }
+    }
+
     [Test]
     public void ModTextParseTest()
     {
@@ -193,6 +295,7 @@ public class ModTest
         World.ResetStaticModData();
         CellGroup.ResetEventGenerators();
         Faction.ResetEventGenerators();
+        Polity.ResetEventGenerators();
     }
 
     private void InitializeTestWorld()
@@ -201,12 +304,14 @@ public class ModTest
 
         InitializeModData();
 
-        Biome.ResetBiomes();
-        Biome.LoadBiomesFile(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
+        LoadBiomes();
+        LoadRegionAttributes();
+        LoadElements();
+
+        LoadCulturalPreferences();
 
         Knowledge.ResetKnowledges();
         Knowledge.InitializeKnowledges();
-        CulturalPreference.InitializePreferences();
 
         _testWorld = new World(400, 200, 1);
         _testWorld.TerrainInitialization();
@@ -314,7 +419,7 @@ public class ModTest
 
         _testPolity1 = new TestPolity("tribe", _testGroup1);
         _testFaction0 = new TestFaction("clan", _testPolity1, _testGroup1, 0.5f, null, 200000f);
-        _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup2, 0.3f, null, 300000f);
+        _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup2, 0.3f, null, 150000f);
         _testFaction2 = new TestFaction("clan", _testPolity1, _testGroup3, 0.2f, null, 200000f);
 
         _testPolity1.SetDominantFaction(_testFaction0);
@@ -349,6 +454,19 @@ public class ModTest
         _testGroup5.Culture.Language = _testPolity2.Culture.Language;
         _testGroup6.Culture.Language = _testPolity2.Culture.Language;
 
+        _testGroup1.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup1, 600, 600));
+        _testGroup2.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup2, 600, 600));
+        _testGroup3.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup3, 600, 600));
+        _testGroup4.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup4, 600, 600));
+        _testGroup5.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup5, 600, 600));
+        _testGroup6.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup6, 600, 600));
+
         _testRegion1 = new TestCellRegion(_testCell1, _testGroup1.Culture.Language);
         _testCell1.Region = _testRegion1;
         _testCell2.Region = _testRegion1;
@@ -364,6 +482,12 @@ public class ModTest
         _testFaction2.TestLeader = new Agent(_testFaction2.CoreGroup, 0, 0);
         _testFaction3.TestLeader = new Agent(_testFaction3.CoreGroup, 0, 0);
         _testFaction4.TestLeader = new Agent(_testFaction4.CoreGroup, 0, 0);
+
+        _testFaction0.Culture.AddKnowledge(
+            new CulturalKnowledge(
+                SocialOrganizationKnowledge.KnowledgeId,
+                SocialOrganizationKnowledge.KnowledgeName,
+                600));
 
         _testFaction0.Culture.GetPreference("authority").Value = 0.4f;
         _testFaction0.Culture.GetPreference("cohesion").Value = 0.6f;
@@ -387,8 +511,19 @@ public class ModTest
         _testGroup5.UpdatePolityProminences_test();
         _testGroup6.UpdatePolityProminences_test();
 
+        _testGroup1.SetProminenceCoreDistances_test(_testPolity1, 1001, 1001);
+        _testGroup2.SetProminenceCoreDistances_test(_testPolity1, 1001, 1001);
+        _testGroup3.SetProminenceCoreDistances_test(_testPolity1, 1001, 1001);
+        _testGroup4.SetProminenceCoreDistances_test(_testPolity1, 1001, 1001);
+        _testGroup5.SetProminenceCoreDistances_test(_testPolity2, 1001, 1001);
+        _testGroup6.SetProminenceCoreDistances_test(_testPolity2, 1001, 1001);
+
         _testPolity1.ClusterUpdate();
         _testPolity2.ClusterUpdate();
+
+        Faction.SetRelationship(_testFaction0, _testFaction1, 0.6f);
+
+        Polity.AddContact(_testPolity1, _testPolity2, 1);
     }
 
     [Test]
@@ -414,7 +549,7 @@ public class ModTest
         testFactionEntity.Set(_testFaction0);
 
         string type = (expression as IValueExpression<string>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + type);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + type);
         Assert.AreEqual("clan", type);
 
         ////
@@ -425,7 +560,7 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         bool boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
         Assert.IsTrue(boolResult);
 
         ////
@@ -436,33 +571,33 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         float floatResult = (expression as IValueExpression<float>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + floatResult);
         Assert.AreEqual(200000f, floatResult);
 
         testFactionEntity.Set(_testFaction1);
 
         floatResult = (expression as IValueExpression<float>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
-        Assert.AreEqual(300000f, floatResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + floatResult);
+        Assert.AreEqual(150000f, floatResult);
 
         ////
 
         expression =
-            ExpressionBuilder.BuildExpression(testContext, "target.administrative_load > 250000");
+            ExpressionBuilder.BuildExpression(testContext, "target.administrative_load > 170000");
 
         testFactionEntity.Set(_testFaction0);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
-        Assert.IsFalse(boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
+        Assert.IsTrue(boolResult);
 
         testFactionEntity.Set(_testFaction1);
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
-        Assert.IsTrue(boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + boolResult);
+        Assert.IsFalse(boolResult);
 
         ////
 
@@ -474,13 +609,13 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
         Assert.IsTrue(boolResult);
 
         testFactionEntity.Set(_testFaction1);
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + boolResult);
         Assert.IsFalse(boolResult);
 
         ////
@@ -493,34 +628,34 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
         Assert.IsFalse(boolResult);
 
         testFactionEntity.Set(_testFaction1);
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + boolResult);
         Assert.IsTrue(boolResult);
 
         ////
 
         expression = ExpressionBuilder.BuildExpression(
             testContext,
-            "9125 + (91250 * (1 - saturation(400000, target.administrative_load)) * target.preferences.cohesion)");
+            "9125 + (91250 * (1 - saturation(target.administrative_load, 400000)) * target.preferences.cohesion)");
 
         testFactionEntity.Set(_testFaction0);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         floatResult = (expression as IValueExpression<float>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + floatResult);
         Assert.AreEqual(45625, floatResult);
 
         testFactionEntity.Set(_testFaction1);
 
         floatResult = (expression as IValueExpression<float>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
-        Assert.AreEqual(50839.2852f, floatResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + floatResult);
+        Assert.AreEqual(62215.9141f, floatResult);
 
         ////
 
@@ -533,21 +668,19 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
         Assert.IsTrue(boolResult);
 
         testFactionEntity.Set(_testFaction1);
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + boolResult);
         Assert.IsFalse(boolResult);
     }
 
     private void LoadBaseEventsMod()
     {
         Debug.Log("loading event mod file...");
-
-        CulturalPreference.InitializePreferences();
 
         EventGenerator.ResetGenerators();
         EventGenerator.LoadEventFile(Path.Combine("Mods", "Base", "Events", "events.json"));
@@ -557,6 +690,11 @@ public class ModTest
     public void LoadEventsModTest()
     {
         Manager.UpdateMainThreadReference();
+
+        Knowledge.ResetKnowledges();
+        Knowledge.InitializeKnowledges();
+
+        LoadCulturalPreferences();
 
         LoadBaseEventsMod();
 
@@ -568,22 +706,29 @@ public class ModTest
 
     private void LoadBaseDecisionsMod()
     {
-        Debug.Log("loading clans split decision mod file...");
-
-        CulturalPreference.InitializePreferences();
+        Debug.Log("loading decision mod files...");
 
         ModDecision.ResetDecisions();
 
-        ModDecision.LoadDecisionFile(
-            Path.Combine("Mods", "Base", "Decisions", "clan_split.json"));
-        ModDecision.LoadDecisionFile(
-            Path.Combine("Mods", "Base", "Decisions", "influence_demand.json"));
+        string path = Path.Combine("Mods", "Base", "Decisions");
+
+        string[] files = Directory.GetFiles(path, "*.json");
+
+        if (files.Length > 0)
+        {
+            foreach (string file in files)
+            {
+                ModDecision.LoadDecisionFile(file);
+            }
+        }
     }
 
     [Test]
     public void LoadDecisionsModTest()
     {
         Manager.UpdateMainThreadReference();
+
+        LoadCulturalPreferences();
 
         LoadBaseDecisionsMod();
 
@@ -593,7 +738,12 @@ public class ModTest
         }
     }
 
-    private void TriggerModEventTest(Faction testFaction, string eventId)
+    /// <summary>
+    /// Tests triggering a specific faction event
+    /// </summary>
+    /// <param name="testFaction">the test faction to use</param>
+    /// <param name="eventId">the event generator id</param>
+    private void TriggerFactionModEventTest(Faction testFaction, string eventId)
     {
         List<WorldEvent> eventsToHappen = _testWorld.GetEventsToHappen();
 
@@ -603,32 +753,29 @@ public class ModTest
 
         foreach (FactionModEvent e in eventsToHappen)
         {
-            if (e.GeneratorId == "clan_decide_split")
+            if ((e.GeneratorId == eventId) &&
+                (e.Generator.Target.Faction == testFaction))
             {
                 modEvent = e;
-
-                if (modEvent.Generator.Target.Faction == testFaction)
-                {
-                    break;
-                }
-
-                modEvent = null;
+                break;
             }
         }
 
-        Debug.Log("Assert.IsNotNull(splitEvent)");
+        Debug.Log("Assert.IsNotNull(modEvent)");
         Assert.IsNotNull(modEvent);
 
         Debug.Log("Assert.IsTrue(modEvent.CanTrigger())");
         Assert.IsTrue(modEvent.CanTrigger());
 
-        Debug.Log("splitEvent.Trigger()");
+        Debug.Log("modEvent.Trigger()");
         modEvent.Trigger();
     }
 
     [Test]
     public void TriggerSplitClanDecision()
     {
+        Manager.CurrentDevMode = DevMode.Advanced;
+
         InitializeTestFactions();
 
         LoadBaseEventsMod();
@@ -638,13 +785,30 @@ public class ModTest
 
         _testFaction2.InitializeDefaultEvents();
 
-        TriggerModEventTest(_testFaction2, "clan_decide_split");
+        TriggerFactionModEventTest(_testFaction2, "clan_decide_split");
     }
 
     [Test]
     public void TriggerDemandInfluenceDecision()
     {
-        Manager.DebugModeEnabled = true;
+        Manager.CurrentDevMode = DevMode.Advanced;
+
+        InitializeTestFactions();
+
+        LoadBaseEventsMod();
+        LoadBaseDecisionsMod();
+
+        EventGenerator.InitializeGenerators();
+
+        _testFaction1.InitializeDefaultEvents();
+
+        TriggerFactionModEventTest(_testFaction1, "clan_decide_performing_influence_demand");
+    }
+
+    [Test]
+    public void TriggerFosterRelationshipDecision()
+    {
+        Manager.CurrentDevMode = DevMode.Advanced;
 
         InitializeTestFactions();
 
@@ -655,6 +819,40 @@ public class ModTest
 
         _testFaction0.InitializeDefaultEvents();
 
-        TriggerModEventTest(_testFaction0, "clan_decide_performing_influence_demand");
+        TriggerFactionModEventTest(_testFaction0, "tribe_decide_fostering_relationship");
+    }
+
+    [Test]
+    public void TriggerMergeTribeDecision()
+    {
+        Manager.CurrentDevMode = DevMode.Advanced;
+
+        InitializeTestFactions();
+
+        LoadBaseEventsMod();
+        LoadBaseDecisionsMod();
+
+        EventGenerator.InitializeGenerators();
+
+        _testFaction0.InitializeDefaultEvents();
+
+        TriggerFactionModEventTest(_testFaction0, "tribe_decide_merge");
+    }
+
+    [Test]
+    public void TriggerFormNewTribeDecision()
+    {
+        Manager.CurrentDevMode = DevMode.Advanced;
+
+        InitializeTestFactions();
+
+        LoadBaseEventsMod();
+        LoadBaseDecisionsMod();
+
+        EventGenerator.InitializeGenerators();
+
+        _testFaction1.InitializeDefaultEvents();
+
+        TriggerFactionModEventTest(_testFaction1, "clan_decide_form_new_tribe");
     }
 }
