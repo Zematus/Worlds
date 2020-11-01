@@ -946,22 +946,33 @@ public abstract class Polity : ISynchronizable
     {
         Groups.Remove(prominence.Id);
 
-        if (prominence.Cluster == null)
-        {
-            throw new System.Exception(
-                "null prominence Cluster - group Id: " + prominence.Id + ", polity Id: " + Id);
-        }
-
         PolityProminenceCluster cluster = prominence.Cluster;
 
-        cluster.RemoveProminence(prominence);
-
-        // Sketchy code. Make sure removing clusters this way is not troublesome
-        // for the simulation (and perf)
-        if (cluster.Size <= 0)
+        if (prominence.Cluster != null)
         {
-            ProminenceClusters.Remove(cluster);
+            cluster.RemoveProminence(prominence);
+
+            // Sketchy code. Make sure removing clusters this way is not troublesome
+            // for the simulation (and perf)
+            if (cluster.Size <= 0)
+            {
+                ProminenceClusters.Remove(cluster);
+            }
         }
+#if DEBUG
+        else
+        {
+            // Validate that this prominence was not part of any cluster
+            foreach (PolityProminenceCluster c in ProminenceClusters)
+            {
+                if (c.HasPolityProminence(prominence))
+                {
+                    throw new System.Exception(
+                        "null prominence Cluster - group Id: " + prominence.Id + ", polity Id: " + Id);
+                }
+            }
+        }
+#endif
 
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))

@@ -746,6 +746,11 @@ public class Manager
         return string.Format("{0} years, {1} days", years, days);
     }
 
+    public static long GetDateNumber(long years, int days)
+    {
+        return years * World.YearLength + days;
+    }
+
     public static string AddDateToWorldName(string worldName)
     {
         long year = CurrentWorld.CurrentDate / World.YearLength;

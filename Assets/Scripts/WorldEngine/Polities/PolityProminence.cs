@@ -75,12 +75,14 @@ public class PolityProminence// : IKeyedValue<Identifier>
 
         if (FactionCoreDistance == -1)
         {
-            throw new System.Exception("Core distance is not properly initialized");
+            throw new System.Exception("Faction core distance is not properly initialized. " +
+                "Polity id: " + Polity.Id + ", Group id: " + Group.Id);
         }
 
         if (PolityCoreDistance == -1)
         {
-            throw new System.Exception("Core distance is not properly initialized");
+            throw new System.Exception("Polity core distance is not properly initialized. " +
+                "Polity id: " + Polity.Id + ", Group id: " + Group.Id);
         }
 
         AdministrativeCost = Group.CalculateAdministrativeCost(this);
