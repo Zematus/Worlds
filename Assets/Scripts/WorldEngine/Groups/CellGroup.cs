@@ -2304,6 +2304,11 @@ public class CellGroup : Identifiable, IFlagHolder
                 throw new System.Exception("Invalid state. Group: " + Id);
             }
         }
+
+        if (_hasPromValueDeltas && (_polityPromDeltas.Count == 0))
+        {
+            throw new System.Exception("Invalid state. Group: " + Id);
+        }
 #endif
 
         if (CalculateNewPolityProminenceValues(afterPolityUpdates) || _hasRemovedProminences)
@@ -2449,16 +2454,19 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>'true' if there was a change in prominence values</returns>
     private bool CalculateNewPolityProminenceValues(bool afterPolityUpdates = false)
     {
-//#if DEBUG
-//        if ((Id == "0000000000053130607:8730498093635295900") && (World.CurrentDate == 223877150))
-//        {
-//            Debug.LogWarning("Debugging CalculateNewPolityProminenceValues...");
-//        }
-//#endif
+        //#if DEBUG
+        //        if ((Id == "0000000000053130607:8730498093635295900") && (World.CurrentDate == 223877150))
+        //        {
+        //            Debug.LogWarning("Debugging CalculateNewPolityProminenceValues...");
+        //        }
+        //#endif
+
+        // NOTE: after polity updates there might be no deltas, bu we might still need
+        // to recalculate if the amount of prominences changed
+        bool calculateRegardless = afterPolityUpdates && _polityProminences.Count > 0;
 
         // There was no new deltas so there's nothing to calculate
-        // NOTE: after polity updates there might be no deltas, bu we still need to recalculate
-        if (!afterPolityUpdates && !_hasPromValueDeltas)
+        if (!calculateRegardless && !_hasPromValueDeltas)
         {
             ResetProminenceValueDeltas();
             return false;
@@ -2500,6 +2508,16 @@ public class CellGroup : Identifiable, IFlagHolder
         {
             Debug.LogWarning("initial totalValue less than 0: " + totalValue +
                 ", polPromDeltaOffset: " + polPromDeltaOffset);
+        }
+
+        if (_polityPromDeltas.Count == 0)
+        {
+            Debug.LogWarning("amount of of polity prominence deltas equals to 0");
+
+            if (totalValue <= 0)
+            {
+                throw new System.Exception("Unexpected total prominence value of: " + totalValue);
+            }
         }
 #endif
 
