@@ -225,6 +225,7 @@ public class CellGroup : Identifiable, IFlagHolder
     private HashSet<string> _flags = new HashSet<string>();
 
     private bool _alreadyUpdated = false;
+    private bool _willBeRemoved = false;
 
     private List<Effect> _deferredEffects = new List<Effect>();
 
@@ -879,12 +880,25 @@ public class CellGroup : Identifiable, IFlagHolder
         _propertiesToLose.Clear();
     }
 
+    /// <summary>
+    /// Performs post update operations for this group before polities are updates, and before
+    /// all step 2 group post updates are performed
     public void PostUpdate_BeforePolityUpdates_Step1()
     {
+//#if DEBUG
+//        if ((World.CurrentDate >= Manager.GetDateNumber(2488878, 219)) &&
+//            (Id == "0000000000908440689:5109863400567975564"))
+//        {
+//            Debug.LogWarning("PostUpdate_BeforePolityUpdates_Step1: Debugging group: " + Id);
+//        }
+//#endif
+
         _alreadyUpdated = false;
 
         if (Population < 2)
         {
+            _willBeRemoved = true;
+
             World.AddGroupToRemove(this);
             return;
         }
@@ -910,8 +924,17 @@ public class CellGroup : Identifiable, IFlagHolder
         CalculatePolityPromCoreDistances();
     }
 
+    /// <summary>
+    /// Performs post update operations for this group before polities are updates, but after
+    /// all step 1 group post updates have been performed
+    /// </summary>
     public void PostUpdate_BeforePolityUpdates_Step2()
     {
+        if (_willBeRemoved)
+        {
+            return;
+        }
+
         SetPolityPromCoreDistancesAndAdminLoad();
     }
 
