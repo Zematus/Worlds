@@ -1312,10 +1312,13 @@ public class CellGroup : Identifiable, IFlagHolder
 
         travelFactor = Mathf.Clamp(travelFactor, 0.0001f, 1);
 
-        int travelTime =
-            (int)Mathf.Ceil(World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
+        float travelSlownessConstant = 0.1f;
 
-        long arrivalDate = World.CurrentDate + travelTime;
+        float travelTime =
+            Mathf.Ceil(travelSlownessConstant *
+            World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
+
+        long arrivalDate = World.CurrentDate + (long)travelTime;
 
         if (arrivalDate <= World.CurrentDate)
         {
@@ -1980,12 +1983,14 @@ public class CellGroup : Identifiable, IFlagHolder
         float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel();
 
         float populationFactor = 0.0001f + Mathf.Abs(OptimalPopulation - Population);
-        populationFactor = 100 * OptimalPopulation / populationFactor;
+        populationFactor = OptimalPopulation / populationFactor;
 
         populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
-        float mixFactor = randomFactor * migrationFactor * skillLevelFactor
-            * knowledgeLevelFactor * populationFactor;
+        float SlownessConstant = 150;
+
+        float mixFactor = SlownessConstant * randomFactor * migrationFactor
+            * skillLevelFactor * knowledgeLevelFactor * populationFactor;
 
         long updateSpan = GenerationSpan * (int)mixFactor;
 
@@ -2454,12 +2459,12 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>'true' if there was a change in prominence values</returns>
     private bool CalculateNewPolityProminenceValues(bool afterPolityUpdates = false)
     {
-        //#if DEBUG
-        //        if ((Id == "0000000000053130607:8730498093635295900") && (World.CurrentDate == 223877150))
-        //        {
-        //            Debug.LogWarning("Debugging CalculateNewPolityProminenceValues...");
-        //        }
-        //#endif
+//#if DEBUG
+//        if ((Id == "0000000001403622143:3199357175283981000") && (World.CurrentDate == 1403640616))
+//        {
+//            Debug.LogWarning("CalculateNewPolityProminenceValues: debugging group: " + Id);
+//        }
+//#endif
 
         // NOTE: after polity updates there might be no deltas, bu we might still need
         // to recalculate if the amount of prominences changed
@@ -2516,7 +2521,8 @@ public class CellGroup : Identifiable, IFlagHolder
 
             if (totalValue <= 0)
             {
-                throw new System.Exception("Unexpected total prominence value of: " + totalValue);
+                throw new System.Exception("Unexpected total prominence value of: " + totalValue +
+                    ", group: " + Id + ", date: " + World.CurrentDate);
             }
         }
 #endif
@@ -2544,6 +2550,8 @@ public class CellGroup : Identifiable, IFlagHolder
                 }
                 else
                 {
+                    // We will "transfer" its prominence value to unorganized bands
+                    totalValue += newValue;
                     continue;
                 }
             }
@@ -2568,8 +2576,8 @@ public class CellGroup : Identifiable, IFlagHolder
 
             if (newValue > (totalValue + newValue))
             {
-                Debug.LogWarning("new total value less than new value. prev total value: " + totalValue +
-                    ", new value: " + newValue);
+                Debug.LogWarning("new total value less than new value. prev total value: "
+                    + totalValue + ", new value: " + newValue);
             }
 #endif
 
@@ -2577,16 +2585,17 @@ public class CellGroup : Identifiable, IFlagHolder
             totalValue += newValue;
         }
 
-        if (totalValue <= 0)
-        {
-            throw new System.Exception("Unexpected total prominence value of: " + totalValue);
-        }
-
         // normalize values
         foreach (PolityProminence prom in _polityProminences.Values)
         {
             if (_polityProminencesToRemove.Contains(prom.PolityId))
                 continue;
+
+            if (totalValue <= 0)
+            {
+                throw new System.Exception("Unexpected total prominence value of: " + totalValue +
+                    ", group: " + Id + ", date: " + World.CurrentDate);
+            }
 
             float prevValue = prom.Value;
             float finalValue = prevValue / totalValue;
