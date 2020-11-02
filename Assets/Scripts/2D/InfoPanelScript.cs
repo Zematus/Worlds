@@ -99,11 +99,11 @@ public class InfoPanelScript : MonoBehaviour
                 float pixelUpdatesPerMapUpdate = Manager.LastPixelUpdateCount / (float)Manager.LastMapUpdateCount;
 
                 InfoText.text +=
-                    "\nPixel Updates Per Map Update: " + pixelUpdatesPerMapUpdate.ToString("0.00");
+                    "\nPixel Updates per Map Update: " + pixelUpdatesPerMapUpdate.ToString("0.00");
             }
 
             InfoText.text += "\n";
-            InfoText.text += "\nSimulated Time Per RTS:";
+            InfoText.text += "\nSimulated Time per RTS:";
             InfoText.text += "\n" + Manager.GetTimeSpanString(Manager.LastDateSpan);
             InfoText.text += "\n";
         }

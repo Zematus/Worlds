@@ -496,18 +496,20 @@ public class TerrainCell
             targetPopulation = Group.Population;
         }
 
-        float targetOptimalPopulationDelta = targetOptimalPopulation - targetPopulation;
-        float sourceOptimalPopulationDelta = sourceGroup.OptimalPopulation - sourceGroup.Population;
+        float targetOptimalPDelta = targetOptimalPopulation - targetPopulation;
+        float sourceOptimalPDelta = sourceGroup.OptimalPopulation - sourceGroup.Population;
 
         float optimalPopulationFactor;
 
-        if (targetOptimalPopulationDelta <= 0)
+        if (targetOptimalPDelta <= 0)
             return 0;
 
         optimalPopulationFactor =
-            targetOptimalPopulationDelta / (targetOptimalPopulationDelta + sourceOptimalPopulationDelta);
+            targetOptimalPDelta / (targetOptimalPDelta + sourceOptimalPDelta);
 
-        optimalPopulationFactor *= targetOptimalPopulationDelta / targetOptimalPopulation;
+        float avgOptimalPopulation = (targetOptimalPopulation + sourceGroup.OptimalPopulation) / 2f;
+
+        optimalPopulationFactor *= targetOptimalPDelta / avgOptimalPopulation;
 
         float sourceEncroachmentFactor = 0.1f + sourceGroup.CalculateEncroachmentOnUnorganizedBands();
         float targetEncroachmentFactor = 0.1f;

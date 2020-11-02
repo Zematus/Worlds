@@ -1312,7 +1312,7 @@ public class CellGroup : Identifiable, IFlagHolder
 
         travelFactor = Mathf.Clamp(travelFactor, 0.0001f, 1);
 
-        float travelSlownessConstant = 0.1f;
+        float travelSlownessConstant = 0.01f;
 
         float travelTime =
             Mathf.Ceil(travelSlownessConstant *
@@ -1987,17 +1987,17 @@ public class CellGroup : Identifiable, IFlagHolder
 
         populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
-        float SlownessConstant = 150;
+        float SlownessConstant = 10 * GenerationSpan;
 
         float mixFactor = SlownessConstant * randomFactor * migrationFactor
             * skillLevelFactor * knowledgeLevelFactor * populationFactor;
 
-        long updateSpan = GenerationSpan * (int)mixFactor;
+        long updateSpan = GenerationSpan + (long)Mathf.Max(0, mixFactor);
 
         if (updateSpan < 0)
             updateSpan = MaxUpdateSpan;
 
-        updateSpan = (updateSpan < GenerationSpan) ? GenerationSpan : updateSpan;
+        //updateSpan = (updateSpan < GenerationSpan) ? GenerationSpan : updateSpan;
         updateSpan = (updateSpan > MaxUpdateSpan) ? MaxUpdateSpan : updateSpan;
 
 #if DEBUG
