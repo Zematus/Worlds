@@ -71,8 +71,6 @@ public class TerrainCell
 
     public const float TemperatureHoldOffFactor = 0.35f;
 
-    public const float MaxMigrationAltitudeDelta = 1f; // in meters
-
     public bool Modified = false; // This will be true if the cell has been modified after/during generation by using a heighmap, using the map editor, or by running the simulation
 
     public int Longitude;
@@ -450,14 +448,18 @@ public class TerrainCell
     public float CalculateMigrationAltitudeDeltaFactor(TerrainCell sourceCell)
     {
         if (sourceCell == this)
-            return 0.5f;
+            return 1;
+
+        float altChangeConstant = 3;
 
         float altitudeChange = Mathf.Max(0, Altitude) - Mathf.Max(0, sourceCell.Altitude);
-        float altitudeDelta = 2 * altitudeChange / (sourceCell.Area + Area);
+        float altitudeDelta = altChangeConstant * altitudeChange / (sourceCell.Area + Area);
 
-        float altitudeDeltaFactor =
-            1 - (Mathf.Clamp(altitudeDelta, -MaxMigrationAltitudeDelta, MaxMigrationAltitudeDelta) +
-            MaxMigrationAltitudeDelta) / 2 * MaxMigrationAltitudeDelta;
+        float altitudeDeltaFactor = altitudeDelta + 0.5f; // downslope preference offset
+        altitudeDeltaFactor = Mathf.Abs(altitudeDeltaFactor);
+        altitudeDeltaFactor = altitudeDeltaFactor / (altitudeDeltaFactor + 0.5f);
+
+        altitudeDeltaFactor = 1 - altitudeDeltaFactor;
 
         return altitudeDeltaFactor;
     }
@@ -497,33 +499,41 @@ public class TerrainCell
         }
 
         float targetOptimalPDelta = targetOptimalPopulation - targetPopulation;
-        float sourceOptimalPDelta = sourceGroup.OptimalPopulation - sourceGroup.Population;
-
-        float optimalPopulationFactor;
 
         if (targetOptimalPDelta <= 0)
             return 0;
 
-        optimalPopulationFactor =
-            targetOptimalPDelta / (targetOptimalPDelta + sourceOptimalPDelta);
+        float sourceOptimalPDelta = sourceGroup.OptimalPopulation - sourceGroup.Population;
 
-        float avgOptimalPopulation = (targetOptimalPopulation + sourceGroup.OptimalPopulation) / 2f;
+        /////
 
-        optimalPopulationFactor *= targetOptimalPDelta / avgOptimalPopulation;
-
-        float sourceEncroachmentFactor = 0.1f + sourceGroup.CalculateEncroachmentOnUnorganizedBands();
-        float targetEncroachmentFactor = 0.1f;
+        float sourceEncroachmentFactor = 0.01f + sourceGroup.CalculateEncroachmentOnUnorganizedBands();
+        float targetEncroachmentFactor = 0.01f;
 
         if (Group != null)
         {
             targetEncroachmentFactor += Group.CalculateEncroachmentOnUnorganizedBands();
         }
 
-        float encroachmentFactor =
-            sourceEncroachmentFactor / (sourceEncroachmentFactor + targetEncroachmentFactor);
+        float targetOptimalPFactor = targetOptimalPDelta * (1 - targetEncroachmentFactor);
+        float sourceOptimalPFactor = sourceOptimalPDelta * (1 - sourceEncroachmentFactor);
 
-        float cellValue =
-            encroachmentFactor * optimalPopulationFactor * CalculateMigrationTerrainFactor(sourceGroup.Cell);
+        float optimalPopulationFactor;
+
+        optimalPopulationFactor =
+            targetOptimalPFactor / (targetOptimalPFactor + sourceOptimalPFactor);
+
+        /////
+
+        float weightedOP = (targetOptimalPopulation + 2 * sourceGroup.OptimalPopulation) / 3f;
+
+        optimalPopulationFactor *= targetOptimalPDelta / weightedOP;
+
+        /////
+
+        float terrainFactor = CalculateMigrationTerrainFactor(sourceGroup.Cell);
+
+        float cellValue = optimalPopulationFactor * terrainFactor;
 
         if (float.IsNaN(cellValue))
         {
