@@ -1905,15 +1905,17 @@ public class CellGroup : Identifiable, IFlagHolder
             return 1;
         }
 
-//#if DEBUG
-//        if (Cell.IsSelected)
-//        {
-//            Debug.LogWarning("Debugging cell " + Cell.Position);
-//        }
-//#endif
+        //#if DEBUG
+        //        if (Cell.IsSelected)
+        //        {
+        //            Debug.LogWarning("Debugging cell " + Cell.Position);
+        //        }
+        //#endif
+
+        float minPopulationFactor = 0.90f;
 
         // if the population is not near its optimum then don't add pressure
-        if (populationFactor < 0.9f)
+        if (populationFactor < minPopulationFactor)
             return 0;
 
         float neighborhoodValue = 0;
@@ -1978,6 +1980,7 @@ public class CellGroup : Identifiable, IFlagHolder
         randomFactor = 1f - Mathf.Pow(randomFactor, 4);
 
         float migrationFactor = 1 - CalculateMigrationPressure();
+        //migrationFactor = Mathf.Pow(migrationFactor, 4);
 
         float skillLevelFactor = Culture.MinimumSkillAdaptationLevel();
         float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel();
@@ -1987,17 +1990,17 @@ public class CellGroup : Identifiable, IFlagHolder
 
         populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
-        float SlownessConstant = 10 * GenerationSpan;
+        float SlownessConstant = 100 * GenerationSpan;
 
         float mixFactor = SlownessConstant * randomFactor * migrationFactor
             * skillLevelFactor * knowledgeLevelFactor * populationFactor;
 
-        long updateSpan = GenerationSpan + (long)Mathf.Max(0, mixFactor);
+        long updateSpan = GenerationSpan + (long)Mathf.Ceil(mixFactor);
 
         if (updateSpan < 0)
             updateSpan = MaxUpdateSpan;
 
-        //updateSpan = (updateSpan < GenerationSpan) ? GenerationSpan : updateSpan;
+        updateSpan = (updateSpan < GenerationSpan) ? GenerationSpan : updateSpan;
         updateSpan = (updateSpan > MaxUpdateSpan) ? MaxUpdateSpan : updateSpan;
 
 #if DEBUG
