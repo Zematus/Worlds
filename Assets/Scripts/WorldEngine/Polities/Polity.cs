@@ -212,7 +212,7 @@ public abstract class Polity : ISynchronizable
         optimalPopulationFactor *= targetOptimalPopulationDelta / targetOptimalPopulation;
 
         float cellValue =
-            optimalPopulationFactor * targetCell.CalculateMigrationTerrainFactor(sourceGroup.Cell);
+            optimalPopulationFactor * targetCell.CalculateMigrationAltitudeDeltaFactor(sourceGroup.Cell);
 
         if (float.IsNaN(cellValue))
         {
