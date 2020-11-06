@@ -1254,10 +1254,13 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>Migration chance as a value between 0 and 1</returns>
     public float CalculateMigrationChance(TerrainCell cell, Polity migratingPolity = null)
     {
-        float chance = Mathf.Clamp01(CalculateMigrationValue(cell, migratingPolity));
+        float offset = -0.1f;
+        float migrationValue = CalculateMigrationValue(cell, migratingPolity);
+
+        float unbiasedChance = Mathf.Clamp01(migrationValue + offset);
 
         // Bias the value toward 1
-        chance = 1 - Mathf.Pow(1 - chance, 4);
+        float chance = 1 - Mathf.Pow(1 - unbiasedChance, 4);
 
         return chance;
     }

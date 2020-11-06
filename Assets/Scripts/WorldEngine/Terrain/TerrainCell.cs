@@ -453,29 +453,12 @@ public class TerrainCell
         float altChangeConstant = 3;
 
         float altitudeChange = Mathf.Max(0, Altitude) - Mathf.Max(0, sourceCell.Altitude);
-        float altitudeDelta = altChangeConstant * altitudeChange / (sourceCell.Area + Area);
+        float altitudeDeltaFactor = altChangeConstant * altitudeChange / (sourceCell.Area + Area);
 
-        float altitudeDeltaFactor = altitudeDelta + 0.5f; // downslope preference offset
-        altitudeDeltaFactor = Mathf.Abs(altitudeDeltaFactor);
-        altitudeDeltaFactor = altitudeDeltaFactor / (altitudeDeltaFactor + 0.5f);
-
-        altitudeDeltaFactor = 1 - altitudeDeltaFactor;
+        altitudeDeltaFactor = Mathf.Abs(altitudeDeltaFactor + 0.5f); // downslope preference offset
+        altitudeDeltaFactor = 0.5f / (altitudeDeltaFactor + 0.5f);
 
         return altitudeDeltaFactor;
-    }
-
-    /// <summary>
-    /// Returns how much the altitude chance would affect the migration
-    /// </summary>
-    /// <param name="sourceCell">the terrain cell where the migration would start from</param>
-    /// <returns>the terrain factor</returns>
-    public float CalculateMigrationTerrainFactor(TerrainCell sourceCell)
-    {
-        float areaFactor = MaxAreaPercent / (MaxAreaPercent + sourceCell.MaxAreaPercent);
-
-        float altitudeDeltaFactor = CalculateMigrationAltitudeDeltaFactor(sourceCell);
-
-        return areaFactor * altitudeDeltaFactor;
     }
 
     /// <summary>
@@ -531,9 +514,9 @@ public class TerrainCell
 
         /////
 
-        float terrainFactor = CalculateMigrationTerrainFactor(sourceGroup.Cell);
+        float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceGroup.Cell);
 
-        float cellValue = optimalPopulationFactor * terrainFactor;
+        float cellValue = optimalPopulationFactor * altitudeFactor;
 
         if (float.IsNaN(cellValue))
         {
