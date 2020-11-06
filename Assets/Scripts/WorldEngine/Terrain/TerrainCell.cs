@@ -462,6 +462,50 @@ public class TerrainCell
     }
 
     /// <summary>
+    /// Estimates how much extra population space would exist on this cell based on
+    /// the source culture
+    /// </summary>
+    /// <param name="sourceCulture">the culture to use as reference</param>
+    /// <returns>the amount of free space (in population)</returns>
+    public float EstimateFreeSpace(Culture sourceCulture)
+    {
+        float optimalPopulation = EstimateOptimalPopulation(sourceCulture);
+
+        if (optimalPopulation <= 0)
+            return 0;
+
+        if (Group == null)
+            return optimalPopulation;
+
+        float sourceAggressionValue =
+            sourceCulture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+
+        float targetAggressionValue =
+            Group.Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+
+        float aggressionDelta = targetAggressionValue - sourceAggressionValue;
+
+        float freeSpace;
+
+        if (aggressionDelta > 0)
+        {
+            // reduce the amount of free space avaialable;
+
+            freeSpace = Mathf.Max(0, optimalPopulation - Group.Population);
+            freeSpace *= Mathf.Clamp01(1 - aggressionDelta);
+        }
+        else
+        {
+            // increase the amount of free space avaialable;
+
+            float occupiedSpace = Group.Population * Mathf.Clamp01(1 + aggressionDelta);
+            freeSpace = Mathf.Max(0, optimalPopulation - occupiedSpace);
+        }
+
+        return freeSpace;
+    }
+
+    /// <summary>
     /// Estimates how valuable this cell might be as a migration target
     /// </summary>
     /// <param name="sourceGroup">the group from which the migration will arrive</param>
@@ -469,7 +513,7 @@ public class TerrainCell
     /// <returns></returns>
     public float CalculateMigrationValue(CellGroup sourceGroup, Culture sourceCulture)
     {
-        float targetOptimalPopulation = EstimateOptimalPopulation(sourceCulture);
+        float targetOptimalPopulation = EstimateFreeSpace(sourceCulture);
 
         if (targetOptimalPopulation <= 0)
             return 0;
@@ -488,18 +532,23 @@ public class TerrainCell
 
         float sourceOptimalPDelta = sourceGroup.OptimalPopulation - sourceGroup.Population;
 
-        /////
+        ///////
 
-        float sourceEncroachmentFactor = 0.01f + sourceGroup.CalculateEncroachmentOnUnorganizedBands();
-        float targetEncroachmentFactor = 0.01f;
+        //float sourceEncroachmentFactor = 0.01f + sourceGroup.CalculateEncroachmentOnUnorganizedBands();
+        //float targetEncroachmentFactor = 0.01f;
 
-        if (Group != null)
-        {
-            targetEncroachmentFactor += Group.CalculateEncroachmentOnUnorganizedBands();
-        }
+        //if (Group != null)
+        //{
+        //    targetEncroachmentFactor += Group.CalculateEncroachmentOnUnorganizedBands();
+        //}
 
-        float targetOptimalPFactor = targetOptimalPDelta * (1 - targetEncroachmentFactor);
-        float sourceOptimalPFactor = sourceOptimalPDelta * (1 - sourceEncroachmentFactor);
+        ///////
+
+        //float targetOptimalPFactor = targetOptimalPDelta * (1 - targetEncroachmentFactor);
+        //float sourceOptimalPFactor = sourceOptimalPDelta * (1 - sourceEncroachmentFactor);
+
+        float targetOptimalPFactor = targetOptimalPDelta;
+        float sourceOptimalPFactor = sourceOptimalPDelta;
 
         float optimalPopulationFactor;
 
