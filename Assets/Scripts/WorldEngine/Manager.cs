@@ -63,6 +63,7 @@ public enum PlanetOverlay
     Language,
     PopChange,
     UpdateSpan,
+    MigrationEvent,
     PolityCluster
 }
 
@@ -293,6 +294,7 @@ public class Manager
     private float?[,] _currentCellSlants;
 
     private long _currentMaxUpdateSpan = 0;
+    private long _currentMaxMigEventSpan = 0;
 
     private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 
@@ -2932,6 +2934,10 @@ public class Manager
                 color = SetUpdateSpanOverlayColor(cell, color);
                 break;
 
+            case PlanetOverlay.MigrationEvent:
+                color = SetMigrationEventOverlayColor(cell, color);
+                break;
+
             default:
                 throw new System.Exception("Unsupported Planet Overlay Type");
         }
@@ -4023,6 +4029,37 @@ public class Manager
             normalizedValue = 1f - updateSpan / maxUpdateSpan;
 
             normalizedValue = Mathf.Clamp01(normalizedValue);
+        }
+
+        if ((population > 0) && (normalizedValue > 0))
+        {
+            color = Color.red * normalizedValue;
+        }
+
+        return color;
+    }
+
+    private static Color SetMigrationEventOverlayColor(TerrainCell cell, Color color)
+    {
+        float normalizedValue = 0;
+        float population = 0;
+
+        if ((cell.Group != null) && (cell.Group.HasMigrationEvent))
+        {
+            population = cell.Group.Population;
+
+            //MigratePopulationEvent ev = cell.Group.PopulationMigrationEvent;
+
+            //long eventSpan = ev.TriggerDate - ev.SpawnDate;
+
+            //if (_manager._currentMaxMigEventSpan < eventSpan)
+            //    _manager._currentMaxMigEventSpan = eventSpan;
+
+            //normalizedValue = 1f - eventSpan / _manager._currentMaxMigEventSpan;
+
+            //normalizedValue = Mathf.Clamp01(normalizedValue);
+
+            normalizedValue = 1;
         }
 
         if ((population > 0) && (normalizedValue > 0))
