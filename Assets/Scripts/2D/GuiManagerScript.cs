@@ -160,7 +160,8 @@ public class GuiManagerScript : MonoBehaviour
     private List<PlanetOverlay> _debugOverlays = new List<PlanetOverlay>()
     {
         PlanetOverlay.PopChange,
-        PlanetOverlay.UpdateSpan
+        PlanetOverlay.UpdateSpan,
+        PlanetOverlay.MigrationEvent
     };
     private int _currentDebugOverlay = 0;
 
@@ -1848,6 +1849,9 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.UpdateSpan:
                 planetOverlayStr = "_update_span";
                 break;
+            case PlanetOverlay.MigrationEvent:
+                planetOverlayStr = "_migration_event";
+                break;
             default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
         }
 
@@ -2446,6 +2450,10 @@ public class GuiManagerScript : MonoBehaviour
         else if (OverlayDialogPanelScript.UpdateSpanToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.UpdateSpan, false);
+        }
+        else if (OverlayDialogPanelScript.MigrationEventToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.MigrationEvent, false);
         }
         else
         {

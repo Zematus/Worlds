@@ -1248,7 +1248,8 @@ public class InfoPanelScript : MonoBehaviour
             AddCellDataToInfoPanel_PopDensity(cell);
         }
 
-        if (Manager.PlanetOverlay == PlanetOverlay.UpdateSpan)
+        if ((Manager.PlanetOverlay == PlanetOverlay.UpdateSpan) ||
+            (Manager.PlanetOverlay == PlanetOverlay.MigrationEvent))
         {
             AddCellDataToInfoPanel_UpdateSpan(cell);
         }
