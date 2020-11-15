@@ -406,7 +406,7 @@ public class TerrainCell
     /// </summary>
     /// <param name="culture">the culture to use as reference</param>
     /// <returns>the estimated encroachment factor</returns>
-    public float EstimateEncroachmentFactor(Culture culture)
+    public float EstimateAggressionFactor(Culture culture)
     {
         float aggresionPrefValue =
             culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
@@ -432,10 +432,10 @@ public class TerrainCell
     {
         float populationCapacity = EstimatePopulationCapacity(culture);
 
-        float encroachmentFactor = EstimateEncroachmentFactor(culture);
-        encroachmentFactor = 1 - (0.1f * encroachmentFactor);
+        float aggressionFactor = EstimateAggressionFactor(culture);
+        aggressionFactor = 1 - (0.3f * aggressionFactor);
 
-        float estimatedOptimalPopulation = populationCapacity * encroachmentFactor;
+        float estimatedOptimalPopulation = populationCapacity * aggressionFactor;
 
         return (int)estimatedOptimalPopulation;
     }
@@ -465,20 +465,23 @@ public class TerrainCell
     /// Estimates how much extra population space would exist on this cell based on
     /// the source culture
     /// </summary>
-    /// <param name="sourceCulture">the culture to use as reference</param>
+    /// <param name="migratingCulture">the culture to use as reference</param>
+    /// <param name="estimatedOptimalPopulation">estimated optimal population given
+    /// the reference culture</param>
     /// <returns>the amount of free space (in population)</returns>
-    public float EstimateFreeSpace(Culture sourceCulture)
+    public float EstimateMigratingUBFreeSpace(
+        Culture migratingCulture, out float estimatedOptimalPopulation)
     {
-        float optimalPopulation = EstimateOptimalPopulation(sourceCulture);
+        estimatedOptimalPopulation = EstimateOptimalPopulation(migratingCulture);
 
-        if (optimalPopulation <= 0)
+        if (estimatedOptimalPopulation <= 0)
             return 0;
 
         if (Group == null)
-            return optimalPopulation;
+            return estimatedOptimalPopulation;
 
         float sourceAggressionValue =
-            sourceCulture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+            migratingCulture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
 
         float targetAggressionValue =
             Group.Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
@@ -491,7 +494,7 @@ public class TerrainCell
         {
             // reduce the amount of free space avaialable;
 
-            freeSpace = Mathf.Max(0, optimalPopulation - Group.Population);
+            freeSpace = Mathf.Max(0, estimatedOptimalPopulation - Group.Population);
             freeSpace *= Mathf.Clamp01(1 - aggressionDelta);
         }
         else
@@ -499,7 +502,7 @@ public class TerrainCell
             // increase the amount of free space avaialable;
 
             float occupiedSpace = Group.Population * Mathf.Clamp01(1 + aggressionDelta);
-            freeSpace = Mathf.Max(0, optimalPopulation - occupiedSpace);
+            freeSpace = Mathf.Max(0, estimatedOptimalPopulation - occupiedSpace);
         }
 
         return freeSpace;
@@ -513,66 +516,32 @@ public class TerrainCell
     /// <returns></returns>
     public float CalculateMigrationValue(CellGroup sourceGroup, Culture sourceCulture)
     {
-        float targetOptimalPopulation = EstimateFreeSpace(sourceCulture);
+        float targetFreeSpace =
+            EstimateMigratingUBFreeSpace(sourceCulture, out float estimatedOptimalPop);
 
-        if (targetOptimalPopulation <= 0)
+        if (targetFreeSpace <= 0)
             return 0;
 
-        float targetPopulation = 0;
+        float sourceFreeSpace = sourceGroup.EstimateUnorganizedBandsFreeSpace();
 
-        if (Group != null)
-        {
-            targetPopulation = Group.Population;
-        }
+        float freeSpaceFactor =
+            targetFreeSpace / (targetFreeSpace + sourceFreeSpace);
 
-        float targetOptimalPDelta = targetOptimalPopulation - targetPopulation;
+        float optimaPopulationFactor =
+            (estimatedOptimalPop + sourceGroup.OptimalPopulation * 2) / 3f;
 
-        if (targetOptimalPDelta <= 0)
-            return 0;
-
-        float sourceOptimalPDelta = sourceGroup.OptimalPopulation - sourceGroup.Population;
-
-        ///////
-
-        //float sourceEncroachmentFactor = 0.01f + sourceGroup.CalculateEncroachmentOnUnorganizedBands();
-        //float targetEncroachmentFactor = 0.01f;
-
-        //if (Group != null)
-        //{
-        //    targetEncroachmentFactor += Group.CalculateEncroachmentOnUnorganizedBands();
-        //}
-
-        ///////
-
-        //float targetOptimalPFactor = targetOptimalPDelta * (1 - targetEncroachmentFactor);
-        //float sourceOptimalPFactor = sourceOptimalPDelta * (1 - sourceEncroachmentFactor);
-
-        float targetOptimalPFactor = targetOptimalPDelta;
-        float sourceOptimalPFactor = sourceOptimalPDelta;
-
-        float optimalPopulationFactor;
-
-        optimalPopulationFactor =
-            targetOptimalPFactor / (targetOptimalPFactor + sourceOptimalPFactor);
-
-        /////
-
-        float weightedOP = (targetOptimalPopulation + 2 * sourceGroup.OptimalPopulation) / 3f;
-
-        optimalPopulationFactor *= targetOptimalPDelta / weightedOP;
-
-        /////
+        freeSpaceFactor *= targetFreeSpace / optimaPopulationFactor;
 
         float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceGroup.Cell);
 
-        float cellValue = optimalPopulationFactor * altitudeFactor;
+        float cellValue = freeSpaceFactor * altitudeFactor;
 
         if (float.IsNaN(cellValue))
         {
             throw new System.Exception("float.IsNaN(cellValue)");
         }
 
-        return cellValue;
+        return Mathf.Clamp01(cellValue);
     }
 
     /// <summary>

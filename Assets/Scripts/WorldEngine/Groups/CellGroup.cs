@@ -1211,19 +1211,83 @@ public class CellGroup : Identifiable, IFlagHolder
     }
 
     /// <summary>
-    /// Estimates how encroached are unorganized bands on this cell
+    /// Returns the respective unorganized bands and prominences values on a group for
+    /// a given preference
     /// </summary>
-    /// <returns>the encroachment value on unorganized bands</returns>
-    public float CalculateEncroachmentOnUnorganizedBands()
+    /// <param name="preferenceId">the id of the preference</param>
+    /// <param name="ubValue">(out) the unorganized bands value</param>
+    /// <param name="promValue">the prominences value (average)</param>
+    public void CalculateGroupPrefValueSplit(
+        string preferenceId, out float ubValue, out float promValue)
     {
-        float value = 0;
+        if (TotalPolityProminenceValue >= 1f)
+        {
+            ubValue = 0;
+            promValue = Culture.GetPreferenceValue(preferenceId);
+
+            return;
+        }
+
+        if (TotalPolityProminenceValue <= 0f)
+        {
+            ubValue = Culture.GetPreferenceValue(preferenceId);
+            promValue = 0;
+
+            return;
+        }
+
+        float accPolPrefValue = 0;
 
         foreach (PolityProminence p in _polityProminences.Values)
         {
-            value += p.Value * p.Polity.Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+            accPolPrefValue +=
+                p.Value * p.Polity.Culture.GetPreferenceValue(preferenceId);
         }
 
-        return value;
+        float groupPrefValue = Culture.GetPreferenceValue(preferenceId);
+
+        if (groupPrefValue > accPolPrefValue)
+        {
+            float maxPrefValueDelta = Mathf.Min(1 - groupPrefValue, groupPrefValue - accPolPrefValue);
+
+            ubValue = groupPrefValue + (maxPrefValueDelta * TotalPolityProminenceValue);
+            promValue = ubValue - maxPrefValueDelta;
+        }
+        else
+        {
+            float maxPrefValueDelta = Mathf.Min(groupPrefValue, accPolPrefValue - groupPrefValue);
+
+            ubValue = groupPrefValue - (maxPrefValueDelta * TotalPolityProminenceValue);
+            promValue = ubValue + maxPrefValueDelta;
+        }
+    }
+
+    /// <summary>
+    /// Estimates how encroached are unorganized bands on this cell
+    /// </summary>
+    /// <returns>the encroachment value on unorganized bands</returns>
+    public float CalculateEncroachmentUnorganizedBands()
+    {
+        CalculateGroupPrefValueSplit(
+            CulturalPreference.AggressionPreferenceId,
+            out float ubAggrValue,
+            out float prominenceAggrValue);
+
+        return Mathf.Clamp(prominenceAggrValue - ubAggrValue, -1, 1);
+    }
+
+    public float EstimateUnorganizedBandsFreeSpace()
+    {
+        float encroachment = CalculateEncroachmentUnorganizedBands();
+
+        if (encroachment > 0)
+        {
+            return Mathf.Max(0, (OptimalPopulation - Population) * (1 - encroachment));
+        }
+        else
+        {
+            return Mathf.Max(0, OptimalPopulation - Population * (1 + encroachment));
+        }
     }
 
     /// <summary>
