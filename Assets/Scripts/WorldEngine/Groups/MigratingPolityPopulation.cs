@@ -1,17 +1,9 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
 
 /// <summary>
 /// Segment of polity population migrating from one cell to another
 /// </summary>
 public class MigratingPolityPopulation : MigratingPopulation
 {
-    public Polity Polity;
-
     /// <summary>
     /// Constructs a new migrating polity population object
     /// </summary>
@@ -38,10 +30,10 @@ public class MigratingPolityPopulation : MigratingPopulation
             prominenceValueDelta,
             population,
             sourceGroup,
+            polity,
             targetCell,
             migrationDirection)
     {
-        Polity = polity;
     }
 
     /// <summary>
@@ -68,10 +60,9 @@ public class MigratingPolityPopulation : MigratingPopulation
             prominenceValueDelta,
             population,
             sourceGroup,
+            polity,
             targetCell,
             migrationDirection);
-
-        Polity = polity;
     }
 
     protected override void ApplyProminenceChanges()
