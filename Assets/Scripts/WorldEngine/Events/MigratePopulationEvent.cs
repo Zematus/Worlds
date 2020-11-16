@@ -118,7 +118,14 @@ public class MigratePopulationEvent : CellGroupEvent
     public override void Trigger()
     {
         Group.SetMigratingPopulation(
-            TargetCell, MigrationDirection, ProminencePercent, _prominenceValueDelta, _population, Polity);
+            TargetCell,
+            MigrationDirection,
+            ProminencePercent,
+            _prominenceValueDelta,
+            _population,
+            Polity,
+            SpawnDate,
+            TriggerDate);
     }
 
     public override void Synchronize()

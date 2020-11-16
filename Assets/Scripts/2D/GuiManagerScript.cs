@@ -201,7 +201,6 @@ public class GuiManagerScript : MonoBehaviour
     private int _mapUpdateCount = 0;
     private int _pixelUpdateCount = 0;
     private float _timeSinceLastMapUpdate = 0;
-    private long _lastUpdateDate = 0;
 
     private int _topMaxSpeedLevelIndex;
     private int _selectedMaxSpeedLevelIndex;
@@ -445,13 +444,13 @@ public class GuiManagerScript : MonoBehaviour
                 {
                     long currentDate = Manager.CurrentWorld.CurrentDate;
 
-                    Manager.LastDateSpan = currentDate - _lastUpdateDate;
-                    _lastUpdateDate = currentDate;
+                    Manager.LastDevModeDateSpan = currentDate - Manager.LastDevModeUpdateDate;
+                    Manager.LastDevModeUpdateDate = currentDate;
                 }
                 else
                 {
-                    Manager.LastDateSpan = 0;
-                    _lastUpdateDate = 0;
+                    Manager.LastDevModeDateSpan = 0;
+                    Manager.LastDevModeUpdateDate = 0;
                 }
             }
         }
@@ -1302,15 +1301,15 @@ public class GuiManagerScript : MonoBehaviour
 
             Manager.LastMapUpdateCount = 0;
             Manager.LastPixelUpdateCount = 0;
-            Manager.LastDateSpan = 0;
+            Manager.LastDevModeDateSpan = 0;
 
             if (Manager.WorldIsReady)
             {
-                _lastUpdateDate = Manager.CurrentWorld.CurrentDate;
+                Manager.LastDevModeUpdateDate = Manager.CurrentWorld.CurrentDate;
             }
             else
             {
-                _lastUpdateDate = 0;
+                Manager.LastDevModeUpdateDate = 0;
             }
         }
     }

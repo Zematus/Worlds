@@ -104,7 +104,7 @@ public class InfoPanelScript : MonoBehaviour
 
             InfoText.text += "\n";
             InfoText.text += "\nSimulated Time per RTS:";
-            InfoText.text += "\n" + Manager.GetTimeSpanString(Manager.LastDateSpan);
+            InfoText.text += "\n" + Manager.GetTimeSpanString(Manager.LastDevModeDateSpan);
             InfoText.text += "\n";
         }
     }

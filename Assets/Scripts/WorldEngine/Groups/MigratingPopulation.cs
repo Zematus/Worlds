@@ -5,6 +5,9 @@ using UnityEngine;
 /// </summary>
 public abstract class MigratingPopulation
 {
+    public long StartDate = 0;
+    public long EndDate = 0;
+
     public Polity Polity;
 
     public float ProminencePercent;
@@ -42,6 +45,8 @@ public abstract class MigratingPopulation
     /// <param name="targetCell">the cell group this migrates to</param>
     /// <param name="migrationDirection">the direction this group is moving out from
     /// the source</param>
+    /// <param name="startDate">the migration start date</param>
+    /// <param name="endDate">the migration end date</param>
     public MigratingPopulation(
         World world,
         float prominencePercent,
@@ -50,7 +55,9 @@ public abstract class MigratingPopulation
         CellGroup sourceGroup,
         Polity polity,
         TerrainCell targetCell,
-        Direction migrationDirection)
+        Direction migrationDirection,
+        long startDate,
+        long endDate)
     {
         World = world;
 
@@ -61,7 +68,9 @@ public abstract class MigratingPopulation
             sourceGroup,
             polity,
             targetCell,
-            migrationDirection);
+            migrationDirection,
+            startDate,
+            endDate);
     }
 
     /// <summary>
@@ -72,7 +81,10 @@ public abstract class MigratingPopulation
     /// <param name="population">population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is moving out from the source</param>
+    /// <param name="migrationDirection">the direction this group is moving out from
+    /// the source</param>
+    /// <param name="startDate">the migration start date</param>
+    /// <param name="endDate">the migration end date</param>
     protected void SetInternal(
         float prominencePercent,
         float prominenceValueDelta,
@@ -80,7 +92,9 @@ public abstract class MigratingPopulation
         CellGroup sourceGroup,
         Polity polity,
         TerrainCell targetCell,
-        Direction migrationDirection)
+        Direction migrationDirection,
+        long startDate,
+        long endDate)
     {
         MigrationDirection = migrationDirection;
 
@@ -111,6 +125,9 @@ public abstract class MigratingPopulation
 
         TargetCellLongitude = TargetCell.Longitude;
         TargetCellLatitude = TargetCell.Latitude;
+
+        StartDate = startDate;
+        EndDate = endDate;
     }
 
     /// <summary>
@@ -170,7 +187,8 @@ public abstract class MigratingPopulation
             targetGroup.LastPopulationMigration = new MigratingPopulationSnapshot();
         }
 
-        targetGroup.LastPopulationMigration.Set(Population, SourceGroup, Polity?.Info);
+        targetGroup.LastPopulationMigration.Set(
+            Population, SourceGroup, Polity?.Info, StartDate, EndDate);
     }
 
     /// <summary>

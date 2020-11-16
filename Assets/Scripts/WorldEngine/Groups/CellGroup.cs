@@ -467,23 +467,40 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <param name="prominenceValueDelta">how much the prominence value should change</param>
     /// <param name="population">population to migrate</param>
     /// <param name="polity">the polity whose population will migrate</param>
+    /// <param name="startDate">the migration start date</param>
+    /// <param name="endDate">the migration end date</param>
     public void SetMigratingPopulation(
         TerrainCell targetCell,
         Direction migrationDirection,
         float prominencePercent,
         float prominenceValueDelta,
         int population,
-        Polity polity)
+        Polity polity,
+        long startDate,
+        long endDate)
     {
         if (polity == null)
         {
             SetMigratingUnorganizedBands(
-                targetCell, migrationDirection, prominencePercent, prominenceValueDelta, population);
+                targetCell,
+                migrationDirection,
+                prominencePercent,
+                prominenceValueDelta,
+                population,
+                startDate,
+                endDate);
             return;
         }
 
         SetMigratingPolityPopulation(
-            targetCell, migrationDirection, prominencePercent, prominenceValueDelta, population, polity);
+            targetCell,
+            migrationDirection,
+            prominencePercent,
+            prominenceValueDelta,
+            population,
+            polity,
+            startDate,
+            endDate);
     }
 
     /// <summary>
@@ -494,12 +511,16 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <param name="prominencePercent">prominence value to migrate out</param>
     /// <param name="prominenceValueDelta">how much the prominence value should change</param>
     /// <param name="population">population to migrate</param>
+    /// <param name="startDate">the migration start date</param>
+    /// <param name="endDate">the migration end date</param>
     public void SetMigratingUnorganizedBands(
         TerrainCell targetCell,
         Direction migrationDirection,
         float prominencePercent,
         float prominenceValueDelta,
-        int population)
+        int population,
+        long startDate,
+        long endDate)
     {
         if (!prominencePercent.IsInsideRange(0, 1))
         {
@@ -509,13 +530,29 @@ public class CellGroup : Identifiable, IFlagHolder
 
         if (MigratingUnorganizedBands == null)
         {
-            MigratingUnorganizedBands = new MigratingUnorganizedBands(
-                World, prominencePercent, prominenceValueDelta, population, this, targetCell, migrationDirection);
+            MigratingUnorganizedBands =
+                new MigratingUnorganizedBands(
+                    World,
+                    prominencePercent,
+                    prominenceValueDelta,
+                    population,
+                    this,
+                    targetCell,
+                    migrationDirection,
+                    startDate,
+                    endDate);
         }
         else
         {
             MigratingUnorganizedBands.Set(
-                prominencePercent, prominenceValueDelta, population, this, targetCell, migrationDirection);
+                prominencePercent,
+                prominenceValueDelta,
+                population,
+                this,
+                targetCell,
+                migrationDirection,
+                startDate,
+                endDate);
         }
 
         World.AddMigratingPopulation(MigratingUnorganizedBands);
@@ -530,13 +567,17 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <param name="prominenceValueDelta">how much the prominence value should change</param>
     /// <param name="population">population to migrate</param>
     /// <param name="polity">the polity whose population will migrate</param>
+    /// <param name="startDate">the migration start date</param>
+    /// <param name="endDate">the migration end date</param>
     public void SetMigratingPolityPopulation(
         TerrainCell targetCell,
         Direction migrationDirection,
         float prominencePercent,
         float prominenceValueDelta,
         int population,
-        Polity polity)
+        Polity polity,
+        long startDate,
+        long endDate)
     {
         if (!prominencePercent.IsInsideRange(0, 1))
         {
@@ -546,13 +587,31 @@ public class CellGroup : Identifiable, IFlagHolder
 
         if (MigratingPolityPopulation == null)
         {
-            MigratingPolityPopulation = new MigratingPolityPopulation(
-                World, prominencePercent, prominenceValueDelta, population, this, polity, targetCell, migrationDirection);
+            MigratingPolityPopulation =
+                new MigratingPolityPopulation(
+                    World,
+                    prominencePercent,
+                    prominenceValueDelta,
+                    population,
+                    this,
+                    polity,
+                    targetCell,
+                    migrationDirection,
+                    startDate,
+                    endDate);
         }
         else
         {
             MigratingPolityPopulation.Set(
-                prominencePercent, prominenceValueDelta, population, this, polity, targetCell, migrationDirection);
+                prominencePercent,
+                prominenceValueDelta,
+                population,
+                this,
+                polity,
+                targetCell,
+                migrationDirection,
+                startDate,
+                endDate);
         }
 
         World.AddMigratingPopulation(MigratingPolityPopulation);
@@ -2977,6 +3036,12 @@ public class CellGroup : Identifiable, IFlagHolder
     public override void FinalizeLoad()
     {
         base.FinalizeLoad();
+
+        if (LastPopulationMigration != null)
+        {
+            LastPopulationMigration.World = World;
+            LastPopulationMigration.FinalizeLoad();
+        }
 
         if (MigrationTagged)
         {

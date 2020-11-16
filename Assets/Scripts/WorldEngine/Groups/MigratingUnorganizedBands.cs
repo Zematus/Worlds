@@ -19,7 +19,10 @@ public class MigratingUnorganizedBands : MigratingPopulation
     /// <param name="population">population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    /// <param name="migrationDirection">the direction this group is exiting
+    /// from the source</param>
+    /// <param name="startDate">the migration start date</param>
+    /// <param name="endDate">the migration end date</param>
     public MigratingUnorganizedBands(
         World world,
         float prominencePercent,
@@ -27,7 +30,9 @@ public class MigratingUnorganizedBands : MigratingPopulation
         int population,
         CellGroup sourceGroup,
         TerrainCell targetCell,
-        Direction migrationDirection)
+        Direction migrationDirection,
+        long startDate,
+        long endDate)
         : base (
             world,
             prominencePercent,
@@ -36,7 +41,9 @@ public class MigratingUnorganizedBands : MigratingPopulation
             sourceGroup,
             null,
             targetCell,
-            migrationDirection)
+            migrationDirection,
+            startDate,
+            endDate)
     {
     }
 
@@ -48,14 +55,19 @@ public class MigratingUnorganizedBands : MigratingPopulation
     /// <param name="population">population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is moving out from the source</param>
+    /// <param name="migrationDirection">the direction this group is moving out
+    /// from the source</param>
+    /// <param name="startDate">the migration start date</param>
+    /// <param name="endDate">the migration end date</param>
     public void Set(
         float prominencePercent,
         float prominenceValueDelta,
         int population,
         CellGroup sourceGroup,
         TerrainCell targetCell,
-        Direction migrationDirection)
+        Direction migrationDirection,
+        long startDate,
+        long endDate)
     {
         SetInternal(
             prominencePercent,
@@ -64,7 +76,9 @@ public class MigratingUnorganizedBands : MigratingPopulation
             sourceGroup,
             null,
             targetCell,
-            migrationDirection);
+            migrationDirection,
+            startDate,
+            endDate);
     }
 
     protected override void ApplyProminenceChanges()
