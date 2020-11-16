@@ -34,6 +34,7 @@ public class MigratingUnorganizedBands : MigratingPopulation
             prominenceValueDelta,
             population,
             sourceGroup,
+            null,
             targetCell,
             migrationDirection)
     {
@@ -61,6 +62,7 @@ public class MigratingUnorganizedBands : MigratingPopulation
             prominenceValueDelta,
             population,
             sourceGroup,
+            null,
             targetCell,
             migrationDirection);
     }

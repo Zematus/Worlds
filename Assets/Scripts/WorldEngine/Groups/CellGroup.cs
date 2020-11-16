@@ -109,6 +109,8 @@ public class CellGroup : Identifiable, IFlagHolder
 
     public List<PolityProminence> PolityProminences = null;
 
+    public MigratingPopulationSnapshot LastPopulationMigration = null;
+
     [XmlIgnore]
     public WorldPosition Position
     {

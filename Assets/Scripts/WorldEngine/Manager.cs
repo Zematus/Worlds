@@ -63,7 +63,7 @@ public enum PlanetOverlay
     Language,
     PopChange,
     UpdateSpan,
-    MigrationEvent,
+    Migration,
     PolityCluster
 }
 
@@ -2934,8 +2934,8 @@ public class Manager
                 color = SetUpdateSpanOverlayColor(cell, color);
                 break;
 
-            case PlanetOverlay.MigrationEvent:
-                color = SetMigrationEventOverlayColor(cell, color);
+            case PlanetOverlay.Migration:
+                color = SetMigrationOverlayColor(cell, color);
                 break;
 
             default:
@@ -4039,32 +4039,11 @@ public class Manager
         return color;
     }
 
-    private static Color SetMigrationEventOverlayColor(TerrainCell cell, Color color)
+    private static Color SetMigrationOverlayColor(TerrainCell cell, Color color)
     {
-        float normalizedValue = 0;
-        float population = 0;
-
         if ((cell.Group != null) && (cell.Group.HasMigrationEvent))
         {
-            population = cell.Group.Population;
-
-            //MigratePopulationEvent ev = cell.Group.PopulationMigrationEvent;
-
-            //long eventSpan = ev.TriggerDate - ev.SpawnDate;
-
-            //if (_manager._currentMaxMigEventSpan < eventSpan)
-            //    _manager._currentMaxMigEventSpan = eventSpan;
-
-            //normalizedValue = 1f - eventSpan / _manager._currentMaxMigEventSpan;
-
-            //normalizedValue = Mathf.Clamp01(normalizedValue);
-
-            normalizedValue = 1;
-        }
-
-        if ((population > 0) && (normalizedValue > 0))
-        {
-            color = Color.red * normalizedValue;
+            color = Color.red;
         }
 
         return color;

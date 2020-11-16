@@ -5,6 +5,8 @@ using UnityEngine;
 /// </summary>
 public abstract class MigratingPopulation
 {
+    public Polity Polity;
+
     public float ProminencePercent;
 
     public int TargetCellLongitude;
@@ -36,20 +38,30 @@ public abstract class MigratingPopulation
     /// <param name="prominenceValueDelta">how much the prominence value should change</param>
     /// <param name="population">population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
+    /// <param name="polity">the polity to which the migrating population belongs</param>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is moving out from the source</param>
+    /// <param name="migrationDirection">the direction this group is moving out from
+    /// the source</param>
     public MigratingPopulation(
         World world,
         float prominencePercent,
         float prominenceValueDelta,
         int population,
         CellGroup sourceGroup,
+        Polity polity,
         TerrainCell targetCell,
         Direction migrationDirection)
     {
         World = world;
 
-        SetInternal(prominencePercent, prominenceValueDelta, population, sourceGroup, targetCell, migrationDirection);
+        SetInternal(
+            prominencePercent,
+            prominenceValueDelta,
+            population,
+            sourceGroup,
+            polity,
+            targetCell,
+            migrationDirection);
     }
 
     /// <summary>
@@ -66,6 +78,7 @@ public abstract class MigratingPopulation
         float prominenceValueDelta,
         int population,
         CellGroup sourceGroup,
+        Polity polity,
         TerrainCell targetCell,
         Direction migrationDirection)
     {
@@ -91,6 +104,8 @@ public abstract class MigratingPopulation
 
         TargetCell = targetCell;
         SourceGroup = sourceGroup;
+
+        Polity = polity;
 
         SourceGroupId = SourceGroup.Id;
 
@@ -132,34 +147,30 @@ public abstract class MigratingPopulation
     /// </summary>
     public void MoveToCell()
     {
-        //if (Population <= 0)
-        //    return;
-
         CellGroup targetGroup = TargetCell.Group;
 
-        if (targetGroup != null)
+        if ((targetGroup != null) && (targetGroup.StillPresent))
         {
-            if (targetGroup.StillPresent)
-            {
-                MergeIntoGroup(targetGroup);
-
-                if (SourceGroup.MigrationTagged)
-                {
-                    World.MigrationTagGroup(TargetCell.Group);
-                }
-            }
+            MergeIntoGroup(targetGroup);
         }
         else
         {
             targetGroup = CreateGroupOnTarget();
 
             World.AddGroup(targetGroup);
-
-            if (SourceGroup.MigrationTagged)
-            {
-                World.MigrationTagGroup(targetGroup);
-            }
         }
+
+        if (SourceGroup.MigrationTagged)
+        {
+            World.MigrationTagGroup(targetGroup);
+        }
+
+        if (targetGroup.LastPopulationMigration == null)
+        {
+            targetGroup.LastPopulationMigration = new MigratingPopulationSnapshot();
+        }
+
+        targetGroup.LastPopulationMigration.Set(Population, SourceGroup, Polity?.Info);
     }
 
     /// <summary>
