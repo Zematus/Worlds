@@ -219,7 +219,10 @@ public class Manager
 
     public static int LastMapUpdateCount = 0;
     public static int LastPixelUpdateCount = 0;
-    public static long LastDateSpan = 0;
+    public static long LastDevModeDateSpan = 0;
+    public static long LastDevModeUpdateDate = 0;
+
+    public static long LastTextureUpdateDate = 0;
 
     public static bool DisableShortcuts = false;
 
@@ -2278,6 +2281,8 @@ public class Manager
         }
 
         ResetUpdatedAndHighlightedCells();
+
+        LastTextureUpdateDate = CurrentWorld.CurrentDate;
     }
 
     public static void UpdatePointerOverlayTextureColors(Color32[] textureColors)
@@ -2307,13 +2312,16 @@ public class Manager
     {
         Color32[] textureColors = _manager._currentMapOverlayTextureColors;
 
+        foreach (TerrainCell cell in _lastUpdatedCells)
+        {
+            if (UpdatedCells.Contains(cell))
+                continue;
+
+            UpdateMapOverlayTextureColorsFromCell(textureColors, cell);
+        }
+
         foreach (TerrainCell cell in UpdatedCells)
         {
-            if (cell == null)
-            {
-                throw new System.NullReferenceException("Updated cell is null");
-            }
-
             UpdateMapOverlayTextureColorsFromCell(textureColors, cell);
         }
     }
@@ -4041,9 +4049,31 @@ public class Manager
 
     private static Color SetMigrationOverlayColor(TerrainCell cell, Color color)
     {
-        if ((cell.Group != null) && (cell.Group.HasMigrationEvent))
+        if ((cell.Group != null)
+            && (cell.Group.LastPopulationMigration != null)
+            && (cell.Group.LastPopulationMigration.EndDate > LastTextureUpdateDate))
         {
-            color = Color.red;
+            MigratingPopulationSnapshot migrationPop = cell.Group.LastPopulationMigration;
+
+            if (migrationPop.PolityId != null)
+            {
+                color = GenerateColorFromId(migrationPop.PolityId);
+            }
+            else
+            {
+                color = Color.gray;
+            }
+        }
+        else if (cell.EncompassingTerritory != null)
+        {
+            Polity territoryPolity = cell.EncompassingTerritory.Polity;
+
+            color = GenerateColorFromId(territoryPolity.Id);
+            color *= 0.5f;
+        }
+        else if (cell.Group != null)
+        {
+            color = GetUnincorporatedGroupColor();
         }
 
         return color;

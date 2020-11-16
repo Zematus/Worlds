@@ -1599,11 +1599,14 @@ public class World : ISynchronizable, IWorldDateGetter
         CellGroupCount--;
     }
 
+    /// <summary>
+    /// Returns the cellgroup identified by the id
+    /// </summary>
+    /// <param name="id">the group's id</param>
+    /// <returns></returns>
     public CellGroup GetGroup(Identifier id)
     {
-        CellGroup group;
-
-        _cellGroups.TryGetValue(id, out group);
+        _cellGroups.TryGetValue(id, out CellGroup group);
 
         return group;
     }
