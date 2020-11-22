@@ -463,7 +463,7 @@ public class TerrainCell
 
     /// <summary>
     /// Estimates how much extra population space would exist on this cell based on
-    /// the source culture
+    /// the source unorganized bands' culture
     /// </summary>
     /// <param name="migratingCulture">the culture to use as reference</param>
     /// <param name="estimatedOptimalPopulation">estimated optimal population given
@@ -486,38 +486,90 @@ public class TerrainCell
         float targetAggressionValue =
             Group.Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
 
-        float aggressionDelta = targetAggressionValue - sourceAggressionValue;
+        float aggrDelta = targetAggressionValue - sourceAggressionValue;
 
-        float freeSpace;
+        float aggrIntensityConstant = 2;
 
-        if (aggressionDelta > 0)
-        {
-            // reduce the amount of free space avaialable;
+        float freeSpace = estimatedOptimalPopulation;
 
-            freeSpace = Mathf.Max(0, estimatedOptimalPopulation - Group.Population);
-            freeSpace *= Mathf.Clamp01(1 - aggressionDelta);
-        }
-        else
-        {
-            // increase the amount of free space avaialable;
+        float aggrPop = Group.Population * aggrDelta * aggrIntensityConstant;
 
-            float occupiedSpace = Group.Population * Mathf.Clamp01(1 + aggressionDelta);
-            freeSpace = Mathf.Max(0, estimatedOptimalPopulation - occupiedSpace);
-        }
+        freeSpace -= Math.Max(0, Group.Population + aggrPop);
 
         return freeSpace;
     }
 
     /// <summary>
-    /// Estimates how valuable this cell might be as a migration target
+    /// Estimates how much extra population space would exist on this cell based on
+    /// the source polity
+    /// </summary>
+    /// <param name="migratingPolity">the polity to use as reference</param>
+    /// <param name="estimatedOptimalPopulation">estimated optimal population given
+    /// the reference culture</param>
+    /// <returns>the amount of free space (in population)</returns>
+    public float EstimateMigratingPolityFreeSpace(
+        Polity migratingPolity, out float estimatedOptimalPopulation)
+    {
+        estimatedOptimalPopulation = EstimateOptimalPopulation(migratingPolity.Culture);
+
+        if (estimatedOptimalPopulation <= 0)
+            return 0;
+
+        if (Group == null)
+            return estimatedOptimalPopulation;
+
+        float sourceAggressionValue =
+            migratingPolity.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+
+        Group.CalculateGroupPrefValueSplit(
+            CulturalPreference.AggressionPreferenceId,
+            out float targetUbAggrValue,
+            out float targetPromAggrValue);
+
+        float promAggrDelta = targetPromAggrValue - sourceAggressionValue;
+        float ubAggrDelta = targetUbAggrValue - sourceAggressionValue;
+
+        float aggrIntensityConstant = 2;
+
+        //////
+
+        float freeSpace = estimatedOptimalPopulation;
+
+        if (targetPromAggrValue > 0)
+        {
+            float promPopulation = Group.Population * Group.TotalPolityProminenceValue;
+            float promAggrPop = promPopulation * promAggrDelta * aggrIntensityConstant;
+
+            freeSpace -= Math.Max(0, promPopulation + promAggrPop);
+        }
+
+        //////
+        
+        if (targetUbAggrValue > 0)
+        {
+            float ubEffectivenessConstant = 0.2f;
+            float ubPopulation = Group.Population * (1 - Group.TotalPolityProminenceValue);
+            float effectivePopulation = ubPopulation * ubEffectivenessConstant;
+            float upAggrPop = effectivePopulation * ubAggrDelta * aggrIntensityConstant;
+
+            freeSpace -= Mathf.Max(0, effectivePopulation + upAggrPop);
+        }
+
+        //////
+
+        return Mathf.Max(0, freeSpace);
+    }
+
+    /// <summary>
+    /// Estimates how valuable this cell might be as a migration target for unorganized
+    /// bands
     /// </summary>
     /// <param name="sourceGroup">the group from which the migration will arrive</param>
-    /// <param name="sourceCulture">the culture that might attempt migrating</param>
     /// <returns></returns>
-    public float CalculateMigrationValue(CellGroup sourceGroup, Culture sourceCulture)
+    public float CalculateUBMigrationValue(CellGroup sourceGroup)
     {
         float targetFreeSpace =
-            EstimateMigratingUBFreeSpace(sourceCulture, out float estimatedOptimalPop);
+            EstimateMigratingUBFreeSpace(sourceGroup.Culture, out float estimatedOptimalPop);
 
         if (targetFreeSpace <= 0)
             return 0;
@@ -535,6 +587,48 @@ public class TerrainCell
         float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceGroup.Cell);
 
         float cellValue = freeSpaceFactor * altitudeFactor;
+
+        if (float.IsNaN(cellValue))
+        {
+            throw new System.Exception("float.IsNaN(cellValue)");
+        }
+
+        return Mathf.Clamp01(cellValue);
+    }
+
+    /// <summary>
+    /// Calculates the migration value of a cell for a given polity
+    /// </summary>
+    /// <param name="sourceGroup">the group from which the migration will arrive</param>
+    /// <param name="polity">the polity to which the migrating population belongs</param>
+    /// <returns>the calculated migration value</returns>
+    public float CalculatePolityMigrationValue(
+        CellGroup sourceGroup, Polity polity)
+    {
+        float targetFreeSpace =
+            EstimateMigratingPolityFreeSpace(polity, out float estimatedOptimalPop);
+
+        if (targetFreeSpace <= 0)
+            return 0;
+
+        float sourceFreeSpace = sourceGroup.EstimatePolityFreeSpace();
+
+        float freeSpaceFactor =
+            targetFreeSpace / (targetFreeSpace + sourceFreeSpace);
+
+        float optimaPopulationFactor =
+            (estimatedOptimalPop + sourceGroup.OptimalPopulation * 2) / 3f;
+
+        freeSpaceFactor *= targetFreeSpace / optimaPopulationFactor;
+
+        float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceGroup.Cell);
+
+        float cellValue = freeSpaceFactor * altitudeFactor;
+
+        if (Region != polity.CoreRegion)
+        {
+            cellValue *= 0.1f;
+        }
 
         if (float.IsNaN(cellValue))
         {

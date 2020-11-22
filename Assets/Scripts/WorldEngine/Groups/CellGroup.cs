@@ -1260,18 +1260,6 @@ public class CellGroup : Identifiable, IFlagHolder
     }
 
     /// <summary>
-    /// Calculates the current migration value of a cell that is a possible target for
-    /// migration of unorganized bands.
-    /// The value returned will be a value between 0 and 1.
-    /// </summary>
-    /// <param name="cell">the target cell</param>
-    /// <returns>a migration value between 0 and 1</returns>
-    public float CalculateUBMigrationValue(TerrainCell cell)
-    {
-        return cell.CalculateMigrationValue(this, Culture);
-    }
-
-    /// <summary>
     /// Returns the respective unorganized bands and prominences values on a group for
     /// a given preference
     /// </summary>
@@ -1334,9 +1322,18 @@ public class CellGroup : Identifiable, IFlagHolder
             out float ubAggrValue,
             out float prominenceAggrValue);
 
-        return Mathf.Clamp(prominenceAggrValue - ubAggrValue, -1, 1);
+        float aggrIntensityConstant = 2;
+
+        float encroachment = (prominenceAggrValue - ubAggrValue) * aggrIntensityConstant;
+
+        return Mathf.Clamp(encroachment, -1, 1);
     }
 
+    /// <summary>
+    /// Estimates the amount of free space that this cell would have for unorganized
+    /// bands
+    /// </summary>
+    /// <returns>the estimated free space (in population)</returns>
     public float EstimateUnorganizedBandsFreeSpace()
     {
         float encroachment = CalculateEncroachmentUnorganizedBands();
@@ -1348,6 +1345,24 @@ public class CellGroup : Identifiable, IFlagHolder
         else
         {
             return Mathf.Max(0, OptimalPopulation - Population * (1 + encroachment));
+        }
+    }
+
+    /// <summary>
+    /// Estimates the amount of free space that this cell would have for polity populations
+    /// </summary>
+    /// <returns>the estimated free space (in population)</returns>
+    public float EstimatePolityFreeSpace()
+    {
+        float encroachment = CalculateEncroachmentUnorganizedBands();
+
+        if (encroachment < 0)
+        {
+            return Mathf.Max(0, (OptimalPopulation - Population) * (1 + encroachment));
+        }
+        else
+        {
+            return Mathf.Max(0, OptimalPopulation - Population * (1 - encroachment));
         }
     }
 
@@ -1364,10 +1379,10 @@ public class CellGroup : Identifiable, IFlagHolder
         // if no polity is given, then return the value calculated for the unorganized bands 
         if (migratingPolity == null)
         {
-            return CalculateUBMigrationValue(cell);
+            return cell.CalculateUBMigrationValue(this);
         }
 
-        return migratingPolity.CalculateMigrationValue(this, cell);
+        return cell.CalculatePolityMigrationValue(this, migratingPolity);
     }
 
     /// <summary>
@@ -2049,7 +2064,54 @@ public class CellGroup : Identifiable, IFlagHolder
         float neighborhoodValue = 0;
         foreach (TerrainCell nCell in Cell.NeighborList)
         {
-            neighborhoodValue = Mathf.Max(neighborhoodValue, CalculateUBMigrationValue(nCell));
+            neighborhoodValue =
+                Mathf.Max(neighborhoodValue, nCell.CalculateUBMigrationValue(this));
+        }
+
+        // This will reduce the effect that low value cells have
+        neighborhoodValue = Mathf.Clamp01(neighborhoodValue - 0.1f);
+
+        neighborhoodValue = 100000 * Mathf.Pow(neighborhoodValue, 4);
+
+        return neighborhoodValue / (1 + neighborhoodValue);
+    }
+
+    /// <summary>
+    /// Calculates how much pressure there is for a polity population to migrate
+    /// out of this group's cell
+    /// </summary>
+    /// <param name="migratingPolity">the polity the pressure will be calculated for</param>
+    /// <returns>the pressure value</returns>
+    public float CalculatePolityMigrationPressure(Polity migratingPolity)
+    {
+        float populationFactor;
+
+        if (OptimalPopulation > 0)
+        {
+            populationFactor = Population / (float)OptimalPopulation;
+        }
+        else
+        {
+            return 1;
+        }
+
+        //#if DEBUG
+        //        if (group.Cell.IsSelected)
+        //        {
+        //            Debug.LogWarning("Debugging cell " + group.Cell.Position);
+        //        }
+        //#endif
+
+        // if the population is not near its optimum then don't add pressure
+        if (populationFactor < 0.9f)
+            return 0;
+
+        float neighborhoodValue = 0;
+        foreach (TerrainCell nCell in Cell.NeighborList)
+        {
+            neighborhoodValue = Mathf.Max(
+                neighborhoodValue,
+                nCell.CalculatePolityMigrationValue(this, migratingPolity));
         }
 
         // This will reduce the effect that low value cells have
@@ -2081,7 +2143,7 @@ public class CellGroup : Identifiable, IFlagHolder
             if (pressure >= 1)
                 return 1;
 
-            pressure = Mathf.Max(pressure, prominence.Polity.CalculateMigrationPressure(this));
+            pressure = Mathf.Max(pressure, CalculatePolityMigrationPressure(prominence.Polity));
         }
 
         return pressure;
