@@ -430,14 +430,16 @@ public class TerrainCell
     /// <returns>The estimated optimal population</returns>
     public int EstimateOptimalPopulation(Culture culture)
     {
-        float populationCapacity = EstimatePopulationCapacity(culture);
+        return (int)EstimatePopulationCapacity(culture);
 
-        float aggressionFactor = EstimateAggressionFactor(culture);
-        aggressionFactor = 1 - (0.3f * aggressionFactor);
+        //float populationCapacity = EstimatePopulationCapacity(culture);
 
-        float estimatedOptimalPopulation = populationCapacity * aggressionFactor;
+        //float aggressionFactor = EstimateAggressionFactor(culture);
+        //aggressionFactor = 1 - (0.3f * aggressionFactor);
 
-        return (int)estimatedOptimalPopulation;
+        //float estimatedOptimalPopulation = populationCapacity * aggressionFactor;
+
+        //return (int)estimatedOptimalPopulation;
     }
 
     /// <summary>
@@ -462,100 +464,71 @@ public class TerrainCell
     }
 
     /// <summary>
-    /// Estimates how much extra population space would exist on this cell based on
-    /// the source unorganized bands' culture
+    /// Estimates how much extra population space would exist on this cell for unorganized
+    /// bands
     /// </summary>
-    /// <param name="migratingCulture">the culture to use as reference</param>
-    /// <param name="estimatedOptimalPopulation">estimated optimal population given
-    /// the reference culture</param>
+    /// <param name="estimatedOptimalPopulation">estimated optimal population</param>
     /// <returns>the amount of free space (in population)</returns>
-    public float EstimateMigratingUBFreeSpace(
-        Culture migratingCulture, out float estimatedOptimalPopulation)
+    public float EstimateMigratingUBFreeSpace(float estimatedOptimalPopulation)
     {
-        estimatedOptimalPopulation = EstimateOptimalPopulation(migratingCulture);
-
         if (estimatedOptimalPopulation <= 0)
             return 0;
 
         if (Group == null)
             return estimatedOptimalPopulation;
 
-        float sourceAggressionValue =
-            migratingCulture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
-
-        float targetAggressionValue =
-            Group.Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
-
-        float aggrDelta = targetAggressionValue - sourceAggressionValue;
-
-        float aggrIntensityConstant = 2;
-
         float freeSpace = estimatedOptimalPopulation;
 
-        float aggrPop = Group.Population * aggrDelta * aggrIntensityConstant;
+        ////////
 
-        freeSpace -= Math.Max(0, Group.Population + aggrPop);
+        float ubEffectivenessConstant = 0.2f;
+        float promPopulation = Group.Population * Group.TotalPolityProminenceValue;
+        float effectivePopulation = promPopulation / ubEffectivenessConstant;
 
-        return freeSpace;
+        freeSpace -= Math.Max(0, effectivePopulation);
+
+        ////////
+
+        float ubPopulation = Group.Population * (1 - Group.TotalPolityProminenceValue);
+
+        freeSpace -= Mathf.Max(0, ubPopulation);
+
+        ////////
+
+        return Mathf.Max(0, freeSpace);
     }
 
     /// <summary>
-    /// Estimates how much extra population space would exist on this cell based on
-    /// the source polity
+    /// Estimates how much extra population space would exist on this cell for a
+    /// polity
     /// </summary>
-    /// <param name="migratingPolity">the polity to use as reference</param>
-    /// <param name="estimatedOptimalPopulation">estimated optimal population given
-    /// the reference culture</param>
+    /// <param name="estimatedOptimalPopulation">estimated optimal population</param>
     /// <returns>the amount of free space (in population)</returns>
-    public float EstimateMigratingPolityFreeSpace(
-        Polity migratingPolity, out float estimatedOptimalPopulation)
+    public float EstimateMigratingPolityFreeSpace(float estimatedOptimalPopulation)
     {
-        estimatedOptimalPopulation = EstimateOptimalPopulation(migratingPolity.Culture);
-
         if (estimatedOptimalPopulation <= 0)
             return 0;
 
         if (Group == null)
             return estimatedOptimalPopulation;
 
-        float sourceAggressionValue =
-            migratingPolity.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
-
-        Group.CalculateGroupPrefValueSplit(
-            CulturalPreference.AggressionPreferenceId,
-            out float targetUbAggrValue,
-            out float targetPromAggrValue);
-
-        float promAggrDelta = targetPromAggrValue - sourceAggressionValue;
-        float ubAggrDelta = targetUbAggrValue - sourceAggressionValue;
-
-        float aggrIntensityConstant = 2;
-
-        //////
-
         float freeSpace = estimatedOptimalPopulation;
 
-        if (targetPromAggrValue > 0)
-        {
-            float promPopulation = Group.Population * Group.TotalPolityProminenceValue;
-            float promAggrPop = promPopulation * promAggrDelta * aggrIntensityConstant;
-
-            freeSpace -= Math.Max(0, promPopulation + promAggrPop);
-        }
-
-        //////
+        ////////
         
-        if (targetUbAggrValue > 0)
-        {
-            float ubEffectivenessConstant = 0.2f;
-            float ubPopulation = Group.Population * (1 - Group.TotalPolityProminenceValue);
-            float effectivePopulation = ubPopulation * ubEffectivenessConstant;
-            float upAggrPop = effectivePopulation * ubAggrDelta * aggrIntensityConstant;
+        float promPopulation = Group.Population * Group.TotalPolityProminenceValue;
 
-            freeSpace -= Mathf.Max(0, effectivePopulation + upAggrPop);
-        }
+        freeSpace -= Math.Max(0, promPopulation);
 
-        //////
+        ////////
+
+        float ubEffectivenessConstant = 0.2f;
+        float ubPopulation = Group.Population * (1 - Group.TotalPolityProminenceValue);
+        float effectivePopulation = ubPopulation * ubEffectivenessConstant;
+
+        freeSpace -= Mathf.Max(0, effectivePopulation);
+
+        ////////
 
         return Mathf.Max(0, freeSpace);
     }
@@ -568,19 +541,26 @@ public class TerrainCell
     /// <returns></returns>
     public float CalculateUBMigrationValue(CellGroup sourceGroup)
     {
+        float targetOptimalPop =
+            EstimateOptimalPopulation(sourceGroup.Culture);
+
         float targetFreeSpace =
-            EstimateMigratingUBFreeSpace(sourceGroup.Culture, out float estimatedOptimalPop);
+            EstimateMigratingUBFreeSpace(targetOptimalPop);
 
         if (targetFreeSpace <= 0)
             return 0;
 
-        float sourceFreeSpace = sourceGroup.EstimateUnorganizedBandsFreeSpace();
+        float sourceOptimalPop =
+            sourceGroup.Cell.EstimateOptimalPopulation(sourceGroup.Culture);
+
+        float sourceFreeSpace =
+            sourceGroup.Cell.EstimateMigratingUBFreeSpace(sourceOptimalPop);
 
         float freeSpaceFactor =
             targetFreeSpace / (targetFreeSpace + sourceFreeSpace);
 
         float optimaPopulationFactor =
-            (estimatedOptimalPop + sourceGroup.OptimalPopulation * 2) / 3f;
+            (targetOptimalPop + sourceOptimalPop * 2) / 3f;
 
         freeSpaceFactor *= targetFreeSpace / optimaPopulationFactor;
 
@@ -604,19 +584,26 @@ public class TerrainCell
     /// <returns>the calculated migration value</returns>
     public float CalculatePolityMigrationValue(CellGroup sourceGroup, Polity polity)
     {
+        float targetOptimalPop =
+            EstimateOptimalPopulation(polity.Culture);
+
         float targetFreeSpace =
-            EstimateMigratingPolityFreeSpace(polity, out float estimatedOptimalPop);
+            EstimateMigratingPolityFreeSpace(targetOptimalPop);
 
         if (targetFreeSpace <= 0)
             return 0;
 
-        float sourceFreeSpace = sourceGroup.EstimatePolityFreeSpace();
+        float sourceOptimalPop =
+            sourceGroup.Cell.EstimateOptimalPopulation(polity.Culture);
+
+        float sourceFreeSpace =
+            sourceGroup.Cell.EstimateMigratingPolityFreeSpace(sourceOptimalPop);
 
         float freeSpaceFactor =
             targetFreeSpace / (targetFreeSpace + sourceFreeSpace);
 
         float optimaPopulationFactor =
-            (estimatedOptimalPop + sourceGroup.OptimalPopulation * 2) / 3f;
+            (targetOptimalPop + sourceOptimalPop * 2) / 3f;
 
         freeSpaceFactor *= targetFreeSpace / optimaPopulationFactor;
 
