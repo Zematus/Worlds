@@ -1330,43 +1330,6 @@ public class CellGroup : Identifiable, IFlagHolder
     }
 
     /// <summary>
-    /// Estimates the amount of free space that this cell would have for unorganized
-    /// bands
-    /// </summary>
-    /// <returns>the estimated free space (in population)</returns>
-    public float EstimateUnorganizedBandsFreeSpace()
-    {
-        float encroachment = CalculateEncroachmentUnorganizedBands();
-
-        if (encroachment > 0)
-        {
-            return Mathf.Max(0, (OptimalPopulation - Population) * (1 - encroachment));
-        }
-        else
-        {
-            return Mathf.Max(0, OptimalPopulation - Population * (1 + encroachment));
-        }
-    }
-
-    /// <summary>
-    /// Estimates the amount of free space that this cell would have for polity populations
-    /// </summary>
-    /// <returns>the estimated free space (in population)</returns>
-    public float EstimatePolityFreeSpace()
-    {
-        float encroachment = CalculateEncroachmentUnorganizedBands();
-
-        if (encroachment < 0)
-        {
-            return Mathf.Max(0, (OptimalPopulation - Population) * (1 + encroachment));
-        }
-        else
-        {
-            return Mathf.Max(0, OptimalPopulation - Population * (1 - encroachment));
-        }
-    }
-
-    /// <summary>
     /// Calculates the current value of a cell considered as a migration target
     /// The value returned will be a value between 0 and 1.
     /// </summary>
