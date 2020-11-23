@@ -1392,17 +1392,27 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <param name="migratingPolity">the polity that intend to migrate
     /// (null if migrating unorganized bands)</param>
     /// <returns>Migration chance as a value between 0 and 1</returns>
-    public float CalculateMigrationChance(TerrainCell cell, Polity migratingPolity = null)
+    public float CalculateMigrationChance(
+        TerrainCell cell,
+        out float migrationValue,
+        Polity migratingPolity = null)
     {
         float offset = -0.1f;
-        float migrationValue = CalculateMigrationValue(cell, migratingPolity);
+        migrationValue = CalculateMigrationValue(cell, migratingPolity);
 
         float unbiasedChance = Mathf.Clamp01(migrationValue + offset);
 
         // Bias the value toward 1
         float chance = 1 - Mathf.Pow(1 - unbiasedChance, 4);
 
-        return chance;
+#if DEBUG
+        if ((migratingPolity != null) && (chance > 0))
+        {
+            Debug.LogWarning("Debugging polity migration");
+        }
+#endif
+
+        return Mathf.Clamp01(chance);
     }
 
     /// <summary>
@@ -1430,7 +1440,7 @@ public class CellGroup : Identifiable, IFlagHolder
 //        }
 //#endif
 
-        float cellChance = CalculateMigrationChance(targetCell, polity);
+        float cellChance = CalculateMigrationChance(targetCell, out float migrationValue, polity);
 
         if (cellChance <= 0)
             return;
@@ -1486,8 +1496,15 @@ public class CellGroup : Identifiable, IFlagHolder
             return;
         }
 
+        float maxProminencePercent = Mathf.Clamp01(migrationValue);
+
         SetPopulationMigrationEvent(
-            targetCell, migrationDirection, MigrationType.Land, cellChance, polity?.Id, arrivalDate);
+            targetCell,
+            migrationDirection,
+            MigrationType.Land,
+            maxProminencePercent,
+            polity?.Id,
+            arrivalDate);
     }
 
     /// <summary>
@@ -1522,7 +1539,7 @@ public class CellGroup : Identifiable, IFlagHolder
         if (targetCell == null)
             return;
 
-        float cellChance = CalculateMigrationChance(targetCell, polity);
+        float cellChance = CalculateMigrationChance(targetCell, out float migrationValue, polity);
 
         if (cellChance <= 0)
             return;
@@ -1569,8 +1586,35 @@ public class CellGroup : Identifiable, IFlagHolder
 
         SeaMigrationRoute.Used = true;
 
+        float maxProminencePercent = Mathf.Clamp01(migrationValue);
+
         SetPopulationMigrationEvent(
-            targetCell, migrationDirection, MigrationType.Sea, cellChance, polity?.Id, nextDate);
+            targetCell,
+            migrationDirection,
+            MigrationType.Sea,
+            maxProminencePercent,
+            polity?.Id,
+            nextDate);
+    }
+
+    /// <summary>
+    /// Calculates the max percent of the prominence population to migrate during
+    /// a migration event
+    /// </summary>
+    /// <param name="cellValue">the migration value of the target cell</param>
+    /// <param name="polityId">the id of the polity to migrate (if any)</param>
+    /// <returns>the max percent of prominence population to migrate</returns>
+    private float CalculateMaxProminencePercentToMigrate(float cellValue, Identifier polityId)
+    {
+        if (polityId != null)
+        {
+            // We don't want the entire polity prominence to migrate
+            float polityConstant = 0.4f;
+
+            return Mathf.Clamp01(cellValue * polityConstant);
+        }
+
+        return Mathf.Clamp01(cellValue);
     }
 
     /// <summary>
@@ -1579,13 +1623,13 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <param name="targetCell">cell which the group population will migrate toward</param>
     /// <param name="migrationDirection">direction toward which the migration will occur</param>
     /// <param name="migrationType">'Land' or 'Sea' migration</param>
-    /// <param name="maxProminencePercent">limit to the prominence value to migrate out</param>
+    /// <param name="cellValue">the migration value of the target cell</param>
     /// <param name="nextDate">the next date on which this event should trigger</param>
     private void SetPopulationMigrationEvent(
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
-        float maxProminencePercent,
+        float cellValue,
         Identifier polityId,
         long nextDate)
     {
@@ -1593,14 +1637,21 @@ public class CellGroup : Identifiable, IFlagHolder
 
         float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
 
+        float maxProminencePercent = CalculateMaxProminencePercentToMigrate(cellValue, polityId);
+
         float prominencePercent = maxProminencePercent * randomFactor * overflowFactor;
 
-//#if DEBUG
-//        if (prominencePercent >= 1)
-//        {
-//            Debug.LogWarning("prominence percent equal or greater than 1: " + prominencePercent);
-//        }
-//#endif
+#if DEBUG
+        if (polityId != null)
+        {
+            Debug.LogWarning("Debugging polity migration");
+        }
+
+        if (Cell.IsSelected)
+        {
+            Debug.LogWarning("Debugging polity migration");
+        }
+#endif
 
         prominencePercent = Mathf.Clamp01(prominencePercent);
 

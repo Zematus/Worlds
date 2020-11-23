@@ -593,7 +593,7 @@ public class TerrainCell
             throw new System.Exception("float.IsNaN(cellValue)");
         }
 
-        return Mathf.Clamp01(cellValue);
+        return cellValue;
     }
 
     /// <summary>
@@ -602,8 +602,7 @@ public class TerrainCell
     /// <param name="sourceGroup">the group from which the migration will arrive</param>
     /// <param name="polity">the polity to which the migrating population belongs</param>
     /// <returns>the calculated migration value</returns>
-    public float CalculatePolityMigrationValue(
-        CellGroup sourceGroup, Polity polity)
+    public float CalculatePolityMigrationValue(CellGroup sourceGroup, Polity polity)
     {
         float targetFreeSpace =
             EstimateMigratingPolityFreeSpace(polity, out float estimatedOptimalPop);
@@ -635,7 +634,20 @@ public class TerrainCell
             throw new System.Exception("float.IsNaN(cellValue)");
         }
 
-        return Mathf.Clamp01(cellValue);
+//#if DEBUG
+//        if ((polity != null) && (cellValue > 0.8f))
+//        {
+//            Debug.LogWarning("Debugging polity migration");
+
+//            /// recalculating for debugging reasons
+//            targetFreeSpace =
+//                EstimateMigratingPolityFreeSpace(polity, out estimatedOptimalPop);
+
+//            sourceFreeSpace = sourceGroup.EstimatePolityFreeSpace();
+//        }
+//#endif
+
+        return cellValue;
     }
 
     /// <summary>
