@@ -1339,13 +1339,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>Migration value</returns>
     public float CalculateMigrationValue(TerrainCell cell, Polity migratingPolity = null)
     {
-        // if no polity is given, then return the value calculated for the unorganized bands 
-        if (migratingPolity == null)
-        {
-            return cell.CalculateUBMigrationValue(this);
-        }
-
-        return cell.CalculatePolityMigrationValue(this, migratingPolity);
+        return cell.CalculateMigrationValue(this, migratingPolity);
     }
 
     /// <summary>
@@ -1360,6 +1354,13 @@ public class CellGroup : Identifiable, IFlagHolder
         out float migrationValue,
         Polity migratingPolity = null)
     {
+#if DEBUG
+        if (cell.IsSelected)
+        {
+            Debug.LogWarning("Debugging selected cell migration chance");
+        }
+#endif
+
         float offset = -0.1f;
         migrationValue = CalculateMigrationValue(cell, migratingPolity);
 
@@ -1367,13 +1368,6 @@ public class CellGroup : Identifiable, IFlagHolder
 
         // Bias the value toward 1
         float chance = 1 - Mathf.Pow(1 - unbiasedChance, 4);
-
-#if DEBUG
-        if ((migratingPolity != null) && (chance > 0))
-        {
-            Debug.LogWarning("Debugging polity migration");
-        }
-#endif
 
         return Mathf.Clamp01(chance);
     }
@@ -1569,14 +1563,6 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>the max percent of prominence population to migrate</returns>
     private float CalculateMaxProminencePercentToMigrate(float cellValue, Identifier polityId)
     {
-        if (polityId != null)
-        {
-            // We don't want the entire polity prominence to migrate
-            float polityConstant = 0.4f;
-
-            return Mathf.Clamp01(cellValue * polityConstant);
-        }
-
         return Mathf.Clamp01(cellValue);
     }
 
@@ -2045,11 +2031,12 @@ public class CellGroup : Identifiable, IFlagHolder
     }
 
     /// <summary>
-    /// Calculates how much pressure there is for unorganized bands to migrate
+    /// Calculates how much pressure there is to migrate
     /// out of this cell
     /// </summary>
-    /// <returns>the migration presure value</returns>
-    public float CalculateUBMigrationPressure()
+    /// <param name="migratingPolity">the polity the pressure will be calculated for</param>
+    /// <returns>the pressure value</returns>
+    public float CalculateMigrationPressure(Polity migratingPolity)
     {
         float populationFactor;
 
@@ -2061,13 +2048,6 @@ public class CellGroup : Identifiable, IFlagHolder
         {
             return 1;
         }
-
-        //#if DEBUG
-        //        if (Cell.IsSelected)
-        //        {
-        //            Debug.LogWarning("Debugging cell " + Cell.Position);
-        //        }
-        //#endif
 
         float minPopulationFactor = 0.90f;
 
@@ -2079,53 +2059,7 @@ public class CellGroup : Identifiable, IFlagHolder
         foreach (TerrainCell nCell in Cell.NeighborList)
         {
             neighborhoodValue =
-                Mathf.Max(neighborhoodValue, nCell.CalculateUBMigrationValue(this));
-        }
-
-        // This will reduce the effect that low value cells have
-        neighborhoodValue = Mathf.Clamp01(neighborhoodValue - 0.1f);
-
-        neighborhoodValue = 100000 * Mathf.Pow(neighborhoodValue, 4);
-
-        return neighborhoodValue / (1 + neighborhoodValue);
-    }
-
-    /// <summary>
-    /// Calculates how much pressure there is for a polity population to migrate
-    /// out of this group's cell
-    /// </summary>
-    /// <param name="migratingPolity">the polity the pressure will be calculated for</param>
-    /// <returns>the pressure value</returns>
-    public float CalculatePolityMigrationPressure(Polity migratingPolity)
-    {
-        float populationFactor;
-
-        if (OptimalPopulation > 0)
-        {
-            populationFactor = Population / (float)OptimalPopulation;
-        }
-        else
-        {
-            return 1;
-        }
-
-        //#if DEBUG
-        //        if (group.Cell.IsSelected)
-        //        {
-        //            Debug.LogWarning("Debugging cell " + group.Cell.Position);
-        //        }
-        //#endif
-
-        // if the population is not near its optimum then don't add pressure
-        if (populationFactor < 0.9f)
-            return 0;
-
-        float neighborhoodValue = 0;
-        foreach (TerrainCell nCell in Cell.NeighborList)
-        {
-            neighborhoodValue = Mathf.Max(
-                neighborhoodValue,
-                nCell.CalculatePolityMigrationValue(this, migratingPolity));
+                Mathf.Max(neighborhoodValue, nCell.CalculateMigrationValue(this, migratingPolity));
         }
 
         // This will reduce the effect that low value cells have
@@ -2148,7 +2082,7 @@ public class CellGroup : Identifiable, IFlagHolder
             return 0;
 
         // Get the pressure from unorganized bands
-        float pressure = CalculateUBMigrationPressure();
+        float pressure = CalculateMigrationPressure(null);
 
         // Get the pressure from polity populations
         foreach (PolityProminence prominence in _polityProminences.Values)
@@ -2157,7 +2091,7 @@ public class CellGroup : Identifiable, IFlagHolder
             if (pressure >= 1)
                 return 1;
 
-            pressure = Mathf.Max(pressure, CalculatePolityMigrationPressure(prominence.Polity));
+            pressure = Mathf.Max(pressure, CalculateMigrationPressure(prominence.Polity));
         }
 
         return pressure;
