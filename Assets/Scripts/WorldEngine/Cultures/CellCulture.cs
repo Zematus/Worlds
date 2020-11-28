@@ -363,7 +363,12 @@ public class CellCulture : Culture
         }
     }
 
-    public void UpdatePolityCulturalProminence(PolityProminence polityProminence, long timeSpan)
+    /// <summary>
+    /// Updates a cell's culture with the influence of a prominence's polity culture
+    /// </summary>
+    /// <param name="polityProminence">the influencing prominence</param>
+    /// <param name="timeSpan">the time span since the last cell update</param>
+    public void UpdateProminenceCulturalProperties(PolityProminence polityProminence, long timeSpan)
     {
         PolityCulture polityCulture = polityProminence.Polity.Culture;
 
@@ -441,7 +446,11 @@ public class CellCulture : Culture
         }
     }
 
-    public void PostUpdatePolityCulturalProminence(PolityProminence polityProminence)
+    /// <summary>
+    /// Post updates a cell culture through the influence of a polity prominence
+    /// </summary>
+    /// <param name="polityProminence">the influencing prominence</param>
+    public void PostUpdateProminenceCulturalProperties(PolityProminence polityProminence)
     {
         PolityCulture polityCulture = polityProminence.Polity.Culture;
 

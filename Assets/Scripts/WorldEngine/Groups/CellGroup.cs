@@ -978,9 +978,9 @@ public class CellGroup : Identifiable, IFlagHolder
 
         SetPolityUpdates();
 
-        UpdatePolityProminences();
+        PostUpdatePolityProminences();
 
-        PostUpdatePolityCulturalProminences();
+        PostUpdateProminenceCulturalProperties();
 
         CalculatePolityPromCoreDistances();
     }
@@ -1006,9 +1006,9 @@ public class CellGroup : Identifiable, IFlagHolder
         // be sure if a group might get affected by a polity update after
         // it has already been updated
 
-        UpdatePolityProminences(true);
+        PostUpdatePolityProminences(true);
 
-        PostUpdatePolityCulturalProminences();
+        PostUpdateProminenceCulturalProperties();
     }
 
     public void SetToBecomeFactionCore(Faction faction)
@@ -1339,6 +1339,14 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>Migration value</returns>
     public float CalculateMigrationValue(TerrainCell cell, Polity migratingPolity = null)
     {
+        if (Cell.IsSelected)
+        {
+            if ((cell.Group != null) && (cell.Group.TotalPolityProminenceValue <= 0))
+            {
+                Debug.LogWarning("Debugging migration value");
+            }
+        }
+
         return cell.CalculateMigrationValue(this, migratingPolity);
     }
 
@@ -1700,6 +1708,10 @@ public class CellGroup : Identifiable, IFlagHolder
     public static UpdateCalledDelegate UpdateCalled = null;
 #endif
 
+    /// <summary>
+    /// Performs all update operations on a group without finalizing them, which is
+    /// done during the post updates
+    /// </summary>
     public void Update()
     {
         if (!StillPresent)
@@ -1736,9 +1748,15 @@ public class CellGroup : Identifiable, IFlagHolder
 
         //Profiler.EndSample();
 
-        //Profiler.BeginSample("Update Polity Cultural Prominences");
+        //Profiler.BeginSample("Update Polity Prominences");
 
-        UpdatePolityCulturalProminences(timeSpan);
+        UpdatePolityProminences(timeSpan);
+
+        //Profiler.EndSample();
+
+        //Profiler.BeginSample("Update Prominence Cultural Promerties");
+
+        UpdateProminenceCulturalProperties(timeSpan);
 
         //Profiler.EndSample();
 
@@ -1880,19 +1898,76 @@ public class CellGroup : Identifiable, IFlagHolder
         ExactPopulation = PopulationAfterTime(timeSpan);
     }
 
-    private void UpdatePolityCulturalProminences(long timeSpan)
+    /// <summary>
+    /// Updates the groups polity prominences
+    /// </summary>
+    /// <param name="timeSpan">the time span since the last cell update</param>
+    private void UpdatePolityProminences(long timeSpan)
     {
         foreach (PolityProminence pi in _polityProminences.Values)
         {
-            Culture.UpdatePolityCulturalProminence(pi, timeSpan);
+            UpdatePolityProminence(pi, timeSpan);
         }
     }
 
-    private void PostUpdatePolityCulturalProminences()
+    /// <summary>
+    /// Updates a polity prominence in the group
+    /// </summary>
+    /// <param name="polityProminence">the prominence to update</param>
+    /// <param name="timeSpan">the time span since the last cell update</param>
+    private void UpdatePolityProminence(PolityProminence polityProminence, long timeSpan)
+    {
+        // Perform acculturation
+
+        Culture polityCulture = polityProminence.Polity.Culture;
+
+        float polityIsolationPrefValue =
+            polityCulture.GetPreferenceValue(CulturalPreference.IsolationPreferenceId);
+
+        float groupIsolationPrefValue =
+            Culture.GetPreferenceValue(CulturalPreference.IsolationPreferenceId);
+
+        float maxIsolationPrefValue = Mathf.Max(polityIsolationPrefValue, groupIsolationPrefValue);
+
+        float opennessFactor = 1 - maxIsolationPrefValue;
+
+        //float prominenceFactor = polityProminence.Value / TotalPolityProminenceValue;
+        float prominenceFactor = polityProminence.Value * (1 - TotalPolityProminenceValue) * 4f;
+
+        float randomFactor = Cell.GetNextLocalRandomFloat(
+            RngOffsets.CELL_GROUP_UB_ACCULTURATION + polityProminence.PolityId.GetHashCode());
+
+        float expectedSpanConstant = GenerationSpan;
+        float timeFactor = timeSpan / (timeSpan + expectedSpanConstant);
+
+        float transferConstant = 0.75f;
+
+        float acculturation =
+            opennessFactor * prominenceFactor * randomFactor * timeFactor * transferConstant;
+
+        AddUBandsProminenceValueDelta(-acculturation);
+    }
+
+    /// <summary>
+    /// Updates a cell's culture with the influence of its prominences
+    /// </summary>
+    /// <param name="timeSpan">the time span since the last cell update</param>
+    private void UpdateProminenceCulturalProperties(long timeSpan)
     {
         foreach (PolityProminence pi in _polityProminences.Values)
         {
-            Culture.PostUpdatePolityCulturalProminence(pi);
+            Culture.UpdateProminenceCulturalProperties(pi, timeSpan);
+        }
+    }
+
+    /// <summary>
+    /// Post updates a cell culture through the influence of its polity prominences
+    /// </summary>
+    private void PostUpdateProminenceCulturalProperties()
+    {
+        foreach (PolityProminence pi in _polityProminences.Values)
+        {
+            Culture.PostUpdateProminenceCulturalProperties(pi);
         }
     }
 
@@ -2038,11 +2113,6 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>the pressure value</returns>
     public float CalculateMigrationPressure(Polity migratingPolity)
     {
-        if (Cell.IsSelected)
-        {
-            Debug.LogWarning("Debugging migration pressure");
-        }
-
         float populationFactor;
 
         if (OptimalPopulation > 0)
@@ -2420,7 +2490,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// </summary>
     public void UpdatePolityProminences_test()
     {
-        UpdatePolityProminences();
+        PostUpdatePolityProminences();
     }
 
     /// <summary>
@@ -2438,11 +2508,11 @@ public class CellGroup : Identifiable, IFlagHolder
 #endif
 
     /// <summary>
-    /// Updates polity prominences and values
+    /// Post updates polity prominences and values
     /// </summary>
     /// <param name="afterPolityUpdates">
     /// Set to true if this function is being called after polity updates have been done</param>
-    private void UpdatePolityProminences(bool afterPolityUpdates = false)
+    private void PostUpdatePolityProminences(bool afterPolityUpdates = false)
     {
         // Remove prominences that were forcibly declared to be removed
         RemovePolityProminences(!afterPolityUpdates);
