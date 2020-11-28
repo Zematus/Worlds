@@ -16,8 +16,7 @@ public static class RngOffsets
     public const int CELL_GROUP_PICK_MIGRATION_DIRECTION = 7;
     public const int CELL_GROUP_PICK_MIGRATING_POPULATION = 8;
     public const int CELL_GROUP_PICK_PROMINENCE_PERCENT = 9;
-    [System.Obsolete]
-    public const int CELL_GROUP_PICK_PROMINENCE_TRANSFER_DIRECTION = 8;
+    public const int CELL_GROUP_UB_ACCULTURATION = 10;
 
     public const int PREFERENCE_UPDATE = 10000;
     public const int PREFERENCE_POLITY_PROMINENCE = 10100;
