@@ -1339,6 +1339,7 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>Migration value</returns>
     public float CalculateMigrationValue(TerrainCell cell, Polity migratingPolity = null)
     {
+#if DEBUG
         if (Cell.IsSelected)
         {
             if ((cell.Group != null) && (cell.Group.TotalPolityProminenceValue <= 0))
@@ -1346,6 +1347,7 @@ public class CellGroup : Identifiable, IFlagHolder
                 Debug.LogWarning("Debugging migration value");
             }
         }
+#endif
 
         return cell.CalculateMigrationValue(this, migratingPolity);
     }
@@ -2163,10 +2165,13 @@ public class CellGroup : Identifiable, IFlagHolder
         foreach (PolityProminence prominence in _polityProminences.Values)
         {
             // 1 should be the max amount of pressure possible. So no need to calculate further
-            if (pressure >= 1)
+            if (pressure >= 0.98f)
                 return 1;
 
-            pressure = Mathf.Max(pressure, CalculateMigrationPressure(prominence.Polity));
+            float prominencePressure = CalculateMigrationPressure(prominence.Polity);
+            prominencePressure = 1 - Mathf.Pow(1 - prominencePressure, 2f);
+
+            pressure = Mathf.Max(pressure, prominencePressure);
         }
 
         return pressure;
