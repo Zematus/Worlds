@@ -2038,6 +2038,11 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>the pressure value</returns>
     public float CalculateMigrationPressure(Polity migratingPolity)
     {
+        if (Cell.IsSelected)
+        {
+            Debug.LogWarning("Debugging migration pressure");
+        }
+
         float populationFactor;
 
         if (OptimalPopulation > 0)

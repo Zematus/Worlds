@@ -513,7 +513,7 @@ public class TerrainCell
     /// <returns></returns>
     public float CalculateMigrationValue(CellGroup sourceGroup, Polity polity)
     {
-        float freeSpaceOffset = -0.1f;
+        float freeSpaceOffset = 0;
 
         float targetOptimalPop =
             EstimateOptimalPopulation(sourceGroup.Culture);
@@ -521,29 +521,29 @@ public class TerrainCell
         float targetFreeSpace =
             targetOptimalPop - EstimateEffectiveOccupancy(polity);
 
-        if (targetFreeSpace < freeSpaceOffset)
-        {
-            freeSpaceOffset = targetFreeSpace - 0.1f;
-        }
-
         float sourceOptimalPop =
             sourceGroup.Cell.EstimateOptimalPopulation(sourceGroup.Culture);
 
         float sourceFreeSpace =
             sourceOptimalPop - sourceGroup.Cell.EstimateEffectiveOccupancy(polity);
 
-        if (sourceFreeSpace < freeSpaceOffset)
+        if (targetFreeSpace < freeSpaceOffset)
         {
-            freeSpaceOffset = sourceFreeSpace - 0.1f;
+            freeSpaceOffset = targetFreeSpace;
         }
 
-        float modTargetFreeSpace = targetFreeSpace - freeSpaceOffset;
+        if (sourceFreeSpace < freeSpaceOffset)
+        {
+            freeSpaceOffset = sourceFreeSpace;
+        }
+
+        float modTargetFreeSpace = targetFreeSpace - freeSpaceOffset + 1;
         float modSourceFreeSpace = sourceFreeSpace - freeSpaceOffset;
 
         float freeSpaceFactor =
             modTargetFreeSpace / (modTargetFreeSpace + modSourceFreeSpace);
 
-        freeSpaceFactor *= targetFreeSpace / sourceOptimalPop;
+        freeSpaceFactor *= targetFreeSpace / (sourceOptimalPop + 1);
 
         float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceGroup.Cell);
 
