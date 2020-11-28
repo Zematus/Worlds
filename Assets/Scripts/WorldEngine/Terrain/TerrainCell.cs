@@ -476,13 +476,17 @@ public class TerrainCell
 
         float effectivePopulation = 0;
 
-        float polityEffectivenessFactor = 5f;
+        //float effectivenessConstant = 100f;
+        float effectivenessConstant = 20f;
+        //float effectivenessConstant = 1f;
+
+        float polityEffectivenessFactor = effectivenessConstant;
         float ubEffectivenessFactor = 1f;
 
         if (polity != null)
         {
-            polityEffectivenessFactor /= 5f;
-            ubEffectivenessFactor /= 5f;
+            polityEffectivenessFactor /= effectivenessConstant;
+            ubEffectivenessFactor /= effectivenessConstant;
         }
 
         ////////
