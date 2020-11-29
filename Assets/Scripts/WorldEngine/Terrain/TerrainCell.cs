@@ -476,9 +476,8 @@ public class TerrainCell
 
         float effectivePopulation = 0;
 
-        //float effectivenessConstant = 100f;
+        // This allows polities to expand into free, populated territories
         float effectivenessConstant = 20f;
-        //float effectivenessConstant = 1f;
 
         float polityEffectivenessFactor = effectivenessConstant;
         float ubEffectivenessFactor = 1f;
