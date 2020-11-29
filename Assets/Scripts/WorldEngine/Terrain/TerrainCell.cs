@@ -540,6 +540,13 @@ public class TerrainCell
             freeSpaceOffset = sourceFreeSpace;
         }
 
+        //float regionFactor = 1f;
+        //if ((polity != null) && (Region != polity.CoreRegion))
+        //{
+        //    regionFactor = 0.01f;
+        //}
+
+        //float modTargetFreeSpace = (regionFactor * targetFreeSpace) - freeSpaceOffset + 1;
         float modTargetFreeSpace = targetFreeSpace - freeSpaceOffset + 1;
         float modSourceFreeSpace = sourceFreeSpace - freeSpaceOffset;
 
@@ -554,7 +561,7 @@ public class TerrainCell
 
         if ((polity != null) && (Region != polity.CoreRegion))
         {
-            cellValue *= 0.25f;
+            cellValue *= 0.35f;
         }
 
         if (float.IsNaN(cellValue))
