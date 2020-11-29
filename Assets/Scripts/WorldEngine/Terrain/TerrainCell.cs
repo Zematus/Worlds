@@ -477,7 +477,7 @@ public class TerrainCell
         float effectivePopulation = 0;
 
         // This allows polities to expand into free, populated territories
-        float effectivenessConstant = 20f;
+        float effectivenessConstant = 100f;
 
         float polityEffectivenessFactor = effectivenessConstant;
         float ubEffectivenessFactor = 1f;
@@ -554,7 +554,7 @@ public class TerrainCell
 
         if ((polity != null) && (Region != polity.CoreRegion))
         {
-            cellValue *= 0.1f;
+            cellValue *= 0.25f;
         }
 
         if (float.IsNaN(cellValue))
