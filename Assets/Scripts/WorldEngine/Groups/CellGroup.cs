@@ -1600,17 +1600,17 @@ public class CellGroup : Identifiable, IFlagHolder
 
         float prominencePercent = maxProminencePercent * randomFactor * overflowFactor;
 
-#if DEBUG
-        if (polityId != null)
-        {
-            Debug.LogWarning("Debugging polity migration");
-        }
+//#if DEBUG
+//        if (polityId != null)
+//        {
+//            Debug.LogWarning("Debugging polity migration");
+//        }
 
-        if (Cell.IsSelected)
-        {
-            Debug.LogWarning("Debugging polity migration");
-        }
-#endif
+//        if (Cell.IsSelected)
+//        {
+//            Debug.LogWarning("Debugging polity migration");
+//        }
+//#endif
 
         prominencePercent = Mathf.Clamp01(prominencePercent);
 
@@ -2161,20 +2161,33 @@ public class CellGroup : Identifiable, IFlagHolder
         // Get the pressure from unorganized bands
         float pressure = CalculateMigrationPressure(null);
 
+//#if DEBUG
+//        if (pressure > 0)
+//        {
+//            Debug.LogWarning("Debugging migration pressure");
+//        }
+//#endif
+
         // Get the pressure from polity populations
         foreach (PolityProminence prominence in _polityProminences.Values)
         {
-            // 1 should be the max amount of pressure possible. So no need to calculate further
-            if (pressure >= 0.98f)
+            // 1 should be the maximum. So no need to calculate further
+            if (pressure >= 1f)
                 return 1;
 
             float prominencePressure = CalculateMigrationPressure(prominence.Polity);
-            prominencePressure = 1 - Mathf.Pow(1 - prominencePressure, 2f);
 
             pressure = Mathf.Max(pressure, prominencePressure);
         }
 
-        return pressure;
+//#if DEBUG
+//        if ((pressure > 0) && (_polityProminences.Count > 0))
+//        {
+//            Debug.LogWarning("Debugging migration pressure");
+//        }
+//#endif
+
+        return Mathf.Clamp01(pressure);
     }
 
     public long CalculateNextUpdateDate()
@@ -2198,10 +2211,13 @@ public class CellGroup : Identifiable, IFlagHolder
         randomFactor = 1f - Mathf.Pow(randomFactor, 4);
 
         float migrationFactor = 1 - CalculateMigrationPressure();
-        //migrationFactor = Mathf.Pow(migrationFactor, 4);
 
         float skillLevelFactor = Culture.MinimumSkillAdaptationLevel();
         float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel();
+
+        //float circumstanceFactor = migrationFactor * skillLevelFactor * knowledgeLevelFactor;
+        float circumstancesFactor =
+            Mathf.Min(migrationFactor, skillLevelFactor, knowledgeLevelFactor);
 
         float populationFactor = 0.0001f + Mathf.Abs(OptimalPopulation - Population);
         populationFactor = OptimalPopulation / populationFactor;
@@ -2210,10 +2226,21 @@ public class CellGroup : Identifiable, IFlagHolder
 
         float SlownessConstant = 100 * GenerationSpan;
 
-        float mixFactor = SlownessConstant * randomFactor * migrationFactor
-            * skillLevelFactor * knowledgeLevelFactor * populationFactor;
+        float mixFactor = SlownessConstant * randomFactor * circumstancesFactor * populationFactor;
 
         long updateSpan = GenerationSpan + (long)Mathf.Ceil(mixFactor);
+
+//#if DEBUG
+//        if (migrationFactor < 1)
+//        {
+//            Debug.LogWarning("Debugging migration pressure");
+
+//            if (_polityProminences.Count > 0)
+//            {
+//                Debug.LogWarning("Debugging migration pressure");
+//            }
+//        }
+//#endif
 
         if (updateSpan < 0)
             updateSpan = MaxUpdateSpan;
