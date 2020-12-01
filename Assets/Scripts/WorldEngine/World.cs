@@ -243,6 +243,8 @@ public class World : ISynchronizable, IWorldDateGetter
     [XmlIgnore]
     public bool PolitiesHaveBeenUpdated = false;
     [XmlIgnore]
+    public bool TerritoriesHaveBeenUpdated = false;
+    [XmlIgnore]
     public bool PolityClustersHaveBeenUpdated = false;
 
 #if DEBUG
@@ -315,6 +317,8 @@ public class World : ISynchronizable, IWorldDateGetter
     private HashSet<Polity> _politiesToUpdate = new HashSet<Polity>();
     private HashSet<Polity> _politiesThatNeedClusterUpdate = new HashSet<Polity>();
     private HashSet<Polity> _politiesToRemove = new HashSet<Polity>();
+
+    private HashSet<Territory> _territoriesToUpdate = new HashSet<Territory>();
 
     private Dictionary<Identifier, Language> _languages =
         new Dictionary<Identifier, Language>();
@@ -1114,6 +1118,18 @@ public class World : ISynchronizable, IWorldDateGetter
         _politiesToUpdate.Clear();
     }
 
+    private void UpdateTerritories()
+    {
+        TerritoriesHaveBeenUpdated = true;
+
+        foreach (Territory territory in _territoriesToUpdate)
+        {
+            territory.Update();
+        }
+
+        _territoriesToUpdate.Clear();
+    }
+
     private void UpdatePolityClusters()
     {
         PolityClustersHaveBeenUpdated = true;
@@ -1460,6 +1476,12 @@ public class World : ISynchronizable, IWorldDateGetter
 
         //Profiler.EndSample();
 
+        //Profiler.BeginSample("UpdateTerritories");
+
+        UpdateTerritories();
+
+        //Profiler.EndSample();
+
         //
         // Skip to Next Event's Date
         //
@@ -1516,6 +1538,7 @@ public class World : ISynchronizable, IWorldDateGetter
         GroupsHaveBeenUpdated = false;
         PolitiesHaveBeenUpdated = false;
         PolityClustersHaveBeenUpdated = false;
+        TerritoriesHaveBeenUpdated = false;
 
         CleanupFactions();
 
@@ -1934,12 +1957,14 @@ public class World : ISynchronizable, IWorldDateGetter
 
         if (PolitiesHaveBeenUpdated)
         {
-            Debug.LogWarning("Trying to add polity to update after polities have already been updated this iteration. Id: " + polity.Id);
+            throw new System.Exception("Trying to add polity to update after polities " +
+                "have already been updated this iteration. Id: " + polity.Id);
         }
 
         if (!polity.StillPresent)
         {
-            Debug.LogWarning("Polity to update no longer present. Id: " + polity.Id + ", Date: " + CurrentDate);
+            throw new System.Exception("Polity to update no longer present. " +
+                "Id: " + polity.Id + ", Date: " + CurrentDate);
         }
 
         _politiesToUpdate.Add(polity);
@@ -1950,12 +1975,13 @@ public class World : ISynchronizable, IWorldDateGetter
     {
         if (PolityClustersHaveBeenUpdated)
         {
-            Debug.LogWarning("Trying to add polity with clusters to update after polity clusters have already been updated this iteration. Id: " + polity.Id);
+            throw new System.Exception("Trying to add polity with clusters to update " +
+                "after polity clusters have already been updated this iteration. Id: " + polity.Id);
         }
 
         if (!polity.StillPresent)
         {
-            Debug.LogWarning("Polity with clusters to update no longer present. Id: " + polity.Id + ", Date: " + CurrentDate);
+            throw new System.Exception("Polity with clusters to update no longer present. Id: " + polity.Id + ", Date: " + CurrentDate);
         }
 
         _politiesThatNeedClusterUpdate.Add(polity);
@@ -1964,6 +1990,18 @@ public class World : ISynchronizable, IWorldDateGetter
     public void AddPolityToRemove(Polity polity)
     {
         _politiesToRemove.Add(polity);
+    }
+
+    public void AddTerritoryToUpdate(Territory territory)
+    {
+        if (TerritoriesHaveBeenUpdated)
+        {
+            throw new System.Exception(
+                "Trying to add territory to update after territories have already " +
+                "been updated this iteration. Polity Id: " + territory.Polity.Id);
+        }
+
+        _territoriesToUpdate.Add(territory);
     }
 
     [System.Obsolete]

@@ -21,6 +21,9 @@ public class Territory : ISynchronizable
 
     private HashSet<TerrainCell> _borderCells = new HashSet<TerrainCell>();
 
+    private HashSet<TerrainCell> _cellsToAdd = new HashSet<TerrainCell>();
+    private HashSet<TerrainCell> _cellsToRemove = new HashSet<TerrainCell>();
+
     public Territory()
     {
 
@@ -53,9 +56,75 @@ public class Territory : ISynchronizable
         return false;
     }
 
+    public bool IsInside(TerrainCell cell)
+    {
+        return _cells.Contains(cell);
+    }
+
     public bool IsPartOfBorder(TerrainCell cell)
     {
         return _borderCells.Contains(cell);
+    }
+
+    public void SetCellToAdd(TerrainCell cell)
+    {
+        if ((cell.TerritoryToAddTo != null) &&
+            (cell.TerritoryToAddTo != this))
+        {
+            cell.TerritoryToAddTo.RemoveCellToAdd(cell);
+        }
+
+        if (_cellsToRemove.Contains(cell))
+        {
+            _cellsToRemove.Remove(cell);
+            return;
+        }
+
+        cell.TerritoryToAddTo = this;
+        _cellsToAdd.Add(cell);
+
+        World.AddTerritoryToUpdate(this);
+    }
+
+    public void RemoveCellToAdd(TerrainCell cell)
+    {
+        cell.TerritoryToAddTo = null;
+        _cellsToAdd.Remove(cell);
+    }
+
+    public void SetCellToRemove(TerrainCell cell)
+    {
+        if (_cellsToAdd.Contains(cell))
+        {
+            RemoveCellToAdd(cell);
+            return;
+        }
+
+        _cellsToRemove.Add(cell);
+
+        World.AddTerritoryToUpdate(this);
+    }
+
+    private void AddCellsToAdd()
+    {
+        foreach (TerrainCell cell in _cellsToAdd)
+        {
+            AddCell(cell);
+        }
+    }
+
+    private void RemoveCellsToRemove()
+    {
+        foreach (TerrainCell cell in _cellsToRemove)
+        {
+            RemoveCell(cell);
+        }
+    }
+
+    public void Update()
+    {
+        RemoveCellsToRemove();
+        AddCellsToAdd();
     }
 
     public void AddCell(TerrainCell cell)

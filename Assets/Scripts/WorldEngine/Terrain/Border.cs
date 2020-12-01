@@ -14,7 +14,8 @@ public class Border : CellSet
         AddCell(startCell);
     }
 
-    public CellSet GetEnclosedCellSet(HashSet<TerrainCell> outsideSet)
+    public CellSet GetEnclosedCellSet(
+        HashSet<TerrainCell> outsideSet, CanAddCellDelegate canAddCell = null)
     {
         CellSet cellSet = new CellSet();
 
@@ -29,7 +30,7 @@ public class Border : CellSet
         {
             TerrainCell cell = toAdd.Dequeue();
 
-            if (!cell.IsLiquidSea)
+            if ((canAddCell == null) || canAddCell(cell))
             {
                 cellSet.AddCell(cell);
             }
@@ -39,13 +40,11 @@ public class Border : CellSet
                 throw new System.Exception("Border does not fully enclose inner area");
             }
 
-            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.Neighbors)
+            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.NonDiagonalNeighbors)
             {
                 TerrainCell nCell = pair.Value;
 
                 if (exploredSet.Contains(nCell)) continue;
-
-                if (TerrainCell.IsDiagonalDirection(pair.Key)) continue;
 
                 if (!IsCellEnclosed(nCell)) continue;
 

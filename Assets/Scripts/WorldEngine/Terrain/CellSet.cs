@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.Linq;
 
+public delegate bool CanAddCellDelegate(TerrainCell cell);
+
 public class CellSet
 {
     public World World;
@@ -359,7 +361,7 @@ public class CellSet
 
             connectedArea++;
 
-            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.GetNonDiagonalNeighbors())
+            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.NonDiagonalNeighbors)
             {
                 TerrainCell nCell = pair.Value;
 
