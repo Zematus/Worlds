@@ -704,8 +704,23 @@ public class CellGroup : Identifiable, IFlagHolder
         if (HighestPolityProminence == prominence)
             return;
 
+#if DEBUG
+        if ((prominence != null) && (prominence.Polity.Territory.IsInside(Cell)))
+        {
+            Debug.LogWarning("Debugging add cell to territory");
+        }
+#endif
+
+        //if ((Cell.EncompassingTerritory != null) &&
+        //    ((prominence == null) ||
+        //    (Cell.EncompassingTerritory != prominence.Polity.Territory)))
+        //{
+        //    Cell.EncompassingTerritory.SetCellToRemove(Cell);
+        //}
+
         if (HighestPolityProminence != null)
         {
+            //HighestPolityProminence.Polity.Territory.SetCellToRemove(Cell);
             HighestPolityProminence.Polity.Territory.RemoveCell(Cell);
         }
 
@@ -713,6 +728,7 @@ public class CellGroup : Identifiable, IFlagHolder
 
         if (prominence != null)
         {
+            //prominence.Polity.Territory.SetCellToAdd(Cell);
             prominence.Polity.Territory.AddCell(Cell);
         }
 
@@ -1364,12 +1380,12 @@ public class CellGroup : Identifiable, IFlagHolder
         out float migrationValue,
         Polity migratingPolity = null)
     {
-#if DEBUG
-        if (cell.IsSelected)
-        {
-            Debug.LogWarning("Debugging selected cell migration chance");
-        }
-#endif
+//#if DEBUG
+//        if (cell.IsSelected)
+//        {
+//            Debug.LogWarning("Debugging selected cell migration chance");
+//        }
+//#endif
 
         float offset = -0.1f;
         migrationValue = CalculateMigrationValue(cell, migratingPolity);
@@ -1698,9 +1714,9 @@ public class CellGroup : Identifiable, IFlagHolder
             SetPolityUpdate(polityProminence, true);
         }
 
-        if (HighestPolityProminence != null)
+        if (Cell.EncompassingTerritory != null)
         {
-            HighestPolityProminence.Polity.Territory.RemoveCell(Cell);
+            Cell.EncompassingTerritory.SetCellToRemove(Cell);
         }
     }
 
