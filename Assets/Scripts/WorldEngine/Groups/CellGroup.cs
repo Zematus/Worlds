@@ -704,12 +704,19 @@ public class CellGroup : Identifiable, IFlagHolder
         if (HighestPolityProminence == prominence)
             return;
 
-#if DEBUG
-        if ((prominence != null) && (prominence.Polity.Territory.IsInside(Cell)))
-        {
-            Debug.LogWarning("Debugging add cell to territory");
-        }
-#endif
+//#if DEBUG
+//        if ((prominence != null) &&
+//            (HighestPolityProminence != null) &&
+//            (prominence.PolityId == HighestPolityProminence.PolityId))
+//        {
+//            Debug.LogWarning("Debugging SetHighestPolityProminence");
+//        }
+
+//        //if ((prominence != null) && prominence.Polity.Territory.IsInside(Cell))
+//        //{
+//        //    Debug.LogWarning("Debugging SetHighestPolityProminence");
+//        //}
+//#endif
 
         //if ((Cell.EncompassingTerritory != null) &&
         //    ((prominence == null) ||
@@ -1355,15 +1362,15 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>Migration value</returns>
     public float CalculateMigrationValue(TerrainCell cell, Polity migratingPolity = null)
     {
-#if DEBUG
-        if (Cell.IsSelected)
-        {
-            if ((cell.Group != null) && (cell.Group.TotalPolityProminenceValue <= 0))
-            {
-                Debug.LogWarning("Debugging migration value");
-            }
-        }
-#endif
+//#if DEBUG
+//        if (Cell.IsSelected)
+//        {
+//            if ((cell.Group != null) && (cell.Group.TotalPolityProminenceValue <= 0))
+//            {
+//                Debug.LogWarning("Debugging migration value");
+//            }
+//        }
+//#endif
 
         return cell.CalculateMigrationValue(this, migratingPolity);
     }
@@ -2908,6 +2915,14 @@ public class CellGroup : Identifiable, IFlagHolder
         Identifier polityId,
         bool throwIfNotPresent = true)
     {
+//#if DEBUG
+//        if ((Id == "0000000000006113927:0268400126272472352") &&
+//            (polityId == "0000000000106484226:0268630710573393720"))
+//        {
+//            Debug.LogWarning("Debugging prominence removal");
+//        }
+//#endif
+
         if (!_polityProminences.ContainsKey(polityId))
         {
             if (throwIfNotPresent)
@@ -2959,6 +2974,14 @@ public class CellGroup : Identifiable, IFlagHolder
             Polity.IncreaseContactGroupCount(polity, otherProminence.Polity);
         }
 
+        if ((HighestPolityProminence != null) &&
+            (polity.Id == HighestPolityProminence.PolityId))
+        {
+            throw new System.Exception(
+                "Trying to add a prominence already set as highest polity prominence. " +
+                "group id: " + Id + ", polity id: " + polity.Id);
+        }
+
         _polityProminences.Add(polity.Id, polityProminence);
 
         // We want to update the polity if a group is added.
@@ -2980,11 +3003,18 @@ public class CellGroup : Identifiable, IFlagHolder
     /// Set to false if there's no need to update the removed polities after calling this</param>
     private void RemovePolityProminences(bool updatePolity = true)
     {
+        bool removeHighestPolityProminence = false;
+
         foreach (Identifier polityId in _polityProminencesToRemove)
         {
             PolityProminence polityProminence = _polityProminences[polityId];
 
             _polityProminences.Remove(polityProminence.PolityId);
+
+            if (HighestPolityProminence == polityProminence)
+            {
+                removeHighestPolityProminence = true;
+            }
 
             // If the polity is no longer present, then the contacts would have already been removed
             if (polityProminence.Polity.StillPresent)
@@ -3022,6 +3052,14 @@ public class CellGroup : Identifiable, IFlagHolder
         }
 
         _polityProminencesToRemove.Clear();
+
+        // CAUTION: We should make sure we find the new highest polity prominence
+        // afterwards. We don't do it right away because normally we would add prominences
+        // after calling this function and then we do a find highest.
+        if (removeHighestPolityProminence)
+        {
+            SetHighestPolityProminence(null);
+        }
     }
 
     /// <summary>
