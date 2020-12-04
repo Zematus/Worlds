@@ -693,29 +693,27 @@ public class CellGroup : Identifiable, IFlagHolder
 
     public void SetHighestPolityProminence(PolityProminence prominence)
     {
-        if (prominence == null)
-        {
-            if (_polityProminences.Count > 0)
-            {
-                throw new System.Exception("Trying to set HighestPolityProminence to null when there are still polity prominences in group");
-            }
-        }
-
         if (HighestPolityProminence == prominence)
             return;
 
 //#if DEBUG
+//        if (Cell.Position.Equals(11, 130) &&
+//            (prominence.PolityId == "0000000000106484226:0268630710573393720"))
+//        {
+//            Debug.LogWarning("Debugging SetHighestPolityProminence...");
+//        }
+
 //        if ((prominence != null) &&
 //            (HighestPolityProminence != null) &&
 //            (prominence.PolityId == HighestPolityProminence.PolityId))
 //        {
-//            Debug.LogWarning("Debugging SetHighestPolityProminence");
+//            Debug.LogWarning("Debugging SetHighestPolityProminence...");
 //        }
 
-//        //if ((prominence != null) && prominence.Polity.Territory.IsInside(Cell))
-//        //{
-//        //    Debug.LogWarning("Debugging SetHighestPolityProminence");
-//        //}
+//        if ((prominence != null) && prominence.Polity.Territory.IsInside(Cell))
+//        {
+//            Debug.LogWarning("Debugging SetHighestPolityProminence");
+//        }
 //#endif
 
         //if ((Cell.EncompassingTerritory != null) &&
@@ -727,16 +725,14 @@ public class CellGroup : Identifiable, IFlagHolder
 
         if (HighestPolityProminence != null)
         {
-            //HighestPolityProminence.Polity.Territory.SetCellToRemove(Cell);
-            HighestPolityProminence.Polity.Territory.RemoveCell(Cell);
+            HighestPolityProminence.Polity.Territory.SetCellToRemove(Cell);
         }
 
         HighestPolityProminence = prominence;
 
         if (prominence != null)
         {
-            //prominence.Polity.Territory.SetCellToAdd(Cell);
-            prominence.Polity.Territory.AddCell(Cell);
+            prominence.Polity.Territory.SetCellToAdd(Cell);
         }
 
         if (FactionCores.Count > 0)
