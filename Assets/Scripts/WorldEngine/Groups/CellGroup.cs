@@ -696,36 +696,31 @@ public class CellGroup : Identifiable, IFlagHolder
         if (HighestPolityProminence == prominence)
             return;
 
-//#if DEBUG
-//        if (Cell.Position.Equals(11, 130) &&
-//            (prominence.PolityId == "0000000000106484226:0268630710573393720"))
-//        {
-//            Debug.LogWarning("Debugging SetHighestPolityProminence...");
-//        }
+        //#if DEBUG
+        //        if (Cell.Position.Equals(11, 130) &&
+        //            (prominence.PolityId == "0000000000106484226:0268630710573393720"))
+        //        {
+        //            Debug.LogWarning("Debugging SetHighestPolityProminence...");
+        //        }
 
-//        if ((prominence != null) &&
-//            (HighestPolityProminence != null) &&
-//            (prominence.PolityId == HighestPolityProminence.PolityId))
-//        {
-//            Debug.LogWarning("Debugging SetHighestPolityProminence...");
-//        }
+        //        if ((prominence != null) &&
+        //            (HighestPolityProminence != null) &&
+        //            (prominence.PolityId == HighestPolityProminence.PolityId))
+        //        {
+        //            Debug.LogWarning("Debugging SetHighestPolityProminence...");
+        //        }
 
-//        if ((prominence != null) && prominence.Polity.Territory.IsInside(Cell))
-//        {
-//            Debug.LogWarning("Debugging SetHighestPolityProminence");
-//        }
-//#endif
+        //        if ((prominence != null) && prominence.Polity.Territory.IsInside(Cell))
+        //        {
+        //            Debug.LogWarning("Debugging SetHighestPolityProminence");
+        //        }
+        //#endif
 
-        //if ((Cell.EncompassingTerritory != null) &&
-        //    ((prominence == null) ||
-        //    (Cell.EncompassingTerritory != prominence.Polity.Territory)))
-        //{
-        //    Cell.EncompassingTerritory.SetCellToRemove(Cell);
-        //}
-
-        if (HighestPolityProminence != null)
+        if ((Cell.EncompassingTerritory != null) &&
+            ((prominence == null) ||
+            (Cell.EncompassingTerritory != prominence.Polity.Territory)))
         {
-            HighestPolityProminence.Polity.Territory.SetCellToRemove(Cell);
+            Cell.EncompassingTerritory.SetCellToRemove(Cell);
         }
 
         HighestPolityProminence = prominence;
