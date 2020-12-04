@@ -68,6 +68,14 @@ public class Territory : ISynchronizable
 
     public void SetCellToAdd(TerrainCell cell)
     {
+//#if DEBUG
+//        if (cell.Position.Equals(11, 130) &&
+//            (Polity.Id == "0000000000106484226:0268630710573393720"))
+//        {
+//            Debug.LogWarning("Debugging SetCellToAdd...");
+//        }
+//#endif
+
         if ((cell.TerritoryToAddTo != null) &&
             (cell.TerritoryToAddTo != this))
         {
@@ -111,6 +119,8 @@ public class Territory : ISynchronizable
         {
             AddCell(cell);
         }
+
+        _cellsToAdd.Clear();
     }
 
     private void RemoveCellsToRemove()
@@ -119,6 +129,8 @@ public class Territory : ISynchronizable
         {
             RemoveCell(cell);
         }
+
+        _cellsToRemove.Clear();
     }
 
     public void Update()
