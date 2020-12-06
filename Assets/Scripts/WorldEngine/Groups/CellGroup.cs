@@ -696,26 +696,6 @@ public class CellGroup : Identifiable, IFlagHolder
         if (HighestPolityProminence == prominence)
             return;
 
-        //#if DEBUG
-        //        if (Cell.Position.Equals(11, 130) &&
-        //            (prominence.PolityId == "0000000000106484226:0268630710573393720"))
-        //        {
-        //            Debug.LogWarning("Debugging SetHighestPolityProminence...");
-        //        }
-
-        //        if ((prominence != null) &&
-        //            (HighestPolityProminence != null) &&
-        //            (prominence.PolityId == HighestPolityProminence.PolityId))
-        //        {
-        //            Debug.LogWarning("Debugging SetHighestPolityProminence...");
-        //        }
-
-        //        if ((prominence != null) && prominence.Polity.Territory.IsInside(Cell))
-        //        {
-        //            Debug.LogWarning("Debugging SetHighestPolityProminence");
-        //        }
-        //#endif
-
         if ((Cell.EncompassingTerritory != null) &&
             ((prominence == null) ||
             (Cell.EncompassingTerritory != prominence.Polity.Territory)))
@@ -1710,6 +1690,11 @@ public class CellGroup : Identifiable, IFlagHolder
 
             // We want to update the polity if a group is removed.
             SetPolityUpdate(polityProminence, true);
+        }
+
+        if (Cell.TerritoryToAddTo != null)
+        {
+            Cell.TerritoryToAddTo.RemoveCellToAdd(Cell);
         }
 
         if (Cell.EncompassingTerritory != null)

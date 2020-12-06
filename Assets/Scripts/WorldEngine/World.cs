@@ -242,8 +242,8 @@ public class World : ISynchronizable, IWorldDateGetter
     public bool FactionsHaveBeenUpdated = false;
     [XmlIgnore]
     public bool PolitiesHaveBeenUpdated = false;
-    [XmlIgnore]
-    public bool TerritoriesHaveBeenUpdated = false;
+    //[XmlIgnore]
+    //public bool TerritoriesHaveBeenUpdated = false;
     [XmlIgnore]
     public bool PolityClustersHaveBeenUpdated = false;
 
@@ -1120,7 +1120,23 @@ public class World : ISynchronizable, IWorldDateGetter
 
     private void UpdateTerritories()
     {
-        TerritoriesHaveBeenUpdated = true;
+        //TerritoriesHaveBeenUpdated = true;
+
+        // To avoid update conflicts we must make sure to do all remove
+        // operations before all add operations
+
+        foreach (Territory territory in _territoriesToUpdate)
+        {
+            territory.RemoveCells();
+        }
+
+        foreach (Territory territory in _territoriesToUpdate)
+        {
+            territory.AddCells();
+        }
+
+        // After we have added and removed all pertinent cells, we can perform
+        // all remaining territory adjustments
 
         foreach (Territory territory in _territoriesToUpdate)
         {
@@ -1422,6 +1438,13 @@ public class World : ISynchronizable, IWorldDateGetter
 
         //Profiler.EndSample();
 
+        //Profiler.BeginSample("UpdateTerritories");
+
+        // We need to do this before polities are updated
+        UpdateTerritories();
+
+        //Profiler.EndSample();
+
         //Profiler.BeginSample("UpdatePolityClusters");
 
         UpdatePolityClusters();
@@ -1464,6 +1487,13 @@ public class World : ISynchronizable, IWorldDateGetter
 
         //Profiler.EndSample();
 
+        //Profiler.BeginSample("UpdateTerritories");
+
+        // Territories might have changed again after polity updates
+        UpdateTerritories();
+
+        //Profiler.EndSample();
+
         //Profiler.BeginSample("AfterUpdateGroupCleanup");
 
         AfterUpdateGroupCleanup();
@@ -1473,12 +1503,6 @@ public class World : ISynchronizable, IWorldDateGetter
         //Profiler.BeginSample("ApplyFactionStatusChanges");
 
         ApplyFactionStatusChanges();
-
-        //Profiler.EndSample();
-
-        //Profiler.BeginSample("UpdateTerritories");
-
-        UpdateTerritories();
 
         //Profiler.EndSample();
 
@@ -1538,7 +1562,7 @@ public class World : ISynchronizable, IWorldDateGetter
         GroupsHaveBeenUpdated = false;
         PolitiesHaveBeenUpdated = false;
         PolityClustersHaveBeenUpdated = false;
-        TerritoriesHaveBeenUpdated = false;
+        //TerritoriesHaveBeenUpdated = false;
 
         CleanupFactions();
 
@@ -1994,12 +2018,12 @@ public class World : ISynchronizable, IWorldDateGetter
 
     public void AddTerritoryToUpdate(Territory territory)
     {
-        if (TerritoriesHaveBeenUpdated)
-        {
-            throw new System.Exception(
-                "Trying to add territory to update after territories have already " +
-                "been updated this iteration. Polity Id: " + territory.Polity.Id);
-        }
+        //if (TerritoriesHaveBeenUpdated)
+        //{
+        //    throw new System.Exception(
+        //        "Trying to add territory to update after territories have already " +
+        //        "been updated this iteration. Polity Id: " + territory.Polity.Id);
+        //}
 
         _territoriesToUpdate.Add(territory);
     }
