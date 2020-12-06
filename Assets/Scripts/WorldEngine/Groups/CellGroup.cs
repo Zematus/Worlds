@@ -2706,13 +2706,6 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>'true' if there was a change in prominence values</returns>
     private bool CalculateNewPolityProminenceValues(bool afterPolityUpdates = false)
     {
-//#if DEBUG
-//        if ((Id == "0000000001403622143:3199357175283981000") && (World.CurrentDate == 1403640616))
-//        {
-//            Debug.LogWarning("CalculateNewPolityProminenceValues: debugging group: " + Id);
-//        }
-//#endif
-
         // NOTE: after polity updates there might be no deltas, bu we might still need
         // to recalculate if the amount of prominences changed
         bool calculateRegardless = afterPolityUpdates && _polityProminences.Count > 0;
@@ -2781,16 +2774,11 @@ public class CellGroup : Identifiable, IFlagHolder
 
             newValue -= polPromDeltaOffset;
 
-            if (newValue <= Polity.MinPolityProminenceValue)
+            if (newValue < Polity.MinPolityProminenceValue)
             {
-                if (afterPolityUpdates)
-                {
-                    Debug.LogWarning("Trying to remove polity " + polity.Id +
-                        " after polity updates have already happened.  Group: " +  Id);
-                }
-
                 // try to remove prominences that would end up with a value far too small
-                if (!SetPolityProminenceToRemove(pair.Key, false))
+                // NOTE: Can't do that after polities have been updated
+                if (afterPolityUpdates || !SetPolityProminenceToRemove(pair.Key, false))
                 {
                     // if not possible to remove this prominence, set it to a min value
                     newValue = Polity.MinPolityProminenceValue;
@@ -2891,14 +2879,6 @@ public class CellGroup : Identifiable, IFlagHolder
         Identifier polityId,
         bool throwIfNotPresent = true)
     {
-//#if DEBUG
-//        if ((Id == "0000000000006113927:0268400126272472352") &&
-//            (polityId == "0000000000106484226:0268630710573393720"))
-//        {
-//            Debug.LogWarning("Debugging prominence removal");
-//        }
-//#endif
-
         if (!_polityProminences.ContainsKey(polityId))
         {
             if (throwIfNotPresent)
