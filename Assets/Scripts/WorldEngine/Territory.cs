@@ -68,14 +68,6 @@ public class Territory : ISynchronizable
 
     public void SetCellToAdd(TerrainCell cell)
     {
-//#if DEBUG
-//        if (cell.Position.Equals(11, 130) &&
-//            (Polity.Id == "0000000000106484226:0268630710573393720"))
-//        {
-//            Debug.LogWarning("Debugging SetCellToAdd...");
-//        }
-//#endif
-
         if ((cell.TerritoryToAddTo != null) &&
             (cell.TerritoryToAddTo != this))
         {
@@ -86,6 +78,12 @@ public class Territory : ISynchronizable
         {
             _cellsToRemove.Remove(cell);
             return;
+        }
+
+        if (_cells.Contains(cell))
+        {
+            throw new System.Exception(
+                "Trying to add cell that has already been added. Cell: " + cell.Position + " Polity.Id: " + Polity.Id);
         }
 
         cell.TerritoryToAddTo = this;
@@ -108,22 +106,29 @@ public class Territory : ISynchronizable
             return;
         }
 
+        if (!_cells.Contains(cell))
+        {
+            throw new System.Exception(
+                "Trying to remove cell that is not present in territory. Cell: " + cell.Position + " Polity.Id: " + Polity.Id);
+        }
+
         _cellsToRemove.Add(cell);
 
         World.AddTerritoryToUpdate(this);
     }
 
-    private void AddCellsToAdd()
+    public void AddCells()
     {
         foreach (TerrainCell cell in _cellsToAdd)
         {
+            cell.TerritoryToAddTo = null;
             AddCell(cell);
         }
 
         _cellsToAdd.Clear();
     }
 
-    private void RemoveCellsToRemove()
+    public void RemoveCells()
     {
         foreach (TerrainCell cell in _cellsToRemove)
         {
@@ -135,16 +140,11 @@ public class Territory : ISynchronizable
 
     public void Update()
     {
-        RemoveCellsToRemove();
-        AddCellsToAdd();
     }
 
-    public void AddCell(TerrainCell cell)
+    private void AddCell(TerrainCell cell)
     {
-        if (!_cells.Add(cell))
-        {
-            throw new System.Exception("Trying to add cell that has already been added. Cell: " + cell.Position + " Polity.Id: " + Polity.Id);
-        }
+        _cells.Add(cell);
 
         cell.EncompassingTerritory = this;
         Manager.AddUpdatedCell(cell, CellUpdateType.Territory | CellUpdateType.Cluster, CellUpdateSubType.Membership);
@@ -188,12 +188,9 @@ public class Territory : ISynchronizable
         }
     }
 
-    public void RemoveCell(TerrainCell cell)
+    private void RemoveCell(TerrainCell cell)
     {
-        if (!_cells.Remove(cell))
-        {
-            throw new System.Exception("Trying to remove cell that is not present in territory. Cell:" + cell.Position + " Polity.Id:" + Polity.Id);
-        }
+        _cells.Remove(cell);
 
         cell.EncompassingTerritory = null;
         Manager.AddUpdatedCell(cell, CellUpdateType.Territory | CellUpdateType.Cluster, CellUpdateSubType.Membership);
