@@ -3216,7 +3216,7 @@ public class Manager
 
     private static bool IsTerritoryBorder(Territory territory, TerrainCell cell)
     {
-        return territory.IsPartOfBorder(cell);
+        return territory.IsPartOfInnerBorder(cell);
     }
 
     private static Color GetUnincorporatedGroupColor()

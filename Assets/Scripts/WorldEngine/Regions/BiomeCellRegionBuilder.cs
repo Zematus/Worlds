@@ -155,10 +155,11 @@ public static class BiomeCellRegionBuilder
         {
             if (border == outsideBorder) continue;
 
-            CellSet cellSet = border.GetEnclosedCellSet(
-                addedCellSet.Cells, CanAddCellToEnclosedArea);
-
-            if (cellSet == null) continue;
+            if (!border.TryGetEnclosedCellSet(
+                addedCellSet.Cells,
+                out CellSet cellSet,
+                CanAddCellToEnclosedArea))
+                continue;
 
             if (cellSet.Area <= MinAreaSize)
             {
