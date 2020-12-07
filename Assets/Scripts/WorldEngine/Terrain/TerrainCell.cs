@@ -1073,6 +1073,11 @@ public class TerrainCell
         }
     }
 
+    public int GetIndex()
+    {
+        return Latitude * World.Width + Longitude;
+    }
+
     public void SetLayerData(Layer layer, float value, float offset)
     {
         SetLayerData(layer, value, offset, GetLayerData(layer.Id));

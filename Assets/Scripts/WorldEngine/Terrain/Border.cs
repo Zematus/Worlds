@@ -14,10 +14,39 @@ public class Border : CellSet
         AddCell(startCell);
     }
 
-    public CellSet GetEnclosedCellSet(
-        HashSet<TerrainCell> outsideSet, CanAddCellDelegate canAddCell = null)
+    private bool IsSetReallyOutside(HashSet<TerrainCell> outsideSet)
     {
-        CellSet cellSet = new CellSet();
+        TerrainCell northOfTop = Top.GetNeighborCell(Direction.North);
+        if ((northOfTop != null) && outsideSet.Contains(northOfTop))
+            return true;
+
+        TerrainCell westOfLeft = Left.GetNeighborCell(Direction.West);
+        if ((westOfLeft != null) && outsideSet.Contains(westOfLeft))
+            return true;
+
+        TerrainCell southOfBottom = Bottom.GetNeighborCell(Direction.South);
+        if ((southOfBottom != null) && outsideSet.Contains(southOfBottom))
+            return true;
+
+        TerrainCell eastOfRight = Right.GetNeighborCell(Direction.East);
+        if ((eastOfRight != null) && outsideSet.Contains(eastOfRight))
+            return true;
+
+        return false;
+    }
+
+    public bool TryGetEnclosedCellSet(
+        HashSet<TerrainCell> outsideSet,
+        out CellSet enclosedCellSet,
+        CanAddCellDelegate canAddCell = null)
+    {
+        enclosedCellSet = null;
+
+        // Test if border encloses an area not in outsideSet
+        if (!IsSetReallyOutside(outsideSet))
+            return false;
+
+        enclosedCellSet = new CellSet();
 
         HashSet<TerrainCell> exploredSet = new HashSet<TerrainCell>();
         exploredSet.UnionWith(outsideSet);
@@ -32,10 +61,10 @@ public class Border : CellSet
 
             if ((canAddCell == null) || canAddCell(cell))
             {
-                cellSet.AddCell(cell);
+                enclosedCellSet.AddCell(cell);
             }
 
-            if (cellSet.Area > RectArea)
+            if (enclosedCellSet.Area > RectArea)
             {
                 throw new System.Exception("Border does not fully enclose inner area");
             }
@@ -53,14 +82,14 @@ public class Border : CellSet
             }
         }
 
-        if (cellSet.Area == 0)
+        if (enclosedCellSet.Area == 0)
         {
-            return null;
+            return false;
         }
 
-        cellSet.Update();
+        enclosedCellSet.Update();
 
-        return cellSet;
+        return true;
     }
 
     public void Consolidate(HashSet<TerrainCell> innerArea)

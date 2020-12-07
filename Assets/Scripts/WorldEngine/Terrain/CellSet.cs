@@ -28,6 +28,11 @@ public class CellSet
 
     private bool _initialized = false;
 
+    public bool HasCell(TerrainCell cell)
+    {
+        return Cells.Contains(cell);
+    }
+
     public void AddCell(TerrainCell cell)
     {
         if (!Cells.Add(cell)) return; // cell already present

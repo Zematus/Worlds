@@ -19,10 +19,15 @@ public class Territory : ISynchronizable
 
     private HashSet<TerrainCell> _cells = new HashSet<TerrainCell>();
 
-    private HashSet<TerrainCell> _borderCells = new HashSet<TerrainCell>();
+    private HashSet<TerrainCell> _innerBorderCells = new HashSet<TerrainCell>();
 
     private HashSet<TerrainCell> _cellsToAdd = new HashSet<TerrainCell>();
     private HashSet<TerrainCell> _cellsToRemove = new HashSet<TerrainCell>();
+
+    private HashSet<Border> _outerBorders = new HashSet<Border>();
+    private HashSet<Border> _newOuterBorders = new HashSet<Border>();
+    private HashSet<TerrainCell> _outerBorderCellsToValidate = new HashSet<TerrainCell>();
+    private HashSet<TerrainCell> _validatedOuterBorderCells = new HashSet<TerrainCell>();
 
     public Territory()
     {
@@ -61,9 +66,61 @@ public class Territory : ISynchronizable
         return _cells.Contains(cell);
     }
 
-    public bool IsPartOfBorder(TerrainCell cell)
+    public bool IsPartOfInnerBorder(TerrainCell cell)
     {
-        return _borderCells.Contains(cell);
+        return _innerBorderCells.Contains(cell);
+    }
+
+    public void InvalidateBorders(TerrainCell cell)
+    {
+        List<Border> bordersToRemove = null;
+
+        foreach (Border border in _outerBorders)
+        {
+            if (border.HasCell(cell))
+            {
+                if (bordersToRemove == null)
+                {
+                    bordersToRemove = new List<Border>();
+                }
+
+                bordersToRemove.Add(border);
+            }
+        }
+
+        if (bordersToRemove != null)
+        {
+            foreach (Border b in bordersToRemove)
+            {
+                _outerBorders.Remove(b);
+            }
+        }
+    }
+
+    public bool HasThisPolityProminence(TerrainCell cell)
+    {
+        return
+            (cell.Group != null) &&
+            (cell.Group.GetPolityProminence(Polity) != null);
+    }
+
+    public void TestOuterBorderCell(TerrainCell cell)
+    {
+        if (!HasThisPolityProminence(cell))
+        {
+            InvalidateBorders(cell);
+
+            _outerBorderCellsToValidate.Add(cell);
+            return;
+        }
+    }
+
+    public void TestNeighborsForBorders(TerrainCell cell)
+    {
+        foreach (TerrainCell nCell in cell.NeighborList)
+        {
+            TestOuterBorderCell(nCell);
+        }
     }
 
     public void SetCellToAdd(TerrainCell cell)
@@ -138,29 +195,123 @@ public class Territory : ISynchronizable
         _cellsToRemove.Clear();
     }
 
+    public bool IsPartOfOuterBorder(TerrainCell cell)
+    {
+        foreach (TerrainCell nCell in cell.NeighborList)
+        {
+            if (HasThisPolityProminence(nCell))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public Border BuildOuterBorder(TerrainCell startCell)
+    {
+        Border border = new Border(startCell.GetIndex(), startCell);
+
+        Queue<TerrainCell> cellsToExplore = new Queue<TerrainCell>();
+
+        cellsToExplore.Enqueue(startCell);
+        _validatedOuterBorderCells.Add(startCell);
+
+        while (cellsToExplore.Count > 0)
+        {
+            TerrainCell cell = cellsToExplore.Dequeue();
+
+            foreach (TerrainCell nCell in cell.NonDiagonalNeighbors.Values)
+            {
+                if (_validatedOuterBorderCells.Contains(nCell))
+                    continue;
+
+                _validatedOuterBorderCells.Add(nCell);
+
+                if (HasThisPolityProminence(nCell))
+                    continue;
+
+                if (!IsPartOfOuterBorder(nCell))
+                    continue;
+
+                border.AddCell(nCell);
+                cellsToExplore.Enqueue(nCell);
+            }
+        }
+
+        return border;
+    }
+
+    public void UpdateOuterBorders()
+    {
+        foreach (TerrainCell cell in _outerBorderCellsToValidate)
+        {
+            if (_validatedOuterBorderCells.Contains(cell))
+                continue;
+
+            if (!IsPartOfOuterBorder(cell))
+                continue;
+
+            Border border = BuildOuterBorder(cell);
+
+            _outerBorders.Add(border);
+            _newOuterBorders.Add(border);
+        }
+
+        _outerBorderCellsToValidate.Clear();
+        _validatedOuterBorderCells.Clear();
+    }
+
+    private static bool CanAddCellToEnclosedArea(TerrainCell cell)
+    {
+        if (cell.IsLiquidSea)
+            return false;
+
+        return cell.Group == null;
+    }
+
+    public void AddEnclosedAreas()
+    {
+        foreach (Border border in _newOuterBorders)
+        {
+            if (border.TryGetEnclosedCellSet(
+                _cells,
+                out CellSet cellSet,
+                CanAddCellToEnclosedArea))
+                continue;
+        }
+
+        _newOuterBorders.Clear();
+    }
+
     public void Update()
     {
+        UpdateOuterBorders();
+
+        AddEnclosedAreas();
     }
 
     private void AddCell(TerrainCell cell)
     {
         _cells.Add(cell);
 
+        TestNeighborsForBorders(cell);
+
         cell.EncompassingTerritory = this;
         Manager.AddUpdatedCell(cell, CellUpdateType.Territory | CellUpdateType.Cluster, CellUpdateSubType.Membership);
 
         if (IsPartOfBorderInternal(cell))
         {
-            _borderCells.Add(cell);
+            _innerBorderCells.Add(cell);
         }
 
         foreach (TerrainCell nCell in cell.NeighborList)
         {
-            if (_borderCells.Contains(nCell))
+            if (_innerBorderCells.Contains(nCell))
             {
                 if (!IsPartOfBorderInternal(nCell))
                 {
-                    _borderCells.Remove(nCell);
+                    _innerBorderCells.Remove(nCell);
                     Manager.AddUpdatedCell(nCell, CellUpdateType.Territory, CellUpdateSubType.Membership);
                 }
             }
@@ -192,19 +343,21 @@ public class Territory : ISynchronizable
     {
         _cells.Remove(cell);
 
+        TestOuterBorderCell(cell);
+
         cell.EncompassingTerritory = null;
         Manager.AddUpdatedCell(cell, CellUpdateType.Territory | CellUpdateType.Cluster, CellUpdateSubType.Membership);
 
-        if (_borderCells.Contains(cell))
+        if (_innerBorderCells.Contains(cell))
         {
-            _borderCells.Remove(cell);
+            _innerBorderCells.Remove(cell);
         }
 
         foreach (TerrainCell nCell in cell.NeighborList)
         {
             if (IsPartOfBorderInternal(nCell))
             {
-                _borderCells.Add(nCell);
+                _innerBorderCells.Add(nCell);
                 Manager.AddUpdatedCell(nCell, CellUpdateType.Territory, CellUpdateSubType.Membership);
             }
         }
@@ -242,7 +395,7 @@ public class Territory : ISynchronizable
             {
                 if (!_cells.Contains(nCell))
                 {
-                    _borderCells.Add(cell);
+                    _innerBorderCells.Add(cell);
                     break;
                 }
             }
