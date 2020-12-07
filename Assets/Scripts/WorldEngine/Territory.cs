@@ -254,6 +254,8 @@ public class Territory : ISynchronizable
 
             Border border = BuildOuterBorder(cell);
 
+            border.Update();
+
             _outerBorders.Add(border);
             _newOuterBorders.Add(border);
         }
