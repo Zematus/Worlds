@@ -14,22 +14,22 @@ public class Border : CellSet
         AddCell(startCell);
     }
 
-    private bool IsSetReallyOutside(HashSet<TerrainCell> outsideSet)
+    private bool IsSetOutside(HashSet<TerrainCell> set)
     {
         TerrainCell northOfTop = Top.GetNeighborCell(Direction.North);
-        if ((northOfTop != null) && outsideSet.Contains(northOfTop))
+        if ((northOfTop != null) && set.Contains(northOfTop))
             return true;
 
         TerrainCell westOfLeft = Left.GetNeighborCell(Direction.West);
-        if ((westOfLeft != null) && outsideSet.Contains(westOfLeft))
+        if ((westOfLeft != null) && set.Contains(westOfLeft))
             return true;
 
         TerrainCell southOfBottom = Bottom.GetNeighborCell(Direction.South);
-        if ((southOfBottom != null) && outsideSet.Contains(southOfBottom))
+        if ((southOfBottom != null) && set.Contains(southOfBottom))
             return true;
 
         TerrainCell eastOfRight = Right.GetNeighborCell(Direction.East);
-        if ((eastOfRight != null) && outsideSet.Contains(eastOfRight))
+        if ((eastOfRight != null) && set.Contains(eastOfRight))
             return true;
 
         return false;
@@ -43,7 +43,7 @@ public class Border : CellSet
         enclosedCellSet = null;
 
         // Test if border encloses an area not in outsideSet
-        if (!IsSetReallyOutside(outsideSet))
+        if (!IsSetOutside(outsideSet))
             return false;
 
         enclosedCellSet = new CellSet();

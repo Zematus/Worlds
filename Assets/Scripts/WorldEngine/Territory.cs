@@ -26,6 +26,9 @@ public class Territory : ISynchronizable
 
     private HashSet<Border> _outerBorders = new HashSet<Border>();
     private HashSet<Border> _newOuterBorders = new HashSet<Border>();
+
+    private HashSet<TerrainCell> _enclosedCells = new HashSet<TerrainCell>();
+
     private HashSet<TerrainCell> _outerBorderCellsToValidate = new HashSet<TerrainCell>();
     private HashSet<TerrainCell> _validatedOuterBorderCells = new HashSet<TerrainCell>();
 
@@ -125,22 +128,37 @@ public class Territory : ISynchronizable
 
     public void SetCellToAdd(TerrainCell cell)
     {
+        if (_cellsToRemove.Contains(cell))
+        {
+            // This cell is part of an already enclosed piece of land. No need to add again
+            _cellsToRemove.Remove(cell);
+            return;
+        }
+
+        if (_enclosedCells.Contains(cell))
+        {
+            // This cell is part of an already enclosed piece of land. No need to
+            // add it again
+            return;
+        }
+
         if ((cell.TerritoryToAddTo != null) &&
             (cell.TerritoryToAddTo != this))
         {
-            cell.TerritoryToAddTo.RemoveCellToAdd(cell);
-        }
+            //// If this cell was to be added to another territory, override that
+            //cell.TerritoryToAddTo.RemoveCellToAdd(cell);
 
-        if (_cellsToRemove.Contains(cell))
-        {
-            _cellsToRemove.Remove(cell);
-            return;
+            // We should avoid this scenario
+            throw new System.Exception(
+                "We are already attempting to add this cell " + cell.Position +
+                " to the territory of polity " + cell.TerritoryToAddTo.Polity.Id);
         }
 
         if (_cells.Contains(cell))
         {
             throw new System.Exception(
-                "Trying to add cell that has already been added. Cell: " + cell.Position + " Polity.Id: " + Polity.Id);
+                "Trying to add cell that has already been added. Cell: " + cell.Position +
+                " Polity.Id: " + Polity.Id);
         }
 
         cell.TerritoryToAddTo = this;
@@ -276,11 +294,17 @@ public class Territory : ISynchronizable
     {
         foreach (Border border in _newOuterBorders)
         {
-            if (border.TryGetEnclosedCellSet(
+            if (!border.TryGetEnclosedCellSet(
                 _cells,
-                out CellSet cellSet,
+                out CellSet enclosedArea,
                 CanAddCellToEnclosedArea))
                 continue;
+
+            foreach (TerrainCell cell in enclosedArea.Cells)
+            {
+                _enclosedCells.Add(cell);
+                AddCell(cell);
+            }
         }
 
         _newOuterBorders.Clear();
