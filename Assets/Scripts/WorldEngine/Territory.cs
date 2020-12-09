@@ -24,7 +24,9 @@ public class Territory : ISynchronizable
     private HashSet<TerrainCell> _cellsToAdd = new HashSet<TerrainCell>();
     private HashSet<TerrainCell> _cellsToRemove = new HashSet<TerrainCell>();
 
-    private HashSet<Border> _outerBorders = new HashSet<Border>();
+    private HashSet<CellSet> _enclosedAreas = new HashSet<CellSet>();
+    private HashSet<CellSet> _enclosedAreasToRemove = new HashSet<CellSet>();
+
     private HashSet<Border> _newOuterBorders = new HashSet<Border>();
 
     private HashSet<TerrainCell> _enclosedCells = new HashSet<TerrainCell>();
@@ -74,51 +76,60 @@ public class Territory : ISynchronizable
         return _innerBorderCells.Contains(cell);
     }
 
-    public void InvalidateBorders(TerrainCell cell)
+    private void InvalidateEnclosedAreas(TerrainCell cell)
     {
-        List<Border> bordersToRemove = null;
-
-        foreach (Border border in _outerBorders)
+        foreach (CellSet area in _enclosedAreas)
         {
-            if (border.HasCell(cell))
-            {
-                if (bordersToRemove == null)
-                {
-                    bordersToRemove = new List<Border>();
-                }
+            if (_enclosedAreasToRemove.Contains(area))
+                continue;
 
-                bordersToRemove.Add(border);
-            }
-        }
-
-        if (bordersToRemove != null)
-        {
-            foreach (Border b in bordersToRemove)
+            if (area.HasCell(cell))
             {
-                _outerBorders.Remove(b);
+                _enclosedAreasToRemove.Add(area);
             }
         }
     }
 
-    public bool HasThisPolityProminence(TerrainCell cell)
+    private void RemoveInvalidatedEnclosedAreas()
+    {
+        foreach (CellSet area in _enclosedAreasToRemove)
+        {
+            _enclosedAreas.Remove(area);
+
+            foreach (TerrainCell cell in area.Cells)
+            {
+                _enclosedCells.Remove(cell);
+
+                if (HasThisHighestPolityProminence(cell))
+                    continue;
+
+                RemoveCell(cell);
+            }
+        }
+
+        _enclosedAreasToRemove.Clear();
+    }
+
+    private bool HasThisHighestPolityProminence(TerrainCell cell)
     {
         return
             (cell.Group != null) &&
-            (cell.Group.GetPolityProminence(Polity) != null);
+            (cell.Group.HighestPolityProminence != null) &&
+            (cell.Group.HighestPolityProminence.Polity == Polity);
     }
 
-    public void TestOuterBorderCell(TerrainCell cell)
+    private void TestOuterBorderCell(TerrainCell cell)
     {
-        if (!HasThisPolityProminence(cell))
+        if (!HasThisHighestPolityProminence(cell))
         {
-            InvalidateBorders(cell);
+            InvalidateEnclosedAreas(cell);
 
             _outerBorderCellsToValidate.Add(cell);
             return;
         }
     }
 
-    public void TestNeighborsForBorders(TerrainCell cell)
+    private void TestNeighborsForBorders(TerrainCell cell)
     {
         foreach (TerrainCell nCell in cell.NeighborList)
         {
@@ -192,11 +203,23 @@ public class Territory : ISynchronizable
         World.AddTerritoryToUpdate(this);
     }
 
+    public void PrepareToAddNonEnclosedCell(TerrainCell cell)
+    {
+        cell.TerritoryToAddTo = null;
+
+        _enclosedCells.Remove(cell);
+
+        InvalidateEnclosedAreas(cell);
+
+        TestNeighborsForBorders(cell);
+    }
+
     public void AddCells()
     {
         foreach (TerrainCell cell in _cellsToAdd)
         {
-            cell.TerritoryToAddTo = null;
+            PrepareToAddNonEnclosedCell(cell);
+
             AddCell(cell);
         }
 
@@ -207,6 +230,10 @@ public class Territory : ISynchronizable
     {
         foreach (TerrainCell cell in _cellsToRemove)
         {
+            TestOuterBorderCell(cell);
+
+            _enclosedCells.Remove(cell);
+
             RemoveCell(cell);
         }
 
@@ -217,7 +244,7 @@ public class Territory : ISynchronizable
     {
         foreach (TerrainCell nCell in cell.NeighborList)
         {
-            if (HasThisPolityProminence(nCell))
+            if (HasThisHighestPolityProminence(nCell))
             {
                 return true;
             }
@@ -246,7 +273,7 @@ public class Territory : ISynchronizable
 
                 _validatedOuterBorderCells.Add(nCell);
 
-                if (HasThisPolityProminence(nCell))
+                if (HasThisHighestPolityProminence(nCell))
                     continue;
 
                 if (!IsPartOfOuterBorder(nCell))
@@ -274,7 +301,6 @@ public class Territory : ISynchronizable
 
             border.Update();
 
-            _outerBorders.Add(border);
             _newOuterBorders.Add(border);
         }
 
@@ -300,9 +326,12 @@ public class Territory : ISynchronizable
                 CanAddCellToEnclosedArea))
                 continue;
 
+            _enclosedAreas.Add(enclosedArea);
+
             foreach (TerrainCell cell in enclosedArea.Cells)
             {
                 _enclosedCells.Add(cell);
+
                 AddCell(cell);
             }
         }
@@ -312,6 +341,8 @@ public class Territory : ISynchronizable
 
     public void Update()
     {
+        RemoveInvalidatedEnclosedAreas();
+
         UpdateOuterBorders();
 
         AddEnclosedAreas();
@@ -320,8 +351,6 @@ public class Territory : ISynchronizable
     private void AddCell(TerrainCell cell)
     {
         _cells.Add(cell);
-
-        TestNeighborsForBorders(cell);
 
         cell.EncompassingTerritory = this;
         Manager.AddUpdatedCell(cell, CellUpdateType.Territory | CellUpdateType.Cluster, CellUpdateSubType.Membership);
@@ -358,18 +387,12 @@ public class Territory : ISynchronizable
 
                 World.AddRegionInfo(cellRegion.Info);
             }
-            else
-            {
-                throw new System.Exception("No region could be generated");
-            }
         }
     }
 
     private void RemoveCell(TerrainCell cell)
     {
         _cells.Remove(cell);
-
-        TestOuterBorderCell(cell);
 
         cell.EncompassingTerritory = null;
         Manager.AddUpdatedCell(cell, CellUpdateType.Territory | CellUpdateType.Cluster, CellUpdateSubType.Membership);

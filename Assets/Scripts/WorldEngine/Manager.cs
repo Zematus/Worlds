@@ -3937,7 +3937,7 @@ public class Manager
         bool hasGroup = false;
         bool inTerritory = false;
         Color densityColorSubOptimal = GetOverlayColor(OverlayColorId.GeneralDensitySubOptimal);
-        Color groupColor = GetOverlayColor(OverlayColorId.GeneralDensityOptimal);
+        Color cellColor = GetOverlayColor(OverlayColorId.GeneralDensityOptimal);
 
         if (cell.EncompassingTerritory != null)
         {
@@ -3945,30 +3945,21 @@ public class Manager
 
             Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
-            if (cell.Group != null)
-            {
-                if (cell.Group.GetPolityProminence(territoryPolity) == null)
-                {
-                    throw new System.Exception(
-                        "The polity prominence is null. Polity: " + territoryPolity.Id +
-                        ", Group: " + cell.Group.Id);
-                }
-            }
-
-            groupColor = GenerateColorFromId(territoryPolity.Id);
+            cellColor = GenerateColorFromId(territoryPolity.Id);
 
             bool isTerritoryBorder = IsTerritoryBorder(cell.EncompassingTerritory, cell);
-            bool isCoreGroup = territoryPolity.CoreGroup == cell.Group;
+            bool isCoreGroup =
+                (cell.Group != null) && (territoryPolity.CoreGroup == cell.Group);
 
             if (!isCoreGroup)
             {
                 if (!isTerritoryBorder)
                 {
-                    groupColor /= 2.5f;
+                    cellColor /= 2.5f;
                 }
                 else
                 {
-                    groupColor /= 1.75f;
+                    cellColor /= 1.75f;
                 }
             }
         }
@@ -3991,23 +3982,23 @@ public class Manager
 
                     float knowledgeFactor = Mathf.Clamp01((knowledgeValue - startValue) / (minValue - startValue));
 
-                    groupColor = (groupColor * knowledgeFactor) + densityColorSubOptimal * (1f - knowledgeFactor);
+                    cellColor = (cellColor * knowledgeFactor) + densityColorSubOptimal * (1f - knowledgeFactor);
                 }
                 else
                 {
-                    groupColor = densityColorSubOptimal;
+                    cellColor = densityColorSubOptimal;
                 }
             }
         }
 
         if (hasGroup && !inTerritory)
         {
-            baseColor = groupColor;
+            baseColor = cellColor;
             baseColor.a = 0.5f;
         }
         else if (inTerritory)
         {
-            baseColor = groupColor;
+            baseColor = cellColor;
             baseColor.a = 0.85f;
         }
 
