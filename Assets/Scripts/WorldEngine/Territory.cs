@@ -284,6 +284,8 @@ public class Territory : ISynchronizable
             }
         }
 
+        border.Update();
+
         return border;
     }
 
@@ -298,8 +300,6 @@ public class Territory : ISynchronizable
                 continue;
 
             Border border = BuildOuterBorder(cell);
-
-            border.Update();
 
             _newOuterBorders.Add(border);
         }

@@ -74,12 +74,12 @@ public class CellSet
             WrapsAround = true;
         }
 
-        if ((cell.Latitude - Top.Latitude) == -1)
+        if ((cell.Latitude - Top.Latitude) == 1)
         {
             Top = cell;
         }
 
-        if ((cell.Latitude - Bottom.Latitude) == 1)
+        if ((cell.Latitude - Bottom.Latitude) == -1)
         {
             Bottom = cell;
         }
@@ -95,7 +95,7 @@ public class CellSet
         // adjust for world wrap
         if (WrapsAround) right += Manager.WorldWidth;
 
-        RectHeight = bottom - top + 1;
+        RectHeight = top - bottom + 1;
         RectWidth = right - left + 1;
 
         RectArea = RectWidth * RectHeight;
@@ -115,7 +115,7 @@ public class CellSet
         // adjust for world wrap
         if (WrapsAround) right += Manager.WorldWidth;
 
-        if (!cell.Latitude.IsInsideRange(top, bottom)) return false;
+        if (!cell.Latitude.IsInsideRange(bottom, top)) return false;
 
         int longitude = cell.Longitude;
 
@@ -132,12 +132,12 @@ public class CellSet
     {
         Cells.UnionWith(sourceSet.Cells);
 
-        if (Top.Latitude > sourceSet.Top.Latitude)
+        if (Top.Latitude < sourceSet.Top.Latitude)
         {
             Top = sourceSet.Top;
         }
 
-        if (Bottom.Latitude < sourceSet.Bottom.Latitude)
+        if (Bottom.Latitude > sourceSet.Bottom.Latitude)
         {
             Bottom = sourceSet.Bottom;
         }
@@ -232,7 +232,7 @@ public class CellSet
 
             foreach (TerrainCell cell in cellSet.Cells)
             {
-                if (cell.Latitude > middleLatitude)
+                if (cell.Latitude < middleLatitude)
                     bottomCellSet.AddCell(cell);
                 else
                     topCellSet.AddCell(cell);
