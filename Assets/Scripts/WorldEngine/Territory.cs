@@ -313,7 +313,8 @@ public class Territory : ISynchronizable
         if (cell.IsLiquidSea)
             return false;
 
-        return cell.Group == null;
+        //return cell.Group == null;
+        return true;
     }
 
     public void AddEnclosedAreas()
