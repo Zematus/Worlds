@@ -3235,9 +3235,16 @@ public class Manager
 
             color = GenerateColorFromId(territoryPolity.Id);
 
+            bool isPolityCoreGroup = false;
+            bool isFactionCoreGroup = false;
+
             bool isTerritoryBorder = IsTerritoryBorder(cell.EncompassingTerritory, cell);
-            bool isPolityCoreGroup = territoryPolity.CoreGroup == cell.Group;
-            bool isFactionCoreGroup = cell.Group.GetFactionCores().Count > 0;
+
+            if (cell.Group != null)
+            {
+                isPolityCoreGroup = territoryPolity.CoreGroup == cell.Group;
+                isFactionCoreGroup = cell.Group.GetFactionCores().Count > 0;
+            }
 
             if (!isPolityCoreGroup)
             {
