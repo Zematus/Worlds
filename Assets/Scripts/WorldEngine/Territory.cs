@@ -103,6 +103,14 @@ public class Territory : ISynchronizable
                 if (HasThisHighestPolityProminence(cell))
                     continue;
 
+//#if DEBUG
+//                if (cell.Position.Equals(6, 111))
+//                {
+//                    Debug.LogWarning("Debugging RemoveInvalidatedEnclosedAreas, cell: " + cell.Position + ", group: " +
+//                        cell.Group + ", polity: " + Polity.Id);
+//                }
+//#endif
+
                 RemoveCell(cell);
             }
         }
@@ -139,6 +147,15 @@ public class Territory : ISynchronizable
 
     public void SetCellToAdd(TerrainCell cell)
     {
+
+//#if DEBUG
+//        if (cell.Position.Equals(6, 111))
+//        {
+//            Debug.LogWarning("Debugging SetCellToAdd, cell: " + cell.Position + ", group: "+
+//                cell.Group + ", polity: " + Polity.Id);
+//        }
+//#endif
+
         if (_cellsToRemove.Contains(cell))
         {
             // This cell is part of an already enclosed piece of land. No need to add again
@@ -186,6 +203,15 @@ public class Territory : ISynchronizable
 
     public void SetCellToRemove(TerrainCell cell)
     {
+
+//#if DEBUG
+//        if (cell.Position.Equals(6, 111))
+//        {
+//            Debug.LogWarning("Debugging SetCellToRemove, cell: " + cell.Position + ", group: " +
+//                cell.Group + ", polity: " + Polity.Id);
+//        }
+//#endif
+
         if (_cellsToAdd.Contains(cell))
         {
             RemoveCellToAdd(cell);
@@ -253,6 +279,10 @@ public class Territory : ISynchronizable
         return false;
     }
 
+#if DEBUG
+    private int debugCounter = 1;
+#endif
+
     public Border BuildOuterBorder(TerrainCell startCell)
     {
         Border border = new Border(startCell.GetIndex(), startCell);
@@ -265,6 +295,19 @@ public class Territory : ISynchronizable
         while (cellsToExplore.Count > 0)
         {
             TerrainCell cell = cellsToExplore.Dequeue();
+
+#if DEBUG
+            if (cell.Position.Equals(395, 134))
+            {
+                if (debugCounter >= 90)
+                {
+                    Debug.LogWarning("Debugging BuildOuterBorder on cell " + cell.Position +
+                        ", attempt: " + debugCounter);
+                }
+
+                debugCounter++;
+            }
+#endif
 
             foreach (TerrainCell nCell in cell.NonDiagonalNeighbors.Values)
             {
@@ -313,8 +356,10 @@ public class Territory : ISynchronizable
         if (cell.IsLiquidSea)
             return false;
 
-        //return cell.Group == null;
-        return true;
+        if (cell.Group == null)
+            return true;
+
+        return cell.Group.TotalPolityProminenceValue <= 0;
     }
 
     public void AddEnclosedAreas()
@@ -332,6 +377,14 @@ public class Territory : ISynchronizable
             foreach (TerrainCell cell in enclosedArea.Cells)
             {
                 _enclosedCells.Add(cell);
+
+//#if DEBUG
+//                if (cell.Position.Equals(6, 111))
+//                {
+//                    Debug.LogWarning("Debugging AddEnclosedAreas, cell: " + cell.Position + ", group: " +
+//                        cell.Group + ", polity: " + Polity.Id);
+//                }
+//#endif
 
                 AddCell(cell);
             }
@@ -351,7 +404,20 @@ public class Territory : ISynchronizable
 
     private void AddCell(TerrainCell cell)
     {
-        _cells.Add(cell);
+
+//#if DEBUG
+//        if (cell.Position.Equals(6, 111))
+//        {
+//            Debug.LogWarning("Debugging AddCell, cell: " + cell.Position + ", group: " +
+//                cell.Group + ", polity: " + Polity.Id);
+//        }
+//#endif
+
+        if (!_cells.Add(cell))
+        {
+            // the cell has already been added, there's nothing else that needs to be done
+            return;
+        }
 
         cell.EncompassingTerritory = this;
         Manager.AddUpdatedCell(cell, CellUpdateType.Territory | CellUpdateType.Cluster, CellUpdateSubType.Membership);
@@ -393,7 +459,20 @@ public class Territory : ISynchronizable
 
     private void RemoveCell(TerrainCell cell)
     {
-        _cells.Remove(cell);
+
+//#if DEBUG
+//        if (cell.Position.Equals(6, 111))
+//        {
+//            Debug.LogWarning("Debugging RemoveCell, cell: " + cell.Position + ", group: " +
+//                cell.Group + ", polity: " + Polity.Id);
+//        }
+//#endif
+
+        if (!_cells.Remove(cell))
+        {
+            // the cell has already been removed, there's nothing else that needs to be done
+            return;
+        }
 
         cell.EncompassingTerritory = null;
         Manager.AddUpdatedCell(cell, CellUpdateType.Territory | CellUpdateType.Cluster, CellUpdateSubType.Membership);
