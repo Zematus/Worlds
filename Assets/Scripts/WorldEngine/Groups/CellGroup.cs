@@ -700,6 +700,16 @@ public class CellGroup : Identifiable, IFlagHolder
             ((prominence == null) ||
             (Cell.EncompassingTerritory != prominence.Polity.Territory)))
         {
+
+#if DEBUG
+            if (Cell.Position.Equals(6, 111))
+            {
+                Debug.LogWarning("Debugging SetHighestPolityProminence, cell: " + Cell.Position + ", group: " +
+                    Cell.Group + ", territory polity: " + Cell.EncompassingTerritory.Polity.Id +
+                    ", prominence polity: " + prominence?.PolityId);
+            }
+#endif
+
             Cell.EncompassingTerritory.SetCellToRemove(Cell);
         }
 
@@ -1699,6 +1709,15 @@ public class CellGroup : Identifiable, IFlagHolder
 
         if (Cell.EncompassingTerritory != null)
         {
+
+//#if DEBUG
+//            if (Cell.Position.Equals(6, 111))
+//            {
+//                Debug.LogWarning("Debugging Destroy_RemovePolityProminences, cell: " + Cell.Position + ", group: " +
+//                    Cell.Group + ", polity: " + Cell.EncompassingTerritory.Polity.Id);
+//            }
+//#endif
+
             Cell.EncompassingTerritory.SetCellToRemove(Cell);
         }
     }
