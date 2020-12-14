@@ -3282,7 +3282,7 @@ public class Manager
 
                 PolityProminence prominence = cell.Group.GetPolityProminence(territoryPolity);
 
-                if (prominence.Cluster != null)
+                if (prominence?.Cluster != null)
                 {
                     color = GenerateColorFromId(prominence.Cluster.Id);
                 }
@@ -3432,13 +3432,15 @@ public class Manager
 
     private static Color SetPolityContactsOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group == null)
-            return color;
-
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         float contactValue = 0;
 
@@ -3608,16 +3610,23 @@ public class Manager
 
     private static Color SetPolityCulturalPreferenceOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group == null)
-            return color;
-
         if (_planetOverlaySubtype == "None")
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         CulturalPreference preference = territory.Polity.Culture.GetPreference(_planetOverlaySubtype);
 
@@ -3651,16 +3660,23 @@ public class Manager
 
     private static Color SetPolityCulturalActivityOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group == null)
-            return color;
-
         if (_planetOverlaySubtype == "None")
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         CulturalActivity activity = territory.Polity.Culture.GetActivity(_planetOverlaySubtype);
 
@@ -3694,16 +3710,23 @@ public class Manager
 
     private static Color SetPolityCulturalSkillOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group == null)
-            return color;
-
         if (_planetOverlaySubtype == "None")
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         CulturalSkill skill = territory.Polity.Culture.GetSkill(_planetOverlaySubtype);
 
@@ -3744,16 +3767,23 @@ public class Manager
 
     private static Color SetPolityCulturalKnowledgeOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group == null)
-            return color;
-
         if (_planetOverlaySubtype == "None")
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         CulturalKnowledge knowledge = territory.Polity.Culture.GetKnowledge(_planetOverlaySubtype);
 
@@ -3792,16 +3822,23 @@ public class Manager
 
     private static Color SetPolityCulturalDiscoveryOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group == null)
-            return color;
-
         if (_planetOverlaySubtype == "None")
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         if (!territory.Polity.Culture.HasDiscovery(_planetOverlaySubtype))
             return GetUnincorporatedGroupColor();
