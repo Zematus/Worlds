@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 public class Territory : ISynchronizable
 {
     public List<WorldPosition> CellPositions;
+    public List<CellArea> EnclosedAreas;
 
     [XmlIgnore]
     public bool IsSelected = false;
@@ -24,8 +25,8 @@ public class Territory : ISynchronizable
     private HashSet<TerrainCell> _cellsToAdd = new HashSet<TerrainCell>();
     private HashSet<TerrainCell> _cellsToRemove = new HashSet<TerrainCell>();
 
-    private HashSet<CellSet> _enclosedAreas = new HashSet<CellSet>();
-    private HashSet<CellSet> _enclosedAreasToRemove = new HashSet<CellSet>();
+    private HashSet<CellArea> _enclosedAreas = new HashSet<CellArea>();
+    private HashSet<CellArea> _enclosedAreasToRemove = new HashSet<CellArea>();
 
     private HashSet<Border> _newOuterBorders = new HashSet<Border>();
 
@@ -76,14 +77,14 @@ public class Territory : ISynchronizable
         return _innerBorderCells.Contains(cell);
     }
 
-    private void InvalidateEnclosedAreas(TerrainCell cell)
+    private void InvalidateEnclosedArea(TerrainCell cell)
     {
-        foreach (CellSet area in _enclosedAreas)
+        foreach (CellArea area in _enclosedAreas)
         {
             if (_enclosedAreasToRemove.Contains(area))
                 continue;
 
-            if (area.HasCell(cell))
+            if (area.Cells.Contains(cell))
             {
                 _enclosedAreasToRemove.Add(area);
             }
@@ -92,7 +93,7 @@ public class Territory : ISynchronizable
 
     private void RemoveInvalidatedEnclosedAreas()
     {
-        foreach (CellSet area in _enclosedAreasToRemove)
+        foreach (CellArea area in _enclosedAreasToRemove)
         {
             _enclosedAreas.Remove(area);
 
@@ -134,7 +135,7 @@ public class Territory : ISynchronizable
     {
         if (!HasThisHighestPolityProminence(cell))
         {
-            InvalidateEnclosedAreas(cell);
+            InvalidateEnclosedArea(cell);
 
 //#if DEBUG
 //            if (cell.Position.Equals(395, 134))
@@ -252,7 +253,7 @@ public class Territory : ISynchronizable
 
         _enclosedCells.Remove(cell);
 
-        InvalidateEnclosedAreas(cell);
+        InvalidateEnclosedArea(cell);
 
         TestNeighborsForBorders(cell);
     }
@@ -374,10 +375,12 @@ public class Territory : ISynchronizable
         if (cell.IsLiquidSea)
             return false;
 
-        if (cell.Group == null)
-            return true;
+        return cell.Group == null;
 
-        return cell.Group.TotalPolityProminenceValue <= 0;
+        //if (cell.Group == null)
+        //    return true;
+
+        //return cell.Group.TotalPolityProminenceValue <= 0;
     }
 
     public void AddEnclosedAreas()
@@ -386,13 +389,13 @@ public class Territory : ISynchronizable
         {
             if (!border.TryGetEnclosedCellSet(
                 _cells,
-                out CellSet enclosedArea,
+                out CellSet enclosedSet,
                 CanAddCellToEnclosedArea))
                 continue;
 
-            _enclosedAreas.Add(enclosedArea);
+            _enclosedAreas.Add(enclosedSet.GetArea());
 
-            foreach (TerrainCell cell in enclosedArea.Cells)
+            foreach (TerrainCell cell in enclosedSet.Cells)
             {
                 _enclosedCells.Add(cell);
 
@@ -518,10 +521,25 @@ public class Territory : ISynchronizable
         {
             CellPositions.Add(cell.Position);
         }
+
+        EnclosedAreas = new List<CellArea>(_enclosedAreas);
     }
 
     public void FinalizeLoad()
     {
+        foreach (CellArea area in EnclosedAreas)
+        {
+            area.World = World;
+            area.FinalizeLoad();
+
+            foreach (TerrainCell cell in area.Cells)
+            {
+                _enclosedCells.Add(cell);
+            }
+
+            _enclosedAreas.Add(area);
+        }
+
         foreach (WorldPosition position in CellPositions)
         {
             TerrainCell cell = World.GetCell(position);

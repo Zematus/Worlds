@@ -1,7 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Xml.Serialization;
-using System.Linq;
 
 public delegate bool CanAddCellDelegate(TerrainCell cell);
 
@@ -28,9 +26,15 @@ public class CellSet
 
     private bool _initialized = false;
 
-    public bool HasCell(TerrainCell cell)
+    public CellArea GetArea()
     {
-        return Cells.Contains(cell);
+        CellArea area = new CellArea()
+        {
+            World = World,
+            Cells = new HashSet<TerrainCell>(Cells)
+        };
+
+        return area;
     }
 
     public void AddCell(TerrainCell cell)
