@@ -112,6 +112,10 @@ public class Territory : ISynchronizable
 //#endif
 
                 RemoveCell(cell);
+
+                // make sure we test the removed cells again as they might end up 
+                // forming a new enclosed area by themselves
+                _outerBorderCellsToValidate.Add(cell);
             }
         }
 
@@ -131,6 +135,19 @@ public class Territory : ISynchronizable
         if (!HasThisHighestPolityProminence(cell))
         {
             InvalidateEnclosedAreas(cell);
+
+//#if DEBUG
+//            if (cell.Position.Equals(395, 134))
+//            {
+//                //if (debugCounter2 >= 90)
+//                //{
+//                    Debug.LogWarning("Debugging TestOuterBorderCell on cell " + cell.Position +
+//                        ", attempt: " + debugCounter2);
+//                //}
+
+//                debugCounter2++;
+//            }
+//#endif
 
             _outerBorderCellsToValidate.Add(cell);
             return;
@@ -279,9 +296,10 @@ public class Territory : ISynchronizable
         return false;
     }
 
-#if DEBUG
-    private int debugCounter = 1;
-#endif
+//#if DEBUG
+//    private int debugCounter1 = 1;
+//    private int debugCounter2 = 1;
+//#endif
 
     public Border BuildOuterBorder(TerrainCell startCell)
     {
@@ -296,18 +314,18 @@ public class Territory : ISynchronizable
         {
             TerrainCell cell = cellsToExplore.Dequeue();
 
-#if DEBUG
-            if (cell.Position.Equals(395, 134))
-            {
-                if (debugCounter >= 90)
-                {
-                    Debug.LogWarning("Debugging BuildOuterBorder on cell " + cell.Position +
-                        ", attempt: " + debugCounter);
-                }
+//#if DEBUG
+//            if (cell.Position.Equals(395, 134))
+//            {
+//                if (debugCounter1 >= 90)
+//                {
+//                    Debug.LogWarning("Debugging BuildOuterBorder on cell " + cell.Position +
+//                        ", attempt: " + debugCounter1);
+//                }
 
-                debugCounter++;
-            }
-#endif
+//                debugCounter1++;
+//            }
+//#endif
 
             foreach (TerrainCell nCell in cell.NonDiagonalNeighbors.Values)
             {
@@ -461,7 +479,7 @@ public class Territory : ISynchronizable
     {
 
 //#if DEBUG
-//        if (cell.Position.Equals(6, 111))
+//        if (cell.Position.Equals(395, 134))
 //        {
 //            Debug.LogWarning("Debugging RemoveCell, cell: " + cell.Position + ", group: " +
 //                cell.Group + ", polity: " + Polity.Id);

@@ -701,14 +701,14 @@ public class CellGroup : Identifiable, IFlagHolder
             (Cell.EncompassingTerritory != prominence.Polity.Territory)))
         {
 
-#if DEBUG
-            if (Cell.Position.Equals(6, 111))
-            {
-                Debug.LogWarning("Debugging SetHighestPolityProminence, cell: " + Cell.Position + ", group: " +
-                    Cell.Group + ", territory polity: " + Cell.EncompassingTerritory.Polity.Id +
-                    ", prominence polity: " + prominence?.PolityId);
-            }
-#endif
+//#if DEBUG
+//            if (Cell.Position.Equals(6, 111))
+//            {
+//                Debug.LogWarning("Debugging SetHighestPolityProminence, cell: " + Cell.Position + ", group: " +
+//                    Cell.Group + ", territory polity: " + Cell.EncompassingTerritory.Polity.Id +
+//                    ", prominence polity: " + prominence?.PolityId);
+//            }
+//#endif
 
             Cell.EncompassingTerritory.SetCellToRemove(Cell);
         }
