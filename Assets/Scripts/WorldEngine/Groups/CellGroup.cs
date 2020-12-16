@@ -2470,6 +2470,9 @@ public class CellGroup : Identifiable, IFlagHolder
         {
             float distanceToCoreFromNeighbor = pair.Value.GetFactionCoreDistance(polity);
 
+            if (distanceToCoreFromNeighbor == -1)
+                continue;
+
             if (distanceToCoreFromNeighbor == float.MaxValue)
                 continue;
 
@@ -2497,6 +2500,9 @@ public class CellGroup : Identifiable, IFlagHolder
         foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors)
         {
             float distanceToCoreFromNeighbor = pair.Value.GetPolityCoreDistance(polity);
+
+            if (distanceToCoreFromNeighbor == -1)
+                continue;
 
             if (distanceToCoreFromNeighbor == float.MaxValue)
                 continue;
