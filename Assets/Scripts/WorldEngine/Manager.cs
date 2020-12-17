@@ -3216,7 +3216,7 @@ public class Manager
 
     private static bool IsTerritoryBorder(Territory territory, TerrainCell cell)
     {
-        return territory.IsPartOfBorder(cell);
+        return territory.IsPartOfInnerBorder(cell);
     }
 
     private static Color GetUnincorporatedGroupColor()
@@ -3235,9 +3235,16 @@ public class Manager
 
             color = GenerateColorFromId(territoryPolity.Id);
 
+            bool isPolityCoreGroup = false;
+            bool isFactionCoreGroup = false;
+
             bool isTerritoryBorder = IsTerritoryBorder(cell.EncompassingTerritory, cell);
-            bool isPolityCoreGroup = territoryPolity.CoreGroup == cell.Group;
-            bool isFactionCoreGroup = cell.Group.GetFactionCores().Count > 0;
+
+            if (cell.Group != null)
+            {
+                isPolityCoreGroup = territoryPolity.CoreGroup == cell.Group;
+                isFactionCoreGroup = cell.Group.GetFactionCores().Count > 0;
+            }
 
             if (!isPolityCoreGroup)
             {
@@ -3275,7 +3282,7 @@ public class Manager
 
                 PolityProminence prominence = cell.Group.GetPolityProminence(territoryPolity);
 
-                if (prominence.Cluster != null)
+                if (prominence?.Cluster != null)
                 {
                     color = GenerateColorFromId(prominence.Cluster.Id);
                 }
@@ -3425,13 +3432,15 @@ public class Manager
 
     private static Color SetPolityContactsOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group == null)
-            return color;
-
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         float contactValue = 0;
 
@@ -3601,16 +3610,23 @@ public class Manager
 
     private static Color SetPolityCulturalPreferenceOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group == null)
-            return color;
-
         if (_planetOverlaySubtype == "None")
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         CulturalPreference preference = territory.Polity.Culture.GetPreference(_planetOverlaySubtype);
 
@@ -3644,16 +3660,23 @@ public class Manager
 
     private static Color SetPolityCulturalActivityOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group == null)
-            return color;
-
         if (_planetOverlaySubtype == "None")
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         CulturalActivity activity = territory.Polity.Culture.GetActivity(_planetOverlaySubtype);
 
@@ -3687,16 +3710,23 @@ public class Manager
 
     private static Color SetPolityCulturalSkillOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group == null)
-            return color;
-
         if (_planetOverlaySubtype == "None")
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         CulturalSkill skill = territory.Polity.Culture.GetSkill(_planetOverlaySubtype);
 
@@ -3737,16 +3767,23 @@ public class Manager
 
     private static Color SetPolityCulturalKnowledgeOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group == null)
-            return color;
-
         if (_planetOverlaySubtype == "None")
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         CulturalKnowledge knowledge = territory.Polity.Culture.GetKnowledge(_planetOverlaySubtype);
 
@@ -3785,16 +3822,23 @@ public class Manager
 
     private static Color SetPolityCulturalDiscoveryOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group == null)
-            return color;
-
         if (_planetOverlaySubtype == "None")
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
             return GetUnincorporatedGroupColor();
+        }
 
         if (!territory.Polity.Culture.HasDiscovery(_planetOverlaySubtype))
             return GetUnincorporatedGroupColor();
@@ -3937,7 +3981,7 @@ public class Manager
         bool hasGroup = false;
         bool inTerritory = false;
         Color densityColorSubOptimal = GetOverlayColor(OverlayColorId.GeneralDensitySubOptimal);
-        Color groupColor = GetOverlayColor(OverlayColorId.GeneralDensityOptimal);
+        Color cellColor = GetOverlayColor(OverlayColorId.GeneralDensityOptimal);
 
         if (cell.EncompassingTerritory != null)
         {
@@ -3945,30 +3989,21 @@ public class Manager
 
             Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
-            if (cell.Group != null)
-            {
-                if (cell.Group.GetPolityProminence(territoryPolity) == null)
-                {
-                    throw new System.Exception(
-                        "The polity prominence is null. Polity: " + territoryPolity.Id +
-                        ", Group: " + cell.Group.Id);
-                }
-            }
-
-            groupColor = GenerateColorFromId(territoryPolity.Id);
+            cellColor = GenerateColorFromId(territoryPolity.Id);
 
             bool isTerritoryBorder = IsTerritoryBorder(cell.EncompassingTerritory, cell);
-            bool isCoreGroup = territoryPolity.CoreGroup == cell.Group;
+            bool isCoreGroup =
+                (cell.Group != null) && (territoryPolity.CoreGroup == cell.Group);
 
             if (!isCoreGroup)
             {
                 if (!isTerritoryBorder)
                 {
-                    groupColor /= 2.5f;
+                    cellColor /= 2.5f;
                 }
                 else
                 {
-                    groupColor /= 1.75f;
+                    cellColor /= 1.75f;
                 }
             }
         }
@@ -3991,23 +4026,23 @@ public class Manager
 
                     float knowledgeFactor = Mathf.Clamp01((knowledgeValue - startValue) / (minValue - startValue));
 
-                    groupColor = (groupColor * knowledgeFactor) + densityColorSubOptimal * (1f - knowledgeFactor);
+                    cellColor = (cellColor * knowledgeFactor) + densityColorSubOptimal * (1f - knowledgeFactor);
                 }
                 else
                 {
-                    groupColor = densityColorSubOptimal;
+                    cellColor = densityColorSubOptimal;
                 }
             }
         }
 
         if (hasGroup && !inTerritory)
         {
-            baseColor = groupColor;
+            baseColor = cellColor;
             baseColor.a = 0.5f;
         }
         else if (inTerritory)
         {
-            baseColor = groupColor;
+            baseColor = cellColor;
             baseColor.a = 0.85f;
         }
 

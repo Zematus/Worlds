@@ -195,6 +195,7 @@ public class TerrainCell
     public Region Region = null;
 
     public Territory EncompassingTerritory = null;
+    public Territory TerritoryToAddTo = null;
 
     public List<Route> CrossingRoutes = new List<Route>();
 
@@ -210,6 +211,7 @@ public class TerrainCell
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
 
     public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
+    public Dictionary<Direction, TerrainCell> NonDiagonalNeighbors { get; private set; }
     public List<TerrainCell> NeighborList { get; private set; }
     public List<Direction> DirectionList { get; private set; }
     public Dictionary<Direction, float> NeighborDistances { get; private set; }
@@ -648,16 +650,6 @@ public class TerrainCell
         }
     }
 
-    public IEnumerable<KeyValuePair<Direction, TerrainCell>> GetNonDiagonalNeighbors()
-    {
-        foreach (KeyValuePair<Direction, TerrainCell> pair in Neighbors)
-        {
-            if (IsDiagonalDirection(pair.Key)) continue;
-
-            yield return pair;
-        }
-    }
-
     public Direction TryGetNeighborDirection(int offset)
     {
         if (Neighbors.Count <= 0)
@@ -1081,6 +1073,11 @@ public class TerrainCell
         }
     }
 
+    public int GetIndex()
+    {
+        return Latitude * World.Width + Longitude;
+    }
+
     public void SetLayerData(Layer layer, float value, float offset)
     {
         SetLayerData(layer, value, offset, GetLayerData(layer.Id));
@@ -1208,6 +1205,12 @@ public class TerrainCell
     private void AddNeighborCell(Direction direction, TerrainCell cell)
     {
         Neighbors.Add(direction, cell);
+
+        if (!IsDiagonalDirection(direction))
+        {
+            NonDiagonalNeighbors.Add(direction, cell);
+        }
+
         DirectionList.Add(direction);
         NeighborList.Add(cell);
     }
@@ -1218,6 +1221,7 @@ public class TerrainCell
     private void SetNeighborCells()
     {
         Neighbors = new Dictionary<Direction, TerrainCell>(8);
+        NonDiagonalNeighbors = new Dictionary<Direction, TerrainCell>(4);
         NeighborList = new List<TerrainCell>();
         DirectionList = new List<Direction>();
 

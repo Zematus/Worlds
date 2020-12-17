@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Xml.Serialization;
-using System.Linq;
+
+public delegate bool CanAddCellDelegate(TerrainCell cell);
 
 public class CellSet
 {
@@ -25,6 +25,17 @@ public class CellSet
     public bool NeedsUpdate = false;
 
     private bool _initialized = false;
+
+    public CellArea GetArea()
+    {
+        CellArea area = new CellArea()
+        {
+            World = World,
+            Cells = new HashSet<TerrainCell>(Cells)
+        };
+
+        return area;
+    }
 
     public void AddCell(TerrainCell cell)
     {
@@ -67,12 +78,12 @@ public class CellSet
             WrapsAround = true;
         }
 
-        if ((cell.Latitude - Top.Latitude) == -1)
+        if ((cell.Latitude - Top.Latitude) == 1)
         {
             Top = cell;
         }
 
-        if ((cell.Latitude - Bottom.Latitude) == 1)
+        if ((cell.Latitude - Bottom.Latitude) == -1)
         {
             Bottom = cell;
         }
@@ -88,7 +99,7 @@ public class CellSet
         // adjust for world wrap
         if (WrapsAround) right += Manager.WorldWidth;
 
-        RectHeight = bottom - top + 1;
+        RectHeight = top - bottom + 1;
         RectWidth = right - left + 1;
 
         RectArea = RectWidth * RectHeight;
@@ -108,7 +119,7 @@ public class CellSet
         // adjust for world wrap
         if (WrapsAround) right += Manager.WorldWidth;
 
-        if (!cell.Latitude.IsInsideRange(top, bottom)) return false;
+        if (!cell.Latitude.IsInsideRange(bottom, top)) return false;
 
         int longitude = cell.Longitude;
 
@@ -125,12 +136,12 @@ public class CellSet
     {
         Cells.UnionWith(sourceSet.Cells);
 
-        if (Top.Latitude > sourceSet.Top.Latitude)
+        if (Top.Latitude < sourceSet.Top.Latitude)
         {
             Top = sourceSet.Top;
         }
 
-        if (Bottom.Latitude < sourceSet.Bottom.Latitude)
+        if (Bottom.Latitude > sourceSet.Bottom.Latitude)
         {
             Bottom = sourceSet.Bottom;
         }
@@ -225,7 +236,7 @@ public class CellSet
 
             foreach (TerrainCell cell in cellSet.Cells)
             {
-                if (cell.Latitude > middleLatitude)
+                if (cell.Latitude < middleLatitude)
                     bottomCellSet.AddCell(cell);
                 else
                     topCellSet.AddCell(cell);
@@ -359,7 +370,7 @@ public class CellSet
 
             connectedArea++;
 
-            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.GetNonDiagonalNeighbors())
+            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.NonDiagonalNeighbors)
             {
                 TerrainCell nCell = pair.Value;
 

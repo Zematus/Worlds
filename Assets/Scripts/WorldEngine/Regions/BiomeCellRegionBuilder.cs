@@ -24,6 +24,11 @@ public static class BiomeCellRegionBuilder
 
     private static HashSet<TerrainCell> _cellsThatCouldBeAdded;
 
+    private static bool CanAddCellToEnclosedArea(TerrainCell cell)
+    {
+        return !cell.IsLiquidSea;
+    }
+
     private static bool CanAddCellToRegion(TerrainCell cell, string biomeId)
     {
         if (cell.Region != null) return false;
@@ -89,7 +94,7 @@ public static class BiomeCellRegionBuilder
         out CellSet addedCellSet,
         out Border outsideBorder,
         out List<CellSet> unincorporatedEnclosedAreas,
-        int abortSize = -1)
+        int stopSize = -1)
     {
         outsideBorder = null;
         addedCellSet = new CellSet();
@@ -115,9 +120,9 @@ public static class BiomeCellRegionBuilder
         {
             TerrainCell cell = cellsToExplore.Dequeue();
 
-            if ((abortSize > 0) && (addedCount >= abortSize)) return false;
+            if ((stopSize > 0) && (addedCount >= stopSize)) return false;
 
-            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.GetNonDiagonalNeighbors())
+            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.NonDiagonalNeighbors)
             {
                 TerrainCell nCell = pair.Value;
 
@@ -150,9 +155,11 @@ public static class BiomeCellRegionBuilder
         {
             if (border == outsideBorder) continue;
 
-            CellSet cellSet = border.GetEnclosedCellSet(addedCellSet.Cells);
-
-            if (cellSet == null) continue;
+            if (!border.TryGetEnclosedCellSet(
+                addedCellSet.Cells,
+                out CellSet cellSet,
+                CanAddCellToEnclosedArea))
+                continue;
 
             if (cellSet.Area <= MinAreaSize)
             {
@@ -199,11 +206,6 @@ public static class BiomeCellRegionBuilder
         Language language,
         HashSet<TerrainCell> cellsToIgnore = null)
     {
-        //if ((startCell.Latitude == 113) && (startCell.Longitude == 15))
-        //{
-        //    Debug.LogWarning("Debugging TryGenerateRegion from cell " + startCell.Position);
-        //}
-
         if (startCell.WaterBiomePresence >= 1)
             return null;
 

@@ -693,27 +693,31 @@ public class CellGroup : Identifiable, IFlagHolder
 
     public void SetHighestPolityProminence(PolityProminence prominence)
     {
-        if (prominence == null)
-        {
-            if (_polityProminences.Count > 0)
-            {
-                throw new System.Exception("Trying to set HighestPolityProminence to null when there are still polity prominences in group");
-            }
-        }
-
         if (HighestPolityProminence == prominence)
             return;
 
-        if (HighestPolityProminence != null)
+        if ((Cell.EncompassingTerritory != null) &&
+            ((prominence == null) ||
+            (Cell.EncompassingTerritory != prominence.Polity.Territory)))
         {
-            HighestPolityProminence.Polity.Territory.RemoveCell(Cell);
+
+//#if DEBUG
+//            if (Cell.Position.Equals(6, 111))
+//            {
+//                Debug.LogWarning("Debugging SetHighestPolityProminence, cell: " + Cell.Position + ", group: " +
+//                    Cell.Group + ", territory polity: " + Cell.EncompassingTerritory.Polity.Id +
+//                    ", prominence polity: " + prominence?.PolityId);
+//            }
+//#endif
+
+            Cell.EncompassingTerritory.SetCellToRemove(Cell);
         }
 
         HighestPolityProminence = prominence;
 
         if (prominence != null)
         {
-            prominence.Polity.Territory.AddCell(Cell);
+            prominence.Polity.Territory.SetCellToAdd(Cell);
         }
 
         if (FactionCores.Count > 0)
@@ -1339,15 +1343,15 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>Migration value</returns>
     public float CalculateMigrationValue(TerrainCell cell, Polity migratingPolity = null)
     {
-#if DEBUG
-        if (Cell.IsSelected)
-        {
-            if ((cell.Group != null) && (cell.Group.TotalPolityProminenceValue <= 0))
-            {
-                Debug.LogWarning("Debugging migration value");
-            }
-        }
-#endif
+//#if DEBUG
+//        if (Cell.IsSelected)
+//        {
+//            if ((cell.Group != null) && (cell.Group.TotalPolityProminenceValue <= 0))
+//            {
+//                Debug.LogWarning("Debugging migration value");
+//            }
+//        }
+//#endif
 
         return cell.CalculateMigrationValue(this, migratingPolity);
     }
@@ -1364,12 +1368,12 @@ public class CellGroup : Identifiable, IFlagHolder
         out float migrationValue,
         Polity migratingPolity = null)
     {
-#if DEBUG
-        if (cell.IsSelected)
-        {
-            Debug.LogWarning("Debugging selected cell migration chance");
-        }
-#endif
+//#if DEBUG
+//        if (cell.IsSelected)
+//        {
+//            Debug.LogWarning("Debugging selected cell migration chance");
+//        }
+//#endif
 
         float offset = -0.1f;
         migrationValue = CalculateMigrationValue(cell, migratingPolity);
@@ -1698,9 +1702,23 @@ public class CellGroup : Identifiable, IFlagHolder
             SetPolityUpdate(polityProminence, true);
         }
 
-        if (HighestPolityProminence != null)
+        if (Cell.TerritoryToAddTo != null)
         {
-            HighestPolityProminence.Polity.Territory.RemoveCell(Cell);
+            Cell.TerritoryToAddTo.RemoveCellToAdd(Cell);
+        }
+
+        if (Cell.EncompassingTerritory != null)
+        {
+
+//#if DEBUG
+//            if (Cell.Position.Equals(6, 111))
+//            {
+//                Debug.LogWarning("Debugging Destroy_RemovePolityProminences, cell: " + Cell.Position + ", group: " +
+//                    Cell.Group + ", polity: " + Cell.EncompassingTerritory.Polity.Id);
+//            }
+//#endif
+
+            Cell.EncompassingTerritory.SetCellToRemove(Cell);
         }
     }
 
@@ -2452,6 +2470,9 @@ public class CellGroup : Identifiable, IFlagHolder
         {
             float distanceToCoreFromNeighbor = pair.Value.GetFactionCoreDistance(polity);
 
+            if (distanceToCoreFromNeighbor == -1)
+                continue;
+
             if (distanceToCoreFromNeighbor == float.MaxValue)
                 continue;
 
@@ -2479,6 +2500,9 @@ public class CellGroup : Identifiable, IFlagHolder
         foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors)
         {
             float distanceToCoreFromNeighbor = pair.Value.GetPolityCoreDistance(polity);
+
+            if (distanceToCoreFromNeighbor == -1)
+                continue;
 
             if (distanceToCoreFromNeighbor == float.MaxValue)
                 continue;
@@ -2707,13 +2731,6 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <returns>'true' if there was a change in prominence values</returns>
     private bool CalculateNewPolityProminenceValues(bool afterPolityUpdates = false)
     {
-//#if DEBUG
-//        if ((Id == "0000000001403622143:3199357175283981000") && (World.CurrentDate == 1403640616))
-//        {
-//            Debug.LogWarning("CalculateNewPolityProminenceValues: debugging group: " + Id);
-//        }
-//#endif
-
         // NOTE: after polity updates there might be no deltas, bu we might still need
         // to recalculate if the amount of prominences changed
         bool calculateRegardless = afterPolityUpdates && _polityProminences.Count > 0;
@@ -2782,16 +2799,11 @@ public class CellGroup : Identifiable, IFlagHolder
 
             newValue -= polPromDeltaOffset;
 
-            if (newValue <= Polity.MinPolityProminenceValue)
+            if (newValue < Polity.MinPolityProminenceValue)
             {
-                if (afterPolityUpdates)
-                {
-                    Debug.LogWarning("Trying to remove polity " + polity.Id +
-                        " after polity updates have already happened.  Group: " +  Id);
-                }
-
                 // try to remove prominences that would end up with a value far too small
-                if (!SetPolityProminenceToRemove(pair.Key, false))
+                // NOTE: Can't do that after polities have been updated
+                if (afterPolityUpdates || !SetPolityProminenceToRemove(pair.Key, false))
                 {
                     // if not possible to remove this prominence, set it to a min value
                     newValue = Polity.MinPolityProminenceValue;
@@ -2943,6 +2955,14 @@ public class CellGroup : Identifiable, IFlagHolder
             Polity.IncreaseContactGroupCount(polity, otherProminence.Polity);
         }
 
+        if ((HighestPolityProminence != null) &&
+            (polity.Id == HighestPolityProminence.PolityId))
+        {
+            throw new System.Exception(
+                "Trying to add a prominence already set as highest polity prominence. " +
+                "group id: " + Id + ", polity id: " + polity.Id);
+        }
+
         _polityProminences.Add(polity.Id, polityProminence);
 
         // We want to update the polity if a group is added.
@@ -2964,11 +2984,18 @@ public class CellGroup : Identifiable, IFlagHolder
     /// Set to false if there's no need to update the removed polities after calling this</param>
     private void RemovePolityProminences(bool updatePolity = true)
     {
+        bool removeHighestPolityProminence = false;
+
         foreach (Identifier polityId in _polityProminencesToRemove)
         {
             PolityProminence polityProminence = _polityProminences[polityId];
 
             _polityProminences.Remove(polityProminence.PolityId);
+
+            if (HighestPolityProminence == polityProminence)
+            {
+                removeHighestPolityProminence = true;
+            }
 
             // If the polity is no longer present, then the contacts would have already been removed
             if (polityProminence.Polity.StillPresent)
@@ -3006,6 +3033,14 @@ public class CellGroup : Identifiable, IFlagHolder
         }
 
         _polityProminencesToRemove.Clear();
+
+        // CAUTION: We should make sure we find the new highest polity prominence
+        // afterwards. We don't do it right away because normally we would add prominences
+        // after calling this function and then we do a find highest.
+        if (removeHighestPolityProminence)
+        {
+            SetHighestPolityProminence(null);
+        }
     }
 
     /// <summary>
