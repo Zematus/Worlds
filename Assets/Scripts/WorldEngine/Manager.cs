@@ -297,7 +297,6 @@ public class Manager
     private float?[,] _currentCellSlants;
 
     private long _currentMaxUpdateSpan = 0;
-    private long _currentMaxMigEventSpan = 0;
 
     private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 

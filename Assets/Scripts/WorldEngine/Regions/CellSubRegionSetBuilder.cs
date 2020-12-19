@@ -1,13 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Xml.Serialization;
-using System.Linq;
 
 public static class CellSubRegionSetBuilder
 {
-    private static TerrainCell _startCell;
-    private static int _rngOffset;
-
     public const int MaxMajorLength = 30;
     public const int MinMajorLength = 20;
     public const float MaxScaleDiff = 1.618f;
@@ -122,15 +117,11 @@ public static class CellSubRegionSetBuilder
 
     public static Region GenerateRegionFromCellSet(
         TerrainCell startCell,
-        GetRandomIntDelegate getRandomInt,
         CellSet cellSet,
         Language language)
     {
         Region region;
         List<CellRegion> subRegions = new List<CellRegion>();
-
-        _rngOffset = RngOffsets.REGION_SELECT_SUBSET_CELL;
-        _startCell = startCell;
 
         // generate subregions
         subRegions.AddRange(TryGenerateSubRegions(cellSet, language));
@@ -156,10 +147,5 @@ public static class CellSubRegionSetBuilder
         }
 
         return region;
-    }
-
-    private static int GetRandomInt(int maxValue)
-    {
-        return _startCell.GetNextLocalRandomInt(_rngOffset++, maxValue);
     }
 }

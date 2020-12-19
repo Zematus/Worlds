@@ -14,8 +14,6 @@ public class ContactEntity : DelayedSetEntity<PolityContact>
 
     private PolityEntity _polityEntity = null;
 
-    private bool _alreadyReset = false;
-
     public ContactEntity(Context c, string id) : base(c, id)
     {
     }
