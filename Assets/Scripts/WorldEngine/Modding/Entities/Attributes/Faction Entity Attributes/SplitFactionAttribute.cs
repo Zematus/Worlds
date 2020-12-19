@@ -7,8 +7,6 @@ public class SplitFactionAttribute : EffectEntityAttribute
 {
     private FactionEntity _factionEntity;
 
-    private ModDecision _decisionToTrigger = null;
-
     private readonly IValueExpression<IEntity> _coreGroupArg;
     private readonly IValueExpression<float> _influencePercentToTransferArg;
     private readonly IValueExpression<float> _relationshipValueArg;

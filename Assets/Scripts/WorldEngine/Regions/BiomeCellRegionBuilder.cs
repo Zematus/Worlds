@@ -13,16 +13,11 @@ public static class BiomeCellRegionBuilder
     public const int MaxEnclosedRectArea = 125;
     public const int MinAreaSize = 8;
 
-    private static TerrainCell _startCell;
-    private static int _rngOffset;
-
     private static int _borderCount;
     private static List<Border> _borders;
     private static HashSet<TerrainCell> _exploredBorderCells;
     private static int _largestBorderRectArea;
     private static Border _largestBorder;
-
-    private static HashSet<TerrainCell> _cellsThatCouldBeAdded;
 
     private static bool CanAddCellToEnclosedArea(TerrainCell cell)
     {
@@ -325,7 +320,6 @@ public static class BiomeCellRegionBuilder
 
         Region region = CellSubRegionSetBuilder.GenerateRegionFromCellSet(
             startCell,
-            GetRandomInt,
             acceptedCellSet,
             language);
 
@@ -363,10 +357,5 @@ public static class BiomeCellRegionBuilder
 //#endif
 
         return region;
-    }
-
-    private static int GetRandomInt(int maxValue)
-    {
-        return _startCell.GetNextLocalRandomInt(_rngOffset++, maxValue);
     }
 }
