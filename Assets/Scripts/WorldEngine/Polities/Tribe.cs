@@ -244,7 +244,8 @@ public class Tribe : Polity
         SetDominantFaction(dominantClan);
     }
 
-    private float CalculateShortestCoreDistance(CellGroup group, Dictionary<CellGroup, float> groupDistances)
+    private float CalculateShortestCoreDistance(
+        CellGroup group, Dictionary<CellGroup, float> groupDistances)
     {
         if (groupDistances.Count <= 0)
             return 0;
