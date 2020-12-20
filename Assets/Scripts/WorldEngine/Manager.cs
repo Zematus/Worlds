@@ -1673,6 +1673,10 @@ public class Manager
         {
             _observableUpdateSubTypes = CellUpdateSubType.MembershipAndCore;
         }
+        else if (overlay == PlanetOverlay.FactionCoreDistance)
+        {
+            _observableUpdateSubTypes = CellUpdateSubType.CoreDistance;
+        }
         else if (overlay == PlanetOverlay.PolityContacts)
         {
             _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.Relationship;

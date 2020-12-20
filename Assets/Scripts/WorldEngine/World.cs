@@ -300,6 +300,7 @@ public class World : ISynchronizable, IWorldDateGetter
     private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
+    private HashSet<CellGroup> _groupsWithCoreDistToPostUpdate = new HashSet<CellGroup>();
 
     private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToCleanupAfterUpdate = new HashSet<CellGroup>();
@@ -973,6 +974,16 @@ public class World : ISynchronizable, IWorldDateGetter
         _groupsToUpdate.Clear();
     }
 
+    private void PostUpdateGroupDistancesToCores()
+    {
+        foreach (CellGroup group in _groupsWithCoreDistToPostUpdate)
+        {
+            group.PostUpdateCoreDistances();
+        }
+
+        _groupsWithCoreDistToPostUpdate.Clear();
+    }
+
     /// <summary>
     /// Performs the migration actions over all populations migrating during this iteration
     /// </summary>
@@ -1494,6 +1505,12 @@ public class World : ISynchronizable, IWorldDateGetter
 
         //Profiler.EndSample();
 
+        //Profiler.BeginSample("PostUpdateGroupDistancesToCores");
+
+        PostUpdateGroupDistancesToCores();
+
+        //Profiler.EndSample();
+
         //Profiler.BeginSample("AfterUpdateGroupCleanup");
 
         AfterUpdateGroupCleanup();
@@ -1720,6 +1737,16 @@ public class World : ISynchronizable, IWorldDateGetter
         }
 
         _groupsToUpdate.Add(group);
+    }
+
+    public void AddGroupToPostUpdateCoreDistFor(CellGroup group)
+    {
+        if (!group.StillPresent)
+        {
+            return;
+        }
+
+        _groupsWithCoreDistToPostUpdate.Add(group);
     }
 
     public void AddGroupToRemove(CellGroup group)
