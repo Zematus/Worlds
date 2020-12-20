@@ -2439,7 +2439,9 @@ public class CellGroup : Identifiable, IFlagHolder
     public float GetFactionCoreDistance(Polity polity)
     {
         if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
+        {
             return float.MaxValue;
+        }
 
         return polityProminence.FactionCoreDistance;
     }
@@ -2454,6 +2456,31 @@ public class CellGroup : Identifiable, IFlagHolder
         return polityProminence.PolityCoreDistance;
     }
 
+    /// <summary>
+    /// Returns the latest calculated core distance to a polity. Should only be used
+    /// during distance recalculations
+    /// </summary>
+    /// <param name="polity">the polity to use as reference</param>
+    /// <param name="toTactionCore">look for faction core distance instead of polity
+    /// core distance</param>
+    /// <returns>the latest calculated faction or polity core distance</returns>
+    private float GetCurrentCalculatedCoreDistance(Polity polity, bool toTactionCore)
+    {
+        if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
+        {
+            return float.MaxValue;
+        }
+
+        if (toTactionCore)
+        {
+            return polityProminence.NewFactionCoreDistance;
+        }
+        else
+        {
+            return polityProminence.NewPolityCoreDistance;
+        }
+    }
+
     public float CalculateShortestFactionCoreDistance(Polity polity)
     {
         foreach (Faction faction in polity.GetFactions())
@@ -2462,30 +2489,7 @@ public class CellGroup : Identifiable, IFlagHolder
                 return 0;
         }
 
-        float shortestDistance = MaxCoreDistance;
-
-        foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors)
-        {
-            float distanceToCoreFromNeighbor = pair.Value.GetFactionCoreDistance(polity);
-
-            if (distanceToCoreFromNeighbor == -1)
-                continue;
-
-            if (distanceToCoreFromNeighbor == float.MaxValue)
-                continue;
-
-            float neighborDistance = Cell.NeighborDistances[pair.Key];
-
-            float totalDistance = distanceToCoreFromNeighbor + neighborDistance;
-
-            if (totalDistance < 0)
-                continue;
-
-            if (totalDistance < shortestDistance)
-                shortestDistance = totalDistance;
-        }
-
-        return shortestDistance;
+        return CalculateShortestCoreDistance(polity, true);
     }
 
     public float CalculateShortestPolityCoreDistance(Polity polity)
@@ -2493,16 +2497,29 @@ public class CellGroup : Identifiable, IFlagHolder
         if (polity.CoreGroup == this)
             return 0;
 
+        return CalculateShortestCoreDistance(polity, false);
+    }
+
+    /// <summary>
+    /// Calculates the current shortest polity or faction core distance
+    /// </summary>
+    /// <param name="polity">the polity we are calculating distances for</param>
+    /// <param name="toFactionCore">look for shortest faction core distance instead
+    /// of polity core distance</param>
+    /// <returns></returns>
+    private float CalculateShortestCoreDistance(Polity polity, bool toFactionCore)
+    {
         float shortestDistance = MaxCoreDistance;
 
         foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors)
         {
-            float distanceToCoreFromNeighbor = pair.Value.GetPolityCoreDistance(polity);
+            float distanceToCoreFromNeighbor =
+                pair.Value.GetCurrentCalculatedCoreDistance(polity, toFactionCore);
 
             if (distanceToCoreFromNeighbor == -1)
                 continue;
 
-            if (distanceToCoreFromNeighbor == float.MaxValue)
+            if (distanceToCoreFromNeighbor >= MaxCoreDistance)
                 continue;
 
             float neighborDistance = Cell.NeighborDistances[pair.Key];
