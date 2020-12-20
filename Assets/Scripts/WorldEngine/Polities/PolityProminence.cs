@@ -13,10 +13,10 @@ public class PolityProminence// : IKeyedValue<Identifier>
     public float FactionCoreDistance = -1;
     [XmlAttribute("PD")]
     public float PolityCoreDistance = -1;
-    [XmlAttribute("AC")]
-    public float AdministrativeCost = 0;
 
     public Identifier PolityId;
+
+    public Identifier Id => Group.Id;
 
     [XmlIgnore]
     public float NewFactionCoreDistance = -1;
@@ -32,7 +32,22 @@ public class PolityProminence// : IKeyedValue<Identifier>
     [XmlIgnore]
     public CellGroup Group;
 
-    public Identifier Id => Group.Id;
+    [XmlIgnore]
+    public float AdministrativeCost
+    {
+        get
+        {
+            if (_adminCostUpdateNeeded)
+            {
+                RecalculateAdministrativeCost();
+            }
+
+            return _adminCost;
+        }
+    }
+
+    private bool _adminCostUpdateNeeded = true;
+    private float _adminCost = 0;
 
     /// <summary>
     /// Constructs a new polity prominence object (only used by XML deserializer)
@@ -59,17 +74,74 @@ public class PolityProminence// : IKeyedValue<Identifier>
     /// <summary>
     /// Define the new core distances to update this prominence with
     /// </summary>
-    public void CalculateNewCoreDistances()
+    /// <returns>'true' iff core distances have changed</returns>
+    public bool CalculateNewCoreDistances()
     {
         NewFactionCoreDistance = Group.CalculateShortestFactionCoreDistance(Polity);
         NewPolityCoreDistance = Group.CalculateShortestPolityCoreDistance(Polity);
+
+        return
+            (FactionCoreDistance != NewFactionCoreDistance) ||
+            (PolityCoreDistance != NewPolityCoreDistance);
     }
 
     /// <summary>
-    /// Replace the old values and distances with the new ones and recalculated admin cost
+    /// Recalculates the current administrative cost
+    /// </summary>
+    private void RecalculateAdministrativeCost()
+    {
+        float polityPopulation = Group.Population * Value;
+
+        float distanceFactor = 500 + FactionCoreDistance;
+
+        _adminCost = polityPopulation * distanceFactor * 0.001f;
+
+        if (_adminCost < 0)
+        {
+            throw new System.Exception("Calculated administrative cost less than 0: "
+                + _adminCost + ", group: " + Group.Id + ", polity: " + Polity.Id);
+        }
+
+        _adminCostUpdateNeeded = false;
+    }
+
+    /// <summary>
+    /// Post update operations
     /// </summary>
     public void PostUpdate()
     {
+        RequireRecalculations();
+    }
+
+    /// <summary>
+    /// Indicate that will need to recalculate some values
+    /// </summary>
+    private void RequireRecalculations()
+    {
+        // Indicate that the administrative cost of this prominence will need to be
+        // recalculated
+        _adminCostUpdateNeeded = true;
+
+        if (Cluster != null)
+        {
+            // Indicate that the cluster this prominence belongs too will require a
+            // new census
+            Cluster.RequireNewCensus(true);
+        }
+    }
+
+    /// <summary>
+    /// Replace the old values and distances with the new ones
+    /// </summary>
+    public void PostUpdateCoreDistances()
+    {
+        if ((FactionCoreDistance == NewFactionCoreDistance) &&
+            (PolityCoreDistance == NewPolityCoreDistance))
+        {
+            // There's no need to do anything else if nothing changed
+            return;
+        }
+
         PolityCoreDistance = NewPolityCoreDistance;
         FactionCoreDistance = NewFactionCoreDistance;
 
@@ -85,12 +157,7 @@ public class PolityProminence// : IKeyedValue<Identifier>
                 "Polity id: " + Polity.Id + ", Group id: " + Group.Id);
         }
 
-        AdministrativeCost = Group.CalculateAdministrativeCost(this);
-
-        if (Cluster != null)
-        {
-            Cluster.RequireNewCensus(true);
-        }
+        RequireRecalculations();
     }
 
     //public Identifier GetKey()

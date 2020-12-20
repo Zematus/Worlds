@@ -398,9 +398,7 @@ public class CellGroup : Identifiable, IFlagHolder
     {
         get
         {
-            CellGroup group = null;
-
-            if (Neighbors.TryGetValue(Direction.North, out group))
+            if (Neighbors.TryGetValue(Direction.North, out CellGroup group))
                 yield return group;
             if (Neighbors.TryGetValue(Direction.Northeast, out group))
                 yield return group;
@@ -986,7 +984,7 @@ public class CellGroup : Identifiable, IFlagHolder
 
         PostUpdateProminenceCulturalProperties();
 
-        CalculatePolityPromCoreDistances();
+        UpdatePolityPromCoreDistances();
     }
 
     /// <summary>
@@ -1000,7 +998,7 @@ public class CellGroup : Identifiable, IFlagHolder
             return;
         }
 
-        SetPolityPromCoreDistancesAndAdminLoad();
+        PostUpdateProminences();
     }
 
     public void PostUpdate_AfterPolityUpdates()
@@ -2521,24 +2519,6 @@ public class CellGroup : Identifiable, IFlagHolder
         return shortestDistance;
     }
 
-    public float CalculateAdministrativeCost(PolityProminence pi)
-    {
-        float polityPopulation = Population * pi.Value;
-
-        float distanceFactor = 500 + pi.FactionCoreDistance;
-
-        float cost = polityPopulation * distanceFactor * 0.001f;
-
-        if (cost < 0)
-        {
-            Debug.LogWarning("Calculated administrative cost less than 0: " + cost);
-
-            return float.MaxValue;
-        }
-
-        return cost;
-    }
-
 #if DEBUG
     /// <summary>
     /// Updates polity prominences and values (for unit tests only)
@@ -2598,21 +2578,78 @@ public class CellGroup : Identifiable, IFlagHolder
     }
 
     /// <summary>
-    /// Calculates new prominence core distances
-    /// (should be called in group PostUpdate)
+    /// Calculates new prominence core distances for this group and the neighbors
+    /// if necessary (should be called in group PostUpdate)
     /// </summary>
-    private void CalculatePolityPromCoreDistances()
+    private void UpdatePolityPromCoreDistances()
+    {
+        HashSet<CellGroup> groupsToUpdateSet = new HashSet<CellGroup>();
+        Queue<CellGroup> groupsToUpdate = new Queue<CellGroup>();
+
+        groupsToUpdate.Enqueue(this);
+        groupsToUpdateSet.Add(this);
+
+        while (groupsToUpdate.Count > 0)
+        {
+            CellGroup group = groupsToUpdate.Dequeue();
+
+            if (group.CalculatePolityPromCoreDistances())
+            {
+                // Indicate to neighbor groups that they should also update their core
+                // distances
+                foreach (CellGroup nGroup in NeighborGroups)
+                {
+                    if (groupsToUpdateSet.Contains(nGroup))
+                        continue;
+
+                    groupsToUpdate.Enqueue(nGroup);
+                    groupsToUpdateSet.Add(nGroup);
+                }
+            }
+
+            // we might need to update this group again...
+            groupsToUpdateSet.Remove(group);
+        }
+    }
+
+    /// <summary>
+    /// Calculates new prominence core distances for this group
+    /// </summary>
+    /// <returns>'true' iff any of the core distances changed</returns>
+    private bool CalculatePolityPromCoreDistances()
+    {
+        bool coreDistancesUpdated = false;
+
+        foreach (PolityProminence prominence in _polityProminences.Values)
+        {
+            coreDistancesUpdated |= prominence.CalculateNewCoreDistances();
+        }
+
+        if (coreDistancesUpdated)
+        {
+            World.AddGroupToPostUpdateCoreDistFor(this);
+
+            Manager.AddUpdatedCell(Cell, CellUpdateType.Group, CellUpdateSubType.CoreDistance);
+        }
+
+        return coreDistancesUpdated;
+    }
+
+    /// <summary>
+    /// Finalizes core distance updates
+    /// </summary>
+    public void PostUpdateCoreDistances()
     {
         foreach (PolityProminence prominence in _polityProminences.Values)
         {
-            prominence.CalculateNewCoreDistances();
+            prominence.PostUpdateCoreDistances();
         }
     }
 
     /// <summary>
     /// Finalizes polity prominence updates
     /// </summary>
-    private void SetPolityPromCoreDistancesAndAdminLoad()
+    private void PostUpdateProminences()
     {
         foreach (PolityProminence prominence in _polityProminences.Values)
         {

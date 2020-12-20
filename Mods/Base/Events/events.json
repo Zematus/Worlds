@@ -14,10 +14,10 @@
       ],
       "triggerConditions": [
         "target.administrative_load > 100000",
-        "target.preferences.cohesion < 0.7",
-        "new_core_group.faction_core_distance(target.polity) > 500",
+        "target.preferences.cohesion < 0.65",
+        "new_core_group.faction_core_distance(target.polity) > 1500",
         "new_core_group.polity_with_highest_prominence == target.polity",
-        "polity_prominence > 0.3",
+        "polity_prominence > 0.6",
         "new_core_group.knowledges.social_organization >= 6",
         "new_core_group.faction_cores_count == 0"
       ],

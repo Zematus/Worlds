@@ -43,6 +43,7 @@ public enum CellUpdateSubType
     Relationship = 0x8,
     Membership = 0x10,
     Core = 0x20,
+    CoreDistance = 0x40,
     All = 0xFF,
     AllButTerrain = All & ~Terrain,
     PopulationAndCulture = Population | Culture,
