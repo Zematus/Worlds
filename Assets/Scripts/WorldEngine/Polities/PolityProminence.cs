@@ -77,12 +77,20 @@ public class PolityProminence// : IKeyedValue<Identifier>
     /// <returns>'true' iff core distances have changed</returns>
     public bool CalculateNewCoreDistances()
     {
-        NewFactionCoreDistance = Group.CalculateShortestFactionCoreDistance(Polity);
-        NewPolityCoreDistance = Group.CalculateShortestPolityCoreDistance(Polity);
+        float newFactionCoreDistance = Group.CalculateShortestFactionCoreDistance(Polity);
+        float newPolityCoreDistance = Group.CalculateShortestPolityCoreDistance(Polity);
 
-        return
-            (FactionCoreDistance != NewFactionCoreDistance) ||
-            (PolityCoreDistance != NewPolityCoreDistance);
+        // Make sure at least one core distance is actually different
+        if ((NewFactionCoreDistance != newFactionCoreDistance) ||
+            (NewPolityCoreDistance != newPolityCoreDistance))
+        {
+            NewFactionCoreDistance = newFactionCoreDistance;
+            NewPolityCoreDistance = newPolityCoreDistance;
+
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>

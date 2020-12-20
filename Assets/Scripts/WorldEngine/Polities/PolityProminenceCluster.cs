@@ -310,6 +310,9 @@ public class PolityProminenceCluster : Identifiable
             p.Group = Polity.World.GetGroup(pair.Key);
             p.Polity = Polity;
             p.Cluster = this;
+
+            p.NewFactionCoreDistance = p.FactionCoreDistance;
+            p.NewPolityCoreDistance = p.PolityCoreDistance;
         }
     }
 
