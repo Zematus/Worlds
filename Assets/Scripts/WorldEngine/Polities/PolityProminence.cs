@@ -7,6 +7,8 @@ using UnityEngine.Profiling;
 
 public class PolityProminence// : IKeyedValue<Identifier>
 {
+    public const float MaxCoreDistance = 1000000000000f;
+
     [XmlAttribute("V")]
     public float Value = 0;
     [XmlAttribute("FCT")]
@@ -17,11 +19,6 @@ public class PolityProminence// : IKeyedValue<Identifier>
     public Identifier PolityId;
 
     public Identifier Id => Group.Id;
-
-    [XmlIgnore]
-    public float NewFactionCoreDistance = -1;
-    [XmlIgnore]
-    public float NewPolityCoreDistance = -1;
 
     [XmlIgnore]
     public PolityProminenceCluster Cluster = null;
@@ -71,26 +68,139 @@ public class PolityProminence// : IKeyedValue<Identifier>
         Value = initialValue;
     }
 
+    // Not necessarily ordered, do not use during serialization or algorithms that
+    // have a dependency on consistent order
+    [XmlIgnore]
+    public IEnumerable<KeyValuePair<Direction, PolityProminence>> NeighborProminences
+    {
+        get
+        {
+            foreach (KeyValuePair<Direction, CellGroup> pair in Group.Neighbors)
+            {
+                if (pair.Value.TryGetPolityProminence(Polity, out PolityProminence p))
+                    yield return new KeyValuePair<Direction, PolityProminence>(pair.Key, p);
+            }
+        }
+    }
+
     /// <summary>
     /// Define the new core distances to update this prominence with
     /// </summary>
     /// <returns>'true' iff core distances have changed</returns>
     public bool CalculateNewCoreDistances()
     {
-        float newFactionCoreDistance = Group.CalculateShortestFactionCoreDistance(Polity);
-        float newPolityCoreDistance = Group.CalculateShortestPolityCoreDistance(Polity);
+        float newFactionCoreDistance = CalculateShortestFactionCoreDistance();
+        float newPolityCoreDistance = CalculateShortestPolityCoreDistance();
 
         // Make sure at least one core distance is actually different
-        if ((NewFactionCoreDistance != newFactionCoreDistance) ||
-            (NewPolityCoreDistance != newPolityCoreDistance))
+        if ((FactionCoreDistance != newFactionCoreDistance) ||
+            (PolityCoreDistance != newPolityCoreDistance))
         {
-            NewFactionCoreDistance = newFactionCoreDistance;
-            NewPolityCoreDistance = newPolityCoreDistance;
+            FactionCoreDistance = newFactionCoreDistance;
+            PolityCoreDistance = newPolityCoreDistance;
+
+            if (FactionCoreDistance == -1)
+            {
+                throw new System.Exception("Faction core distance is not properly initialized. " +
+                    "Polity id: " + Polity.Id + ", Group id: " + Group.Id);
+            }
+
+            if (PolityCoreDistance == -1)
+            {
+                throw new System.Exception("Polity core distance is not properly initialized. " +
+                    "Polity id: " + Polity.Id + ", Group id: " + Group.Id);
+            }
+
+            RequireRecalculations();
+
+            Manager.AddUpdatedCell(
+                Group.Cell, CellUpdateType.Group, CellUpdateSubType.CoreDistance);
 
             return true;
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Returns the latest calculated core distance to the polity. Should only be used
+    /// during distance recalculations
+    /// </summary>
+    /// <param name="toTactionCore">look for faction core distance instead of polity
+    /// core distance</param>
+    /// <returns>the latest calculated faction or polity core distance</returns>
+    private float GetCurrentCoreDistance(bool toTactionCore)
+    {
+        if (toTactionCore)
+        {
+            return FactionCoreDistance;
+        }
+        else
+        {
+            return PolityCoreDistance;
+        }
+    }
+
+    /// <summary>
+    /// Calculates the current shortest faction core distance
+    /// </summary>
+    /// <returns>the calculated shortest core distance</returns>
+    public float CalculateShortestFactionCoreDistance()
+    {
+        foreach (Faction faction in Polity.GetFactions())
+        {
+            if (faction.CoreGroup == Group)
+                return 0;
+        }
+
+        return CalculateShortestCoreDistance(true);
+    }
+
+    /// <summary>
+    /// Calculates the current shortest polity core distance
+    /// </summary>
+    /// <returns>the calculated shortest core distance</returns>
+    public float CalculateShortestPolityCoreDistance()
+    {
+        if (Polity.CoreGroup == Group)
+            return 0;
+
+        return CalculateShortestCoreDistance(false);
+    }
+
+    /// <summary>
+    /// Calculates the current shortest polity or faction core distance
+    /// </summary>
+    /// <param name="toFactionCore">look for shortest faction core distance instead
+    /// of polity core distance</param>
+    /// <returns>the calculated shortest core distance</returns>
+    private float CalculateShortestCoreDistance(bool toFactionCore)
+    {
+        float shortestDistance = MaxCoreDistance;
+
+        foreach (KeyValuePair<Direction, PolityProminence> pair in NeighborProminences)
+        {
+            float distanceToCoreFromNeighbor =
+                pair.Value.GetCurrentCoreDistance(toFactionCore);
+
+            if (distanceToCoreFromNeighbor == -1)
+                continue;
+
+            if (distanceToCoreFromNeighbor >= MaxCoreDistance)
+                continue;
+
+            float neighborDistance = Group.Cell.NeighborDistances[pair.Key];
+
+            float totalDistance = distanceToCoreFromNeighbor + neighborDistance;
+
+            if (totalDistance < 0)
+                continue;
+
+            if (totalDistance < shortestDistance)
+                shortestDistance = totalDistance;
+        }
+
+        return shortestDistance;
     }
 
     /// <summary>
@@ -136,36 +246,6 @@ public class PolityProminence// : IKeyedValue<Identifier>
             // new census
             Cluster.RequireNewCensus(true);
         }
-    }
-
-    /// <summary>
-    /// Replace the old values and distances with the new ones
-    /// </summary>
-    public void PostUpdateCoreDistances()
-    {
-        if ((FactionCoreDistance == NewFactionCoreDistance) &&
-            (PolityCoreDistance == NewPolityCoreDistance))
-        {
-            // There's no need to do anything else if nothing changed
-            return;
-        }
-
-        PolityCoreDistance = NewPolityCoreDistance;
-        FactionCoreDistance = NewFactionCoreDistance;
-
-        if (FactionCoreDistance == -1)
-        {
-            throw new System.Exception("Faction core distance is not properly initialized. " +
-                "Polity id: " + Polity.Id + ", Group id: " + Group.Id);
-        }
-
-        if (PolityCoreDistance == -1)
-        {
-            throw new System.Exception("Polity core distance is not properly initialized. " +
-                "Polity id: " + Polity.Id + ", Group id: " + Group.Id);
-        }
-
-        RequireRecalculations();
     }
 
     //public Identifier GetKey()

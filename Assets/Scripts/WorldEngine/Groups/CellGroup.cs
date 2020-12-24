@@ -25,8 +25,6 @@ public class CellGroup : Identifiable, IFlagHolder
 
     public const float SeaTravelBaseFactor = 25f;
 
-    public const float MaxCoreDistance = 1000000000000f;
-
     public static float TravelWidthFactor;
 
     public static List<ICellGroupEventGenerator> OnSpawnEventGenerators;
@@ -182,6 +180,8 @@ public class CellGroup : Identifiable, IFlagHolder
     [XmlIgnore]
     public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill>();
 
+    // Not necessarily ordered, do not use during serialization or algorithms that
+    // have a dependency on consistent order
     [XmlIgnore]
     public Dictionary<Direction, CellGroup> Neighbors;
 
@@ -323,18 +323,6 @@ public class CellGroup : Identifiable, IFlagHolder
 
         Init(World.CurrentDate, Cell.GenerateInitId());
 
-#if DEBUG
-        if (Longitude > 1000)
-        {
-            Debug.LogError("Longitude[" + Longitude + "] > 1000");
-        }
-
-        if (Latitude > 1000)
-        {
-            Debug.LogError("Latitude[" + Latitude + "] > 1000");
-        }
-#endif
-
         //#if DEBUG
         //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //        {
@@ -393,8 +381,10 @@ public class CellGroup : Identifiable, IFlagHolder
         World.AddUpdatedGroup(this);
     }
 
+    // This accessor ensures neighbors are always accessed in the same order
+    // which is important for serialization purposes
     [XmlIgnore]
-    public IEnumerable<CellGroup> NeighborGroups // This method ensures neighbors are always accessed in the same order
+    public IEnumerable<CellGroup> NeighborGroups
     {
         get
         {
@@ -882,21 +872,6 @@ public class CellGroup : Identifiable, IFlagHolder
         return biomes;
     }
 
-    public void MergePolityProminence(Polity polity, float value, float percentOfTarget)
-    {
-        AddPolityProminenceValueDelta(polity, value * percentOfTarget);
-    }
-
-    public void MergePolityProminences(
-        Dictionary<Polity, float> sourcePolityProminences,
-        float percentOfTarget = 1)
-    {
-        foreach (KeyValuePair<Polity, float> pair in sourcePolityProminences)
-        {
-            MergePolityProminence(pair.Key, pair.Value, percentOfTarget);
-        }
-    }
-
     /// <summary>
     /// Modifies the group's current population
     /// </summary>
@@ -983,8 +958,6 @@ public class CellGroup : Identifiable, IFlagHolder
         PostUpdatePolityProminences();
 
         PostUpdateProminenceCulturalProperties();
-
-        UpdatePolityPromCoreDistances();
     }
 
     /// <summary>
@@ -2408,6 +2381,17 @@ public class CellGroup : Identifiable, IFlagHolder
     }
 
     /// <summary>
+    /// Try obtain the prominence associated with a polity Id
+    /// </summary>
+    /// <param name="polityId">the polity Id to search for</param>
+    /// <param name="polityProminence">the polity prominence to return</param>
+    /// <returns>'true' iff the polity porminence exists</returns>
+    public bool TryGetPolityProminence(Identifier polityId, out PolityProminence polityProminence)
+    {
+        return _polityProminences.TryGetValue(polityId, out polityProminence);
+    }
+
+    /// <summary>
     /// Obtain the prominence associated with a polity Id
     /// </summary>
     /// <param name="polityId">the polity Id to search for</param>
@@ -2420,6 +2404,22 @@ public class CellGroup : Identifiable, IFlagHolder
         return polityProminence;
     }
 
+    /// <summary>
+    /// Try obtain the prominence associated with a polity
+    /// </summary>
+    /// <param name="polity">the polity to search for</param>
+    /// <param name="polityProminence">the polity prominence to return</param>
+    /// <returns>'true' iff the polity porminence exists</returns>
+    public bool TryGetPolityProminence(Polity polity, out PolityProminence polityProminence)
+    {
+        return _polityProminences.TryGetValue(polity.Id, out polityProminence);
+    }
+
+    /// <summary>
+    /// Obtain the prominence associated with a polity
+    /// </summary>
+    /// <param name="polityId">the polity to search for</param>
+    /// <returns>the polity prominence</returns>
     public PolityProminence GetPolityProminence(Polity polity)
     {
         if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
@@ -2454,86 +2454,6 @@ public class CellGroup : Identifiable, IFlagHolder
         }
 
         return polityProminence.PolityCoreDistance;
-    }
-
-    /// <summary>
-    /// Returns the latest calculated core distance to a polity. Should only be used
-    /// during distance recalculations
-    /// </summary>
-    /// <param name="polity">the polity to use as reference</param>
-    /// <param name="toTactionCore">look for faction core distance instead of polity
-    /// core distance</param>
-    /// <returns>the latest calculated faction or polity core distance</returns>
-    private float GetCurrentCalculatedCoreDistance(Polity polity, bool toTactionCore)
-    {
-        if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
-        {
-            return float.MaxValue;
-        }
-
-        if (toTactionCore)
-        {
-            return polityProminence.NewFactionCoreDistance;
-        }
-        else
-        {
-            return polityProminence.NewPolityCoreDistance;
-        }
-    }
-
-    public float CalculateShortestFactionCoreDistance(Polity polity)
-    {
-        foreach (Faction faction in polity.GetFactions())
-        {
-            if (faction.CoreGroup == this)
-                return 0;
-        }
-
-        return CalculateShortestCoreDistance(polity, true);
-    }
-
-    public float CalculateShortestPolityCoreDistance(Polity polity)
-    {
-        if (polity.CoreGroup == this)
-            return 0;
-
-        return CalculateShortestCoreDistance(polity, false);
-    }
-
-    /// <summary>
-    /// Calculates the current shortest polity or faction core distance
-    /// </summary>
-    /// <param name="polity">the polity we are calculating distances for</param>
-    /// <param name="toFactionCore">look for shortest faction core distance instead
-    /// of polity core distance</param>
-    /// <returns></returns>
-    private float CalculateShortestCoreDistance(Polity polity, bool toFactionCore)
-    {
-        float shortestDistance = MaxCoreDistance;
-
-        foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors)
-        {
-            float distanceToCoreFromNeighbor =
-                pair.Value.GetCurrentCalculatedCoreDistance(polity, toFactionCore);
-
-            if (distanceToCoreFromNeighbor == -1)
-                continue;
-
-            if (distanceToCoreFromNeighbor >= MaxCoreDistance)
-                continue;
-
-            float neighborDistance = Cell.NeighborDistances[pair.Key];
-
-            float totalDistance = distanceToCoreFromNeighbor + neighborDistance;
-
-            if (totalDistance < 0)
-                continue;
-
-            if (totalDistance < shortestDistance)
-                shortestDistance = totalDistance;
-        }
-
-        return shortestDistance;
     }
 
 #if DEBUG
@@ -2591,75 +2511,6 @@ public class CellGroup : Identifiable, IFlagHolder
             CalculateProminenceValueTotals();
 
             _hasRemovedProminences = false;
-        }
-    }
-
-    /// <summary>
-    /// Calculates new prominence core distances for this group and the neighbors
-    /// if necessary (should be called in group PostUpdate)
-    /// </summary>
-    private void UpdatePolityPromCoreDistances()
-    {
-        HashSet<CellGroup> groupsToUpdateSet = new HashSet<CellGroup>();
-        Queue<CellGroup> groupsToUpdate = new Queue<CellGroup>();
-
-        groupsToUpdate.Enqueue(this);
-        groupsToUpdateSet.Add(this);
-
-        while (groupsToUpdate.Count > 0)
-        {
-            CellGroup group = groupsToUpdate.Dequeue();
-
-            if (group.CalculatePolityPromCoreDistances())
-            {
-                // Indicate to neighbor groups that they should also update their core
-                // distances
-                foreach (CellGroup nGroup in NeighborGroups)
-                {
-                    if (groupsToUpdateSet.Contains(nGroup))
-                        continue;
-
-                    groupsToUpdate.Enqueue(nGroup);
-                    groupsToUpdateSet.Add(nGroup);
-                }
-            }
-
-            // we might need to update this group again...
-            groupsToUpdateSet.Remove(group);
-        }
-    }
-
-    /// <summary>
-    /// Calculates new prominence core distances for this group
-    /// </summary>
-    /// <returns>'true' iff any of the core distances changed</returns>
-    private bool CalculatePolityPromCoreDistances()
-    {
-        bool coreDistancesUpdated = false;
-
-        foreach (PolityProminence prominence in _polityProminences.Values)
-        {
-            coreDistancesUpdated |= prominence.CalculateNewCoreDistances();
-        }
-
-        if (coreDistancesUpdated)
-        {
-            World.AddGroupToPostUpdateCoreDistFor(this);
-
-            Manager.AddUpdatedCell(Cell, CellUpdateType.Group, CellUpdateSubType.CoreDistance);
-        }
-
-        return coreDistancesUpdated;
-    }
-
-    /// <summary>
-    /// Finalizes core distance updates
-    /// </summary>
-    public void PostUpdateCoreDistances()
-    {
-        foreach (PolityProminence prominence in _polityProminences.Values)
-        {
-            prominence.PostUpdateCoreDistances();
         }
     }
 
@@ -3029,6 +2880,8 @@ public class CellGroup : Identifiable, IFlagHolder
             SetHighestPolityProminence(polityProminence);
             TotalPolityProminenceValue = initialValue;
         }
+
+        World.AddPromToCalculateCoreDistFor(polityProminence);
     }
 
     /// <summary>

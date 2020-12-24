@@ -152,7 +152,7 @@ public class Tribe : Polity
 
             float distanceToTargetPolityCore = CalculateShortestCoreDistance(group, groupDistances);
 
-            if (distanceToTargetPolityCore >= CellGroup.MaxCoreDistance)
+            if (distanceToTargetPolityCore >= PolityProminence.MaxCoreDistance)
                 continue;
 
             groupDistances.Add(group, distanceToTargetPolityCore);
@@ -161,7 +161,7 @@ public class Tribe : Polity
 
             float percentProminence = 1f;
 
-            if (distanceToSourcePolityCore < CellGroup.MaxCoreDistance)
+            if (distanceToSourcePolityCore < PolityProminence.MaxCoreDistance)
             {
                 float ditanceToCoresSum = distanceToTargetPolityCore + distanceToSourcePolityCore;
 
@@ -250,7 +250,7 @@ public class Tribe : Polity
         if (groupDistances.Count <= 0)
             return 0;
 
-        float shortestDistance = CellGroup.MaxCoreDistance;
+        float shortestDistance = PolityProminence.MaxCoreDistance;
 
         foreach (KeyValuePair<Direction, CellGroup> pair in group.Neighbors)
         {
