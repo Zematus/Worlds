@@ -307,8 +307,11 @@ public class PolityProminenceCluster : Identifiable
         {
             PolityProminence p = pair.Value;
 
-            p.Group = Polity.World.GetGroup(pair.Key);
+            World world = Polity.World;
+
+            p.Group = world.GetGroup(pair.Key);
             p.Polity = Polity;
+            p.ClosestFaction = Polity.GetFaction(p.ClosestFactionId);
             p.Cluster = this;
         }
     }
