@@ -16,6 +16,7 @@ public class PolityProminence// : IKeyedValue<Identifier>
     [XmlAttribute("PD")]
     public float PolityCoreDistance = -1;
 
+    public Identifier ClosestFactionId;
     public Identifier PolityId;
 
     public Identifier Id => Group.Id;
@@ -23,6 +24,8 @@ public class PolityProminence// : IKeyedValue<Identifier>
     [XmlIgnore]
     public PolityProminenceCluster Cluster = null;
 
+    [XmlIgnore]
+    public Faction ClosestFaction;
     [XmlIgnore]
     public Polity Polity;
 
@@ -89,15 +92,20 @@ public class PolityProminence// : IKeyedValue<Identifier>
     /// <returns>'true' iff core distances have changed</returns>
     public bool CalculateNewCoreDistances()
     {
-        float newFactionCoreDistance = CalculateShortestFactionCoreDistance();
-        float newPolityCoreDistance = CalculateShortestPolityCoreDistance();
+        float newFactionCoreDistance =
+            CalculateShortestFactionCoreDistance(out Faction closestFaction);
+        float newPolityCoreDistance =
+            CalculateShortestPolityCoreDistance();
 
         // Make sure at least one core distance is actually different
         if ((FactionCoreDistance != newFactionCoreDistance) ||
-            (PolityCoreDistance != newPolityCoreDistance))
+            (PolityCoreDistance != newPolityCoreDistance) ||
+            (ClosestFaction.Id != closestFaction.Id))
         {
             FactionCoreDistance = newFactionCoreDistance;
             PolityCoreDistance = newPolityCoreDistance;
+            ClosestFaction = closestFaction;
+            ClosestFactionId = closestFaction.Id;
 
             if (FactionCoreDistance == -1)
             {
@@ -144,28 +152,32 @@ public class PolityProminence// : IKeyedValue<Identifier>
     /// <summary>
     /// Calculates the current shortest faction core distance
     /// </summary>
+    /// <param name="closestFaction">the faction that whose core is closest</param>
     /// <returns>the calculated shortest core distance</returns>
-    public float CalculateShortestFactionCoreDistance()
+    private float CalculateShortestFactionCoreDistance(out Faction closestFaction)
     {
         foreach (Faction faction in Polity.GetFactions())
         {
             if (faction.CoreGroup == Group)
+            {
+                closestFaction = faction;
                 return 0;
+            }
         }
 
-        return CalculateShortestCoreDistance(true);
+        return CalculateShortestCoreDistance(true, out closestFaction);
     }
 
     /// <summary>
     /// Calculates the current shortest polity core distance
     /// </summary>
     /// <returns>the calculated shortest core distance</returns>
-    public float CalculateShortestPolityCoreDistance()
+    private float CalculateShortestPolityCoreDistance()
     {
         if (Polity.CoreGroup == Group)
             return 0;
 
-        return CalculateShortestCoreDistance(false);
+        return CalculateShortestCoreDistance(false, out _);
     }
 
     /// <summary>
@@ -173,10 +185,14 @@ public class PolityProminence// : IKeyedValue<Identifier>
     /// </summary>
     /// <param name="toFactionCore">look for shortest faction core distance instead
     /// of polity core distance</param>
+    /// <param name="closestFaction">the faction that whose core is closest, or the
+    /// polity's dominant faction if 'toFactionCore' is false</param>
     /// <returns>the calculated shortest core distance</returns>
-    private float CalculateShortestCoreDistance(bool toFactionCore)
+    private float CalculateShortestCoreDistance(
+        bool toFactionCore, out Faction closestFaction)
     {
         float shortestDistance = MaxCoreDistance;
+        closestFaction = Polity.DominantFaction;
 
         foreach (KeyValuePair<Direction, PolityProminence> pair in NeighborProminences)
         {
@@ -197,7 +213,10 @@ public class PolityProminence// : IKeyedValue<Identifier>
                 continue;
 
             if (totalDistance < shortestDistance)
+            {
                 shortestDistance = totalDistance;
+                closestFaction = pair.Value.ClosestFaction;
+            }
         }
 
         return shortestDistance;
