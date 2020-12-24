@@ -107,9 +107,9 @@ public class CellCulture : Culture
 
         Manager.AddUpdatedCell(Group.Cell);
 
-        foreach (CellGroup nGroup in Group.NeighborGroups)
+        foreach (KeyValuePair<Direction, CellGroup> pair in Group.Neighbors)
         {
-            Manager.AddUpdatedCell(nGroup.Cell);
+            Manager.AddUpdatedCell(pair.Value.Cell);
         }
     }
 
