@@ -62,16 +62,12 @@ public class PolityProminence// : IKeyedValue<Identifier>
     /// </summary>
     /// <param name="group">group associated with this prominence</param>
     /// <param name="polity">polity associated with this prominence</param>
-    /// <param name="closestFaction">faction associated with this prominence</param>
     /// <param name="initialValue">starting prominence value</param>
-    public PolityProminence(
-        CellGroup group, Polity polity, Faction closestFaction, float initialValue = 0)
+    public PolityProminence(CellGroup group, Polity polity, float initialValue = 0)
     {
         Group = group;
         Polity = polity;
-        ClosestFaction = closestFaction;
         PolityId = polity.Id;
-        ClosestFactionId = closestFaction.Id;
         Value = initialValue;
     }
 
@@ -109,6 +105,7 @@ public class PolityProminence// : IKeyedValue<Identifier>
             FactionCoreDistance = newFactionCoreDistance;
             PolityCoreDistance = newPolityCoreDistance;
             ClosestFaction = closestFaction;
+            ClosestFactionId = closestFaction.Id;
 
             if (FactionCoreDistance == -1)
             {
