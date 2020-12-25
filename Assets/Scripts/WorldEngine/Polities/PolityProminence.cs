@@ -243,6 +243,94 @@ public class PolityProminence// : IKeyedValue<Identifier>
     }
 
     /// <summary>
+    /// Makes sure the core distances for this prominence's neighbors are reset
+    /// </summary>
+    public void ResetNeighborCoreDistances()
+    {
+        Identifier idFactionBeingReset = ClosestFactionId;
+        float minFactionDistance = FactionCoreDistance;
+
+        foreach (KeyValuePair<Direction, PolityProminence> pair in NeighborProminences)
+        {
+            PolityProminence prom = pair.Value;
+
+            if (prom.ClosestFactionId != idFactionBeingReset)
+                continue;
+
+            if (prom.FactionCoreDistance < minFactionDistance)
+                continue;
+
+            prom.ResetCoreDistances(idFactionBeingReset, minFactionDistance);
+        }
+    }
+
+    /// <summary>
+    /// Makes sure the core distances for this prominence and some neighbors are reset
+    /// </summary>
+    /// <param name="idFactionBeingReset">the faction distances are being reset for</param>
+    /// <param name="minFactionDistance">the min distance at which to stop reseting distances</param>
+    public void ResetCoreDistances(
+        Identifier idFactionBeingReset = null,
+        float minFactionDistance = float.MaxValue)
+    {
+        if (idFactionBeingReset == null)
+        {
+            idFactionBeingReset = ClosestFactionId;
+            minFactionDistance = FactionCoreDistance;
+        }
+
+        Queue<PolityProminence> prominencesToReset = new Queue<PolityProminence>();
+        HashSet<PolityProminence> prominencesToResetSet = new HashSet<PolityProminence>();
+
+        prominencesToReset.Enqueue(this);
+        prominencesToResetSet.Add(this);
+
+        while (prominencesToReset.Count > 0)
+        {
+            PolityProminence prom = prominencesToReset.Dequeue();
+
+            if ((prom.FactionCoreDistance == MaxCoreDistance) &&
+                (prom.PolityCoreDistance == MaxCoreDistance))
+                continue; // It's already reset
+
+            prom.FactionCoreDistance = MaxCoreDistance;
+            prom.PolityCoreDistance = MaxCoreDistance;
+            prom.ClosestFaction = Polity.DominantFaction;
+            prom.ClosestFactionId = Polity.DominantFactionId;
+
+            bool isExpansionLimit = false;
+
+            foreach (KeyValuePair<Direction, PolityProminence> pair in NeighborProminences)
+            {
+                PolityProminence nProm = pair.Value;
+
+                if (nProm.ClosestFactionId != idFactionBeingReset)
+                {
+                    isExpansionLimit = true;
+                    continue;
+                }
+
+                if (nProm.FactionCoreDistance < minFactionDistance)
+                {
+                    isExpansionLimit = true;
+                    continue;
+                }
+
+                if (prominencesToResetSet.Contains(nProm))
+                    continue;
+
+                prominencesToReset.Enqueue(nProm);
+                prominencesToResetSet.Add(nProm);
+            }
+
+            if (isExpansionLimit)
+            {
+                Polity.World.AddPromToCalculateCoreDistFor(prom);
+            }
+        }
+    }
+
+    /// <summary>
     /// Post update operations
     /// </summary>
     public void PostUpdate()
