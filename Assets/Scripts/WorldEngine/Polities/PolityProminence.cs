@@ -100,7 +100,7 @@ public class PolityProminence// : IKeyedValue<Identifier>
         // Make sure at least one core distance is actually different
         if ((FactionCoreDistance != newFactionCoreDistance) ||
             (PolityCoreDistance != newPolityCoreDistance) ||
-            (ClosestFaction.Id != closestFaction.Id))
+            (ClosestFactionId != closestFaction.Id))
         {
             FactionCoreDistance = newFactionCoreDistance;
             PolityCoreDistance = newPolityCoreDistance;
@@ -262,6 +262,23 @@ public class PolityProminence// : IKeyedValue<Identifier>
 
             prom.ResetCoreDistances(idFactionBeingReset, minFactionDistance);
         }
+
+        //#if DEBUG
+        if (Group.Position.Equals(7, 144))
+        {
+            string list = "\n";
+
+            foreach (KeyValuePair<Direction, PolityProminence> pair in NeighborProminences)
+            {
+                list += pair.Value.Group.Cell.Position + ", Id: " +
+                    pair.Value.Group.Id + "\n";
+            }
+
+            Debug.LogWarning("DEBUG: ResetNeighborCoreDistances: " + Group.Position
+                + "\n\n-- list -- " + list
+                + "\nstack: " + new System.Diagnostics.StackTrace() + "\n");
+        }
+//#endif
     }
 
     /// <summary>
