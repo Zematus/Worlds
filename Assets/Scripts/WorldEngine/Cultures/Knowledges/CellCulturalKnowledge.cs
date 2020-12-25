@@ -7,10 +7,10 @@ using UnityEngine.Profiling;
 
 public abstract class CellCulturalKnowledge : CulturalKnowledge
 {
-#if DEBUG
-    [XmlIgnore]
-    public long AcquisitionDate = -1; // This property is used for debugging purposes
-#endif
+//#if DEBUG
+//    [XmlIgnore]
+//    public long AcquisitionDate = -1; // This property is used for debugging purposes
+//#endif
 
     public const float MinProgressLevel = 0.001f;
 
@@ -48,28 +48,28 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         _referenceKnowledge = Knowledge.GetKnowledge(id);
 
-#if DEBUG
-        AcquisitionDate = group.World.CurrentDate;
+//#if DEBUG
+//        AcquisitionDate = group.World.CurrentDate;
 
-        //if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //{
-        //    if (Group.Id == Manager.TracingData.GroupId)
-        //    {
-        //        string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//        {
+//            if (Group.Id == Manager.TracingData.GroupId)
+//            {
+//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-        //        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //            "CellCulturalKnowledge.CellCulturalKnowledge - Group:" + groupId,
-        //            "CurrentDate: " + Group.World.CurrentDate +
-        //            ", Id: " + Id +
-        //            ", IsPresent: " + IsPresent +
-        //            ", Value: " + Value +
-        //            ", _newValue: " + _newValue +
-        //            "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellCulturalKnowledge.CellCulturalKnowledge - Group:" + groupId,
+//                    "CurrentDate: " + Group.World.CurrentDate +
+//                    ", Id: " + Id +
+//                    ", IsPresent: " + IsPresent +
+//                    ", Value: " + Value +
+//                    ", _newValue: " + _newValue +
+//                    "");
 
-        //        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //    }
-        //}
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         SetLimit(limit);
     }
