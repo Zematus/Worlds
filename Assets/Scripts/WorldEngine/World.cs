@@ -975,14 +975,17 @@ public class World : ISynchronizable, IWorldDateGetter
         _groupsToUpdate.Clear();
     }
 
-#if DEBUG
-    int debugCounter = 0;
-#endif
-
     private void CalculateProminenceDistancesToCores()
     {
         Queue<PolityProminence> promsToCalculate = new Queue<PolityProminence>();
         HashSet<PolityProminence> promsToCalculateSet = new HashSet<PolityProminence>();
+
+//#if DEBUG
+        HashSet<PolityProminence> calculatedProms = new HashSet<PolityProminence>();
+        HashSet<PolityProminence> recalculatedProms = new HashSet<PolityProminence>();
+        HashSet<PolityProminence> recalculatedProms2 = new HashSet<PolityProminence>();
+        HashSet<PolityProminence> recalculatedProms3 = new HashSet<PolityProminence>();
+        //#endif
 
         foreach (PolityProminence polityProminence in _promsWithCoreDistToCalculate)
         {
@@ -995,19 +998,49 @@ public class World : ISynchronizable, IWorldDateGetter
 
         while (promsToCalculate.Count > 0)
         {
-#if DEBUG
-            if (debugCounter > 5000)
-            {
-                throw new System.Exception("CalculateProminenceDistancesToCores went for" +
-                    "too long. promsToCalculate.Count: " + promsToCalculate.Count);
-            }
-#endif
-
             PolityProminence polityProminence = promsToCalculate.Dequeue();
             promsToCalculateSet.Remove(polityProminence);
 
             if (!polityProminence.CalculateNewCoreDistances())
                 continue;
+
+//#if DEBUG
+            if (!calculatedProms.Add(polityProminence))
+            {
+                if (!recalculatedProms.Add(polityProminence))
+                {
+                    if (!recalculatedProms2.Add(polityProminence))
+                    {
+                        if (!recalculatedProms3.Add(polityProminence))
+                        {
+                            string list = "\n";
+                            string list2 = "\n";
+                            string list3 = "\n";
+
+                            foreach (PolityProminence prominence in _promsWithCoreDistToCalculate)
+                            {
+                                list += prominence.Group.Cell.Position + "\n";
+                            }
+
+                            foreach (PolityProminence prominence in calculatedProms)
+                            {
+                                list2 += prominence.Group.Cell.Position + "\n";
+                            }
+
+                            foreach (PolityProminence prominence in recalculatedProms3)
+                            {
+                                list3 += prominence.Group.Cell.Position + "\n";
+                            }
+
+                            throw new System.Exception("Some prominences have been recalculated: "
+                                + "\n\n-- list -- " + list
+                                + "\n\n-- list 2 -- " + list2
+                                + "\n\n-- list 3 -- " + list3);
+                        }
+                    }
+                }
+            }
+//#endif
 
             foreach (KeyValuePair<Direction, PolityProminence> pair in
                 polityProminence.NeighborProminences)
@@ -1018,10 +1051,6 @@ public class World : ISynchronizable, IWorldDateGetter
                 promsToCalculate.Enqueue(pair.Value);
                 promsToCalculateSet.Add(pair.Value);
             }
-
-#if DEBUG
-            debugCounter++;
-#endif
         }
 
         _promsWithCoreDistToCalculate.Clear();

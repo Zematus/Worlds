@@ -100,7 +100,7 @@ public class PolityProminence// : IKeyedValue<Identifier>
         // Make sure at least one core distance is actually different
         if ((FactionCoreDistance != newFactionCoreDistance) ||
             (PolityCoreDistance != newPolityCoreDistance) ||
-            (ClosestFaction.Id != closestFaction.Id))
+            (ClosestFactionId != closestFaction.Id))
         {
             FactionCoreDistance = newFactionCoreDistance;
             PolityCoreDistance = newPolityCoreDistance;

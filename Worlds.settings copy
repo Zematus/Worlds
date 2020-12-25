@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<AppSettings xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <StartSpeedIndex>7</StartSpeedIndex>
+  <AltitudeScale>0.75</AltitudeScale>
+  <SeaLevelOffset>0</SeaLevelOffset>
+  <RiverStrength>0.5</RiverStrength>
+  <TemperatureOffset>13.7</TemperatureOffset>
+  <RainfallOffset>990</RainfallOffset>
+  <Fullscreen>false</Fullscreen>
+  <UIScaling>true</UIScaling>
+  <DeveloperMode>Basic</DeveloperMode>
+  <AnimationShaders>true</AnimationShaders>
+  <ActiveModPaths>
+    <string>Mods/Base</string>
+  </ActiveModPaths>
+  <LayerSettings />
+</AppSettings>
