@@ -262,6 +262,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     /// </summary>
     public void SetToRemove()
     {
+        PolityProminence prominence = CoreGroup.GetPolityProminence(PolityId);
+        prominence.ResetCoreDistances();
+
         World.AddFactionToRemove(this);
 
         BeingRemoved = true;

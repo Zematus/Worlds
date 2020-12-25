@@ -975,6 +975,10 @@ public class World : ISynchronizable, IWorldDateGetter
         _groupsToUpdate.Clear();
     }
 
+#if DEBUG
+    int debugCounter = 0;
+#endif
+
     private void CalculateProminenceDistancesToCores()
     {
         Queue<PolityProminence> promsToCalculate = new Queue<PolityProminence>();
@@ -991,6 +995,14 @@ public class World : ISynchronizable, IWorldDateGetter
 
         while (promsToCalculate.Count > 0)
         {
+#if DEBUG
+            if (debugCounter > 5000)
+            {
+                throw new System.Exception("CalculateProminenceDistancesToCores went for" +
+                    "too long. promsToCalculate.Count: " + promsToCalculate.Count);
+            }
+#endif
+
             PolityProminence polityProminence = promsToCalculate.Dequeue();
             promsToCalculateSet.Remove(polityProminence);
 
@@ -1006,6 +1018,10 @@ public class World : ISynchronizable, IWorldDateGetter
                 promsToCalculate.Enqueue(pair.Value);
                 promsToCalculateSet.Add(pair.Value);
             }
+
+#if DEBUG
+            debugCounter++;
+#endif
         }
 
         _promsWithCoreDistToCalculate.Clear();

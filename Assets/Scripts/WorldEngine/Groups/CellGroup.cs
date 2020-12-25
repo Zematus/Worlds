@@ -2897,6 +2897,20 @@ public class CellGroup : Identifiable, IFlagHolder
         {
             PolityProminence polityProminence = _polityProminences[polityId];
 
+            // Remove all polity faction cores from group
+            foreach (Faction faction in GetFactionCores())
+            {
+                if (faction.PolityId == polityProminence.PolityId)
+                {
+                    Debug.LogWarning(
+                        "Removing polity prominence of faction that had core in group " + Id +
+                        ", removing faction " + faction.Id +
+                        " - polity: " + polityId + " - Date:" + World.CurrentDate);
+
+                    faction.SetToRemove();
+                }
+            }
+
             _polityProminences.Remove(polityProminence.PolityId);
 
             if (HighestPolityProminence == polityProminence)
@@ -2914,20 +2928,6 @@ public class CellGroup : Identifiable, IFlagHolder
                 }
             }
 
-            // Remove all polity faction cores from group
-            foreach (Faction faction in GetFactionCores())
-            {
-                if (faction.PolityId == polityProminence.PolityId)
-                {
-                    Debug.LogWarning(
-                        "Removing polity prominence of faction that had core in group " + Id +
-                        ", removing faction " + faction.Id +
-                        " - polity: " + polityId + " - Date:" + World.CurrentDate);
-
-                    faction.SetToRemove();
-                }
-            }
-
             polityProminence.Polity.RemoveGroup(polityProminence);
 
             if (updatePolity)
@@ -2935,6 +2935,8 @@ public class CellGroup : Identifiable, IFlagHolder
                 // We want to update the polity if a group is removed.
                 SetPolityUpdate(polityProminence, true);
             }
+
+            polityProminence.ResetNeighborCoreDistances();
 
             _hasRemovedProminences = true;
         }
