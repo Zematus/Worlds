@@ -981,10 +981,15 @@ public class World : ISynchronizable, IWorldDateGetter
         HashSet<PolityProminence> promsToCalculateSet = new HashSet<PolityProminence>();
 
 //#if DEBUG
-        HashSet<PolityProminence> calculatedProms = new HashSet<PolityProminence>();
-        HashSet<PolityProminence> recalculatedProms = new HashSet<PolityProminence>();
+        Dictionary<PolityProminence, float> calculatedProms = new Dictionary<PolityProminence, float>();
+        Dictionary<PolityProminence, float> recalculatedProms = new Dictionary<PolityProminence, float>();
         HashSet<PolityProminence> recalculatedProms2 = new HashSet<PolityProminence>();
         HashSet<PolityProminence> recalculatedProms3 = new HashSet<PolityProminence>();
+        HashSet<PolityProminence> recalculatedProms4 = new HashSet<PolityProminence>();
+        //#endif
+
+        //#if DEBUG
+        bool debugPrint = false;
         //#endif
 
         foreach (PolityProminence polityProminence in _promsWithCoreDistToCalculate)
@@ -994,6 +999,13 @@ public class World : ISynchronizable, IWorldDateGetter
 
             promsToCalculate.Enqueue(polityProminence);
             promsToCalculateSet.Add(polityProminence);
+
+            //#if DEBUG
+            if (polityProminence.Group.Position.Equals(6, 144) ||
+                polityProminence.Group.Position.Equals(7, 143) ||
+                polityProminence.Group.Position.Equals(7, 144))
+                debugPrint = true;
+            //#endif
         }
 
         while (promsToCalculate.Count > 0)
@@ -1001,46 +1013,68 @@ public class World : ISynchronizable, IWorldDateGetter
             PolityProminence polityProminence = promsToCalculate.Dequeue();
             promsToCalculateSet.Remove(polityProminence);
 
-            if (!polityProminence.CalculateNewCoreDistances())
-                continue;
-
-//#if DEBUG
-            if (!calculatedProms.Add(polityProminence))
+            //#if DEBUG
+            if (calculatedProms.ContainsKey(polityProminence))
             {
-                if (!recalculatedProms.Add(polityProminence))
+                if (recalculatedProms.ContainsKey(polityProminence))
                 {
                     if (!recalculatedProms2.Add(polityProminence))
                     {
                         if (!recalculatedProms3.Add(polityProminence))
                         {
-                            string list = "\n";
-                            string list2 = "\n";
-                            string list3 = "\n";
-
-                            foreach (PolityProminence prominence in _promsWithCoreDistToCalculate)
+                            if (!recalculatedProms4.Add(polityProminence))
                             {
-                                list += prominence.Group.Cell.Position + "\n";
-                            }
+                                string list = "\n";
+                                string list2 = "\n";
+                                string list3 = "\n";
+                                string list4 = "\n";
 
-                            foreach (PolityProminence prominence in calculatedProms)
-                            {
-                                list2 += prominence.Group.Cell.Position + "\n";
-                            }
+                                foreach (PolityProminence prominence in _promsWithCoreDistToCalculate)
+                                {
+                                    list += prominence.Group.Cell.Position + ", Id: " +
+                                        prominence.Group.Id + "\n";
+                                }
 
-                            foreach (PolityProminence prominence in recalculatedProms3)
-                            {
-                                list3 += prominence.Group.Cell.Position + "\n";
-                            }
+                                foreach (KeyValuePair<PolityProminence, float> pair in calculatedProms)
+                                {
+                                    list2 += pair.Key.Group.Cell.Position + ": " +
+                                        pair.Value + "\n";
+                                }
 
-                            throw new System.Exception("Some prominences have been recalculated: "
-                                + "\n\n-- list -- " + list
-                                + "\n\n-- list 2 -- " + list2
-                                + "\n\n-- list 3 -- " + list3);
+                                foreach (KeyValuePair<PolityProminence, float> pair in recalculatedProms)
+                                {
+                                    list3 += pair.Key.Group.Cell.Position + ": " +
+                                        pair.Value + "\n";
+                                }
+
+                                foreach (PolityProminence prominence in recalculatedProms4)
+                                {
+                                    list4 += prominence.Group.Cell.Position + ": " +
+                                        prominence.FactionCoreDistance + "\n";
+                                }
+
+                                throw new System.Exception("Some prominences have been recalculated: "
+                                    + "\n\n-- list -- " + list
+                                    + "\n-- list 2 -- " + list2
+                                    + "\n-- list 3 -- " + list3
+                                    + "\n-- list 4 -- " + list4);
+                            }
                         }
                     }
                 }
+                else
+                {
+                    recalculatedProms.Add(polityProminence, polityProminence.FactionCoreDistance);
+                }
             }
-//#endif
+            else
+            {
+                calculatedProms.Add(polityProminence, polityProminence.FactionCoreDistance);
+            }
+    //#endif
+
+            if (!polityProminence.CalculateNewCoreDistances())
+                continue;
 
             foreach (KeyValuePair<Direction, PolityProminence> pair in
                 polityProminence.NeighborProminences)
@@ -1052,6 +1086,46 @@ public class World : ISynchronizable, IWorldDateGetter
                 promsToCalculateSet.Add(pair.Value);
             }
         }
+
+        //#if DEBUG
+        if (debugPrint)
+        {
+            string list = "\n";
+            string list2 = "\n";
+            string list3 = "\n";
+            string list4 = "\n";
+
+            foreach (PolityProminence prominence in _promsWithCoreDistToCalculate)
+            {
+                list += prominence.Group.Cell.Position + ", Id: " +
+                    prominence.Group.Id + "\n";
+            }
+
+            foreach (KeyValuePair<PolityProminence, float> pair in calculatedProms)
+            {
+                list2 += pair.Key.Group.Cell.Position + ": " +
+                    pair.Value + "\n";
+            }
+
+            foreach (KeyValuePair<PolityProminence, float> pair in recalculatedProms)
+            {
+                list3 += pair.Key.Group.Cell.Position + ": " +
+                    pair.Value + "\n";
+            }
+
+            foreach (PolityProminence prominence in recalculatedProms4)
+            {
+                list4 += prominence.Group.Cell.Position + ": " +
+                    prominence.FactionCoreDistance + "\n";
+            }
+
+            Debug.LogWarning("DEBUG: CalculateProminenceDistancesToCores."
+                + "\n\n-- list -- " + list
+                + "\n-- list 2 -- " + list2
+                + "\n-- list 3 -- " + list3
+                + "\n-- list 4 -- " + list4);
+        }
+        //#endif
 
         _promsWithCoreDistToCalculate.Clear();
     }
@@ -1813,6 +1887,13 @@ public class World : ISynchronizable, IWorldDateGetter
 
     public void AddPromToCalculateCoreDistFor(PolityProminence prominence)
     {
+        if (prominence.Group.Position.Equals(5, 144) ||
+            prominence.Group.Position.Equals(7, 144))
+        {
+            Debug.LogWarning("DEBUG: AddPromToCalculateCoreDistFor: " + prominence.Group.Position +
+                "\nstack: " + new System.Diagnostics.StackTrace() + "\n");
+        }
+
         _promsWithCoreDistToCalculate.Add(prominence);
     }
 
