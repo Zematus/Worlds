@@ -362,7 +362,6 @@ public class World : ISynchronizable, IWorldDateGetter
     private ManagerTask<Vector3> _altitudeNoiseOffset7;
     private ManagerTask<Vector3> _altitudeNoiseOffset8;
     private ManagerTask<Vector3> _altitudeNoiseOffset9;
-    //private ManagerTask<Vector3> _altitudeNoiseOffset10;
 
     private ManagerTask<Vector3> _arabilityNoiseOffset;
 
@@ -2634,16 +2633,18 @@ public class World : ISynchronizable, IWorldDateGetter
         });
     }
 
-    private float GetContinentModifier(int x, int y)
+    private float GetContinentModifier(int x, int y, float noise)
     {
         float maxValue = 0;
+
         float widthF = Width;
+        float noiseFactor = Mathf.Clamp01(Mathf.Lerp(-0.5f, 1.5f, noise));
 
         for (int i = 0; i < NumContinents; i++)
         {
             float dist = GetContinentDistance(i, x, y);
 
-            float value = Mathf.Clamp01(1f - dist / widthF);
+            float value = Mathf.Clamp01(noiseFactor - dist / widthF);
 
             float otherValue = value;
 
@@ -2696,7 +2697,6 @@ public class World : ISynchronizable, IWorldDateGetter
         _altitudeNoiseOffset7 = GenerateRandomOffsetVectorTask();
         _altitudeNoiseOffset8 = GenerateRandomOffsetVectorTask();
         _altitudeNoiseOffset9 = GenerateRandomOffsetVectorTask();
-        //_altitudeNoiseOffset10 = GenerateRandomOffsetVectorTask();
     }
 
     private void RegenerateTerrainAltitude()
@@ -3123,7 +3123,6 @@ public class World : ISynchronizable, IWorldDateGetter
         float radius7 = 128f;
         float radius8 = 1.5f;
         float radius9 = 0.5f;
-        //float radius10 = 4f;
 
         for (int i = 0; i < sizeX; i++)
         {
@@ -3150,54 +3149,35 @@ public class World : ISynchronizable, IWorldDateGetter
                 float value7 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius7, _altitudeNoiseOffset7);
                 float value8 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius8, _altitudeNoiseOffset8);
                 float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, _altitudeNoiseOffset9);
-                //float value10 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius10, _altitudeNoiseOffset10);
-
-                //float angleValue9 = GetRandomAngleNoiseFromPolarCoordinates(alpha, beta, radius9, _altitudeNoiseOffset9);
-
+                
                 value8 = value8 * 1.5f + 0.25f;
-                //float value10 = value9 * 0.8f + 0.1f;
-
-                float valueA = GetContinentModifier(i, j);
-                valueA = Mathf.Lerp(valueA, value3, 0.22f * value8);
-                valueA = Mathf.Lerp(valueA, value4, 0.15f * value8);
-                float valueAa = Mathf.Lerp(valueA, value5, 0.1f * value8);
-                valueAa = Mathf.Lerp(valueAa, value6, 0.03f * value8);
-                valueAa = Mathf.Lerp(valueAa, value7, 0.005f * value8);
 
                 float valueC = Mathf.Lerp(value1, value9, 0.5f * value8);
                 valueC = Mathf.Lerp(valueC, value2, 0.04f * value8);
                 valueC = Mathf.Lerp(valueC, value3, 0.02f * value8);
 
-                float valueCa = GetMountainRangeFromRandomNoise(valueC, valueAa, 40, 40, lengthFactor: 0.8f);
-                float valueCd = GetMountainRangeFromRandomNoise(valueC, valueAa, 4, 40, lengthFactor: 0.8f);
+                float valueA1 = GetMountainRangeFromRandomNoise(valueC, 1, 1, 3, 40, lengthFactor: 0.8f);
+
+                float valueA = GetContinentModifier(i, j, valueA1);
+                float valueAaa = Mathf.Lerp(valueA, value3, 0.22f * value8);
+                valueAaa = Mathf.Lerp(valueAaa, value4, 0.15f * value8);
+                float valueAa = Mathf.Lerp(valueAaa, value5, 0.1f * value8);
+                valueAa = Mathf.Lerp(valueAa, value6, 0.03f * value8);
+                valueAa = Mathf.Lerp(valueAa, value7, 0.005f * value8);
+
+                float valueCa = GetMountainRangeFromRandomNoise(valueC, valueAa, 5, 40, 40, lengthFactor: 0.8f);
+                float valueCd = GetMountainRangeFromRandomNoise(valueC, valueAa, 5, 4, 40, lengthFactor: 0.8f);
                 valueCa = Mathf.Lerp(valueCa, valueCd, 0.2f);
 
-                float valueCb = GetMountainRangeFromRandomNoise(valueC, valueAa, 40, 40, 15, lengthFactor: 0.2f);
-                float valueCe = GetMountainRangeFromRandomNoise(valueC, valueAa, 4, 40, 15, lengthFactor: 0.2f);
+                float valueCb = GetMountainRangeFromRandomNoise(valueC, valueAa, 5, 40, 40, 15, lengthFactor: 0.2f);
+                float valueCe = GetMountainRangeFromRandomNoise(valueC, valueAa, 5, 4, 40, 15, lengthFactor: 0.2f);
                 valueCb = Mathf.Lerp(valueCb, valueCe, 0.2f);
 
-                float valueCc = GetMountainRangeFromRandomNoise(valueC, valueAa, 40, 40, -15, lengthFactor: 0.2f);
-                float valueCf = GetMountainRangeFromRandomNoise(valueC, valueAa, 4, 40, -15, lengthFactor: 0.2f);
+                float valueCc = GetMountainRangeFromRandomNoise(valueC, valueAa, 5, 40, 40, -15, lengthFactor: 0.2f);
+                float valueCf = GetMountainRangeFromRandomNoise(valueC, valueAa, 5, 4, 40, -15, lengthFactor: 0.2f);
                 valueCc = Mathf.Lerp(valueCc, valueCf, 0.2f);
 
                 valueC = Mathf.Max(valueCa, valueCb, valueCc);
-
-                //valueCb = Mathf.Lerp(valueCb, valueCa, (value10 * 2) - 0.5f);
-                //valueCc = Mathf.Lerp(valueCc, valueCa, ((1 - value10) * 2) - 0.5f);
-                //valueC = Mathf.Lerp(valueCb, valueCc, 0.5f);
-
-                //float valueE = Mathf.Lerp(value1, value4, 0.5f * value8);
-                //valueE = Mathf.Lerp(valueE, value2, 0.04f * value8);
-                //valueE = Mathf.Lerp(valueE, value3, 0.02f * value8);
-                //valueE = GetMountainRangeFromRandomNoise(valueE, valueAa, 20, 10);
-                //valueE = valueE * valueCa;
-                //valueCa = Mathf.Lerp(valueCa, valueE, 0.25f);
-
-                //float valueF = Mathf.Lerp(value1, angleValue9, 0.5f * value8);
-                //valueF = Mathf.Lerp(valueF, value2, 0.4f * value8);
-                //valueF = Mathf.Lerp(valueF, value3, 0.2f * value8);
-                //valueF = GetMountainInterjectionFromAngleValue(valueF, 200);
-                //valueCa = Mathf.Lerp(valueCa, valueF * valueCa, 0.5f);
 
                 float valueB = Mathf.Lerp(valueAa, valueC, 0.35f * value8);
                 float valueBe = ErodeNoise(valueB, 25, 10);
@@ -3208,8 +3188,9 @@ public class World : ISynchronizable, IWorldDateGetter
                 valueD = Mathf.Lerp(valueD, value6, 0.03f * valueC);
                 valueD = Mathf.Lerp(valueD, value7, 0.005f * valueC);
 
-                //valueD = valueF;
                 CalculateAndSetAltitude(cell, valueD);
+                //CalculateAndSetAltitude(cell, valueA);
+                //CalculateAndSetAltitude(cell, valueAa);
             }
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
@@ -3347,14 +3328,20 @@ public class World : ISynchronizable, IWorldDateGetter
         return value;
     }
 
-    private float GetMountainRangeFromRandomNoise(float noise, float filter, float widthFactor, float widthDivisor, float baseOffset = 0, float lengthFactor = 1)
+    private float GetMountainRangeFromRandomNoise(
+        float noise,
+        float filter,
+        int count,
+        float widthFactor,
+        float widthDivisor,
+        float baseOffset = 0,
+        float lengthFactor = 1)
     {
         lengthFactor = 1f - lengthFactor;
         filter = filter * (1 + lengthFactor) - lengthFactor;
 
         float scaledNoise = (noise * 2) - 1;
 
-        int count = 5;
         float sideOffset = 0.5f + (count / 2f);
 
         float offsetFactor = widthFactor / widthDivisor;
