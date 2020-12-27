@@ -1675,7 +1675,7 @@ public class Manager
         }
         else if (overlay == PlanetOverlay.FactionCoreDistance)
         {
-            _observableUpdateSubTypes = CellUpdateSubType.CoreDistance;
+            _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.CoreDistance;
         }
         else if (overlay == PlanetOverlay.PolityContacts)
         {
