@@ -263,21 +263,21 @@ public class PolityProminence// : IKeyedValue<Identifier>
             prom.ResetCoreDistances(idFactionBeingReset, minFactionDistance);
         }
 
-        //#if DEBUG
-        if (Group.Position.Equals(7, 144))
-        {
-            string list = "\n";
+//#if DEBUG
+        //if (Group.Position.Equals(7, 144))
+        //{
+        //    string list = "\n";
 
-            foreach (KeyValuePair<Direction, PolityProminence> pair in NeighborProminences)
-            {
-                list += pair.Value.Group.Cell.Position + ", Id: " +
-                    pair.Value.Group.Id + "\n";
-            }
+        //    foreach (KeyValuePair<Direction, PolityProminence> pair in NeighborProminences)
+        //    {
+        //        list += pair.Value.Group.Cell.Position + ", Id: " +
+        //            pair.Value.Group.Id + "\n";
+        //    }
 
-            Debug.LogWarning("DEBUG: ResetNeighborCoreDistances: " + Group.Position
-                + "\n\n-- list -- " + list
-                + "\nstack: " + new System.Diagnostics.StackTrace() + "\n");
-        }
+        //    Debug.LogWarning("DEBUG: ResetNeighborCoreDistances: " + Group.Position
+        //        + "\n\n-- list -- " + list
+        //        + "\nstack: " + new System.Diagnostics.StackTrace() + "\n");
+        //}
 //#endif
     }
 
