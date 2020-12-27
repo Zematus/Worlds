@@ -1671,6 +1671,8 @@ public class CellGroup : Identifiable, IFlagHolder
 
             // We want to update the polity if a group is removed.
             SetPolityUpdate(polityProminence, true);
+
+            polityProminence.ResetNeighborCoreDistances();
         }
 
         if (Cell.TerritoryToAddTo != null)
