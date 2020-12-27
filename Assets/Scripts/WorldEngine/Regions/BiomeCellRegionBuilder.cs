@@ -246,9 +246,6 @@ public static class BiomeCellRegionBuilder
 
             foreach (TerrainCell borderCell in outsideBorder.Cells)
             {
-//#if DEBUG
-//                Manager.AddUpdatedCell(borderCell, CellUpdateType.Region, CellUpdateSubType.Membership);
-//#endif
                 if (cellsToSkip.Contains(borderCell)) continue;
                 if (borderCell.IsLiquidSea) continue;
                 if (borderCell.Region != null) continue;
