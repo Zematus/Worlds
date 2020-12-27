@@ -976,12 +976,12 @@ public class World : ISynchronizable, IWorldDateGetter
     }
 
 //#if DEBUG
-    private struct PromDistDebugInfo
-    {
-        public PolityProminence Prominence;
-        public float InitialDistance;
-        public int RecalcCount;
-    }
+    //private struct PromDistDebugInfo
+    //{
+    //    public PolityProminence Prominence;
+    //    public float InitialDistance;
+    //    public int RecalcCount;
+    //}
 //#endif
 
     private void CalculateProminenceDistancesToCores()
@@ -990,11 +990,11 @@ public class World : ISynchronizable, IWorldDateGetter
         HashSet<PolityProminence> promsToCalculateSet = new HashSet<PolityProminence>();
 
 //#if DEBUG
-        Dictionary<Identifier, PromDistDebugInfo> calculatedProms =
-            new Dictionary<Identifier, PromDistDebugInfo>();
+        //Dictionary<Identifier, PromDistDebugInfo> calculatedProms =
+        //    new Dictionary<Identifier, PromDistDebugInfo>();
 
         //bool debugPrint = false;
-        //#endif
+//#endif
 
         foreach (PolityProminence polityProminence in _promsWithCoreDistToCalculate)
         {
@@ -1017,32 +1017,32 @@ public class World : ISynchronizable, IWorldDateGetter
             PolityProminence polityProminence = promsToCalculate.Dequeue();
             promsToCalculateSet.Remove(polityProminence);
 
-            //#if DEBUG
-            if (calculatedProms.ContainsKey(polityProminence.Id))
-            {
-                PromDistDebugInfo debugInfo = calculatedProms[polityProminence.Id];
+//#if DEBUG
+            //if (calculatedProms.ContainsKey(polityProminence.Id))
+            //{
+            //    PromDistDebugInfo debugInfo = calculatedProms[polityProminence.Id];
 
-                debugInfo.RecalcCount++;
+            //    debugInfo.RecalcCount++;
 
-                if (debugInfo.RecalcCount > 50)
-                {
-                    throw new System.Exception(
-                        "Prominence core distance has been recualculated too many times"
-                        + ", possibly on a infinite loop. Group: " + polityProminence.Id
-                        + ", initial faction core distance: " + debugInfo.InitialDistance
-                        + ", recalculations: " + debugInfo.RecalcCount);
-                }
-            }
-            else
-            {
-                calculatedProms.Add(polityProminence.Id, new PromDistDebugInfo()
-                {
-                    Prominence = polityProminence,
-                    InitialDistance = polityProminence.FactionCoreDistance,
-                    RecalcCount = 0
-                });
-            }
-            //#endif
+            //    if (debugInfo.RecalcCount > 50)
+            //    {
+            //        throw new System.Exception(
+            //            "Prominence core distance has been recualculated too many times"
+            //            + ", possibly on a infinite loop. Group: " + polityProminence.Id
+            //            + ", initial faction core distance: " + debugInfo.InitialDistance
+            //            + ", recalculations: " + debugInfo.RecalcCount);
+            //    }
+            //}
+            //else
+            //{
+            //    calculatedProms.Add(polityProminence.Id, new PromDistDebugInfo()
+            //    {
+            //        Prominence = polityProminence,
+            //        InitialDistance = polityProminence.FactionCoreDistance,
+            //        RecalcCount = 0
+            //    });
+            //}
+//#endif
 
             if (!polityProminence.CalculateNewCoreDistances())
                 continue;
