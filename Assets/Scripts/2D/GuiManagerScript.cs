@@ -1491,6 +1491,7 @@ public class GuiManagerScript : MonoBehaviour
         OpenModeSelectionDialog();
 
         _selectedMaxSpeedLevelIndex = Manager.StartSpeedIndex;
+        _resolvedDecision = false;
 
         SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
 
@@ -2140,6 +2141,8 @@ public class GuiManagerScript : MonoBehaviour
 
         ValidateLayersPresent();
         SetGameModeAccordingToCurrentWorld();
+
+        _resolvedDecision = false;
 
         _postProgressOp -= PostProgressOp_LoadAction;
 
@@ -2996,7 +2999,10 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
-    public void SetFactionToGuideAction()
+    /// <summary>
+    /// Sets the faction to be guided by the player
+    /// </summary>
+    public void SetFactionToGuide()
     {
         SelectFactionDialogPanelScript.SetVisible(false);
 
