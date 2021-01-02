@@ -57,7 +57,6 @@ public class GuiManagerScript : MonoBehaviour
     public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
     public AddPopulationDialogScript AddPopulationDialogScript;
     public FocusPanelScript FocusPanelScript;
-    public GuidingPanelScript GuidingPanelScript;
     public ModalPanelScript CreditsDialogPanelScript;
 
     public PaletteScript BiomePaletteScript;
@@ -274,7 +273,6 @@ public class GuiManagerScript : MonoBehaviour
         AddPopulationDialogScript.SetVisible(false);
 
         FocusPanelScript.SetVisible(false);
-        GuidingPanelScript.SetVisible(false);
 
         QuickTipPanelScript.SetVisible(false);
         InfoTooltipScript.SetVisible(false);
@@ -656,7 +654,6 @@ public class GuiManagerScript : MonoBehaviour
 
         InfoPanelScript.UpdateInfoPanel();
         UpdateFocusPanel();
-        UpdateGuidingPanel();
         UpdateSelectionMenu();
 
         if (Manager.GameMode == GameMode.Editor)
@@ -1048,22 +1045,6 @@ public class GuiManagerScript : MonoBehaviour
         else
         {
             FocusPanelScript.SetVisible(false);
-        }
-    }
-
-    private void UpdateGuidingPanel()
-    {
-        Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
-
-        if (guidedFaction != null)
-        {
-            GuidingPanelScript.SetVisible(true);
-
-            GuidingPanelScript.SetState(guidedFaction);
-        }
-        else
-        {
-            GuidingPanelScript.SetVisible(false);
         }
     }
 
