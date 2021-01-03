@@ -1,0 +1,21 @@
+{
+  "actions": [
+    {
+      "id": "expand_toward_region",
+      "name": "expand toward region",
+      "target": "faction",
+      "properties": [
+        { "id": "target_polity", "value": "target.polity" },
+        { "id": "neighbor_region_set", "value": "target_polity._neighbor_regions" },
+        { "id": "target_region", "value": "neighbor_region_set.request_controller_selection()" }
+      ],
+      "accessConditions": [
+        "target == target_polity.dominant_faction",
+        "target_polity.type == tribe"
+      ],
+      "effects": [
+        "target.trigger_decision(tribe_decide_expand_toward_region, target_region)"
+      ]
+    }
+  ]
+}

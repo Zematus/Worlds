@@ -14,10 +14,10 @@
       ],
       "triggerConditions": [
         "target.administrative_load > 100000",
-        "target.preferences.cohesion < 0.7",
-        "new_core_group.faction_core_distance(target.polity) > 500",
+        "target.preferences.cohesion < 0.65",
+        "new_core_group.faction_core_distance(target.polity) > 1500",
         "new_core_group.polity_with_highest_prominence == target.polity",
-        "polity_prominence > 0.3",
+        "polity_prominence > 0.6",
         "new_core_group.knowledges.social_organization >= 6",
         "new_core_group.faction_cores_count == 0"
       ],
@@ -139,6 +139,35 @@
       "timeToTrigger": "9125 + random(9125000 * target_isolation)",
       "effects": [
         "target.trigger_decision(tribe_decide_merge, contact.polity, chance_of_making_attempt)"
+      ],
+      "repeatable" : true
+    },
+    {
+      "id": "expand_toward_region",
+      "name": "expand toward region",
+      "target": "faction",
+      "assignOn" : ["spawn", "status_change", "control_change"],
+      "properties": [
+        { "id": "target_polity", "value": "target.polity" },
+        { "id": "cohesion_preference", "value": "target.preferences.cohesion" },
+        { "id": "neighbor_region_set", "value": "target_polity._neighbor_regions" },
+        { "id": "target_region", "value": "neighbor_region_set.get_random()" },
+        { "id": "core_region_count", "value": "target_polity.core_regions.count" },
+        { "id": "total_core_region_saturation", "value": "target.preferences.isolation" },
+        { "id": "chance_of_making_attempt", "value": "total_core_region_saturation / core_region_count" }
+      ],
+      "assignmentConditions": [
+        "target.controller == simulation",
+        "target == target_polity.dominant_faction",
+        "target_polity.type == tribe"
+      ],
+      "triggerConditions": [
+        "cohesion_preference < 0.65",
+        "chance_of_making_attempt > 0.8"
+      ],
+      "timeToTrigger": "9125 + random(9125000 * cohesion_preference)",
+      "effects": [
+        "target.trigger_decision(tribe_decide_expand_toward_region, target_region, chance_of_making_attempt)"
       ],
       "repeatable" : true
     }
