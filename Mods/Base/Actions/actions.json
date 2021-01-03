@@ -1,0 +1,19 @@
+{
+  "actions": [
+    {
+      "id": "expand_toward_region",
+      "name": "expand toward region",
+      "target": "faction",
+      "properties": [
+        { "id": "target_polity", "value": "target.polity" }
+      ],
+      "accessConditions": [
+        "target == target_polity.dominant_faction",
+        "target_polity.type == tribe"
+      ],
+      "effects": [
+        "target.trigger_decision(tribe_decide_expand_toward_region)"
+      ]
+    }
+  ]
+}

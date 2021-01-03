@@ -94,7 +94,7 @@ public class EventLoader
 
         if (e.assignOn == null)
         {
-            throw new ArgumentException("event 'assigners' list can't be empty");
+            throw new ArgumentException("event 'assignOn' list can't be empty");
         }
 
         if (string.IsNullOrEmpty(e.timeToTrigger))
