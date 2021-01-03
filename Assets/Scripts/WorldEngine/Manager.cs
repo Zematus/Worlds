@@ -4228,6 +4228,7 @@ public class Manager
             throw new System.ArgumentException("Number of mods to load can't be zero");
 
         World.ResetStaticModData();
+
         CellGroup.ResetEventGenerators();
         Faction.ResetEventGenerators();
         Polity.ResetEventGenerators();
@@ -4244,6 +4245,8 @@ public class Manager
 
         PreferenceGenerator.ResetPreferenceGenerators();
         EventGenerator.ResetGenerators();
+
+        Action.ResetActions();
 
         ModDecision.ResetDecisions();
 
@@ -4269,6 +4272,8 @@ public class Manager
         Discovery.InitializeDiscoveries();
 
         EventGenerator.InitializeGenerators();
+
+        Action.InitializeActions();
     }
 
     delegate void LoadModFileDelegate(string filename);
@@ -4334,6 +4339,7 @@ public class Manager
         TryLoadModFiles(PreferenceGenerator.LoadPreferencesFile, Path.Combine(path, @"Preferences"), progressPerSegment);
         TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
         TryLoadModFiles(EventGenerator.LoadEventFile, Path.Combine(path, @"Events"), progressPerSegment);
+        TryLoadModFiles(Action.LoadActionFile, Path.Combine(path, @"Actions"), progressPerSegment);
         TryLoadModFiles(ModDecision.LoadDecisionFile, Path.Combine(path, @"Decisions"), progressPerSegment);
     }
 
