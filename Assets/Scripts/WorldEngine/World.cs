@@ -72,8 +72,6 @@ public class World : ISynchronizable, IWorldDateGetter
     public static Dictionary<string, IWorldEventGenerator> EventGenerators;
     public static Dictionary<string, PreferenceGenerator> PreferenceGenerators;
 
-    public static Dictionary<string, Action> Actions;
-
     public int EventsTriggered = 0;
     public int EventsEvaluated = 0;
 
@@ -562,8 +560,6 @@ public class World : ISynchronizable, IWorldDateGetter
     {
         EventGenerators = new Dictionary<string, IWorldEventGenerator>();
         PreferenceGenerators = new Dictionary<string, PreferenceGenerator>();
-
-        Actions = new Dictionary<string, Action>();
     }
 
     public static IWorldEventGenerator GetEventGenerator(string id)

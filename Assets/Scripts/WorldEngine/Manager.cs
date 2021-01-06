@@ -4199,6 +4199,19 @@ public class Manager
 
     public static Texture2D LoadTexture(string path)
     {
+        if (MainThread == Thread.CurrentThread)
+        {
+            return LoadTextureInternal(path);
+        }
+        else
+        {
+            // we need to execute this operation in the main thread...
+            return EnqueueTask(() => LoadTextureInternal(path));
+        }
+    }
+
+    private static Texture2D LoadTextureInternal(string path)
+    {
         Texture2D texture;
 
         if (File.Exists(path))
@@ -4210,6 +4223,29 @@ public class Manager
         }
 
         return null;
+    }
+
+    public static Sprite CreateSprite(Texture2D texture)
+    {
+        if (MainThread == Thread.CurrentThread)
+        {
+            return CreateSpriteInternal(texture);
+        }
+        else
+        {
+            // we need to execute this operation in the main thread...
+            return EnqueueTask(() => CreateSpriteInternal(texture));
+        }
+    }
+
+    private static Sprite CreateSpriteInternal(Texture2D texture)
+    {
+        Sprite sprite = Sprite.Create(
+            texture,
+            new Rect(0, 0, texture.width, texture.height),
+            new Vector2(0.5f, 0.5f));
+
+        return sprite;
     }
 
     public static TextureValidationResult ValidateTexture(Texture2D texture)
@@ -4246,6 +4282,7 @@ public class Manager
         PreferenceGenerator.ResetPreferenceGenerators();
         EventGenerator.ResetGenerators();
 
+        ActionCategory.ResetActionCategories();
         Action.ResetActions();
 
         ModDecision.ResetDecisions();
@@ -4272,8 +4309,6 @@ public class Manager
         Discovery.InitializeDiscoveries();
 
         EventGenerator.InitializeGenerators();
-
-        Action.InitializeActions();
     }
 
     delegate void LoadModFileDelegate(string filename);
@@ -4339,6 +4374,7 @@ public class Manager
         TryLoadModFiles(PreferenceGenerator.LoadPreferencesFile, Path.Combine(path, @"Preferences"), progressPerSegment);
         TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
         TryLoadModFiles(EventGenerator.LoadEventFile, Path.Combine(path, @"Events"), progressPerSegment);
+        TryLoadModFiles(ActionCategory.LoadActionCategoryFile, Path.Combine(path, @"Actions", @"Categories"), progressPerSegment);
         TryLoadModFiles(Action.LoadActionFile, Path.Combine(path, @"Actions"), progressPerSegment);
         TryLoadModFiles(ModDecision.LoadDecisionFile, Path.Combine(path, @"Decisions"), progressPerSegment);
     }

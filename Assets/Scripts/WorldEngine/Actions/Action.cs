@@ -6,6 +6,12 @@ using UnityEngine.Profiling;
 /// </summary>
 public class Action : Context, IDebugLogger
 {
+    public const string TerritoryCategoryId = "territory";
+    public const string DiplomacyCategoryId = "diplomacy";
+    //public const string CultureCategoryId = "culture";
+
+    public static HashSet<string> CategoryIds;
+
     public const string FactionTargetType = "faction";
 
     public const string TargetEntityId = "target";
@@ -27,6 +33,11 @@ public class Action : Context, IDebugLogger
     /// Name to use in the UI for this action type
     /// </summary>
     public string Name;
+
+    /// <summary>
+    /// Category to use when sorting this into the action toolbar sections
+    /// </summary>
+    public string Category;
 
     /// <summary>
     /// Hash to use for RNGs that use this action type
@@ -56,6 +67,7 @@ public class Action : Context, IDebugLogger
     public static void ResetActions()
     {
         Actions = new Dictionary<string, Action>();
+        CategoryIds = new HashSet<string>();
     }
 
     public static void LoadActionFile(string filename)
@@ -79,19 +91,6 @@ public class Action : Context, IDebugLogger
 
         // Add the target to the context's entity map
         AddEntity(Target);
-    }
-
-    public static void InitializeActions()
-    {
-        foreach (Action action in Actions.Values)
-        {
-            action.Initialize();
-        }
-    }
-
-    public virtual void Initialize()
-    {
-        World.Actions.Add(Id, this);
     }
 
     public static Action GetAction(string id)
@@ -170,12 +169,19 @@ public class Action : Context, IDebugLogger
         return true;
     }
 
-    public void Trigger()
+    public void Use()
     {
         foreach (IEffectExpression exp in Effects)
         {
             exp.Apply();
         }
+    }
+
+    public void SetTarget(Faction faction)
+    {
+        Reset();
+
+        Target.Set(faction);
     }
 
     public override int GetNextRandomInt(int iterOffset, int maxValue) =>

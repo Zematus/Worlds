@@ -26,6 +26,7 @@ public class ActionLoader
     {
         public string name;
         public string target;
+        public string category;
         public string[] accessConditions;
         public string[] useConditions;
         public string[] effects;
@@ -76,17 +77,27 @@ public class ActionLoader
     {
         if (string.IsNullOrEmpty(e.id))
         {
-            throw new ArgumentException("event 'id' can't be null or empty");
+            throw new ArgumentException("action 'id' can't be null or empty");
         }
 
         if (string.IsNullOrEmpty(e.name))
         {
-            throw new ArgumentException("event 'name' can't be null or empty");
+            throw new ArgumentException("action 'name' can't be null or empty");
         }
 
         if (string.IsNullOrEmpty(e.target))
         {
-            throw new ArgumentException("event 'target' can't be null or empty");
+            throw new ArgumentException("action 'target' can't be null or empty");
+        }
+
+        if (string.IsNullOrEmpty(e.category))
+        {
+            throw new ArgumentException("action 'category' can't be null or empty");
+        }
+
+        if (!Action.CategoryIds.Contains(e.category))
+        {
+            throw new ArgumentException("event 'category' is not supported: " + e.category);
         }
 
         if (e.effects == null)
@@ -121,6 +132,9 @@ public class ActionLoader
         action.IdHash = e.id.GetHashCode();
         action.UId = Action.CurrentUId++;
         action.Name = e.name;
+        action.Category = e.category;
+        action.AccessConditions = accessConditions;
+        action.UseConditions = useConditions;
         action.Effects = effects;
 
         return action;
