@@ -1,0 +1,9 @@
+{
+  "actionCategories": [
+    {
+      "id": "territory",
+      "name": "Territory Actions",
+      "image": "territory.png"
+    }
+  ]
+}

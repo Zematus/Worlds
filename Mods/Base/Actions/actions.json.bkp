@@ -2,11 +2,12 @@
   "actions": [
     {
       "id": "expand_toward_region",
-      "name": "expand toward region",
+      "name": "Expand Toward Region",
       "target": "faction",
+      "category": "territory",
       "properties": [
         { "id": "target_polity", "value": "target.polity" },
-        { "id": "neighbor_region_set", "value": "target_polity._neighbor_regions" },
+        { "id": "neighbor_region_set", "value": "target_polity.neighbor_regions" },
         { "id": "target_region", "value": "neighbor_region_set.request_controller_selection()" }
       ],
       "accessConditions": [

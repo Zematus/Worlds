@@ -2,8 +2,9 @@
   "actions": [
     {
       "id": "expand_toward_region",
-      "name": "expand toward region",
+      "name": "Expand Toward Region",
       "target": "faction",
+      "category": "territory",
       "properties": [
         { "id": "target_polity", "value": "target.polity" }
       ],

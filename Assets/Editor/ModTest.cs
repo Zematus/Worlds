@@ -704,11 +704,22 @@ public class ModTest
         }
     }
 
+    private void LoadBaseActionCategoriesMod()
+    {
+        Debug.Log("loading action categories mod file...");
+
+        ActionCategory.ResetActionCategories();
+        ActionCategory.LoadActionCategoryFile(
+            Path.Combine("Mods", "Base", "Actions", "Categories", "categories.json"));
+    }
+
     private void LoadBaseActionsMod()
     {
         Debug.Log("loading action mod file...");
 
         Action.ResetActions();
+        LoadBaseActionCategoriesMod();
+
         Action.LoadActionFile(Path.Combine("Mods", "Base", "Actions", "actions.json"));
     }
 
