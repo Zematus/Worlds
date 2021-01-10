@@ -98,7 +98,7 @@ public class Action : Context, IDebugLogger
         return !Actions.TryGetValue(id, out Action a) ? null : a;
     }
 
-    protected bool CanAccess()
+    public bool CanAccess()
     {
         OpenDebugOutput("Evaluating Access Conditions:");
 

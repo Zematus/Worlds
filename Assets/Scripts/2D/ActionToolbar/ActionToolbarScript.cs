@@ -7,32 +7,96 @@ using System.Collections.Generic;
 
 public class ActionToolbarScript : MonoBehaviour
 {
-    public ActionPanelScript TerritoryActionPanel;
+    public Transform ToggleSet;
+
+    public ActionCategoryScript ActionCategoryPrefab;
+
+    private Dictionary<string, ActionCategoryScript> _actionCategoryToggles =
+        new Dictionary<string, ActionCategoryScript>();
+
+    private bool _categoriesAdded = false;
 
     public void SetVisible(bool state)
     {
         if (state)
         {
-            SetActions();
+            UpdateActionCategories();
         }
 
         gameObject.SetActive(state);
     }
 
-    private void SetActions()
+    private void SetupActionCategories()
     {
-        foreach (Action action in Action.Actions.Values)
+        if (!_categoriesAdded)
         {
-            switch (action.Category)
+            // We want to make sure the categories are added to the toolbar in the same
+            // order they were loaded
+            foreach (string categoryId in ActionCategory.CategoryKeys)
             {
-                case Action.TerritoryCategoryId:
-                    TerritoryActionPanel.AddActionButton(action);
-                    break;
+                AddActionCategoryToggle(ActionCategory.Categories[categoryId]);
+            }
 
-                default:
-                    throw new System.Exception("Unsupported action category type: " +
-                        action.Category + ", action id: " + action.Id);
+            _categoriesAdded = true;
+        }
+        else
+        {
+            foreach (ActionCategoryScript toggle in _actionCategoryToggles.Values)
+            {
+                toggle.gameObject.SetActive(false);
+                toggle.ActionPanel.ClearActionButtons();
             }
         }
+    }
+
+    private void UpdateActionCategories()
+    {
+        Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
+
+        if (guidedFaction == null)
+        {
+            throw new System.Exception("No faction is being guided by the player");
+        }
+
+        SetupActionCategories();
+
+        foreach (Action action in Action.Actions.Values)
+        {
+            action.SetTarget(guidedFaction);
+
+            if (!action.CanAccess())
+                continue;
+
+            ActionCategoryScript toggle =
+                _actionCategoryToggles[action.Category];
+
+            toggle.gameObject.SetActive(true);
+            toggle.ActionPanel.AddActionButton(action);
+        }
+    }
+
+    private void AddActionCategoryToggle(ActionCategory category)
+    {
+        ActionCategoryScript toggle = Instantiate(ActionCategoryPrefab);
+
+        toggle.ToogleImage.sprite = category.Image;
+        toggle.TooltipText = category.Name;
+        toggle.ActionPanel.Title.text = category.Name;
+
+        toggle.transform.SetParent(ToggleSet);
+        toggle.transform.localScale = Vector3.one;
+
+        _actionCategoryToggles.Add(category.Id, toggle);
+    }
+
+    public void ClearActionCategories()
+    {
+        foreach (ActionCategoryScript category in _actionCategoryToggles.Values)
+        {
+            category.Remove();
+        }
+
+        _actionCategoryToggles.Clear();
+        _categoriesAdded = false;
     }
 }

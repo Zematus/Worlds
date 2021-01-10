@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class ActionPanelScript : MonoBehaviour
 {
     public ActionButtonScript ActionButtonPrefab;
+
+    public Text Title;
 
     private HashSet<ActionButtonScript> _buttons = new HashSet<ActionButtonScript>();
 
