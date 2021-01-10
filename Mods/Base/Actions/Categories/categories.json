@@ -4,6 +4,11 @@
       "id": "territory",
       "name": "Territory Actions",
       "image": "territory.png"
+    },
+    {
+      "id": "diplomacy",
+      "name": "Diplomacy Actions",
+      "image": "diplomacy.png"
     }
   ]
 }

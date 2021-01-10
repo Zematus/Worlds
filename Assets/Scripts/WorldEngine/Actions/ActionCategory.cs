@@ -12,6 +12,9 @@ public class ActionCategory
 
     public static Dictionary<string, ActionCategory> Categories;
 
+    // This list will ensure keys appear in the order they were loaded
+    public static List<string> CategoryKeys;
+
     /// <summary>
     /// Unique identifier for this category
     /// </summary>
@@ -30,6 +33,7 @@ public class ActionCategory
     public static void ResetActionCategories()
     {
         Categories = new Dictionary<string, ActionCategory>();
+        CategoryKeys = new List<string>();
     }
 
     public static void LoadActionCategoryFile(string filename)
@@ -43,6 +47,7 @@ public class ActionCategory
             else
             {
                 Categories.Add(category.Id, category);
+                CategoryKeys.Add(category.Id);
             }
 
             Action.CategoryIds.Add(category.Id);
