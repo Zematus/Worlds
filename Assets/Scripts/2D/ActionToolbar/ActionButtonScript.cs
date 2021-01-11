@@ -6,9 +6,13 @@ public class ActionButtonScript : MonoBehaviour
 {
     public Text Text;
 
-    public void SetText(string text)
+    private Action _action;
+
+    public void SetAction(Action action)
     {
-        Text.text = text;
+        Text.text = action.Name;
+
+        _action = action;
     }
 
     public void Remove()
