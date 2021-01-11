@@ -16,18 +16,6 @@ public class ActionToolbarScript : MonoBehaviour
 
     private bool _categoriesSet = false;
 
-    // Use this for initialization
-    void Start()
-    {
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (!gameObject.activeInHierarchy)
-            return;
-    }
-
     public void SetVisible(bool state)
     {
         if (state)
