@@ -38,7 +38,12 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
 
     public override void Apply()
     {
-        _decisionToTrigger = ModDecision.Decisions[_argumentExp.Value];
+        if (!ModDecision.Decisions.TryGetValue(_argumentExp.Value, out _decisionToTrigger))
+        {
+            throw new System.Exception("Decision \"" + _argumentExp.Value +
+                "\" not present on list of available decisions. " +
+                "Check the source mod for inconsistencies");
+        }
 
         _decisionToTrigger.Set(_factionEntity.Faction, _parameterExps);
         _decisionToTrigger.Evaluate();
