@@ -17,7 +17,7 @@ public class ActionPanelScript : MonoBehaviour
         button.transform.SetParent(transform);
         button.transform.localScale = Vector3.one;
 
-        button.SetText(action.Name);
+        button.SetAction(action);
 
         button.gameObject.SetActive(true);
 

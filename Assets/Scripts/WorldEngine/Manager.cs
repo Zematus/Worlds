@@ -150,13 +150,16 @@ public class Manager
 
     public static float LastStageProgress = 0;
 
+    public static EventManagerScript EventManager = null;
+
     public static Thread MainThread { get; private set; }
 
     public static string SavePath { get; private set; }
     public static string HeightmapsPath { get; private set; }
     public static string ExportPath { get; private set; }
 
-    public static string[] SupportedHeightmapFormats = { ".PSD", ".TIFF", ".JPG", ".TGA", ".PNG", ".BMP", ".PICT" };
+    public static string[] SupportedHeightmapFormats =
+        { ".PSD", ".TIFF", ".JPG", ".TGA", ".PNG", ".BMP", ".PICT" };
 
     public static string WorldName { get; set; }
 
@@ -1852,12 +1855,18 @@ public class Manager
             CurrentWorld.GuidedFaction.SetUnderPlayerGuidance(false);
         }
 
+        CurrentWorld.GuidedFaction = faction;
+
         if (faction != null)
         {
             faction.SetUnderPlayerGuidance(true);
-        }
 
-        CurrentWorld.GuidedFaction = faction;
+            EventManager.GuidedFactionSet.Invoke();
+        }
+        else
+        {
+            EventManager.GuidedFactionUnset.Invoke();
+        }
     }
 
     public static void ResetUpdatedAndHighlightedCells()
@@ -4394,5 +4403,10 @@ public class Manager
         TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
         TryLoadModFiles(Element.LoadElementsFile, Path.Combine(path, @"Elements"), progressPerSegment);
         TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
+    }
+
+    public static void InvokeGuidedFactionStatusChangeEvent()
+    {
+        EventManager.GuidedFactionStatusChange.Invoke();
     }
 }
