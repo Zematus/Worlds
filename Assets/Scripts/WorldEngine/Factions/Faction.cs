@@ -803,6 +803,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
             //generator.CloseDebugOutput("Finished: Evaluating Assigment on Status Change");
         }
+
+        if (IsUnderPlayerGuidance)
+        {
+            Manager.InvokeGuidedFactionStatusChangeEvent();
+        }
     }
 
     public void InitializeDefaultEvents()

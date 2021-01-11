@@ -14,7 +14,19 @@ public class ActionToolbarScript : MonoBehaviour
     private Dictionary<string, ActionCategoryScript> _actionCategoryToggles =
         new Dictionary<string, ActionCategoryScript>();
 
-    private bool _categoriesAdded = false;
+    private bool _categoriesSet = false;
+
+    // Use this for initialization
+    void Start()
+    {
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (!gameObject.activeInHierarchy)
+            return;
+    }
 
     public void SetVisible(bool state)
     {
@@ -28,7 +40,7 @@ public class ActionToolbarScript : MonoBehaviour
 
     private void SetupActionCategories()
     {
-        if (!_categoriesAdded)
+        if (!_categoriesSet)
         {
             // We want to make sure the categories are added to the toolbar in the same
             // order they were loaded
@@ -37,7 +49,7 @@ public class ActionToolbarScript : MonoBehaviour
                 AddActionCategoryToggle(ActionCategory.Categories[categoryId]);
             }
 
-            _categoriesAdded = true;
+            _categoriesSet = true;
         }
         else
         {
@@ -49,7 +61,7 @@ public class ActionToolbarScript : MonoBehaviour
         }
     }
 
-    private void UpdateActionCategories()
+    public void UpdateActionCategories()
     {
         Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
 
@@ -97,6 +109,6 @@ public class ActionToolbarScript : MonoBehaviour
         }
 
         _actionCategoryToggles.Clear();
-        _categoriesAdded = false;
+        _categoriesSet = false;
     }
 }
