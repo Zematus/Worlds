@@ -330,7 +330,10 @@ public class World : ISynchronizable, IWorldDateGetter
 
     [System.Obsolete]
     private Queue<Decision> _decisionsToResolve = new Queue<Decision>();
+
     private readonly Queue<ModDecision> _modDecisionsToResolve = new Queue<ModDecision>();
+
+    private Action _actionToExecute = null;
 
     private Vector2[] _continentOffsets;
     private float[] _continentWidths;
@@ -2158,6 +2161,16 @@ public class World : ISynchronizable, IWorldDateGetter
         _modDecisionsToResolve.Enqueue(decision);
     }
 
+    public void SetActionToExecute(Action action)
+    {
+        _actionToExecute = action;
+    }
+
+    public void ResetActionToExecute()
+    {
+        _actionToExecute = null;
+    }
+
     [System.Obsolete]
     public bool HasDecisionsToResolve()
     {
@@ -2178,6 +2191,11 @@ public class World : ISynchronizable, IWorldDateGetter
     public ModDecision PullModDecisionToResolve()
     {
         return _modDecisionsToResolve.Dequeue();
+    }
+
+    public Action GetActionToExecute()
+    {
+        return _actionToExecute;
     }
 
     public void AddEventMessage(WorldEventMessage eventMessage)

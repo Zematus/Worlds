@@ -28,7 +28,7 @@ public class ActionLoader
         public string target;
         public string category;
         public string[] accessConditions;
-        public string[] useConditions;
+        public string[] executeConditions;
         public string[] effects;
     }
 
@@ -109,7 +109,7 @@ public class ActionLoader
         action.Initialize(e);
 
         IValueExpression<bool>[] accessConditions = null;
-        IValueExpression<bool>[] useConditions = null;
+        IValueExpression<bool>[] executeConditions = null;
 
         if (e.accessConditions != null)
         {
@@ -118,11 +118,11 @@ public class ActionLoader
                 ValueExpressionBuilder.BuildValueExpressions<bool>(action, e.accessConditions);
         }
 
-        if (e.useConditions != null)
+        if (e.executeConditions != null)
         {
-            // Build the use condition expressions (must evaluate to bool values)
-            useConditions =
-                ValueExpressionBuilder.BuildValueExpressions<bool>(action, e.useConditions);
+            // Build the execute condition expressions (must evaluate to bool values)
+            executeConditions =
+                ValueExpressionBuilder.BuildValueExpressions<bool>(action, e.executeConditions);
         }
 
         // Build the effect expressions (must produce side effects)
@@ -134,7 +134,7 @@ public class ActionLoader
         action.Name = e.name;
         action.Category = e.category;
         action.AccessConditions = accessConditions;
-        action.UseConditions = useConditions;
+        action.ExecuteConditions = executeConditions;
         action.Effects = effects;
 
         return action;
