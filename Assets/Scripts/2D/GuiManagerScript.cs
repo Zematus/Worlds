@@ -210,6 +210,16 @@ public class GuiManagerScript : MonoBehaviour
 
     private System.Exception _cachedException = null;
 
+    private enum ActionExecutionFailure
+    {
+        None,
+        FactionNotPresent,
+        RequirementsNotMet,
+        PlayerInputRequired
+    }
+
+    private ActionExecutionFailure _actionExecutionFailure = ActionExecutionFailure.None;
+
     void OnEnable()
     {
         Manager.InitializeDebugLog();
@@ -526,6 +536,9 @@ public class GuiManagerScript : MonoBehaviour
                     }
                     else
                     {
+                        if (!ExecutePendingAction())
+                            break;
+
                         world.EvaluateEventsToHappen();
                     }
 
@@ -2235,6 +2248,38 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
 
         _eventPauseActive = true;
+    }
+
+    private bool ExecutePendingAction()
+    {
+        Action action = Manager.CurrentWorld.GetActionToExecute();
+
+        if (action == null)
+            return true;
+
+        Faction faction = Manager.CurrentWorld.GuidedFaction;
+
+        if (faction == null)
+        {
+            Manager.CurrentWorld.ResetActionToExecute();
+            _actionExecutionFailure = ActionExecutionFailure.FactionNotPresent;
+            return false;
+        }
+
+        action.SetTarget(faction);
+
+        if (!action.CanExecute())
+        {
+            Manager.CurrentWorld.ResetActionToExecute();
+            _actionExecutionFailure = ActionExecutionFailure.RequirementsNotMet;
+            return false;
+        }
+
+        action.Execute();
+
+        Manager.CurrentWorld.ResetActionToExecute();
+        _actionExecutionFailure = ActionExecutionFailure.None;
+        return true;
     }
 
     /// <summary>

@@ -52,7 +52,7 @@ public class Action : Context, IDebugLogger
     /// <summary>
     /// Conditions that decide if this action can be used with the target
     /// </summary>
-    public IValueExpression<bool>[] UseConditions;
+    public IValueExpression<bool>[] ExecuteConditions;
 
     /// <summary>
     /// Effects to occur after the action triggers
@@ -130,7 +130,7 @@ public class Action : Context, IDebugLogger
         return true;
     }
 
-    public bool CanUse()
+    public bool CanExecute()
     {
         OpenDebugOutput("Evaluating Use Conditions:");
 
@@ -141,9 +141,9 @@ public class Action : Context, IDebugLogger
             return false;
         }
 
-        if (UseConditions != null)
+        if (ExecuteConditions != null)
         {
-            foreach (IValueExpression<bool> exp in UseConditions)
+            foreach (IValueExpression<bool> exp in ExecuteConditions)
             {
                 bool value = exp.Value;
 
@@ -169,7 +169,7 @@ public class Action : Context, IDebugLogger
         return true;
     }
 
-    public void Use()
+    public void Execute()
     {
         foreach (IEffectExpression exp in Effects)
         {
@@ -179,6 +179,11 @@ public class Action : Context, IDebugLogger
 
     public void SetTarget(Faction faction)
     {
+        if (faction == null)
+        {
+            throw new System.ArgumentNullException("faction is set to null");
+        }
+
         Reset();
 
         Target.Set(faction);

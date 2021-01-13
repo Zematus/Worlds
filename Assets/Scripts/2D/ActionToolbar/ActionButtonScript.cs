@@ -24,7 +24,12 @@ public class ActionButtonScript : MonoBehaviour
 
         _action.SetTarget(Manager.CurrentWorld.GuidedFaction);
 
-        Button.interactable = _action.CanUse();
+        Button.interactable = _action.CanExecute();
+    }
+
+    private void AddActionToExecute()
+    {
+        Manager.CurrentWorld.SetActionToExecute(_action);
     }
 
     public void SetAction(Action action)
@@ -35,7 +40,7 @@ public class ActionButtonScript : MonoBehaviour
 
         _lastDate = -1;
 
-        Button.onClick.AddListener(_action.Use);
+        Button.onClick.AddListener(AddActionToExecute);
     }
 
     public void Remove()
