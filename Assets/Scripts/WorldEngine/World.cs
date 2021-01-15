@@ -333,7 +333,7 @@ public class World : ISynchronizable, IWorldDateGetter
 
     private readonly Queue<ModDecision> _modDecisionsToResolve = new Queue<ModDecision>();
 
-    private Action _actionToExecute = null;
+    private ModAction _actionToExecute = null;
 
     private Vector2[] _continentOffsets;
     private float[] _continentWidths;
@@ -2161,7 +2161,7 @@ public class World : ISynchronizable, IWorldDateGetter
         _modDecisionsToResolve.Enqueue(decision);
     }
 
-    public void SetActionToExecute(Action action)
+    public void SetActionToExecute(ModAction action)
     {
         _actionToExecute = action;
     }
@@ -2193,7 +2193,7 @@ public class World : ISynchronizable, IWorldDateGetter
         return _modDecisionsToResolve.Dequeue();
     }
 
-    public Action GetActionToExecute()
+    public ModAction GetActionToExecute()
     {
         return _actionToExecute;
     }

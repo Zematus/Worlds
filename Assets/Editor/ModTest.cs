@@ -717,10 +717,10 @@ public class ModTest
     {
         Debug.Log("loading action mod file...");
 
-        Action.ResetActions();
+        ModAction.ResetActions();
         LoadBaseActionCategoriesMod();
 
-        Action.LoadActionFile(Path.Combine("Mods", "Base", "Actions", "actions.json"));
+        ModAction.LoadActionFile(Path.Combine("Mods", "Base", "Actions", "actions.json"));
     }
 
     [Test]
@@ -735,7 +735,7 @@ public class ModTest
 
         LoadBaseActionsMod();
 
-        foreach (Action action in Action.Actions.Values)
+        foreach (ModAction action in ModAction.Actions.Values)
         {
             Debug.Log("created action: " + action.Name);
         }

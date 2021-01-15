@@ -106,6 +106,11 @@ public class CellRegion : Region
 
                     if (_outerBorderCells.Add(nCell))
                     {
+                        if (nCell.Region != null)
+                        {
+                            SetAsNeighbors(this, nCell.Region);
+                        }
+
                         float nCellArea = nCell.Area;
 
                         outerBorderArea += nCellArea;

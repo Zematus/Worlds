@@ -46,7 +46,7 @@ public abstract class Polity : ISynchronizable
 
     public Identifier CoreGroupId;
 
-    public Identifier CoreRegionId;
+    public List<Identifier> CoreRegionIds = new List<Identifier>();
 
     public List<PolityProminenceCluster> ProminenceClusters = new List<PolityProminenceCluster>();
 
@@ -83,7 +83,7 @@ public abstract class Polity : ISynchronizable
     public CellGroup CoreGroup;
 
     [XmlIgnore]
-    public Region CoreRegion;
+    public HashSet<Region> CoreRegions = new HashSet<Region>();
 
     [XmlIgnore]
     public Faction DominantFaction;
@@ -118,6 +118,62 @@ public abstract class Polity : ISynchronizable
 
             return TotalAdministrativeCost_Internal;
         }
+    }
+
+    public HashSet<Region> NeighborRegions
+    {
+        get
+        {
+            if (_needsToFindNeighborRegions)
+            {
+                FindNeighborRegions();
+            }
+
+            return _neighborRegions;
+        }
+    }
+
+    private void FindNeighborRegions()
+    {
+        _neighborRegions = new HashSet<Region>();
+
+        foreach (Region region in CoreRegions)
+        {
+            foreach (Region nRegion in region.NeighborRegions)
+            {
+                if (CoreRegions.Contains(nRegion))
+                    continue;
+
+                _neighborRegions.Add(nRegion);
+            }
+        }
+
+        _needsToFindNeighborRegions = false;
+    }
+
+    private void CoreRegionUpdateEventHandler(Region region)
+    {
+        _needsToFindNeighborRegions = true;
+    }
+
+    private void AddCoreRegion(Region region)
+    {
+        CoreRegions.Add(region);
+        CoreRegionIds.Add(region.Id);
+
+        region.AddUpdateEventHandler(CoreRegionUpdateEventHandler);
+
+        _needsToFindNeighborRegions = true;
+    }
+
+    private void RemoveCoreRegion(Region region)
+    {
+        CoreRegions.Remove(region);
+        CoreRegionIds.Remove(region.Id);
+
+        region.RemoveUpdateEventHandler(CoreRegionUpdateEventHandler);
+
+        _needsToFindNeighborRegions = true;
     }
 
     /// <summary>
@@ -192,6 +248,9 @@ public abstract class Polity : ISynchronizable
     private Dictionary<Identifier, PolityContact> _contacts =
         new Dictionary<Identifier, PolityContact>();
 
+    private bool _needsToFindNeighborRegions = true;
+    private HashSet<Region> _neighborRegions;
+
     public Polity()
     {
 
@@ -232,11 +291,9 @@ public abstract class Polity : ISynchronizable
         //		#endif
 
         //// Make sure there's a region to spawn into
+        Region startRegion = coreGroup.Cell.GetRegion(Culture.Language);
 
-        CoreRegion = coreGroup.Cell.GetRegion(Culture.Language);
-        CoreRegionId = CoreRegion.Id;
-
-        ////
+        AddCoreRegion(startRegion);
     }
 
     public void Initialize()
@@ -1130,13 +1187,18 @@ public abstract class Polity : ISynchronizable
             throw new System.Exception(message);
         }
 
-        CoreRegion = World.GetRegionInfo(CoreRegionId)?.Region;
-
-        if (CoreRegion == null)
+        foreach (Identifier regionId in CoreRegionIds)
         {
-            string message = "Missing Region with Id " + CoreRegionId +
-                " in polity with Id: " + Id;
-            throw new System.Exception(message);
+            RegionInfo regionInfo = World.GetRegionInfo(regionId);
+
+            if (regionInfo == null)
+            {
+                string message = "Missing Region with Id " + regionId +
+                    " in polity with Id: " + Id;
+                throw new System.Exception(message);
+            }
+
+            CoreRegions.Add(regionInfo.Region);
         }
 
         foreach (PolityProminenceCluster cluster in ProminenceClusters)

@@ -562,7 +562,7 @@ public class TerrainCell
 
         float cellValue = freeSpaceFactor * altitudeFactor;
 
-        if ((polity != null) && (Region != polity.CoreRegion))
+        if ((polity != null) && (!polity.CoreRegions.Contains(Region)))
         {
             cellValue *= 0.35f;
         }
