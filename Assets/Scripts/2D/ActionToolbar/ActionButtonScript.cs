@@ -8,7 +8,7 @@ public class ActionButtonScript : MonoBehaviour
 
     public Button Button;
 
-    private Action _action;
+    private ModAction _action;
 
     private long _lastDate = -1;
 
@@ -32,7 +32,7 @@ public class ActionButtonScript : MonoBehaviour
         Manager.CurrentWorld.SetActionToExecute(_action);
     }
 
-    public void SetAction(Action action)
+    public void SetAction(ModAction action)
     {
         Text.text = action.Name;
 

@@ -16,6 +16,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string FactionCountAttributeId = "faction_count";
     public const string SplitAttributeId = "split";
     public const string MergeAttributeId = "merge";
+    public const string NeighborRegionsAttributeId = "neighbor_regions";
 
     public virtual Polity Polity
     {
@@ -34,6 +35,8 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
     private AgentEntity _leaderEntity = null;
     private FactionEntity _dominantFactionEntity = null;
+
+    private RegionCollectionEntity _neighborRegionsEntity = null;
 
     private readonly List<GroupEntity>
         _groupEntitiesToSet = new List<GroupEntity>();
@@ -70,6 +73,17 @@ public class PolityEntity : DelayedSetEntity<Polity>
             BuildAttributeId(DominantFactionAttributeId));
 
         return _dominantFactionEntity.GetThisEntityAttribute(this);
+    }
+
+    public EntityAttribute GetNeighborRegionsAttribute()
+    {
+        _neighborRegionsEntity =
+            _neighborRegionsEntity ?? new RegionCollectionEntity(
+            GetNeighborRegions,
+            Context,
+            BuildAttributeId(NeighborRegionsAttributeId));
+
+        return _neighborRegionsEntity.GetThisEntityAttribute(this);
     }
 
     public EntityAttribute GetLeaderAttribute()
@@ -156,6 +170,8 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
     public Faction GetDominantFaction() => Polity.DominantFaction;
 
+    public ICollection<Region> GetNeighborRegions() => Polity.NeighborRegions;
+
     public Agent GetLeader() => Polity.CurrentLeader;
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -203,6 +219,9 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
             case MergeAttributeId:
                 return new MergePolityAttribute(this, arguments);
+
+            case NeighborRegionsAttributeId:
+                return GetNeighborRegionsAttribute();
         }
 
         throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);
@@ -224,5 +243,6 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
         _leaderEntity?.Reset();
         _dominantFactionEntity?.Reset();
+        _neighborRegionsEntity?.Reset();
     }
 }

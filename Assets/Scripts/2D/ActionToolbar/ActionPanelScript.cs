@@ -10,7 +10,7 @@ public class ActionPanelScript : MonoBehaviour
 
     private HashSet<ActionButtonScript> _buttons = new HashSet<ActionButtonScript>();
 
-    public void AddActionButton(Action action)
+    public void AddActionButton(ModAction action)
     {
         ActionButtonScript button = Instantiate(ActionButtonPrefab);
 

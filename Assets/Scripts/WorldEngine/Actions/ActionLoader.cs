@@ -40,7 +40,7 @@ public class ActionLoader
     /// <param name="filename">Name of the JSON file with actions to load</param>
     /// <returns>A set of Action objects, each one relating to a single action entry
     /// on the file</returns>
-    public static IEnumerable<Action> Load(string filename)
+    public static IEnumerable<ModAction> Load(string filename)
     {
         string jsonStr = File.ReadAllText(filename);
 
@@ -49,7 +49,7 @@ public class ActionLoader
 
         for (int i = 0; i < loader.actions.Length; i++)
         {
-            Action action;
+            ModAction action;
             try
             {
                 action = CreateAction(loader.actions[i]);
@@ -73,7 +73,7 @@ public class ActionLoader
     /// </summary>
     /// <param name="e">The action entry</param>
     /// <returns>The resulting action</returns>
-    private static Action CreateAction(LoadedAction e)
+    private static ModAction CreateAction(LoadedAction e)
     {
         if (string.IsNullOrEmpty(e.id))
         {
@@ -95,7 +95,7 @@ public class ActionLoader
             throw new ArgumentException("action 'category' can't be null or empty");
         }
 
-        if (!Action.CategoryIds.Contains(e.category))
+        if (!ModAction.CategoryIds.Contains(e.category))
         {
             throw new ArgumentException("event 'category' is not supported: " + e.category);
         }
@@ -105,7 +105,7 @@ public class ActionLoader
             throw new ArgumentException("event 'effects' list can't be empty");
         }
 
-        Action action = new Action();
+        ModAction action = new ModAction();
         action.Initialize(e);
 
         IValueExpression<bool>[] accessConditions = null;
@@ -130,7 +130,7 @@ public class ActionLoader
             ExpressionBuilder.BuildEffectExpressions(action, e.effects);
 
         action.IdHash = e.id.GetHashCode();
-        action.UId = Action.CurrentUId++;
+        action.UId = ModAction.CurrentUId++;
         action.Name = e.name;
         action.Category = e.category;
         action.AccessConditions = accessConditions;

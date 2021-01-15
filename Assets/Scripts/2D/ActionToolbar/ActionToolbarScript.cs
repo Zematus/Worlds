@@ -60,7 +60,7 @@ public class ActionToolbarScript : MonoBehaviour
 
         SetupActionCategories();
 
-        foreach (Action action in Action.Actions.Values)
+        foreach (ModAction action in ModAction.Actions.Values)
         {
             action.SetTarget(guidedFaction);
 
