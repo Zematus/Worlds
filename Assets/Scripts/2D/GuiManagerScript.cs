@@ -2252,7 +2252,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private bool ExecutePendingAction()
     {
-        Action action = Manager.CurrentWorld.GetActionToExecute();
+        ModAction action = Manager.CurrentWorld.GetActionToExecute();
 
         if (action == null)
             return true;
@@ -2275,7 +2275,11 @@ public class GuiManagerScript : MonoBehaviour
             return false;
         }
 
-        action.Execute();
+        if (!action.Execute())
+        {
+            _actionExecutionFailure = ActionExecutionFailure.PlayerInputRequired;
+            return false;
+        }
 
         Manager.CurrentWorld.ResetActionToExecute();
         _actionExecutionFailure = ActionExecutionFailure.None;

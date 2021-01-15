@@ -7,8 +7,8 @@
       "category": "territory",
       "properties": [
         { "id": "target_polity", "value": "target.polity" },
-        { "id": "neighbor_region_set", "value": "target_polity.neighbor_regions" },
-        { "id": "target_region", "value": "neighbor_region_set.request_controller_selection()" }
+        { "id": "neighbor_regions", "value": "target_polity.neighbor_regions" },
+        { "id": "target_region", "value": "neighbor_regions.request_controller_selection()" }
       ],
       "accessConditions": [
         "target == target_polity.dominant_faction",

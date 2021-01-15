@@ -50,7 +50,7 @@ public class ActionCategory
                 CategoryKeys.Add(category.Id);
             }
 
-            Action.CategoryIds.Add(category.Id);
+            ModAction.CategoryIds.Add(category.Id);
         }
     }
 

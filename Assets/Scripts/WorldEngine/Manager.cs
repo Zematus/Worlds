@@ -4292,7 +4292,7 @@ public class Manager
         EventGenerator.ResetGenerators();
 
         ActionCategory.ResetActionCategories();
-        Action.ResetActions();
+        ModAction.ResetActions();
 
         ModDecision.ResetDecisions();
 
@@ -4384,7 +4384,7 @@ public class Manager
         TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
         TryLoadModFiles(EventGenerator.LoadEventFile, Path.Combine(path, @"Events"), progressPerSegment);
         TryLoadModFiles(ActionCategory.LoadActionCategoryFile, Path.Combine(path, @"Actions", @"Categories"), progressPerSegment);
-        TryLoadModFiles(Action.LoadActionFile, Path.Combine(path, @"Actions"), progressPerSegment);
+        TryLoadModFiles(ModAction.LoadActionFile, Path.Combine(path, @"Actions"), progressPerSegment);
         TryLoadModFiles(ModDecision.LoadDecisionFile, Path.Combine(path, @"Decisions"), progressPerSegment);
     }
 

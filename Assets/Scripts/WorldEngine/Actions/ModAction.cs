@@ -4,7 +4,7 @@ using UnityEngine.Profiling;
 /// <summary>
 /// Player accessible scriptable action
 /// </summary>
-public class Action : Context, IDebugLogger
+public class ModAction : Context, IDebugLogger
 {
     public const string TerritoryCategoryId = "territory";
     public const string DiplomacyCategoryId = "diplomacy";
@@ -16,7 +16,7 @@ public class Action : Context, IDebugLogger
 
     public const string TargetEntityId = "target";
 
-    public static Dictionary<string, Action> Actions;
+    public static Dictionary<string, ModAction> Actions;
     public readonly FactionEntity Target;
 
     /// <summary>
@@ -66,13 +66,13 @@ public class Action : Context, IDebugLogger
 
     public static void ResetActions()
     {
-        Actions = new Dictionary<string, Action>();
+        Actions = new Dictionary<string, ModAction>();
         CategoryIds = new HashSet<string>();
     }
 
     public static void LoadActionFile(string filename)
     {
-        foreach (Action action in ActionLoader.Load(filename))
+        foreach (ModAction action in ActionLoader.Load(filename))
         {
             if (Actions.ContainsKey(action.Id))
             {
@@ -85,7 +85,7 @@ public class Action : Context, IDebugLogger
         }
     }
 
-    public Action()
+    public ModAction()
     {
         Target = new FactionEntity(this, TargetEntityId);
 
@@ -93,9 +93,9 @@ public class Action : Context, IDebugLogger
         AddEntity(Target);
     }
 
-    public static Action GetAction(string id)
+    public static ModAction GetAction(string id)
     {
-        return !Actions.TryGetValue(id, out Action a) ? null : a;
+        return !Actions.TryGetValue(id, out ModAction a) ? null : a;
     }
 
     public bool CanAccess()
@@ -169,12 +169,14 @@ public class Action : Context, IDebugLogger
         return true;
     }
 
-    public void Execute()
+    public bool Execute()
     {
         foreach (IEffectExpression exp in Effects)
         {
             exp.Apply();
         }
+
+        return true;
     }
 
     public void SetTarget(Faction faction)
