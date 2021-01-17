@@ -97,7 +97,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
         return _leaderEntity.GetThisEntityAttribute(this);
     }
 
-    private EntityAttribute GenerateRandomGroupEntityAttribute()
+    private EntityAttribute GenerateGetRandomGroupEntityAttribute()
     {
         int index = _groupIndex++;
         int iterOffset = Context.GetNextIterOffset() + index;
@@ -115,7 +115,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
         return entity.GetThisEntityAttribute(this);
     }
 
-    private EntityAttribute GenerateRandomContactEntityAttribute()
+    private EntityAttribute GenerateGetRandomContactEntityAttribute()
     {
         int index = _contactIndex++;
         int iterOffset = Context.GetNextIterOffset() + index;
@@ -133,7 +133,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
         return entity.GetThisEntityAttribute(this);
     }
 
-    private EntityAttribute GenerateContactEntityAttribute(IExpression[] arguments)
+    private EntityAttribute GenerateGetContactEntityAttribute(IExpression[] arguments)
     {
         if ((arguments == null) || (arguments.Length < 1))
         {
@@ -200,10 +200,10 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 return GetLeaderAttribute();
 
             case GetRandomGroupAttributeId:
-                return GenerateRandomGroupEntityAttribute();
+                return GenerateGetRandomGroupEntityAttribute();
 
             case GetRandomContactAttributeId:
-                return GenerateRandomContactEntityAttribute();
+                return GenerateGetRandomContactEntityAttribute();
 
             case DominantFactionAttributeId:
                 return GetDominantFactionAttribute();
@@ -212,7 +212,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 return new TransferInfluenceAttribute(this, arguments);
 
             case GetContactAttributeId:
-                return GenerateContactEntityAttribute(arguments);
+                return GenerateGetContactEntityAttribute(arguments);
 
             case SplitAttributeId:
                 return new SplitPolityAttribute(this, arguments);

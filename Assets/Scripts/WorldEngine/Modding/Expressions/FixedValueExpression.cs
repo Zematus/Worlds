@@ -11,11 +11,20 @@ public class FixedValueExpression<T> : IValueExpression<T>
 
     public object ValueObject => FixedValue;
 
+    public bool RequiresInput => false;
+
     public override string ToString() => FixedValue.ToString();
 
     public string GetFormattedString() => Value.ToString().ToBoldFormat();
 
     public string ToPartiallyEvaluatedString(bool evaluate) => ToString();
+
+    public bool TryGetRequest(out InputRequest request)
+    {
+        request = null;
+
+        return false;
+    }
 
     public FixedValueExpression(T value)
     {

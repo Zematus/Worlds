@@ -11,22 +11,19 @@ public class EntityExpression : IValueExpression<IEntity>
         Value = entity;
     }
 
-    public override string ToString()
-    {
-        return Value.Id;
-    }
+    public override string ToString() => Value.Id;
 
-    public string GetFormattedString()
-    {
-        return Value.GetFormattedString();
-    }
+    public string GetFormattedString() => Value.GetFormattedString();
 
     public IEntity Value { get; }
 
     public object ValueObject => Value;
 
-    public string ToPartiallyEvaluatedString(bool evaluate)
-    {
-        return Value.ToPartiallyEvaluatedString(evaluate);
-    }
+    public bool RequiresInput => Value.RequiresInput;
+
+    public string ToPartiallyEvaluatedString(bool evaluate) =>
+        Value.ToPartiallyEvaluatedString(evaluate);
+
+    public bool TryGetRequest(out InputRequest request) =>
+        Value.TryGetRequest(out request);
 }

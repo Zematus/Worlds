@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 public class FixedValueEntityAttribute<T> : ValueEntityAttribute<T>
 {
-    private readonly T _attrValue;
+    protected readonly T _attrValue;
 
     public FixedValueEntityAttribute(T attrValue, string id, Entity entity)
         : base(id, entity, null)
