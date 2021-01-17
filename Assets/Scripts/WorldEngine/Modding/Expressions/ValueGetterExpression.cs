@@ -11,12 +11,13 @@ public class ValueGetterExpression<T> : IValueExpression<T>
     private readonly string _sourceId;
 
     private readonly ValueGetterMethod<T> _getterMethod;
-
     private readonly PartiallyEvaluatedStringConverter _partialEvalStringConverter;
 
     public T Value => _getterMethod();
 
     public object ValueObject => Value;
+
+    public virtual bool RequiresInput => false;
 
     public override string ToString()
     {
@@ -38,5 +39,12 @@ public class ValueGetterExpression<T> : IValueExpression<T>
     public string ToPartiallyEvaluatedString(bool evaluate)
     {
         return _partialEvalStringConverter?.Invoke(evaluate) ?? Value.ToString();
+    }
+
+    public virtual bool TryGetRequest(out InputRequest request)
+    {
+        request = null;
+
+        return false;
     }
 }

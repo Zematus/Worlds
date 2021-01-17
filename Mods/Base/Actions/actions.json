@@ -8,14 +8,14 @@
       "properties": [
         { "id": "target_polity", "value": "target.polity" },
         { "id": "neighbor_regions", "value": "target_polity.neighbor_regions" },
-        { "id": "target_region", "value": "neighbor_regions.request_controller_selection()" }
+        { "id": "selected_region", "value": "neighbor_regions.request_selection()" }
       ],
       "accessConditions": [
         "target == target_polity.dominant_faction",
         "target_polity.type == tribe"
       ],
       "effects": [
-        "target.trigger_decision(tribe_decide_expand_toward_region, target_region)"
+        "target.trigger_decision(tribe_decide_expand_toward_region, selected_region)"
       ]
     }
   ]

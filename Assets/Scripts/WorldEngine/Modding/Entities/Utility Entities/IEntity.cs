@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System;
 
-public interface IEntity : IComparable<object>
+public interface IEntity : IComparable<object>, IInputRequester
 {
     string Id { get; }
 

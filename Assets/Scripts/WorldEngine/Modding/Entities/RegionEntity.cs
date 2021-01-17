@@ -23,6 +23,12 @@ public class RegionEntity : DelayedSetEntity<Region>
     {
     }
 
+    public RegionEntity(
+        TryRequestGenMethod<Region> tryRequestGenMethod, Context c, string id)
+        : base(tryRequestGenMethod, c, id)
+    {
+    }
+
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)

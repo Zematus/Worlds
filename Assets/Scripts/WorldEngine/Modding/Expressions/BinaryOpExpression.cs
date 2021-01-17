@@ -13,6 +13,8 @@ public abstract class BinaryOpExpression : IExpression
 
     private readonly string _opStr;
 
+    public bool RequiresInput => _expressionA.RequiresInput || _expressionB.RequiresInput;
+
     /// <summary>
     /// Constructor
     /// </summary>
@@ -39,4 +41,8 @@ public abstract class BinaryOpExpression : IExpression
 
         return "(" + expAPartial + " " + _opStr + " " + expBPartial + ")";
     }
+
+    public bool TryGetRequest(out InputRequest request) =>
+        _expressionA.TryGetRequest(out request) ||
+        _expressionB.TryGetRequest(out request);
 }

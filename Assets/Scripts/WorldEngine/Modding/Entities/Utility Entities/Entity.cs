@@ -13,6 +13,8 @@ public abstract class Entity : IEntity
 
     protected EntityAttribute _thisAttribute;
 
+    public virtual bool RequiresInput => false;
+
     public Entity(Context context, string id)
     {
         if (string.IsNullOrEmpty(id))
@@ -89,8 +91,7 @@ public abstract class Entity : IEntity
     public virtual EntityAttribute GetThisEntityAttribute(Entity parent)
     {
         _thisAttribute =
-            _thisAttribute ?? new FixedValueEntityAttribute<IEntity>(
-                this, Id, parent);
+            _thisAttribute ?? new EntityValueEntityAttribute(this, Id, parent);
 
         return _thisAttribute;
     }
@@ -98,5 +99,12 @@ public abstract class Entity : IEntity
     public virtual string ToPartiallyEvaluatedString(bool evaluate)
     {
         return GetDebugString();
+    }
+
+    public virtual bool TryGetRequest(out InputRequest request)
+    {
+        request = null;
+
+        return false;
     }
 }

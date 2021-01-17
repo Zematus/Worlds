@@ -4,7 +4,7 @@ public delegate ICollection<T> CollectionGetterMethod<T>();
 
 public abstract class CollectionEntity<T> : Entity
 {
-    private CollectionGetterMethod<T> _getterMethod;
+    private CollectionGetterMethod<T> _getterMethod = null;
 
     protected override object _reference => _collection;
 
@@ -16,12 +16,6 @@ public abstract class CollectionEntity<T> : Entity
         : base(c, id)
     {
         _getterMethod = getterMethod;
-    }
-
-    public CollectionEntity(Context c, string id)
-        : base(c, id)
-    {
-        _getterMethod = null;
     }
 
     public void Reset()

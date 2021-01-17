@@ -3,18 +3,34 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
+public delegate bool TryRequestGenMethod<T>(
+    out DelayedSetEntityInputRequest<T> request);
+
 public abstract class DelayedSetEntity<T> : Entity
 {
-    private ValueGetterMethod<T> _getterMethod;
+    public bool IsReset => _isReset;
+
+    private readonly ValueGetterMethod<T> _getterMethod;
+
+    private readonly TryRequestGenMethod<T> _tryRequestGenMethod = null;
 
     private T _setable = default;
     protected bool _isReset = false;
+
+    public override bool RequiresInput => _tryRequestGenMethod != null;
 
     public DelayedSetEntity(
         ValueGetterMethod<T> getterMethod, Context c, string id)
         : base(c, id)
     {
         _getterMethod = getterMethod;
+    }
+
+    public DelayedSetEntity(
+        TryRequestGenMethod<T> tryRequestGenMethod, Context c, string id)
+        : base(c, id)
+    {
+        _tryRequestGenMethod = tryRequestGenMethod;
     }
 
     public DelayedSetEntity(Context c, string id)
@@ -76,5 +92,28 @@ public abstract class DelayedSetEntity<T> : Entity
         {
             throw new System.ArgumentException("Unexpected type: " + o.GetType());
         }
+    }
+
+    public override bool TryGetRequest(out InputRequest request)
+    {
+        if ((!_isReset) || (!RequiresInput))
+        {
+            request = null;
+
+            return false;
+        }
+
+        if (!_tryRequestGenMethod(out DelayedSetEntityInputRequest<T> entityRequest))
+        {
+            request = null;
+
+            return false;
+        }
+
+        entityRequest.SetEntity(this);
+
+        request = entityRequest;
+
+        return true;
     }
 }
