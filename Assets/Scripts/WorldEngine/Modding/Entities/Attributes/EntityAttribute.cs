@@ -3,13 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class EntityAttribute
+public abstract class EntityAttribute : IInputRequester
 {
     public string Id;
     public IEntity Entity;
     public IExpression[] Arguments;
 
     private IExpression _attrExpression = null;
+
+    public virtual bool RequiresInput => false;
 
     public EntityAttribute(string id, IEntity entity, IExpression[] arguments)
     {
@@ -33,4 +35,11 @@ public abstract class EntityAttribute
     }
 
     public virtual string ToPartiallyEvaluatedString(bool evaluate) => ToString();
+
+    public virtual bool TryGetRequest(out InputRequest request)
+    {
+        request = null;
+
+        return false;
+    }
 }

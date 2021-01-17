@@ -35,7 +35,12 @@ public abstract class UnaryOpExpression<T> : IValueExpression<T>
 
     public string GetFormattedString() => Value.ToString().ToBoldFormat();
 
+    public bool TryGetRequest(out InputRequest request) =>
+        _expression.TryGetRequest(out request);
+
     public abstract T Value { get; }
 
     public object ValueObject => Value;
+
+    public bool RequiresInput => _expression.RequiresInput;
 }

@@ -12,6 +12,8 @@ public abstract class FunctionExpression : IExpression
 
     private IExpression[] _arguments;
 
+    public virtual bool RequiresInput => false;
+
     public FunctionExpression(Context context, string id, int minArguments, IExpression[] arguments)
     {
         _context = context;
@@ -40,5 +42,12 @@ public abstract class FunctionExpression : IExpression
             string.Join(", ", _arguments.Select(e => e.ToPartiallyEvaluatedString(evaluate)));
 
         return Id + "(" + parameters + ")";
+    }
+
+    public virtual bool TryGetRequest(out InputRequest request)
+    {
+        request = null;
+
+        return false;
     }
 }
