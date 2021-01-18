@@ -2,12 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum GuideType
+{
+    Player,
+    Simulation,
+    All
+}
+
 /// <summary>
 /// Context objects contain data used by sets of expressions to resolve references and receive input
 /// from the simulation
 /// </summary>
 public abstract class Context : IDebugLogger
 {
+    public const string Guide_Simulation = "simulation";
+    public const string Guide_Player = "player";
+    public const string Guide_All = "all";
+
     public string Id;
 
     public bool DebugEnabled => (Manager.CurrentDevMode != DevMode.None) && _debug;

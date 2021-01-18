@@ -47,6 +47,7 @@ public class DecisionLoader
 
             public string weight;
             public LoadedEffect[] effects;
+            public string allowedGuide;
         }
 
         public string name;
@@ -144,8 +145,8 @@ public class DecisionLoader
         IEffectExpression result = null;
         if (oe.result != null)
         {
-            result = ExpressionBuilder.ValidateEffectExpression(
-                ExpressionBuilder.BuildExpression(effect, oe.result));
+            result = ExpressionBuilder.BuildEffectExpression(
+                effect, oe.result, option.AllowedGuide == GuideType.Player);
         }
 
         effect.Result = result;
@@ -166,6 +167,25 @@ public class DecisionLoader
         if (!string.IsNullOrWhiteSpace(o.weight))
         {
             weight = ValueExpressionBuilder.BuildValueExpression<float>(option, o.weight);
+        }
+
+        if (!string.IsNullOrEmpty(o.allowedGuide))
+        {
+            switch (o.allowedGuide)
+            {
+                case Context.Guide_All:
+                    option.AllowedGuide = GuideType.All;
+                    break;
+                case Context.Guide_Player:
+                    option.AllowedGuide = GuideType.Player;
+                    break;
+                case Context.Guide_Simulation:
+                    option.AllowedGuide = GuideType.Simulation;
+                    break;
+                default:
+                    throw new System.ArgumentException(
+                        "Not a valid allowed guide type: " + o.allowedGuide);
+            }
         }
 
         DecisionOptionEffect[] effects = null;

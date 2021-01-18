@@ -18,16 +18,6 @@ public class ValueAssignmentExpression<T> : BinaryOpExpression, IEffectExpressio
             ValueExpressionBuilder.ValidateValueExpression<T>(expressionB);
     }
 
-    public static IExpression Build(Context context, string expressionAStr, string expressionBStr)
-    {
-        IValueExpression<float> expressionA =
-            AssignableValueExpressionBuilder.BuildAssignableValueExpression<float>(context, expressionAStr);
-        IValueExpression<float> expressionB =
-            ValueExpressionBuilder.BuildValueExpression<float>(context, expressionBStr);
-
-        return new ValueAssignmentExpression<T>(expressionA, expressionB);
-    }
-
     public void Apply()
     {
         _targetValueExp.Value = _sourceValueExp.Value;

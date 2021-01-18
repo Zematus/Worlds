@@ -15,10 +15,16 @@ public class SubtractExpression : BinaryOpExpressionWithOutput<float>
         _numExpressionB = ValueExpressionBuilder.ValidateValueExpression<float>(expressionB);
     }
 
-    public static IExpression Build(Context context, string expressionAStr, string expressionBStr)
+    public static IExpression Build(
+        Context context,
+        string expressionAStr,
+        string expressionBStr,
+        bool allowInputRequesters = false)
     {
-        IExpression expressionA = ExpressionBuilder.BuildExpression(context, expressionAStr);
-        IExpression expressionB = ExpressionBuilder.BuildExpression(context, expressionBStr);
+        IExpression expressionA =
+            ExpressionBuilder.BuildExpression(context, expressionAStr, allowInputRequesters);
+        IExpression expressionB =
+            ExpressionBuilder.BuildExpression(context, expressionBStr, allowInputRequesters);
 
         return new SubtractExpression(expressionA, expressionB);
     }

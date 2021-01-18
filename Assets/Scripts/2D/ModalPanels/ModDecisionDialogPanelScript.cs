@@ -35,10 +35,12 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
 
         foreach (DecisionOption option in options)
         {
-            if (!option.CanShow())
-            {
+            // Skip options that can only be used by the simulation AI
+            if (option.AllowedGuide == GuideType.Simulation)
                 continue;
-            }
+
+            if (!option.CanShow())
+                continue;
 
             SetOptionButton(option, i);
 

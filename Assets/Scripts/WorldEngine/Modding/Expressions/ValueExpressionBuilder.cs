@@ -3,14 +3,18 @@ using System.Collections.Generic;
 
 public static class ValueExpressionBuilder
 {
-    public static IValueExpression<T> BuildValueExpression<T>(Context context, string expressionStr)
+    public static IValueExpression<T> BuildValueExpression<T>(
+        Context context, string expressionStr, bool allowInputRequesters = false)
     {
-        return ValidateValueExpression<T>(ExpressionBuilder.BuildExpression(context, expressionStr));
+        return ValidateValueExpression<T>(
+            ExpressionBuilder.BuildExpression(context, expressionStr, allowInputRequesters));
     }
 
-    public static IBaseValueExpression BuildValueExpression(Context context, string expressionStr)
+    public static IBaseValueExpression BuildValueExpression(
+        Context context, string expressionStr, bool allowInputRequesters = false)
     {
-        return ValidateValueExpression(ExpressionBuilder.BuildExpression(context, expressionStr));
+        return ValidateValueExpression(
+            ExpressionBuilder.BuildExpression(context, expressionStr, allowInputRequesters));
     }
 
     public static IBaseValueExpression ValidateValueExpression(IExpression expression)
@@ -52,14 +56,16 @@ public static class ValueExpressionBuilder
     }
 
     public static IValueExpression<T>[] BuildValueExpressions<T>(
-        Context context, ICollection<string> expressionStrs)
+        Context context, ICollection<string> expressionStrs, bool allowInputRequesters = false)
     {
         IValueExpression<T>[] expressions = new IValueExpression<T>[expressionStrs.Count];
 
         int i = 0;
         foreach (string expStr in expressionStrs)
         {
-            expressions[i++] = BuildValueExpression<T>(context, expStr);
+            IValueExpression<T> expression = BuildValueExpression<T>(context, expStr);
+
+            expressions[i++] = expression;
         }
 
         return expressions;

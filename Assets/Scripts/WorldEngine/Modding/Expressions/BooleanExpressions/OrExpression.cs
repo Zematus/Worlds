@@ -17,12 +17,18 @@ public class OrExpression : BinaryOpExpressionWithOutput<bool>
         _boolExpressionB = expressionB;
     }
 
-    public static IExpression Build(Context context, string expressionAStr, string expressionBStr)
+    public static IExpression Build(
+        Context context,
+        string expressionAStr,
+        string expressionBStr,
+        bool allowInputRequesters = false)
     {
         IValueExpression<bool> expressionA =
-            ValueExpressionBuilder.BuildValueExpression<bool>(context, expressionAStr);
+            ValueExpressionBuilder.BuildValueExpression<bool>(
+                context, expressionAStr, allowInputRequesters);
         IValueExpression<bool> expressionB =
-            ValueExpressionBuilder.BuildValueExpression<bool>(context, expressionBStr);
+            ValueExpressionBuilder.BuildValueExpression<bool>(
+                context, expressionBStr, allowInputRequesters);
 
         return new OrExpression(expressionA, expressionB);
     }
