@@ -147,24 +147,25 @@ public class ModDecision : Context
         {
             DecisionOption option = Options[i];
 
-            // If option is not available set its weight to 0
+            // Set weight to 0 for options that are meant to be used only by a human
+            // player, or can't be currently shown or used
             float weight = 0;
-            if (option.CanShow())
+            if ((option.AllowedGuide != GuideType.Player) && option.CanShow())
             {
                 weight = (option.Weight != null ) ? option.Weight.Value : 1;
-            }
 
-            if (weight < 0)
-            {
-                string weightPartialExpression =
-                    (option.Weight != null) ?
-                    ("\n - expression: " + option.Weight.ToPartiallyEvaluatedString(true)) :
-                    string.Empty;
+                if (weight < 0)
+                {
+                    string weightPartialExpression =
+                        (option.Weight != null) ?
+                        ("\n - expression: " + option.Weight.ToPartiallyEvaluatedString(true)) :
+                        string.Empty;
 
-                throw new System.Exception(
-                    Id + "->" + option.Id + ", decision option weight is less than zero: " +
-                    weightPartialExpression +
-                    "\n - weight: " + weight);
+                    throw new System.Exception(
+                        Id + "->" + option.Id + ", decision option weight is less than zero: " +
+                        weightPartialExpression +
+                        "\n - weight: " + weight);
+                }
             }
 
             totalWeight += weight;
@@ -174,7 +175,7 @@ public class ModDecision : Context
         if (totalWeight <= 0)
         {
             // Something went wrong, at least one option should be
-            // available everytime we evaluate a decision
+            // available every time we evaluate a decision
 
             throw new System.Exception(
                 Id + ", total decision option weight is equal or less than zero: " +

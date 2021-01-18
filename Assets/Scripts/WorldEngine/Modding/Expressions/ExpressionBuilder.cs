@@ -5,11 +5,14 @@ using System;
 
 public static class ExpressionBuilder
 {
-    public static IExpression BuildExpression(Context context, string expressionStr)
+    public static IExpression BuildExpression(
+        Context context, string expressionStr, bool allowInputRequesters = false)
     {
 #if DEBUG
         //TestMatch(context, expressionStr);
 #endif
+
+        IExpression expression = null;
 
         Match match = Regex.Match(expressionStr, ModParseUtility.BinaryOpStatementRegex);
         if (match.Success == true)
@@ -19,22 +22,23 @@ public static class ExpressionBuilder
             //Debug.Log("binaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["binaryOp"]));
             //Debug.Log("statement2: " + ModUtility.Debug_CapturesToString(match.Groups["statement2"]));
 
-            return BuildBinaryOpExpression(context, match);
+            expression = BuildBinaryOpExpression(context, match, allowInputRequesters);
         }
 
-        match = Regex.Match(expressionStr, ModParseUtility.UnaryOpStatementRegex);
-        if (match.Success == true)
+        if (( expression == null) &&
+            ((match = Regex.Match(
+                expressionStr, ModParseUtility.UnaryOpStatementRegex)).Success == true))
         {
             //Debug.Log("match: " + match.Value);
             //Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
             //Debug.Log("unaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOp"]));
 
-            return BuildUnaryOpExpression(context, match);
+            expression = BuildUnaryOpExpression(context, match, allowInputRequesters);
         }
 
-        match = Regex.Match(expressionStr, ModParseUtility.AccessorOpStatementRegex);
-
-        if (match.Success == true)
+        if ((expression == null) &&
+            ((match = Regex.Match(
+                expressionStr, ModParseUtility.AccessorOpStatementRegex)).Success == true))
         {
             //Debug.Log("match: " + match.Value);
             //Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
@@ -42,35 +46,52 @@ public static class ExpressionBuilder
             //Debug.Log("identifier: " + ModUtility.Debug_CapturesToString(match.Groups["identifier"]));
             //Debug.Log("arguments: " + ModUtility.Debug_CapturesToString(match.Groups["arguments"]));
 
-            return BuildAccessorOpExpression(context, match);
+            expression = BuildAccessorOpExpression(context, match, allowInputRequesters);
         }
 
-        match = Regex.Match(expressionStr, ModParseUtility.InnerStatementRegex);
-        if (match.Success == true)
+        if ((expression == null) &&
+            ((match = Regex.Match(
+                expressionStr, ModParseUtility.InnerStatementRegex)).Success == true))
         {
             //Debug.Log("match: " + match.Value);
             //Debug.Log("innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
 
             expressionStr = match.Groups["innerStatement"].Value.Trim();
 
-            return BuildExpression(context, expressionStr);
+            expression = BuildExpression(context, expressionStr, allowInputRequesters);
         }
 
-        match = Regex.Match(expressionStr, ModParseUtility.BaseStatementRegex);
-        if (match.Success == true)
+        if ((expression == null) &&
+            ((match = Regex.Match(
+                expressionStr, ModParseUtility.BaseStatementRegex)).Success == true))
         {
-            return BuildBaseExpression(context, match);
+            expression = BuildBaseExpression(context, match, allowInputRequesters);
         }
 
-        throw new System.ArgumentException("Not a valid parseable expression: " + expressionStr);
+        if (expression == null)
+        {
+            throw new System.ArgumentException(
+                "Not a valid expression: " + expressionStr);
+        }
+
+        if ((!allowInputRequesters) && expression.RequiresInput)
+        {
+            throw new System.ArgumentException(
+                "Context doesn't allow expressions that require user input. Expression: " +
+                expressionStr);
+        }
+
+        return expression;
     }
 
-    private static IExpression BuildAccessorOpExpression(Context context, Match match)
+    private static IExpression BuildAccessorOpExpression(
+        Context context, Match match, bool allowInputRequesters = false)
     {
         string entityStr = match.Groups["statement"].Value.Trim();
 
         IValueExpression<IEntity> entExpression =
-            ValueExpressionBuilder.BuildValueExpression<IEntity>(context, entityStr);
+            ValueExpressionBuilder.BuildValueExpression<IEntity>(
+                context, entityStr, allowInputRequesters);
 
         string identifier = match.Groups["identifier"].Value.Trim();
         string arguments = match.Groups["arguments"].Value.Trim();
@@ -78,10 +99,12 @@ public static class ExpressionBuilder
         IExpression[] argExpressions = null;
         if (!string.IsNullOrWhiteSpace(arguments))
         {
-            argExpressions = BuildFunctionArgumentExpressions(context, arguments);
+            argExpressions = BuildFunctionArgumentExpressions(
+                context, arguments, allowInputRequesters);
         }
 
-        EntityAttribute attribute = entExpression.Value.GetAttribute(identifier, argExpressions);
+        EntityAttribute attribute =
+            entExpression.Value.GetAttribute(identifier, argExpressions);
 
         return attribute.GetExpression();
     }
@@ -173,7 +196,8 @@ public static class ExpressionBuilder
     }
 #endif
 
-    private static IExpression[] BuildFunctionArgumentExpressions(Context context, string arguments)
+    private static IExpression[] BuildFunctionArgumentExpressions(
+        Context context, string arguments, bool allowInputRequesters = false)
     {
         List<IExpression> argExpressions = new List<IExpression>();
 
@@ -198,10 +222,10 @@ public static class ExpressionBuilder
             //Debug.Log("-- innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
             //Debug.Log("- otherArgs: " + ModUtility.Debug_CapturesToString(match.Groups["otherArgs"]));
 
-            argExpressions.Add(BuildExpression(context, argument));
+            argExpressions.Add(BuildExpression(context, argument, allowInputRequesters));
 
             match = Regex.Match(otherArgs, ModParseUtility.ArgumentListRegex);
-            //
+            
             //#if DEBUG
             //            TestMatch(context, otherArgs);
             //#endif
@@ -210,7 +234,8 @@ public static class ExpressionBuilder
         return argExpressions.ToArray();
     }
 
-    private static IExpression BuildIdentifierExpression(Context context, Match match)
+    private static IExpression BuildIdentifierExpression(
+        Context context, Match match, bool allowInputRequesters = false)
     {
         string identifier = match.Groups["identifier"].Value.Trim();
         string arguments = match.Groups["arguments"].Value.Trim();
@@ -218,7 +243,8 @@ public static class ExpressionBuilder
         IExpression[] argExpressions = null;
         if (!string.IsNullOrWhiteSpace(arguments))
         {
-            argExpressions = BuildFunctionArgumentExpressions(context, arguments);
+            argExpressions = BuildFunctionArgumentExpressions(
+                context, arguments, allowInputRequesters);
         }
 
         switch (identifier)
@@ -249,7 +275,8 @@ public static class ExpressionBuilder
         throw new System.ArgumentException("Unrecognized function identifier: " + identifier);
     }
 
-    private static IExpression BuildUnaryOpExpression(Context context, Match match)
+    private static IExpression BuildUnaryOpExpression(
+        Context context, Match match, bool allowInputRequesters = false)
     {
         string unaryOp = match.Groups["unaryOp"].Value.Trim();
         string expressionStr = match.Groups["statement"].Value.Trim();
@@ -257,15 +284,18 @@ public static class ExpressionBuilder
         switch (unaryOp)
         {
             case "-":
-                return NegateNumberExpression.Build(context, expressionStr);
+                return NegateNumberExpression.Build(
+                    context, expressionStr, allowInputRequesters);
             case "!":
-                return NegateBooleanValueExpression.Build(context, expressionStr);
+                return NegateBooleanValueExpression.Build(
+                    context, expressionStr, allowInputRequesters);
         }
 
         throw new System.ArgumentException("Unrecognized unary op: " + unaryOp);
     }
 
-    private static IExpression BuildBinaryOpExpression(Context context, Match match)
+    private static IExpression BuildBinaryOpExpression(
+        Context context, Match match, bool allowInputRequesters = false)
     {
         string binaryOp = match.Groups["binaryOp"].Value.Trim();
         string expressionAStr = match.Groups["statement1"].Value.Trim();
@@ -274,40 +304,51 @@ public static class ExpressionBuilder
         switch (binaryOp)
         {
             case "+":
-                return SumExpression.Build(context, expressionAStr, expressionBStr);
+                return SumExpression.Build(
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
             case "-":
-                return SubtractExpression.Build(context, expressionAStr, expressionBStr);
+                return SubtractExpression.Build(
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
             case "*":
-                return MultiplyExpression.Build(context, expressionAStr, expressionBStr);
+                return MultiplyExpression.Build(
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
             case "/":
-                return DivideExpression.Build(context, expressionAStr, expressionBStr);
+                return DivideExpression.Build(
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
             case "=":
                 return ValueAssignmentExpressionBuilder.BuildValueAssignmentExpression(
-                    context, expressionAStr, expressionBStr);
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
             case "==":
                 return EqualsExpressionBuilder.BuildEqualsExpression(
-                    context, expressionAStr, expressionBStr);
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
             case "!=":
                 return NotEqualsExpressionBuilder.BuildNotEqualsExpression(
-                    context, expressionAStr, expressionBStr);
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
             case ">=":
-                return MoreThanOrEqualExpression.Build(context, expressionAStr, expressionBStr);
+                return MoreThanOrEqualExpression.Build(
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
             case "<=":
-                return LessThanOrEqualExpression.Build(context, expressionAStr, expressionBStr);
+                return LessThanOrEqualExpression.Build(
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
             case ">":
-                return MoreThanExpression.Build(context, expressionAStr, expressionBStr);
+                return MoreThanExpression.Build(
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
             case "<":
-                return LessThanExpression.Build(context, expressionAStr, expressionBStr);
+                return LessThanExpression.Build(
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
             case "&&":
-                return AndExpression.Build(context, expressionAStr, expressionBStr);
+                return AndExpression.Build(
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
             case "||":
-                return OrExpression.Build(context, expressionAStr, expressionBStr);
+                return OrExpression.Build(
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
         }
 
         throw new System.ArgumentException("Unrecognized binary op: " + binaryOp);
     }
 
-    private static IExpression BuildBaseExpression(Context context, Match match)
+    private static IExpression BuildBaseExpression(
+        Context context, Match match, bool allowInputRequesters = false)
     {
         string number = match.Groups["number"].Value.Trim();
         string boolean = match.Groups["boolean"].Value.Trim();
@@ -330,24 +371,32 @@ public static class ExpressionBuilder
                 return entity.Expression;
             }
 
-            return BuildIdentifierExpression(context, match);
+            return BuildIdentifierExpression(context, match, allowInputRequesters);
         }
 
         throw new System.ArgumentException("Unrecognized statement: " + match.Value);
     }
 
     public static IEffectExpression[] BuildEffectExpressions(
-        Context context, ICollection<string> expressionStrs)
+        Context context, ICollection<string> expressionStrs, bool allowInputRequesters = false)
     {
         IEffectExpression[] expressions = new IEffectExpression[expressionStrs.Count];
 
         int i = 0;
         foreach (string expStr in expressionStrs)
         {
-            expressions[i++] = ValidateEffectExpression(BuildExpression(context, expStr));
+            expressions[i++] = ValidateEffectExpression(
+                BuildExpression(context, expStr, allowInputRequesters));
         }
 
         return expressions;
+    }
+
+    public static IEffectExpression BuildEffectExpression(
+        Context context, string expressionStr, bool allowInputRequesters = false)
+    {
+        return ValidateEffectExpression(
+            BuildExpression(context, expressionStr, allowInputRequesters));
     }
 
     public static IEffectExpression ValidateEffectExpression(IExpression expression)
