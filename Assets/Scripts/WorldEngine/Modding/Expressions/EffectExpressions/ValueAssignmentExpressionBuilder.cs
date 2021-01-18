@@ -7,12 +7,17 @@ using System;
 public static class ValueAssignmentExpressionBuilder
 {
     public static IExpression BuildValueAssignmentExpression(
-        Context context, string expressionAStr, string expressionBStr)
+        Context context,
+        string expressionAStr,
+        string expressionBStr,
+        bool allowInputRequesters = false)
     {
         IExpression expressionA =
-            ExpressionBuilder.BuildExpression(context, expressionAStr);
+            ExpressionBuilder.BuildExpression(
+                context, expressionAStr);
         IBaseValueExpression expressionB =
-            ValueExpressionBuilder.BuildValueExpression(context, expressionBStr);
+            ValueExpressionBuilder.BuildValueExpression(
+                context, expressionBStr, allowInputRequesters);
 
         if ((expressionA is IAssignableValueExpression<float>) &&
             (expressionB is IValueExpression<float>))

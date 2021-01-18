@@ -157,7 +157,7 @@
         { "id": "chance_of_making_attempt", "value": "total_core_region_saturation / core_region_count" }
       ],
       "assignmentConditions": [
-        "target.controller == simulation",
+        "target.guide == simulation",
         "target == target_polity.dominant_faction",
         "target_polity.type == tribe"
       ],

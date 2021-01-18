@@ -127,7 +127,7 @@ public class ActionLoader
 
         // Build the effect expressions (must produce side effects)
         IEffectExpression[] effects =
-            ExpressionBuilder.BuildEffectExpressions(action, e.effects);
+            ExpressionBuilder.BuildEffectExpressions(action, e.effects, true);
 
         action.IdHash = e.id.GetHashCode();
         action.UId = ModAction.CurrentUId++;

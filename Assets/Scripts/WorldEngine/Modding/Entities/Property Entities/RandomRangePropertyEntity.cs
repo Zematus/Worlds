@@ -15,6 +15,9 @@ public class RandomRangePropertyEntity : PropertyEntity<float>
     private EntityAttribute _minAttribute;
     private EntityAttribute _maxAttribute;
 
+    public override bool RequiresInput =>
+        Min.RequiresInput || Max.RequiresInput;
+
     public RandomRangePropertyEntity(
         Context context, Context.LoadedContext.LoadedProperty p)
         : base(context, p)
@@ -29,11 +32,14 @@ public class RandomRangePropertyEntity : PropertyEntity<float>
             throw new ArgumentException("'max' can't be null or empty");
         }
 
-        Min = ValueExpressionBuilder.BuildValueExpression<float>(context, p.min);
-        Max = ValueExpressionBuilder.BuildValueExpression<float>(context, p.max);
+        Min = ValueExpressionBuilder.BuildValueExpression<float>(
+            context, p.min, true);
+        Max = ValueExpressionBuilder.BuildValueExpression<float>(
+            context, p.max, true);
     }
 
-    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
+    public override EntityAttribute GetAttribute(
+        string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)
         {
@@ -102,4 +108,7 @@ public class RandomRangePropertyEntity : PropertyEntity<float>
             "(min: " + Min.ToPartiallyEvaluatedString(evaluate) +
             ", max: " + Max.ToPartiallyEvaluatedString(evaluate) + ")";
     }
+
+    public override bool TryGetRequest(out InputRequest request) =>
+        Min.TryGetRequest(out request) || Max.TryGetRequest(out request);
 }

@@ -15,12 +15,18 @@ public class DivideExpression : BinaryOpExpressionWithOutput<float>
         _numExpressionB = expressionB;
     }
 
-    public static IExpression Build(Context context, string expressionAStr, string expressionBStr)
+    public static IExpression Build(
+        Context context,
+        string expressionAStr,
+        string expressionBStr,
+        bool allowInputRequesters = false)
     {
         IExpression expressionA =
-            ValueExpressionBuilder.BuildValueExpression<float>(context, expressionAStr);
+            ValueExpressionBuilder.BuildValueExpression<float>(
+                context, expressionAStr, allowInputRequesters);
         IExpression expressionB =
-            ValueExpressionBuilder.BuildValueExpression<float>(context, expressionBStr);
+            ValueExpressionBuilder.BuildValueExpression<float>(
+                context, expressionBStr, allowInputRequesters);
 
         return new MultiplyExpression(expressionA, expressionB);
     }
