@@ -210,6 +210,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private System.Exception _cachedException = null;
 
+    private InputRequest _inputRequestToFulfill = null;
+
     private enum ActionExecutionFailure
     {
         None,
@@ -536,7 +538,7 @@ public class GuiManagerScript : MonoBehaviour
                     }
                     else
                     {
-                        if (!ExecutePendingAction())
+                        if (!ValidatePendingAction())
                             break;
 
                         world.EvaluateEventsToHappen();
@@ -2250,9 +2252,15 @@ public class GuiManagerScript : MonoBehaviour
         _eventPauseActive = true;
     }
 
-    private bool ExecutePendingAction()
+    private bool ValidatePendingAction()
     {
-        ModAction action = Manager.CurrentWorld.GetActionToExecute();
+        if (!HandlePendingActionEffects())
+        {
+            _actionExecutionFailure = ActionExecutionFailure.PlayerInputRequired;
+            return false;
+        }
+
+        ModAction action = Manager.CurrentWorld.PullActionToExecute();
 
         if (action == null)
             return true;
@@ -2261,7 +2269,6 @@ public class GuiManagerScript : MonoBehaviour
 
         if (faction == null)
         {
-            Manager.CurrentWorld.ResetActionToExecute();
             _actionExecutionFailure = ActionExecutionFailure.FactionNotPresent;
             return false;
         }
@@ -2270,19 +2277,37 @@ public class GuiManagerScript : MonoBehaviour
 
         if (!action.CanExecute())
         {
-            Manager.CurrentWorld.ResetActionToExecute();
             _actionExecutionFailure = ActionExecutionFailure.RequirementsNotMet;
             return false;
         }
 
-        if (!action.Execute())
+        action.SetEffectsToHandle();
+
+        if (!HandlePendingActionEffects())
         {
             _actionExecutionFailure = ActionExecutionFailure.PlayerInputRequired;
             return false;
         }
 
-        Manager.CurrentWorld.ResetActionToExecute();
         _actionExecutionFailure = ActionExecutionFailure.None;
+        return true;
+    }
+
+    private bool HandlePendingActionEffects()
+    {
+        while (Manager.CurrentWorld.HasEffectsToHandle())
+        {
+            IEffectExpression effect = Manager.CurrentWorld.PullEffectToHandle();
+
+            if (effect.TryGetRequest(out InputRequest request))
+            {
+                _inputRequestToFulfill = request;
+                return false;
+            }
+
+            effect.Apply();
+        }
+
         return true;
     }
 

@@ -326,14 +326,20 @@ public class World : ISynchronizable, IWorldDateGetter
         new Dictionary<Identifier, Language>();
 
     private HashSet<long> _eventMessageIds = new HashSet<long>();
-    private Queue<WorldEventMessage> _eventMessagesToShow = new Queue<WorldEventMessage>();
+    private Queue<WorldEventMessage> _eventMessagesToShow =
+        new Queue<WorldEventMessage>();
 
     [System.Obsolete]
-    private Queue<Decision> _decisionsToResolve = new Queue<Decision>();
+    private Queue<Decision> _decisionsToResolve =
+        new Queue<Decision>();
 
-    private readonly Queue<ModDecision> _modDecisionsToResolve = new Queue<ModDecision>();
+    private readonly Queue<ModDecision> _modDecisionsToResolve =
+        new Queue<ModDecision>();
 
     private ModAction _actionToExecute = null;
+
+    private readonly Queue<IEffectExpression> _effectsToHandle =
+        new Queue<IEffectExpression>();
 
     private Vector2[] _continentOffsets;
     private float[] _continentWidths;
@@ -2161,14 +2167,14 @@ public class World : ISynchronizable, IWorldDateGetter
         _modDecisionsToResolve.Enqueue(decision);
     }
 
+    public void AddEffectToHandle(IEffectExpression effect)
+    {
+        _effectsToHandle.Enqueue(effect);
+    }
+
     public void SetActionToExecute(ModAction action)
     {
         _actionToExecute = action;
-    }
-
-    public void ResetActionToExecute()
-    {
-        _actionToExecute = null;
     }
 
     [System.Obsolete]
@@ -2182,6 +2188,11 @@ public class World : ISynchronizable, IWorldDateGetter
         return _modDecisionsToResolve.Count > 0;
     }
 
+    public bool HasEffectsToHandle()
+    {
+        return _effectsToHandle.Count > 0;
+    }
+
     [System.Obsolete]
     public Decision PullDecisionToResolve()
     {
@@ -2193,9 +2204,17 @@ public class World : ISynchronizable, IWorldDateGetter
         return _modDecisionsToResolve.Dequeue();
     }
 
-    public ModAction GetActionToExecute()
+    public IEffectExpression PullEffectToHandle()
     {
-        return _actionToExecute;
+        return _effectsToHandle.Dequeue();
+    }
+
+    public ModAction PullActionToExecute()
+    {
+        ModAction action = _actionToExecute;
+        _actionToExecute = null;
+
+        return action;
     }
 
     public void AddEventMessage(WorldEventMessage eventMessage)
