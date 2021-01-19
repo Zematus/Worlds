@@ -169,14 +169,14 @@ public class ModAction : Context, IDebugLogger
         return true;
     }
 
-    public bool Execute()
+    public void SetEffectsToHandle()
     {
+        World world = Target.Faction.World;
+
         foreach (IEffectExpression exp in Effects)
         {
-            exp.Apply();
+            world.AddEffectToHandle(exp);
         }
-
-        return true;
     }
 
     public void SetTarget(Faction faction)

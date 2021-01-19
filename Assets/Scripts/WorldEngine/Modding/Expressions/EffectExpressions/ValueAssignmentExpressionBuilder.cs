@@ -14,7 +14,7 @@ public static class ValueAssignmentExpressionBuilder
     {
         IExpression expressionA =
             ExpressionBuilder.BuildExpression(
-                context, expressionAStr);
+                context, expressionAStr, allowInputRequesters);
         IBaseValueExpression expressionB =
             ValueExpressionBuilder.BuildValueExpression(
                 context, expressionBStr, allowInputRequesters);
