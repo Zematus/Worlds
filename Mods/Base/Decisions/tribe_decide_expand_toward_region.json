@@ -1,0 +1,34 @@
+{
+  "decisions": [
+    {
+      "id": "tribe_decide_expand_toward_region",
+      "name": "tribe decide expand toward region",
+      "target": "faction",
+      "parameters": [
+        { "id": "selected_region", "type": "region" }
+      ],
+      "properties": [
+        { "id": "target_polity", "value": "target.polity" },
+        { "id": "cohesion_preference", "value": "target.preferences.cohesion" }
+      ],
+      "description": [
+        {
+          "id": "description_intro",
+          "text": "Should the <<target_polity>> expand into the <<region>> region?"
+        }
+      ],
+      "options": [
+        {
+          "id": "option_allow_expansion",
+          "text": "Allow tribe to expand...",
+          "weight": "1 - cohesion_preference"
+        },
+        {
+          "id": "option_prevent_expansion",
+          "text": "Prevent tribe from expanding...",
+          "weight": "cohesion_preference"
+        }
+      ]
+    }
+  ]
+}
