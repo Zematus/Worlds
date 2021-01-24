@@ -11,7 +11,22 @@ public abstract class EntityAttribute : IInputRequester
 
     private IExpression _attrExpression = null;
 
-    public virtual bool RequiresInput => false;
+    public virtual bool RequiresInput
+    {
+        get
+        {
+            if (Arguments != null)
+            {
+                foreach (IExpression e in Arguments)
+                {
+                    if (e.RequiresInput)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+    }
 
     public EntityAttribute(string id, IEntity entity, IExpression[] arguments)
     {
@@ -38,6 +53,15 @@ public abstract class EntityAttribute : IInputRequester
 
     public virtual bool TryGetRequest(out InputRequest request)
     {
+        if (Arguments != null)
+        {
+            foreach (IExpression e in Arguments)
+            {
+                if (e.TryGetRequest(out request))
+                    return true;
+            }
+        }
+
         request = null;
 
         return false;

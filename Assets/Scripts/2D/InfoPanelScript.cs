@@ -1221,7 +1221,8 @@ public class InfoPanelScript : MonoBehaviour
             AddCellDataToInfoPanel_Terrain(cell);
         }
 
-        if (Manager.PlanetOverlay == PlanetOverlay.Region)
+        if ((Manager.PlanetOverlay == PlanetOverlay.Region) ||
+            (Manager.PlanetOverlay == PlanetOverlay.RegionSelection))
         {
             AddCellDataToInfoPanel_Region(cell);
         }

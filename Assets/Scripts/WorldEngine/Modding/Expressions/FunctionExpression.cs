@@ -12,7 +12,19 @@ public abstract class FunctionExpression : IExpression
 
     private IExpression[] _arguments;
 
-    public virtual bool RequiresInput => false;
+    public virtual bool RequiresInput
+    {
+        get
+        {
+            foreach (IExpression e in _arguments)
+            {
+                if (e.RequiresInput)
+                    return true;
+            }
+
+            return false;
+        }
+    }
 
     public FunctionExpression(Context context, string id, int minArguments, IExpression[] arguments)
     {
@@ -46,6 +58,12 @@ public abstract class FunctionExpression : IExpression
 
     public virtual bool TryGetRequest(out InputRequest request)
     {
+        foreach (IExpression e in _arguments)
+        {
+            if (e.TryGetRequest(out request))
+                return true;
+        }
+
         request = null;
 
         return false;
