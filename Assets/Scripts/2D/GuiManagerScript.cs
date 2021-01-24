@@ -196,6 +196,7 @@ public class GuiManagerScript : MonoBehaviour
     private long _simulationDateSpan = 0;
 
     private bool _resolvedDecision = false;
+    private bool _completedAction = false;
 
     private int _mapUpdateCount = 0;
     private int _pixelUpdateCount = 0;
@@ -210,17 +211,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private System.Exception _cachedException = null;
 
-    private InputRequest _inputRequestToFulfill = null;
-
-    private enum ActionExecutionFailure
-    {
-        None,
-        FactionNotPresent,
-        RequirementsNotMet,
-        PlayerInputRequired
-    }
-
-    private ActionExecutionFailure _actionExecutionFailure = ActionExecutionFailure.None;
+    private System.Action _closeErrorActionToPerform = null;
 
     void OnEnable()
     {
@@ -538,8 +529,14 @@ public class GuiManagerScript : MonoBehaviour
                     }
                     else
                     {
-                        if (!ValidatePendingAction())
+                        if (_completedAction)
+                        {
+                            _completedAction = false;
+                        }
+                        else if (!ValidateAnyPendingAction())
+                        {
                             break;
+                        }
 
                         world.EvaluateEventsToHappen();
                     }
@@ -955,7 +952,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void SkipLayerOverlayIfNotPresent()
     {
-        // Skip layer overlay if now layers are present in this world
+        // Skip layer overlay if no layers are present in this world
         if ((!Manager.LayersPresent) &&
             (_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Layer))
         {
@@ -1333,11 +1330,19 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
+    private void ContinueSimulation()
+    {
+        InterruptSimulation(false);
+
+        _eventPauseActive = false;
+    }
+
     public void CloseErrorMessageAction()
     {
         ErrorMessageDialogPanelScript.SetVisible(false);
 
-        SetGenerationSeed();
+        _closeErrorActionToPerform?.Invoke();
+        _closeErrorActionToPerform = null;
     }
 
     public void CloseExceptionMessageAction()
@@ -1443,8 +1448,10 @@ public class GuiManagerScript : MonoBehaviour
         GenerateWorldInternal(seed, useHeightmap);
     }
 
-    private void ShowErrorMessage(string message)
+    private void ShowErrorMessage(string message, System.Action closeErrorActionToPerform = null)
     {
+        _closeErrorActionToPerform = closeErrorActionToPerform;
+
         ErrorMessageDialogPanelScript.SetDialogText(message);
         ErrorMessageDialogPanelScript.SetVisible(true);
     }
@@ -1457,7 +1464,7 @@ public class GuiManagerScript : MonoBehaviour
 
         if (seed < 0)
         {
-            ShowErrorMessage(errorMessage);
+            ShowErrorMessage(errorMessage, SetGenerationSeed);
             return;
         }
 
@@ -1841,6 +1848,9 @@ public class GuiManagerScript : MonoBehaviour
                 break;
             case PlanetOverlay.Region:
                 planetOverlayStr = "_region";
+                break;
+            case PlanetOverlay.RegionSelection:
+                planetOverlayStr = "_region_select";
                 break;
             case PlanetOverlay.PopChange:
                 planetOverlayStr = "_population_change";
@@ -2226,9 +2236,7 @@ public class GuiManagerScript : MonoBehaviour
             HideInteractionPanel(DecisionDialogPanelScript);
         }
 
-        InterruptSimulation(true);
-
-        _eventPauseActive = true;
+        StopSimulation();
     }
 
     private void RequestModDecisionResolution()
@@ -2247,19 +2255,18 @@ public class GuiManagerScript : MonoBehaviour
             HideInteractionPanel(ModDecisionDialogPanelScript);
         }
 
+        StopSimulation();
+    }
+
+    private void StopSimulation()
+    {
         InterruptSimulation(true);
 
         _eventPauseActive = true;
     }
 
-    private bool ValidatePendingAction()
+    private bool ValidateAnyPendingAction()
     {
-        if (!HandlePendingActionEffects())
-        {
-            _actionExecutionFailure = ActionExecutionFailure.PlayerInputRequired;
-            return false;
-        }
-
         ModAction action = Manager.CurrentWorld.PullActionToExecute();
 
         if (action == null)
@@ -2269,7 +2276,12 @@ public class GuiManagerScript : MonoBehaviour
 
         if (faction == null)
         {
-            _actionExecutionFailure = ActionExecutionFailure.FactionNotPresent;
+            ShowErrorMessage(
+                "The guided faction is no longer present",
+                ContinueSimulation);
+
+            StopSimulation();
+
             return false;
         }
 
@@ -2277,23 +2289,28 @@ public class GuiManagerScript : MonoBehaviour
 
         if (!action.CanExecute())
         {
-            _actionExecutionFailure = ActionExecutionFailure.RequirementsNotMet;
+            ShowErrorMessage(
+                "The requirements to perform the selected action are no longer met",
+                ContinueSimulation);
+
+            StopSimulation();
+
             return false;
         }
 
         action.SetEffectsToHandle();
 
-        if (!HandlePendingActionEffects())
+        if (!HandlePendingEffects())
         {
-            _actionExecutionFailure = ActionExecutionFailure.PlayerInputRequired;
+            StopSimulation();
+
             return false;
         }
 
-        _actionExecutionFailure = ActionExecutionFailure.None;
         return true;
     }
 
-    private bool HandlePendingActionEffects()
+    private bool HandlePendingEffects()
     {
         while (Manager.CurrentWorld.HasEffectsToHandle())
         {
@@ -2301,7 +2318,7 @@ public class GuiManagerScript : MonoBehaviour
 
             if (effect.TryGetRequest(out InputRequest request))
             {
-                _inputRequestToFulfill = request;
+                HandleInputRequest(request);
                 return false;
             }
 
@@ -2309,6 +2326,16 @@ public class GuiManagerScript : MonoBehaviour
         }
 
         return true;
+    }
+
+    private void HandleInputRequest(InputRequest request)
+    {
+        Manager.CurrentInputRequest = request;
+
+        if (request is RegionSelectionRequest)
+        {
+            ChangePlanetOverlay(PlanetOverlay.RegionSelection);
+        }
     }
 
     /// <summary>
@@ -2350,9 +2377,7 @@ public class GuiManagerScript : MonoBehaviour
             SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
         }
 
-        InterruptSimulation(false);
-
-        _eventPauseActive = false;
+        ContinueSimulation();
 
         _resolvedDecision = true;
     }
@@ -2374,9 +2399,7 @@ public class GuiManagerScript : MonoBehaviour
             SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
         }
 
-        InterruptSimulation(false);
-
-        _eventPauseActive = false;
+        ContinueSimulation();
 
         _resolvedDecision = true;
     }
@@ -3384,6 +3407,42 @@ public class GuiManagerScript : MonoBehaviour
         InfoTooltipScript.DisplayTip(_lastHoveredOverRegion.Name.Text, tooltipPos);
     }
 
+    private void ShowCellInfoToolTip_RegionSelection(TerrainCell cell)
+    {
+        Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
+
+        if (guidedFaction == null)
+        {
+            throw new System.Exception("Can't show tooltip without an active guided faction");
+        }
+
+        if (cell.Region == _lastHoveredOverRegion)
+            return;
+
+        Polity guidedPolity = guidedFaction.Polity;
+        RegionSelectionRequest request = Manager.CurrentInputRequest as RegionSelectionRequest;
+
+        if (request == null)
+        {
+            throw new System.Exception("Can't show tooltip without an region selection request");
+        }
+
+        _lastHoveredOverRegion = cell.Region;
+
+        if ((_lastHoveredOverRegion == null) ||
+            (!_lastHoveredOverRegion.IsUiFilteredIn))
+        {
+            InfoTooltipScript.SetVisible(false);
+            return;
+        }
+
+        WorldPosition regionCenterCellPosition = _lastHoveredOverRegion.GetMostCenteredCell().Position;
+
+        Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(regionCenterCellPosition) + _tooltipOffset;
+
+        InfoTooltipScript.DisplayTip(_lastHoveredOverRegion.Name.Text, tooltipPos);
+    }
+
     public void BeginDrag(BaseEventData data)
     {
         if (Manager.ViewingGlobe)
@@ -3478,5 +3537,7 @@ public class GuiManagerScript : MonoBehaviour
             ShowCellInfoToolTip_PolityTerritory(hoveredCell);
         else if (_planetOverlay == PlanetOverlay.Region)
             ShowCellInfoToolTip_Region(hoveredCell);
+        else if (_planetOverlay == PlanetOverlay.RegionSelection)
+            ShowCellInfoToolTip_RegionSelection(hoveredCell);
     }
 }

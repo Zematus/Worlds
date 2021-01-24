@@ -60,6 +60,7 @@ public enum PlanetOverlay
     BiomeTrait,
     Layer,
     Region,
+    RegionSelection,
     Language,
     PopChange,
     UpdateSpan,
@@ -228,6 +229,8 @@ public class Manager
     public static long LastTextureUpdateDate = 0;
 
     public static bool DisableShortcuts = false;
+
+    public static InputRequest CurrentInputRequest = null;
 
     private static bool _isLoadReady = false;
 
@@ -1619,7 +1622,9 @@ public class Manager
         {
             _observableUpdateTypes = CellUpdateType.Cell;
         }
-        else if (overlay == PlanetOverlay.Region)
+        else if (
+            (overlay == PlanetOverlay.Region) ||
+            (overlay == PlanetOverlay.RegionSelection))
         {
             _observableUpdateTypes = CellUpdateType.Region;
         }
@@ -1666,7 +1671,9 @@ public class Manager
         {
             _observableUpdateSubTypes = CellUpdateSubType.Terrain;
         }
-        else if ((overlay == PlanetOverlay.Region) ||
+        else if (
+            (overlay == PlanetOverlay.Region) ||
+            (overlay == PlanetOverlay.RegionSelection) ||
             (overlay == PlanetOverlay.PolityCluster) ||
             (overlay == PlanetOverlay.Language))
         {
@@ -2942,6 +2949,10 @@ public class Manager
                 color = SetRegionOverlayColor(cell, color);
                 break;
 
+            case PlanetOverlay.RegionSelection:
+                color = SetRegionSelectionOverlayColor(cell, color);
+                break;
+
             case PlanetOverlay.Language:
                 color = SetLanguageOverlayColor(cell, color);
                 break;
@@ -3156,6 +3167,48 @@ public class Manager
         Region region = cell.Region;
 
         if (region != null)
+        {
+            Color regionColor = GenerateColorFromId(region.Id);
+
+            Biome mostPresentBiome = Biome.Biomes[region.BiomeWithMostPresence];
+            regionColor = mostPresentBiome.Color * 0.85f + regionColor * 0.15f;
+
+            bool isRegionBorder = IsRegionBorder(region, cell);
+
+            if (!isRegionBorder)
+            {
+                regionColor /= 1.5f;
+            }
+
+            regionColor.a = 0.5f;
+
+            color = regionColor;
+        }
+
+        return color;
+    }
+
+    private static Color SetRegionSelectionOverlayColor(TerrainCell cell, Color color)
+    {
+        Faction guidedFaction = CurrentWorld.GuidedFaction;
+
+        if (guidedFaction == null)
+        {
+            throw new System.Exception("Can't generate overlay without an active guided faction");
+        }
+
+        Polity guidedPolity = guidedFaction.Polity;
+        RegionSelectionRequest request = CurrentInputRequest as RegionSelectionRequest;
+
+        if (request == null)
+        {
+            throw new System.Exception("Can't generate overlay without an region selection request");
+        }
+
+        Region region = cell.Region;
+
+        if ((region != null) &&
+            region.IsUiFilteredIn)
         {
             Color regionColor = GenerateColorFromId(region.Id);
 

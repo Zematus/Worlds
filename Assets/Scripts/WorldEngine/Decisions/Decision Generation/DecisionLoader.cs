@@ -247,6 +247,9 @@ public class DecisionLoader
             case "agent":
                 return new AgentEntity(c, p.id);
 
+            case "region":
+                return new RegionEntity(c, p.id);
+
             case "string":
                 return new ValueEntity<string>(c, p.id);
 

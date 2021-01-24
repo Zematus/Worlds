@@ -12,6 +12,8 @@ public abstract class Region : ISynchronizable
 
     [XmlIgnore]
     public bool IsSelected = false;
+    [XmlIgnore]
+    public bool IsUiFilteredIn = false;
 
     [XmlIgnore]
     public Region Parent = null;

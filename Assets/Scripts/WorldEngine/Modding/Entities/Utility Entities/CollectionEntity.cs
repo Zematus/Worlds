@@ -6,7 +6,7 @@ public abstract class CollectionEntity<T> : Entity
 {
     private CollectionGetterMethod<T> _getterMethod = null;
 
-    protected override object _reference => _collection;
+    protected override object _reference => Collection;
 
     protected ICollection<T> _collection = null;
     protected bool _isReset = false;

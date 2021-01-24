@@ -26,7 +26,7 @@ public class RegionCollectionEntity : CollectionEntity<Region>
         RegionEntity entity = new RegionEntity(
             (out DelayedSetEntityInputRequest<Region> request) =>
             {
-                request = new RegionSelectionRequest(_collection);
+                request = new RegionSelectionRequest(Collection);
                 return true;
             },
             Context,
