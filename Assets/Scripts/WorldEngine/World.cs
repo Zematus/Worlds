@@ -186,8 +186,17 @@ public class World : ISynchronizable, IWorldDateGetter
     public Region SelectedRegion = null;
     [XmlIgnore]
     public Territory SelectedTerritory = null;
+
+    [XmlIgnore]
+    public TerrainCell HoveredCell = null;
+    [XmlIgnore]
+    public Region HoveredRegion = null;
+    [XmlIgnore]
+    public Territory HoveredTerritory = null;
+
     [XmlIgnore]
     public Faction GuidedFaction = null;
+
     [XmlIgnore]
     public HashSet<Polity> PolitiesUnderPlayerFocus = new HashSet<Polity>();
 

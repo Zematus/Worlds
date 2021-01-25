@@ -3430,7 +3430,7 @@ public class GuiManagerScript : MonoBehaviour
         _lastHoveredOverRegion = cell.Region;
 
         if ((_lastHoveredOverRegion == null) ||
-            (!_lastHoveredOverRegion.IsUiFilteredIn))
+            (_lastHoveredOverRegion.AssignedFilterType == Region.FilterType.None))
         {
             InfoTooltipScript.SetVisible(false);
             return;
@@ -3529,6 +3529,8 @@ public class GuiManagerScript : MonoBehaviour
             _lastHoveredCell = hoveredCell;
             Manager.EditorBrushTargetCell = hoveredCell;
         }
+
+        Manager.SetHoveredCell(hoveredCell);
 
         if (hoveredCell == null)
             return;

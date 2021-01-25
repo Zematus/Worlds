@@ -1767,6 +1767,25 @@ public class Manager
         }
     }
 
+    public static void SetHoveredRegion(Region region)
+    {
+        if (CurrentWorld.HoveredRegion != null)
+        {
+            //AddSelectedCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
+
+            CurrentWorld.HoveredRegion.IsHovered = false;
+            CurrentWorld.HoveredRegion = null;
+        }
+
+        if (region != null)
+        {
+            CurrentWorld.HoveredRegion = region;
+            CurrentWorld.HoveredRegion.IsHovered = true;
+
+            //AddSelectedCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
+        }
+    }
+
     public static void SetSelectedTerritory(Territory territory)
     {
         if (CurrentWorld.SelectedTerritory != null)
@@ -1806,6 +1825,25 @@ public class Manager
         }
     }
 
+    public static void SetHoveredTerritory(Territory territory)
+    {
+        if (CurrentWorld.HoveredTerritory != null)
+        {
+            //AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
+
+            CurrentWorld.HoveredTerritory.IsHovered = false;
+            CurrentWorld.HoveredTerritory = null;
+        }
+
+        if (territory != null)
+        {
+            CurrentWorld.HoveredTerritory = territory;
+            CurrentWorld.HoveredTerritory.IsHovered = true;
+
+            //AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
+        }
+    }
+
     public static void SetSelectedCell(TerrainCell cell)
     {
         if (CurrentWorld.SelectedCell != null)
@@ -1826,6 +1864,28 @@ public class Manager
 
         SetSelectedRegion(cell.Region);
         SetSelectedTerritory(cell.EncompassingTerritory);
+    }
+
+    public static void SetHoveredCell(TerrainCell cell)
+    {
+        if (CurrentWorld.HoveredCell != null)
+        {
+            //AddSelectedCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
+
+            CurrentWorld.HoveredCell.IsHovered = false;
+            CurrentWorld.HoveredCell = null;
+        }
+
+        if (cell == null)
+            return;
+
+        CurrentWorld.HoveredCell = cell;
+        CurrentWorld.HoveredCell.IsHovered = true;
+
+        //AddSelectedCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
+
+        SetHoveredRegion(cell.Region);
+        SetHoveredTerritory(cell.EncompassingTerritory);
     }
 
     public static void SetFocusOnPolity(Polity polity)
@@ -2403,7 +2463,8 @@ public class Manager
                 return true;
         }
         else if (((_observableUpdateTypes & CellUpdateType.Territory) == CellUpdateType.Territory) &&
-            (_planetOverlay != PlanetOverlay.PolityContacts))
+            (_planetOverlay != PlanetOverlay.PolityContacts) &&
+            (_planetOverlay != PlanetOverlay.RegionSelection))
         {
             if ((cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsSelected)
                 return true;
@@ -3021,7 +3082,7 @@ public class Manager
 
         if (CellShouldBeHighlighted(cell))
         {
-            return Color.white * 0.75f;
+            return Color.white * 0.65f;
         }
         else if (displayActivityCells)
         {
@@ -3197,7 +3258,6 @@ public class Manager
             throw new System.Exception("Can't generate overlay without an active guided faction");
         }
 
-        Polity guidedPolity = guidedFaction.Polity;
         RegionSelectionRequest request = CurrentInputRequest as RegionSelectionRequest;
 
         if (request == null)
@@ -3208,7 +3268,7 @@ public class Manager
         Region region = cell.Region;
 
         if ((region != null) &&
-            region.IsUiFilteredIn)
+            (region.AssignedFilterType != Region.FilterType.None))
         {
             Color regionColor = GenerateColorFromId(region.Id);
 
@@ -3216,6 +3276,15 @@ public class Manager
             regionColor = mostPresentBiome.Color * 0.85f + regionColor * 0.15f;
 
             bool isRegionBorder = IsRegionBorder(region, cell);
+
+            if (region.AssignedFilterType == Region.FilterType.Core)
+            {
+                regionColor = (0.4f * regionColor) + 0.6f * Color.blue;
+            }
+            else if (region.AssignedFilterType == Region.FilterType.Selectable)
+            {
+                regionColor = (0.4f * regionColor) + 0.6f * Color.cyan;
+            }
 
             if (!isRegionBorder)
             {

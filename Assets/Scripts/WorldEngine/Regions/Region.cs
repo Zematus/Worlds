@@ -7,13 +7,24 @@ using System.Linq;
 [XmlInclude(typeof(SuperRegion))]
 public abstract class Region : ISynchronizable
 {
+    public enum FilterType
+    {
+        None,
+        Core,
+        Selectable
+    }
+
     [XmlIgnore]
     public RegionInfo Info;
 
     [XmlIgnore]
     public bool IsSelected = false;
+
     [XmlIgnore]
-    public bool IsUiFilteredIn = false;
+    public bool IsHovered = false;
+
+    [XmlIgnore]
+    public FilterType AssignedFilterType = FilterType.None;
 
     [XmlIgnore]
     public Region Parent = null;

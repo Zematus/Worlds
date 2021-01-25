@@ -13,6 +13,9 @@ public class Territory : ISynchronizable
     public bool IsSelected = false;
 
     [XmlIgnore]
+    public bool IsHovered = false;
+
+    [XmlIgnore]
     public World World;
 
     [XmlIgnore]

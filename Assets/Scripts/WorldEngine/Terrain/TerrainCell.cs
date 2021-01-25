@@ -208,6 +208,7 @@ public class TerrainCell
     public World World;
 
     public bool IsSelected = false;
+    public bool IsHovered = false;
 
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
 
