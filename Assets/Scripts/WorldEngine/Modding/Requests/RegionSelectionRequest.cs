@@ -20,9 +20,14 @@ public class RegionSelectionRequest : EntitySelectionRequest<Region>
 
         // Set involved regions as filtered so that the UI can quickly filter them
 
-        foreach (Region region in _involvedRegions)
+        foreach (Region region in guidedPolity.CoreRegions)
         {
-            region.IsUiFilteredIn = true;
+            region.AssignedFilterType = Region.FilterType.Core;
+        }
+
+        foreach (Region region in collection)
+        {
+            region.AssignedFilterType = Region.FilterType.Selectable;
         }
     }
 
@@ -30,7 +35,7 @@ public class RegionSelectionRequest : EntitySelectionRequest<Region>
     {
         foreach (Region region in _involvedRegions)
         {
-            region.IsUiFilteredIn = false;
+            region.AssignedFilterType = Region.FilterType.None;
         }
 
         base.Close();
