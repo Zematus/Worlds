@@ -27,7 +27,7 @@ public class CellRegion : Region
 
     public void Update()
     {
-        Manager.AddUpdatedCells(_cells, CellUpdateType.Region, CellUpdateSubType.Membership, IsSelected);
+        Manager.AddUpdatedCells(this, CellUpdateType.Region, CellUpdateSubType.Membership);
     }
 
     public void AddCells(IEnumerable<TerrainCell> cells)

@@ -818,7 +818,7 @@ public abstract class Polity : ISynchronizable
 
         UpdateInternal();
 
-        Manager.AddUpdatedCells(Territory.GetCells(), CellUpdateType.Territory, CellUpdateSubType.Culture, Territory.IsSelected);
+        Manager.AddUpdatedCells(Territory, CellUpdateType.Territory, CellUpdateSubType.Culture);
 
         IsBeingUpdated = false;
     }
