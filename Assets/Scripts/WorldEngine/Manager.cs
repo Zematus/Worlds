@@ -1124,26 +1124,15 @@ public class Manager
 
     public static void AddUpdatedCells(Polity polity, CellUpdateType updateType, CellUpdateSubType updateSubType)
     {
-        if (!ValidUpdateTypeAndSubtype(updateType, updateSubType))
-            return;
-
-        UpdatedCells.UnionWith(polity.Territory.GetCells());
-
-        if ((updateSubType & CellUpdateSubType.Terrain) == CellUpdateSubType.Terrain)
-        {
-            TerrainUpdatedCells.UnionWith(polity.Territory.GetCells());
-        }
-
-        if (polity.Territory.IsSelected)
-        {
-            HighlightedCells.UnionWith(polity.Territory.GetCells());
-        }
+        AddUpdatedCells(polity.Territory, updateType, updateSubType);
     }
 
-    public static void AddUpdatedCells(ICollection<TerrainCell> cells, CellUpdateType updateType, CellUpdateSubType updateSubType, bool highlight)
+    public static void AddUpdatedCells(Territory territory, CellUpdateType updateType, CellUpdateSubType updateSubType)
     {
         if (!ValidUpdateTypeAndSubtype(updateType, updateSubType))
             return;
+
+        ICollection<TerrainCell> cells = territory.GetCells();
 
         UpdatedCells.UnionWith(cells);
 
@@ -1152,7 +1141,27 @@ public class Manager
             TerrainUpdatedCells.UnionWith(cells);
         }
 
-        if (highlight)
+        if (TerritoryShouldBeHighlighted(territory))
+        {
+            HighlightedCells.UnionWith(cells);
+        }
+    }
+
+    public static void AddUpdatedCells(Region region, CellUpdateType updateType, CellUpdateSubType updateSubType)
+    {
+        if (!ValidUpdateTypeAndSubtype(updateType, updateSubType))
+            return;
+
+        ICollection<TerrainCell> cells = region.GetCells();
+
+        UpdatedCells.UnionWith(cells);
+
+        if ((updateSubType & CellUpdateSubType.Terrain) == CellUpdateSubType.Terrain)
+        {
+            TerrainUpdatedCells.UnionWith(cells);
+        }
+
+        if (RegionShouldBeHighlighted(region))
         {
             HighlightedCells.UnionWith(cells);
         }
@@ -2473,6 +2482,22 @@ public class Manager
         return false;
     }
 
+    public static bool TerritoryShouldBeHighlighted(Territory territory)
+    {
+        if (territory.IsSelected && (_planetOverlay != PlanetOverlay.PolityContacts))
+            return true;
+
+        return false;
+    }
+
+    public static bool RegionShouldBeHighlighted(Region region)
+    {
+        if (region.IsSelected && (_planetOverlay != PlanetOverlay.RegionSelection))
+            return true;
+
+        return false;
+    }
+
     public static void UpdatePointerOverlayTextureColorsFromBrush(Color32[] textureColors, TerrainCell centerCell, int radius, bool erase = false)
     {
         World world = centerCell.World;
@@ -3073,7 +3098,6 @@ public class Manager
                 float alpha = MathUtility.ToPseudoLogaritmicScale01(maxRouteChance, 1f);
 
                 Color color = GetOverlayColor(OverlayColorId.ActiveRoute);
-                //color.a = (maxRouteChance * 0.7f) + 0.3f;
                 color.a = alpha;
 
                 return color;
