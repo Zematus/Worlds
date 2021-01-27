@@ -95,6 +95,17 @@ public enum DevMode
     Advanced = 2
 }
 
+public enum HighlightMode
+{
+    None = 0x0,
+    OnSelectedCell = 0x1,
+    OnSelectedArea = 0x2,
+    OnSelected = 0x3,
+    OnHoveredCell = 0x4,
+    OnHoveredArea = 0x8,
+    OnHovered = 0xC
+}
+
 public class Manager
 {
 #if DEBUG
@@ -254,6 +265,8 @@ public class Manager
     private static PlanetView _planetView = PlanetView.Biomes;
     private static PlanetOverlay _planetOverlay = PlanetOverlay.None;
     private static string _planetOverlaySubtype = "None";
+
+    private static HighlightMode _highlightMode = HighlightMode.None;
 
     private static List<Color> _biomePalette = new List<Color>();
     private static List<Color> _mapPalette = new List<Color>();
@@ -1172,30 +1185,72 @@ public class Manager
     /// </summary>
     /// <param name="cell">the selected cell</param>
     /// <param name="updateType">the type of update on which to highlight the cell</param>
-    public static void AddSelectedCellToHighlight(
+    private static void AddSelectedCellToHighlight(
         TerrainCell cell, CellUpdateType updateType)
     {
-        HighlightedCells.Add(cell);
+        if ((_highlightMode & HighlightMode.OnSelectedCell) == HighlightMode.OnSelectedCell)
+        {
+            HighlightedCells.Add(cell);
 
-        // Add to updated cells to make sure that it gets displayed correctly
-        UpdatedCells.Add(cell);
+            // Add to updated cells to make sure that it gets displayed correctly
+            UpdatedCells.Add(cell);
+        }
+    }
+
+    /// <summary>
+    /// Adds a cell that has just been hovered to the list of cells to highlight on the map
+    /// </summary>
+    /// <param name="cell">the hovered cell</param>
+    /// <param name="updateType">the type of update on which to highlight the cell</param>
+    private static void AddHoveredCellToHighlight(
+        TerrainCell cell, CellUpdateType updateType)
+    {
+        if ((_highlightMode & HighlightMode.OnHoveredCell) == HighlightMode.OnHoveredCell)
+        {
+            HighlightedCells.Add(cell);
+
+            // Add to updated cells to make sure that it gets displayed correctly
+            UpdatedCells.Add(cell);
+        }
     }
 
     /// <summary>
     /// Adds a collection of cells that have just been selected to the list of cells to
     /// highlight on the map
     /// </summary>
-    /// <param name="cells">the collection of selected cells</param>
+    /// <param name="cellsGetter">the cell collection getter</param>
     /// <param name="updateType">the type of update on which to highlight the cells</param>
-    public static void AddSelectedCellsToHighlight(
-        ICollection<TerrainCell> cells, CellUpdateType updateType)
+    private static void AddSelectedCellsToHighlight(
+        ICellCollectionGetter cellsGetter, CellUpdateType updateType)
     {
-        foreach (TerrainCell cell in cells)
+        if ((_highlightMode & HighlightMode.OnSelectedArea) == HighlightMode.OnSelectedArea)
         {
-            HighlightedCells.Add(cell);
+            ICollection<TerrainCell> cells = cellsGetter.GetCells();
+
+            HighlightedCells.UnionWith(cells);
 
             // Add to updated cells to make sure that it gets displayed correctly
-            UpdatedCells.Add(cell);
+            UpdatedCells.UnionWith(cells);
+        }
+    }
+
+    /// <summary>
+    /// Adds a collection of cells that have just been hovered to the list of cells to
+    /// highlight on the map
+    /// </summary>
+    /// <param name="cellsGetter">the cell collection getter</param>
+    /// <param name="updateType">the type of update on which to highlight the cells</param>
+    private static void AddHoveredCellsToHighlight(
+        ICellCollectionGetter cellsGetter, CellUpdateType updateType)
+    {
+        if ((_highlightMode & HighlightMode.OnHoveredArea) == HighlightMode.OnHoveredArea)
+        {
+            ICollection<TerrainCell> cells = cellsGetter.GetCells();
+
+            HighlightedCells.UnionWith(cells);
+
+            // Add to updated cells to make sure that it gets displayed correctly
+            UpdatedCells.UnionWith(cells);
         }
     }
 
@@ -1720,6 +1775,19 @@ public class Manager
 
     public static void SetPlanetOverlay(PlanetOverlay overlay, string planetOverlaySubtype = "None")
     {
+        if (overlay == PlanetOverlay.RegionSelection)
+        {
+            _highlightMode = HighlightMode.OnHovered;
+        }
+        else if (overlay == PlanetOverlay.PolityContacts)
+        {
+            _highlightMode = HighlightMode.OnSelectedCell;
+        }
+        else
+        {
+            _highlightMode = HighlightMode.OnSelected;
+        }
+
         SetObservableUpdateTypes(overlay, planetOverlaySubtype);
         SetObservableUpdateSubtypes(overlay, planetOverlaySubtype);
 
@@ -1761,7 +1829,7 @@ public class Manager
     {
         if (CurrentWorld.SelectedRegion != null)
         {
-            AddSelectedCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
+            AddSelectedCellsToHighlight(CurrentWorld.SelectedRegion, CellUpdateType.Region);
 
             CurrentWorld.SelectedRegion.IsSelected = false;
             CurrentWorld.SelectedRegion = null;
@@ -1770,9 +1838,9 @@ public class Manager
         if (region != null)
         {
             CurrentWorld.SelectedRegion = region;
-            CurrentWorld.SelectedRegion.IsSelected = true;
+            region.IsSelected = true;
 
-            AddSelectedCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
+            AddSelectedCellsToHighlight(region, CellUpdateType.Region);
         }
     }
 
@@ -1780,7 +1848,7 @@ public class Manager
     {
         if (CurrentWorld.HoveredRegion != null)
         {
-            //AddSelectedCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
+            AddHoveredCellsToHighlight(CurrentWorld.HoveredRegion, CellUpdateType.Region);
 
             CurrentWorld.HoveredRegion.IsHovered = false;
             CurrentWorld.HoveredRegion = null;
@@ -1789,9 +1857,9 @@ public class Manager
         if (region != null)
         {
             CurrentWorld.HoveredRegion = region;
-            CurrentWorld.HoveredRegion.IsHovered = true;
+            region.IsHovered = true;
 
-            //AddSelectedCellsToHighlight(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
+            AddHoveredCellsToHighlight(region, CellUpdateType.Region);
         }
     }
 
@@ -1799,36 +1867,38 @@ public class Manager
     {
         if (CurrentWorld.SelectedTerritory != null)
         {
-            AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
-
-            Polity selectedPolity = CurrentWorld.SelectedTerritory.Polity;
-
-            CurrentWorld.SelectedTerritory.IsSelected = false;
-            CurrentWorld.SelectedTerritory = null;
+            AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory, CellUpdateType.Territory);
 
             if (_planetOverlay == PlanetOverlay.PolityContacts)
             {
-                foreach (PolityContact contact in selectedPolity.GetContacts())
+                // Add to updated cells to make sure that it gets displayed correctly
+                UpdatedCells.UnionWith(CurrentWorld.SelectedTerritory.GetCells());
+
+                foreach (PolityContact contact in CurrentWorld.SelectedTerritory.Polity.GetContacts())
                 {
-                    AddSelectedCellsToHighlight(contact.NeighborPolity.Territory.GetCells(), CellUpdateType.Territory);
+                    UpdatedCells.UnionWith(contact.NeighborPolity.Territory.GetCells());
                 }
             }
+
+            CurrentWorld.SelectedTerritory.IsSelected = false;
+            CurrentWorld.SelectedTerritory = null;
         }
 
         if (territory != null)
         {
             CurrentWorld.SelectedTerritory = territory;
-            CurrentWorld.SelectedTerritory.IsSelected = true;
+            territory.IsSelected = true;
 
-            AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
+            AddSelectedCellsToHighlight(territory, CellUpdateType.Territory);
 
             if (_planetOverlay == PlanetOverlay.PolityContacts)
             {
-                Polity selectedPolity = territory.Polity;
+                // Add to updated cells to make sure that it gets displayed correctly
+                UpdatedCells.UnionWith(territory.GetCells());
 
-                foreach (PolityContact contact in selectedPolity.GetContacts())
+                foreach (PolityContact contact in territory.Polity.GetContacts())
                 {
-                    AddSelectedCellsToHighlight(contact.NeighborPolity.Territory.GetCells(), CellUpdateType.Territory);
+                    UpdatedCells.UnionWith(contact.NeighborPolity.Territory.GetCells());
                 }
             }
         }
@@ -1838,7 +1908,7 @@ public class Manager
     {
         if (CurrentWorld.HoveredTerritory != null)
         {
-            //AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
+            AddHoveredCellsToHighlight(CurrentWorld.HoveredTerritory, CellUpdateType.Territory);
 
             CurrentWorld.HoveredTerritory.IsHovered = false;
             CurrentWorld.HoveredTerritory = null;
@@ -1847,9 +1917,9 @@ public class Manager
         if (territory != null)
         {
             CurrentWorld.HoveredTerritory = territory;
-            CurrentWorld.HoveredTerritory.IsHovered = true;
+            territory.IsHovered = true;
 
-            //AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
+            AddHoveredCellsToHighlight(territory, CellUpdateType.Territory);
         }
     }
 
@@ -1867,9 +1937,9 @@ public class Manager
             return;
 
         CurrentWorld.SelectedCell = cell;
-        CurrentWorld.SelectedCell.IsSelected = true;
+        cell.IsSelected = true;
 
-        AddSelectedCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
+        AddSelectedCellToHighlight(cell, CellUpdateType.All);
 
         SetSelectedRegion(cell.Region);
         SetSelectedTerritory(cell.EncompassingTerritory);
@@ -1879,22 +1949,28 @@ public class Manager
     {
         if (CurrentWorld.HoveredCell != null)
         {
-            //AddSelectedCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
+            AddHoveredCellToHighlight(CurrentWorld.HoveredCell, CellUpdateType.All);
 
             CurrentWorld.HoveredCell.IsHovered = false;
             CurrentWorld.HoveredCell = null;
         }
 
-        if (cell == null)
-            return;
+        Region region = null;
+        Territory territory = null;
 
-        CurrentWorld.HoveredCell = cell;
-        CurrentWorld.HoveredCell.IsHovered = true;
+        if (cell != null)
+        {
+            CurrentWorld.HoveredCell = cell;
+            cell.IsHovered = true;
 
-        //AddSelectedCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
+            AddHoveredCellToHighlight(cell, CellUpdateType.All);
 
-        SetHoveredRegion(cell.Region);
-        SetHoveredTerritory(cell.EncompassingTerritory);
+            region = cell.Region;
+            territory = cell.EncompassingTerritory;
+        }
+
+        SetHoveredRegion(region);
+        SetHoveredTerritory(territory);
     }
 
     public static void SetFocusOnPolity(Polity polity)
@@ -2463,20 +2539,46 @@ public class Manager
 
     public static bool CellShouldBeHighlighted(TerrainCell cell)
     {
-        if (cell.IsSelected)
+        if (((_highlightMode & HighlightMode.OnSelectedCell) == HighlightMode.OnSelectedCell) &&
+            cell.IsSelected)
+        {
             return true;
+        }
+
+        if (((_highlightMode & HighlightMode.OnHoveredCell) == HighlightMode.OnHoveredCell) &&
+            cell.IsHovered)
+        {
+            return true;
+        }
 
         if ((_observableUpdateTypes & CellUpdateType.Region) == CellUpdateType.Region)
         {
-            if ((cell.Region != null) && cell.Region.IsSelected)
+            if (((_highlightMode & HighlightMode.OnSelectedArea) == HighlightMode.OnSelectedArea) &&
+                (cell.Region != null) && cell.Region.IsSelected)
+            {
                 return true;
+            }
+
+            if (((_highlightMode & HighlightMode.OnHoveredArea) == HighlightMode.OnHoveredArea) &&
+                (cell.Region != null) && cell.Region.IsHovered)
+            {
+                return true;
+            }
         }
-        else if (((_observableUpdateTypes & CellUpdateType.Territory) == CellUpdateType.Territory) &&
-            (_planetOverlay != PlanetOverlay.PolityContacts) &&
-            (_planetOverlay != PlanetOverlay.RegionSelection))
+
+        if ((_observableUpdateTypes & CellUpdateType.Territory) == CellUpdateType.Territory)
         {
-            if ((cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsSelected)
+            if (((_highlightMode & HighlightMode.OnSelectedArea) == HighlightMode.OnSelectedArea) &&
+                (cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsSelected)
+            {
                 return true;
+            }
+
+            if (((_highlightMode & HighlightMode.OnHoveredArea) == HighlightMode.OnHoveredArea) &&
+                (cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsHovered)
+            {
+                return true;
+            }
         }
 
         return false;
@@ -2484,16 +2586,34 @@ public class Manager
 
     public static bool TerritoryShouldBeHighlighted(Territory territory)
     {
-        if (territory.IsSelected && (_planetOverlay != PlanetOverlay.PolityContacts))
+        if (((_highlightMode & HighlightMode.OnSelectedArea) == HighlightMode.OnSelectedArea) &&
+            territory.IsSelected)
+        {
             return true;
+        }
+
+        if (((_highlightMode & HighlightMode.OnHoveredArea) == HighlightMode.OnHoveredArea) &&
+            territory.IsHovered)
+        {
+            return true;
+        }
 
         return false;
     }
 
     public static bool RegionShouldBeHighlighted(Region region)
     {
-        if (region.IsSelected && (_planetOverlay != PlanetOverlay.RegionSelection))
+        if (((_highlightMode & HighlightMode.OnSelectedArea) == HighlightMode.OnSelectedArea) &&
+            region.IsSelected)
+        {
             return true;
+        }
+
+        if (((_highlightMode & HighlightMode.OnHoveredArea) == HighlightMode.OnHoveredArea) &&
+            region.IsHovered)
+        {
+            return true;
+        }
 
         return false;
     }
