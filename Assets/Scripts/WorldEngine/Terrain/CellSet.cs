@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public delegate bool CanAddCellDelegate(TerrainCell cell);
 
-public class CellSet
+public class CellSet : ICellCollectionGetter
 {
     public World World;
 
@@ -383,5 +383,10 @@ public class CellSet
         }
 
         return connectedArea == Area;
+    }
+
+    public ICollection<TerrainCell> GetCells()
+    {
+        return Cells;
     }
 }

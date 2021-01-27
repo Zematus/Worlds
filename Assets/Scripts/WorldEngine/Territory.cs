@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class Territory : ISynchronizable
+public class Territory : ISynchronizable, ICellCollectionGetter
 {
     public List<WorldPosition> CellPositions;
     public List<CellArea> EnclosedAreas;

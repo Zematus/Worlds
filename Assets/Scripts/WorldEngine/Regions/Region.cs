@@ -5,7 +5,7 @@ using System.Linq;
 
 [XmlInclude(typeof(CellRegion))]
 [XmlInclude(typeof(SuperRegion))]
-public abstract class Region : ISynchronizable
+public abstract class Region : ISynchronizable, ICellCollectionGetter
 {
     public enum FilterType
     {
