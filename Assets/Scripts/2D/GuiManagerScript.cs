@@ -3430,7 +3430,7 @@ public class GuiManagerScript : MonoBehaviour
         _lastHoveredOverRegion = cell.Region;
 
         if ((_lastHoveredOverRegion == null) ||
-            (_lastHoveredOverRegion.AssignedFilterType == Region.FilterType.None))
+            (_lastHoveredOverRegion.AssignedFilterType != Region.FilterType.Selectable))
         {
             InfoTooltipScript.SetVisible(false);
             return;

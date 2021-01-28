@@ -99,10 +99,10 @@ public enum HighlightMode
 {
     None = 0x0,
     OnSelectedCell = 0x1,
-    OnSelectedArea = 0x2,
+    OnSelectedCollection = 0x2,
     OnSelected = 0x3,
     OnHoveredCell = 0x4,
-    OnHoveredArea = 0x8,
+    OnHoveredCollection = 0x8,
     OnHovered = 0xC
 }
 
@@ -267,6 +267,10 @@ public class Manager
     private static string _planetOverlaySubtype = "None";
 
     private static HighlightMode _highlightMode = HighlightMode.None;
+
+    private delegate bool FilterCollectionDelegate(ICellCollectionGetter getter);
+
+    private static FilterCollectionDelegate _filterHighlightCollection = null;
 
     private static List<Color> _biomePalette = new List<Color>();
     private static List<Color> _mapPalette = new List<Color>();
@@ -1223,15 +1227,20 @@ public class Manager
     private static void AddSelectedCellsToHighlight(
         ICellCollectionGetter cellsGetter, CellUpdateType updateType)
     {
-        if ((_highlightMode & HighlightMode.OnSelectedArea) == HighlightMode.OnSelectedArea)
-        {
-            ICollection<TerrainCell> cells = cellsGetter.GetCells();
+        if ((_highlightMode & HighlightMode.OnSelectedCollection) != HighlightMode.OnSelectedCollection)
+            return;
 
-            HighlightedCells.UnionWith(cells);
+        bool passedFilter = _filterHighlightCollection?.Invoke(cellsGetter) ?? true;
 
-            // Add to updated cells to make sure that it gets displayed correctly
-            UpdatedCells.UnionWith(cells);
-        }
+        if (!passedFilter)
+            return;
+
+        ICollection<TerrainCell> cells = cellsGetter.GetCells();
+
+        HighlightedCells.UnionWith(cells);
+
+        // Add to updated cells to make sure that it gets displayed correctly
+        UpdatedCells.UnionWith(cells);
     }
 
     /// <summary>
@@ -1243,15 +1252,20 @@ public class Manager
     private static void AddHoveredCellsToHighlight(
         ICellCollectionGetter cellsGetter, CellUpdateType updateType)
     {
-        if ((_highlightMode & HighlightMode.OnHoveredArea) == HighlightMode.OnHoveredArea)
-        {
-            ICollection<TerrainCell> cells = cellsGetter.GetCells();
+        if ((_highlightMode & HighlightMode.OnHoveredCollection) != HighlightMode.OnHoveredCollection)
+            return;
 
-            HighlightedCells.UnionWith(cells);
+        bool passedFilter = _filterHighlightCollection?.Invoke(cellsGetter) ?? true;
 
-            // Add to updated cells to make sure that it gets displayed correctly
-            UpdatedCells.UnionWith(cells);
-        }
+        if (!passedFilter)
+            return;
+
+        ICollection<TerrainCell> cells = cellsGetter.GetCells();
+
+        HighlightedCells.UnionWith(cells);
+
+        // Add to updated cells to make sure that it gets displayed correctly
+        UpdatedCells.UnionWith(cells);
     }
 
     public static void GenerateRandomHumanGroup(int initialPopulation)
@@ -1773,11 +1787,25 @@ public class Manager
         }
     }
 
-    public static void SetPlanetOverlay(PlanetOverlay overlay, string planetOverlaySubtype = "None")
+    private static bool FilterSelectableRegion(ICellCollectionGetter getter)
     {
+        if ((getter is Region region) &&
+            (region.AssignedFilterType == Region.FilterType.Selectable))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void SetOverlayHighlightMode(PlanetOverlay overlay)
+    {
+        _filterHighlightCollection = null;
+
         if (overlay == PlanetOverlay.RegionSelection)
         {
-            _highlightMode = HighlightMode.OnHovered;
+            _highlightMode = HighlightMode.OnHoveredCollection;
+            _filterHighlightCollection = FilterSelectableRegion;
         }
         else if (overlay == PlanetOverlay.PolityContacts)
         {
@@ -1787,6 +1815,11 @@ public class Manager
         {
             _highlightMode = HighlightMode.OnSelected;
         }
+    }
+
+    public static void SetPlanetOverlay(PlanetOverlay overlay, string planetOverlaySubtype = "None")
+    {
+        SetOverlayHighlightMode(overlay);
 
         SetObservableUpdateTypes(overlay, planetOverlaySubtype);
         SetObservableUpdateSubtypes(overlay, planetOverlaySubtype);
@@ -2553,31 +2586,39 @@ public class Manager
 
         if ((_observableUpdateTypes & CellUpdateType.Region) == CellUpdateType.Region)
         {
-            if (((_highlightMode & HighlightMode.OnSelectedArea) == HighlightMode.OnSelectedArea) &&
-                (cell.Region != null) && cell.Region.IsSelected)
+            if ((cell.Region != null) &&
+                (_filterHighlightCollection?.Invoke(cell.Region) ?? true))
             {
-                return true;
-            }
+                if (((_highlightMode & HighlightMode.OnSelectedCollection) ==
+                    HighlightMode.OnSelectedCollection) && cell.Region.IsSelected)
+                {
+                    return true;
+                }
 
-            if (((_highlightMode & HighlightMode.OnHoveredArea) == HighlightMode.OnHoveredArea) &&
-                (cell.Region != null) && cell.Region.IsHovered)
-            {
-                return true;
+                if (((_highlightMode & HighlightMode.OnHoveredCollection) ==
+                    HighlightMode.OnHoveredCollection) && cell.Region.IsHovered)
+                {
+                    return true;
+                }
             }
         }
 
         if ((_observableUpdateTypes & CellUpdateType.Territory) == CellUpdateType.Territory)
         {
-            if (((_highlightMode & HighlightMode.OnSelectedArea) == HighlightMode.OnSelectedArea) &&
-                (cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsSelected)
+            if ((cell.EncompassingTerritory != null) &&
+                (_filterHighlightCollection?.Invoke(cell.EncompassingTerritory) ?? true))
             {
-                return true;
-            }
+                if (((_highlightMode & HighlightMode.OnSelectedCollection) ==
+                    HighlightMode.OnSelectedCollection) && cell.EncompassingTerritory.IsSelected)
+                {
+                    return true;
+                }
 
-            if (((_highlightMode & HighlightMode.OnHoveredArea) == HighlightMode.OnHoveredArea) &&
-                (cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsHovered)
-            {
-                return true;
+                if (((_highlightMode & HighlightMode.OnHoveredCollection) ==
+                    HighlightMode.OnHoveredCollection) && cell.EncompassingTerritory.IsHovered)
+                {
+                    return true;
+                }
             }
         }
 
@@ -2586,13 +2627,13 @@ public class Manager
 
     public static bool TerritoryShouldBeHighlighted(Territory territory)
     {
-        if (((_highlightMode & HighlightMode.OnSelectedArea) == HighlightMode.OnSelectedArea) &&
+        if (((_highlightMode & HighlightMode.OnSelectedCollection) == HighlightMode.OnSelectedCollection) &&
             territory.IsSelected)
         {
             return true;
         }
 
-        if (((_highlightMode & HighlightMode.OnHoveredArea) == HighlightMode.OnHoveredArea) &&
+        if (((_highlightMode & HighlightMode.OnHoveredCollection) == HighlightMode.OnHoveredCollection) &&
             territory.IsHovered)
         {
             return true;
@@ -2603,13 +2644,13 @@ public class Manager
 
     public static bool RegionShouldBeHighlighted(Region region)
     {
-        if (((_highlightMode & HighlightMode.OnSelectedArea) == HighlightMode.OnSelectedArea) &&
+        if (((_highlightMode & HighlightMode.OnSelectedCollection) == HighlightMode.OnSelectedCollection) &&
             region.IsSelected)
         {
             return true;
         }
 
-        if (((_highlightMode & HighlightMode.OnHoveredArea) == HighlightMode.OnHoveredArea) &&
+        if (((_highlightMode & HighlightMode.OnHoveredCollection) == HighlightMode.OnHoveredCollection) &&
             region.IsHovered)
         {
             return true;
