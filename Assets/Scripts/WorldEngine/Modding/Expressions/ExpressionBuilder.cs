@@ -213,7 +213,7 @@ public static class ExpressionBuilder
             string otherArgs = match.Groups["otherArgs"].Value.Trim();
 
             //Debug.Log("- match: " + match.Value);
-            //Debug.Log("- argument: " + ModUtility.Debug_CapturesToString(match.Groups["argument"]));
+            //Debug.Log("- argument: " + ModParseUtility.Debug_CapturesToString(match.Groups["argument"]));
             //Debug.Log("-- unaryOpStatement: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOpStatement"]));
             //Debug.Log("-- binaryOpStatement: " + ModUtility.Debug_CapturesToString(match.Groups["binaryOpStatement"]));
             //Debug.Log("-- accessorOpStatement: " + ModUtility.Debug_CapturesToString(match.Groups["accessorOpStatement"]));
@@ -353,6 +353,7 @@ public static class ExpressionBuilder
         string number = match.Groups["number"].Value.Trim();
         string boolean = match.Groups["boolean"].Value.Trim();
         string identifierStatement = match.Groups["identifierStatement"].Value.Trim();
+        string modText = match.Groups["modText"].Value.Trim();
 
         if (!string.IsNullOrWhiteSpace(number))
         {
@@ -372,6 +373,11 @@ public static class ExpressionBuilder
             }
 
             return BuildIdentifierExpression(context, match, allowInputRequesters);
+        }
+
+        if (!string.IsNullOrWhiteSpace(modText))
+        {
+            return new ModTextExpression(context, match, allowInputRequesters);
         }
 
         throw new System.ArgumentException("Unrecognized statement: " + match.Value);

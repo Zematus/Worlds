@@ -3,13 +3,29 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class ModText
+public class ModText : IInputRequester
 {
     private string _partsString;
 
     private List<IModTextPart> textParts = new List<IModTextPart>();
 
-    public ModText(Context context, string textStr)
+    public bool RequiresInput
+    {
+        get
+        {
+            foreach (IModTextPart part in textParts)
+            {
+                if ((part is IExpression exp) && exp.RequiresInput)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    public ModText(Context context, string textStr, bool allowInputRequesters = false)
     {
         _partsString = "";
 
@@ -32,7 +48,7 @@ public class ModText
                     //Debug.Log("expression: " + value);
 
                     IExpression exp =
-                        ExpressionBuilder.BuildExpression(context, value);
+                        ExpressionBuilder.BuildExpression(context, value, allowInputRequesters);
 
                     if (exp is IModTextPart)
                     {
@@ -78,5 +94,39 @@ public class ModText
         }
 
         return output;
+    }
+
+    public string ToPartiallyEvaluatedString(bool evaluate = true)
+    {
+        string output = "";
+
+        foreach (IModTextPart part in textParts)
+        {
+            if (part is IExpression exp)
+            {
+                output += exp.ToPartiallyEvaluatedString(evaluate);
+            }
+            else
+            {
+                output += part.GetFormattedString();
+            }
+        }
+
+        return output;
+    }
+
+    public bool TryGetRequest(out InputRequest request)
+    {
+        foreach (IModTextPart part in textParts)
+        {
+            if ((part is IExpression exp) && exp.TryGetRequest(out request))
+            {
+                return true;
+            }
+        }
+
+        request = null;
+
+        return false;
     }
 }

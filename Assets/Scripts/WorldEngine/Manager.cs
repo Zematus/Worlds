@@ -2584,41 +2584,39 @@ public class Manager
             return true;
         }
 
-        if ((_observableUpdateTypes & CellUpdateType.Region) == CellUpdateType.Region)
+        if (((_observableUpdateTypes & CellUpdateType.Region) == CellUpdateType.Region) &&
+            (cell.Region != null))
         {
-            if ((cell.Region != null) &&
+            if (((_highlightMode & HighlightMode.OnSelectedCollection) ==
+                HighlightMode.OnSelectedCollection) && cell.Region.IsSelected &&
                 (_filterHighlightCollection?.Invoke(cell.Region) ?? true))
             {
-                if (((_highlightMode & HighlightMode.OnSelectedCollection) ==
-                    HighlightMode.OnSelectedCollection) && cell.Region.IsSelected)
-                {
-                    return true;
-                }
+                return true;
+            }
 
-                if (((_highlightMode & HighlightMode.OnHoveredCollection) ==
-                    HighlightMode.OnHoveredCollection) && cell.Region.IsHovered)
-                {
-                    return true;
-                }
+            if (((_highlightMode & HighlightMode.OnHoveredCollection) ==
+                HighlightMode.OnHoveredCollection) && cell.Region.IsHovered &&
+                (_filterHighlightCollection?.Invoke(cell.Region) ?? true))
+            {
+                return true;
             }
         }
 
-        if ((_observableUpdateTypes & CellUpdateType.Territory) == CellUpdateType.Territory)
+        if (((_observableUpdateTypes & CellUpdateType.Territory) == CellUpdateType.Territory) &&
+            (cell.EncompassingTerritory != null))
         {
-            if ((cell.EncompassingTerritory != null) &&
+            if (((_highlightMode & HighlightMode.OnSelectedCollection) ==
+                HighlightMode.OnSelectedCollection) && cell.EncompassingTerritory.IsSelected &&
                 (_filterHighlightCollection?.Invoke(cell.EncompassingTerritory) ?? true))
             {
-                if (((_highlightMode & HighlightMode.OnSelectedCollection) ==
-                    HighlightMode.OnSelectedCollection) && cell.EncompassingTerritory.IsSelected)
-                {
-                    return true;
-                }
+                return true;
+            }
 
-                if (((_highlightMode & HighlightMode.OnHoveredCollection) ==
-                    HighlightMode.OnHoveredCollection) && cell.EncompassingTerritory.IsHovered)
-                {
-                    return true;
-                }
+            if (((_highlightMode & HighlightMode.OnHoveredCollection) ==
+                HighlightMode.OnHoveredCollection) && cell.EncompassingTerritory.IsHovered &&
+                (_filterHighlightCollection?.Invoke(cell.EncompassingTerritory) ?? true))
+            {
+                return true;
             }
         }
 
