@@ -23,6 +23,7 @@ public static class ModParseUtility
         @"(?<number>" + NumberRegexPart +
         @")|(?<boolean>" + BooleanRegexPart +
         @")|(?<identifierStatement>" + IdentifierStatementRegexPart +
+        @")|(?<modText>" + ModTextDefExpRegexPart +
         @")";
 
     /// <summary>
@@ -62,6 +63,20 @@ public static class ModParseUtility
         ModTextStringRegexPart +
         @"|" +
         ModTextExpressionRegexPart;
+
+    public const string ModTextDefExpRegexPart =
+        @"''" +
+            @"(?<text>" +
+                @"(?:" +
+                    @"(?:" +
+                        @"(?!\<\<|\>\>)." +
+                        @"|(?<open>\<\<).+?)" +
+                        @"|(?:(?<-open>\>\>).*?" +
+                    @")" +
+                @")+" +
+            @")" +
+            @"(?(open)(?!))" +
+        @"''";
 
     /// <summary>
     /// Regex used to indentify a set of argument statements given to a function

@@ -18,15 +18,29 @@ public class RegionCollectionEntity : CollectionEntity<Region>
     {
     }
 
-    private EntityAttribute GenerateRequestSelectionAttribute()
+    private EntityAttribute GenerateRequestSelectionAttribute(IExpression[] arguments)
     {
         int index = _selectedRegionIndex++;
         int iterOffset = Context.GetNextIterOffset() + index;
 
+        if ((arguments == null) && (arguments.Length < 1))
+        {
+            throw new System.ArgumentException(
+                "'request_selection' is missing 1 argument");
+        }
+
+        if (!(arguments[0] is ModTextExpression textExpression))
+        {
+            throw new System.ArgumentException(
+                "'request_selection' argument is not a valid mod text: " +
+                arguments[0].ToPartiallyEvaluatedString());
+        }
+
         RegionEntity entity = new RegionEntity(
             (out DelayedSetEntityInputRequest<Region> request) =>
             {
-                request = new RegionSelectionRequest(Collection);
+                request = new RegionSelectionRequest(
+                    Collection, textExpression.ModText);
                 return true;
             },
             Context,
@@ -42,7 +56,7 @@ public class RegionCollectionEntity : CollectionEntity<Region>
         switch (attributeId)
         {
             case RequestSelectionAttributeId:
-                return GenerateRequestSelectionAttribute();
+                return GenerateRequestSelectionAttribute(arguments);
         }
 
         throw new System.ArgumentException("RegionCollection: Unable to find attribute: " + attributeId);
