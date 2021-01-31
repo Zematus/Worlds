@@ -8,11 +8,11 @@ public class DivideExpression : BinaryOpExpressionWithOutput<float>
     protected IValueExpression<float> _numExpressionA;
     protected IValueExpression<float> _numExpressionB;
 
-    public DivideExpression(IValueExpression<float> expressionA, IValueExpression<float> expressionB)
+    public DivideExpression(IExpression expressionA, IExpression expressionB)
         : base("/", expressionA, expressionB)
     {
-        _numExpressionA = expressionA;
-        _numExpressionB = expressionB;
+        _numExpressionA = ValueExpressionBuilder.ValidateValueExpression<float>(expressionA);
+        _numExpressionB = ValueExpressionBuilder.ValidateValueExpression<float>(expressionB);
     }
 
     public static IExpression Build(
@@ -22,13 +22,13 @@ public class DivideExpression : BinaryOpExpressionWithOutput<float>
         bool allowInputRequesters = false)
     {
         IExpression expressionA =
-            ValueExpressionBuilder.BuildValueExpression<float>(
+            ExpressionBuilder.BuildExpression(
                 context, expressionAStr, allowInputRequesters);
         IExpression expressionB =
-            ValueExpressionBuilder.BuildValueExpression<float>(
+            ExpressionBuilder.BuildExpression(
                 context, expressionBStr, allowInputRequesters);
 
-        return new MultiplyExpression(expressionA, expressionB);
+        return new DivideExpression(expressionA, expressionB);
     }
 
     public override float Value
