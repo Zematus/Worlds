@@ -306,49 +306,65 @@ public class ModTest
             testContext, "''test string''");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual("test string", (expression as IValueExpression<string>).Value);
+        Assert.AreEqual(
+            "test string",
+            (expression as IValueExpression<ModText>).Value.EvaluateString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "(''inner test string'')");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual("inner test string", (expression as IValueExpression<string>).Value);
+        Assert.AreEqual(
+            "inner test string",
+            (expression as IValueExpression<ModText>).Value.EvaluateString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "((''inner test string 2''))");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual("inner test string 2", (expression as IValueExpression<string>).Value);
+        Assert.AreEqual(
+            "inner test string 2",
+            (expression as IValueExpression<ModText>).Value.EvaluateString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "(((''inner test string 3'')))");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual("inner test string 3", (expression as IValueExpression<string>).Value);
+        Assert.AreEqual(
+            "inner test string 3",
+            (expression as IValueExpression<ModText>).Value.EvaluateString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "''test string <<1 + 1>> with a expression''");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual("test string <b>2</b> with a expression", (expression as IValueExpression<string>).Value);
+        Assert.AreEqual(
+            "test string <b>2</b> with a expression",
+            (expression as IValueExpression<ModText>).Value.EvaluateString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "(''test string <<6 / 2>>'')");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual("test string <b>3</b>", (expression as IValueExpression<string>).Value);
+        Assert.AreEqual(
+            "test string <b>3</b>",
+            (expression as IValueExpression<ModText>).Value.EvaluateString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "(''test string (<<2 * 2>>)'')");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual("test string (<b>4</b>)", (expression as IValueExpression<string>).Value);
+        Assert.AreEqual(
+            "test string (<b>4</b>)",
+            (expression as IValueExpression<ModText>).Value.EvaluateString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "((''test string (<<(2 * 2) + 0.5>>)''))");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual("test string (<b>4.5</b>)", (expression as IValueExpression<string>).Value);
+        Assert.AreEqual(
+            "test string (<b>4.5</b>)",
+            (expression as IValueExpression<ModText>).Value.EvaluateString());
 
         /// NOTE: The following commented tests do not pass because the parser can't
         /// can't interpret paranthesis enclosed texts with unclosed parenthesis within

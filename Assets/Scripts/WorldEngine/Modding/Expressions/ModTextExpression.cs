@@ -4,30 +4,30 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
 
-public class ModTextExpression : IValueExpression<string>
+public class ModTextExpression : IValueExpression<ModText>
 {
-    public ModText ModText = null;
+    private ModText _modText = null;
 
-    public string Value => ModText.EvaluateString();
+    public ModText Value => _modText;
 
-    public object ValueObject => ModText;
+    public object ValueObject => _modText;
 
-    public bool RequiresInput => ModText.RequiresInput;
+    public bool RequiresInput => _modText.RequiresInput;
 
     public ModTextExpression(Context context, Match match, bool allowInputRequesters = false)
     {
         string text = match.Groups["text"].Value.Trim();
 
-        ModText = new ModText(context, text, allowInputRequesters);
+        _modText = new ModText(context, text, allowInputRequesters);
     }
 
-    public override string ToString() => ModText.ToString();
+    public override string ToString() => _modText.ToString();
 
-    public string GetFormattedString() => ModText.EvaluateString();
+    public string GetFormattedString() => _modText.EvaluateString();
 
     public string ToPartiallyEvaluatedString(bool evaluate = true) =>
-        ModText.ToPartiallyEvaluatedString(evaluate);
+        _modText.ToPartiallyEvaluatedString(evaluate);
 
     public bool TryGetRequest(out InputRequest request) =>
-        ModText.TryGetRequest(out request);
+        _modText.TryGetRequest(out request);
 }
