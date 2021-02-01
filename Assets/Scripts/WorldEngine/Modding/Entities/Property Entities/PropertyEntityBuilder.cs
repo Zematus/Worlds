@@ -71,6 +71,11 @@ public static class PropertyEntityBuilder
             return new ValuePropertyEntity<IEntity>(context, p.id, exp);
         }
 
+        if (exp is IValueExpression<ModText>)
+        {
+            return new ValuePropertyEntity<ModText>(context, p.id, exp);
+        }
+
         throw new ArgumentException("Unhandled expression type: " + exp.GetType());
     }
 }
