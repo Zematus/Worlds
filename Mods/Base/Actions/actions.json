@@ -8,8 +8,8 @@
       "properties": [
         { "id": "target_polity", "value": "target.polity" },
         { "id": "neighbor_regions", "value": "target_polity.neighbor_regions" },
-        { "id": "region_selection_description", "value": "''Select region the <<target_polity>> tribe should expand to...''" },
-        { "id": "selected_region", "value": "neighbor_regions.request_selection(region_selection_description)" }
+        { "id": "rs_description", "value": "''Select region the <<target_polity>> tribe should expand to...''" },
+        { "id": "selected_region", "value": "neighbor_regions.request_selection(rs_description)" }
       ],
       "accessConditions": [
         "target == target_polity.dominant_faction",
