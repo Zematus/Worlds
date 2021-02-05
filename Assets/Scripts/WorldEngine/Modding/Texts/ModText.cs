@@ -47,23 +47,26 @@ public class ModText : IInputRequester
                 {
                     //Debug.Log("expression: " + value);
 
-                    IExpression exp =
-                        ExpressionBuilder.BuildExpression(context, value, allowInputRequesters);
+                    IBaseValueExpression exp =
+                        ValueExpressionBuilder.BuildValueExpression(
+                            context, value, allowInputRequesters);
 
                     if (exp is IModTextPart)
                     {
-                        textParts.Add(exp as IModTextPart);
+                        textParts.Add(exp);
                     }
                     else
                     {
                         throw new System.Exception(
-                            "Error: Text part '" + value + "' is not an expression that can be evaluated into a text element");
+                            "Error: Text part '" + value +
+                            "' is not an expression that can be evaluated into a text element");
                     }
                 }
                 else
                 {
                     throw new System.Exception(
-                        "Error: Text part '" + value + "' could not be matched to a string or expression");
+                        "Error: Text part '" + value +
+                        "' could not be matched to a string or expression");
                 }
             }
 

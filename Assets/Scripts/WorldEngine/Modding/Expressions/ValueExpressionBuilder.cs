@@ -1,11 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public static class ValueExpressionBuilder
 {
     public static IValueExpression<T> BuildValueExpression<T>(
         Context context, string expressionStr, bool allowInputRequesters = false)
     {
+#if DEBUG
+        if (expressionStr == "target.polity")
+        {
+            Debug.LogWarning("Debugging BuildValueExpression: " + expressionStr);
+        }
+#endif
         return ValidateValueExpression<T>(
             ExpressionBuilder.BuildExpression(context, expressionStr, allowInputRequesters));
     }
@@ -24,13 +31,13 @@ public static class ValueExpressionBuilder
             return vEntityExp.BaseValueEntity.BaseValueExpression;
         }
 
-        if (!(expression is IBaseValueExpression valExpression))
+        if (expression is IBaseValueExpression valExpression)
         {
-            throw new ArgumentException(
-                expression + " is not a valid value expression");
+            return valExpression;
         }
 
-        return valExpression;
+        throw new ArgumentException(
+            expression + " is not a valid value expression");
     }
 
     public static IValueExpression<T> ValidateValueExpression<T>(IExpression expression)
