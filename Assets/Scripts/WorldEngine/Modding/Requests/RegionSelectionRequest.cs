@@ -4,7 +4,7 @@ public class RegionSelectionRequest : EntitySelectionRequest<Region>
 {
     private HashSet<Region> _involvedRegions = null;
 
-    private ModText _text = null;
+    public ModText Text { get; private set; }
 
     public RegionSelectionRequest(
         ICollection<Region> collection,
@@ -18,7 +18,7 @@ public class RegionSelectionRequest : EntitySelectionRequest<Region>
             throw new System.Exception("Can't create request without an active guided faction");
         }
 
-        _text = text;
+        Text = text;
 
         Polity guidedPolity = guidedFaction.Polity;
 

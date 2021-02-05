@@ -29,29 +29,14 @@ public class RegionCollectionEntity : CollectionEntity<Region>
                 "'request_selection' is missing 1 argument");
         }
 
-        ModText text = null;
-
-        if (arguments[0] is IValueExpression<ModText> valueExpression)
-        {
-            text = valueExpression.Value;
-        }
-        else if (arguments[0] is ValueEntityExpression<ModText> valueEntityExpression)
-        {
-            text = valueEntityExpression.ValueEntity.ValueExpression.Value;
-        }
-
-        if (text == null)
-        {
-            throw new System.ArgumentException(
-                "'request_selection' argument is not a valid text: " +
-                arguments[0].ToString());
-        }
+        IValueExpression<ModText> textExpression =
+            ValueExpressionBuilder.ValidateValueExpression<ModText>(arguments[0]);
 
         RegionEntity entity = new RegionEntity(
             (out DelayedSetEntityInputRequest<Region> request) =>
             {
                 request = new RegionSelectionRequest(
-                    Collection, text);
+                    Collection, textExpression.Value);
                 return true;
             },
             Context,

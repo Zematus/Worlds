@@ -91,6 +91,8 @@ public class GuiManagerScript : MonoBehaviour
 
     public SpeedChangeEvent OnSimulationSpeedChanged;
 
+    public MessageEvent DisplayNonBlockingMessage;
+
     private bool _eventPauseActive = false;
 
     private bool _pauseButtonPressed = false;
@@ -2331,9 +2333,11 @@ public class GuiManagerScript : MonoBehaviour
     {
         Manager.CurrentInputRequest = request;
 
-        if (request is RegionSelectionRequest)
+        if (request is RegionSelectionRequest rsRequest)
         {
             ChangePlanetOverlay(PlanetOverlay.RegionSelection);
+
+            DisplayNonBlockingMessage.Invoke(rsRequest.Text.EvaluateString());
         }
     }
 
@@ -3418,7 +3422,6 @@ public class GuiManagerScript : MonoBehaviour
         if (cell.Region == _lastHoveredOverRegion)
             return;
 
-        Polity guidedPolity = guidedFaction.Polity;
         RegionSelectionRequest request = Manager.CurrentInputRequest as RegionSelectionRequest;
 
         if (request == null)
