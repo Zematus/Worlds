@@ -13,6 +13,19 @@ public class KnowledgeEntity : DelayedSetValueEntity<CulturalKnowledge,float>
 
     protected override object _reference => Knowledge;
 
+    public override float Value
+    {
+        get
+        {
+            if (Knowledge != null)
+            {
+                return Knowledge.ScaledValue;
+            }
+
+            return 0;
+        }
+    }
+
     public KnowledgeEntity(
         ValueGetterMethod<CulturalKnowledge> getterMethod, Context c, string id)
         : base(getterMethod, c, id)
@@ -21,16 +34,6 @@ public class KnowledgeEntity : DelayedSetValueEntity<CulturalKnowledge,float>
 
     public KnowledgeEntity(Context c, string id) : base(c, id)
     {
-    }
-
-    public override float GetValue()
-    {
-        if (Knowledge != null)
-        {
-            return Knowledge.ScaledValue;
-        }
-
-        return 0;
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
