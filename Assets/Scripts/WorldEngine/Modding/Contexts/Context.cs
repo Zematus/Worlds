@@ -42,10 +42,6 @@ public abstract class Context : IDebugLogger
         public class LoadedProperty
         {
             public string id;
-            public string type;
-            public string min;
-            public string max;
-            public string[] conditions;
             public string value;
         }
 
