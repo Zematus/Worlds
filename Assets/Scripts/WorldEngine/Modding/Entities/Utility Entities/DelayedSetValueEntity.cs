@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class DelayedSetValueEntity<T,S> : DelayedSetEntity<T>, IValueEntity<S>
+public abstract class DelayedSetValueEntity<T, S> : DelayedSetEntity<T>, IValueEntity<S>
 {
     public const string ValueAttributeId = "value";
 
@@ -11,7 +11,7 @@ public abstract class DelayedSetValueEntity<T,S> : DelayedSetEntity<T>, IValueEn
 
     private IValueExpression<S> _valueExpression = null;
 
-    public S Value => GetValue();
+    public abstract S Value { get; }
 
     public IValueExpression<S> ValueExpression
     {
@@ -63,10 +63,10 @@ public abstract class DelayedSetValueEntity<T,S> : DelayedSetEntity<T>, IValueEn
 
     public override string GetDebugString()
     {
-        return GetValue().ToString();
+        return Value.ToString();
     }
 
-    public abstract S GetValue();
+    private S GetValue() => Value;
 
     public abstract void Set(S v);
 }

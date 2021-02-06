@@ -11,7 +11,7 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
 
     protected PartiallyEvaluatedStringConverter _partialEvalStringConverter { private get; set; }
 
-    public T Value { get; protected set; }
+    public virtual T Value { get; protected set; }
 
     protected override object _reference => Value;
 
@@ -35,7 +35,7 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
         throw new System.ArgumentException("ValueEntity: Unable to find attribute: " + attributeId);
     }
 
-    public virtual T GetValue() => Value;
+    private T GetValue() => Value;
 
     public virtual void Set(T v) => Value = v;
 
@@ -60,15 +60,9 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
         Set(o);
     }
 
-    public override string GetDebugString()
-    {
-        return Value.ToString();
-    }
+    public override string GetDebugString() => Value.ToString();
 
-    public override string GetFormattedString()
-    {
-        return Value.ToString().ToBoldFormat();
-    }
+    public override string GetFormattedString() => Value.ToString().ToBoldFormat();
 
     public IValueExpression<T> ValueExpression
     {
