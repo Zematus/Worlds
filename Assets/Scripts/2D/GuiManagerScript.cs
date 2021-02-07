@@ -491,7 +491,9 @@ public class GuiManagerScript : MonoBehaviour
             ShowHiddenInteractionPanels();
         }
 
-        bool simulationRunning = Manager.SimulationCanRun && Manager.SimulationRunning;
+        bool simulationRunning =
+            Manager.SimulationCanRun &&
+            (Manager.SimulationRunning || Manager.SimulationPerformingStep);
 
         if (simulationRunning)
         {

@@ -30,6 +30,11 @@ public class ActionButtonScript : MonoBehaviour
     private void AddActionToExecute()
     {
         Manager.CurrentWorld.SetActionToExecute(_action);
+
+        if (Manager.SimulationCanRun && !Manager.SimulationRunning)
+        {
+            Manager.SetToPerformSimulationStep();
+        }
     }
 
     public void SetAction(ModAction action)
