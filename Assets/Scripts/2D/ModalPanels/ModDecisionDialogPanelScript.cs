@@ -52,7 +52,7 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
     {
         Button button;
 
-        string text = option.Text.EvaluateString();
+        string text = option.Text.GetFormattedString();
 
         string descriptionText = "Effects:";
 
@@ -60,7 +60,7 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
         {
             foreach (DecisionOptionEffect effect in option.Effects)
             {
-                descriptionText += "\n\t• " + effect.Text.EvaluateString();
+                descriptionText += "\n\t• " + effect.Text.GetFormattedString();
             }
         }
         else
@@ -160,7 +160,7 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
                     dialogText += "\n";
                 }
 
-                dialogText += description.Text.EvaluateString();
+                dialogText += description.Text.GetFormattedString();
                 notFirst = true;
             }
         }
