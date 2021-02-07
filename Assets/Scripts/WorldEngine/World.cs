@@ -391,15 +391,22 @@ public class World : ISynchronizable, IWorldDateGetter
     private ManagerTask<Vector3> _rainfallNoiseOffset2;
     private ManagerTask<Vector3> _rainfallNoiseOffset3;
 
-    private Dictionary<string, ManagerTask<Vector3>[]> _layerNoiseOffsets = new Dictionary<string, ManagerTask<Vector3>[]>();
+    private Dictionary<string, ManagerTask<Vector3>[]> _layerNoiseOffsets =
+        new Dictionary<string, ManagerTask<Vector3>[]>();
 
-    private static HashSet<TerrainCell> _cellsToRegen = new HashSet<TerrainCell>();
-    private static HashSet<TerrainCell> _cellsToInit = new HashSet<TerrainCell>();
-    private static HashSet<TerrainCell> _cellsToInitAfterDrainageRegen = new HashSet<TerrainCell>();
+    private static HashSet<TerrainCell> _cellsToRegen =
+        new HashSet<TerrainCell>();
+    private static HashSet<TerrainCell> _cellsToInit =
+        new HashSet<TerrainCell>();
+    private static HashSet<TerrainCell> _cellsToInitAfterDrainageRegen =
+        new HashSet<TerrainCell>();
 
-    private static HashSet<TerrainCell> _cellsToDrain = new HashSet<TerrainCell>();
-    private static BinaryHeap<TerrainCell> _drainageEvalHeap = new BinaryHeap<TerrainCell>(TerrainCell.CompareOriginalAltitude);
-    private static HashSet<TerrainCell> _cellsToFinalizeDrainageRegen = new HashSet<TerrainCell>();
+    private static HashSet<TerrainCell> _cellsToDrain =
+        new HashSet<TerrainCell>();
+    private static BinaryHeap<TerrainCell> _drainageEvalHeap =
+        new BinaryHeap<TerrainCell>(TerrainCell.CompareOriginalAltitude);
+    private static HashSet<TerrainCell> _cellsToFinalizeDrainageRegen =
+        new HashSet<TerrainCell>();
 
     //private OpenSimplexNoise _openSimplexNoise;
 
@@ -892,11 +899,13 @@ public class World : ISynchronizable, IWorldDateGetter
     {
         MaxTimeToSkip = (value > 1) ? value : 1;
 
-        long maxDate = CurrentDate + MaxTimeToSkip;
+        long maxDate = CurrentDate + (Manager.SimulationPerformingStep? 1 : MaxTimeToSkip);
 
         if (maxDate >= MaxSupportedDate)
         {
-            Debug.LogWarning("World.SetMaxTimeToSkip - 'maxDate' is greater than " + MaxSupportedDate + " (date = " + maxDate + ")");
+            Debug.LogWarning(
+                "World.SetMaxTimeToSkip - 'maxDate' is greater than " +
+                MaxSupportedDate + " (date = " + maxDate + ")");
         }
 
         if (maxDate < 0)
@@ -1423,7 +1432,7 @@ public class World : ISynchronizable, IWorldDateGetter
                 }
 #endif
 
-                long maxDate = CurrentDate + MaxTimeToSkip;
+                long maxDate = CurrentDate + (Manager.PerformSimulationStep() ? 1 : MaxTimeToSkip);
 
                 if (maxDate >= MaxSupportedDate)
                 {
