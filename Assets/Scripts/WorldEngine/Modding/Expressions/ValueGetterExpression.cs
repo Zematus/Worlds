@@ -24,7 +24,15 @@ public class ValueGetterExpression<T> : IValueExpression<T>
         return _sourceId;
     }
 
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
+    public string GetFormattedString()
+    {
+        if (Value is IEntity entity)
+        {
+            return entity.GetFormattedString();
+        }
+
+        return Value.ToString().ToBoldFormat();
+    }
 
     public ValueGetterExpression(
         string sourceId,
