@@ -299,7 +299,7 @@ public class Manager
 
     private static bool _undoAndRedoBlocked = false;
 
-    private ProgressCastDelegate _progressCastMethod = null;
+    private static ProgressCastDelegate _progressCastMethod = null;
 
     private World _currentWorld = null;
 
@@ -323,35 +323,11 @@ public class Manager
 
     private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 
-    private bool _performingAsyncTask = false;
-    private bool _simulationRunning = false;
-    private bool _worldReady = false;
-
     public XmlAttributeOverrides AttributeOverrides { get; private set; }
 
-    public static bool PerformingAsyncTask
-    {
-        get
-        {
-            return _manager._performingAsyncTask;
-        }
-    }
-
-    public static bool SimulationRunning
-    {
-        get
-        {
-            return _manager._simulationRunning;
-        }
-    }
-
-    public static bool WorldIsReady
-    {
-        get
-        {
-            return _manager._worldReady;
-        }
-    }
+    public static bool PerformingAsyncTask { get; private set; }
+    public static bool SimulationRunning { get; private set; }
+    public static bool WorldIsReady { get; private set; }
 
     public static bool SimulationCanRun
     {
@@ -832,7 +808,7 @@ public class Manager
 
     public static void InterruptSimulation(bool state)
     {
-        _manager._simulationRunning = !state;
+        SimulationRunning = !state;
     }
 
     public static void ExecuteTasks(int count)
@@ -1020,14 +996,14 @@ public class Manager
     /// <param name="progressCastMethod">handler for tracking the job's progress.</param>
     public static void ExportMapTextureToFileAsync(string path, MapScript mapScript, ProgressCastDelegate progressCastMethod = null)
     {
-        _manager._simulationRunning = false;
-        _manager._performingAsyncTask = true;
+        SimulationRunning = false;
+        PerformingAsyncTask = true;
 
-        _manager._progressCastMethod = progressCastMethod;
+        _progressCastMethod = progressCastMethod;
 
-        if (_manager._progressCastMethod == null)
+        if (_progressCastMethod == null)
         {
-            _manager._progressCastMethod = (value, message, reset) => { };
+            _progressCastMethod = (value, message, reset) => { };
         }
 
         Debug.Log("Trying to export world map to .png file: " + Path.GetFileName(path));
@@ -1049,8 +1025,8 @@ public class Manager
                 });
             }
 
-            _manager._performingAsyncTask = false;
-            _manager._simulationRunning = true;
+            PerformingAsyncTask = false;
+            SimulationRunning = true;
         });
     }
 
@@ -1272,13 +1248,13 @@ public class Manager
     {
         World world = _manager._currentWorld;
 
-        if (_manager._progressCastMethod == null)
+        if (_progressCastMethod == null)
         {
             world.ProgressCastMethod = (value, message, reset) => { };
         }
         else
         {
-            world.ProgressCastMethod = _manager._progressCastMethod;
+            world.ProgressCastMethod = _progressCastMethod;
         }
 
         world.GenerateRandomHumanGroups(1, initialPopulation);
@@ -1288,13 +1264,13 @@ public class Manager
     {
         World world = _manager._currentWorld;
 
-        if (_manager._progressCastMethod == null)
+        if (_progressCastMethod == null)
         {
             world.ProgressCastMethod = (value, message, reset) => { };
         }
         else
         {
-            world.ProgressCastMethod = _manager._progressCastMethod;
+            world.ProgressCastMethod = _progressCastMethod;
         }
 
         world.GenerateHumanGroup(longitude, latitude, initialPopulation);
@@ -1318,16 +1294,16 @@ public class Manager
 
     public static void GenerateNewWorld(int seed, Texture2D heightmap)
     {
-        _manager._worldReady = false;
+        WorldIsReady = false;
 
         LastStageProgress = 0;
 
         ProgressCastDelegate progressCastMethod;
 
-        if (_manager._progressCastMethod == null)
+        if (_progressCastMethod == null)
             progressCastMethod = (value, message, reset) => { };
         else
-            progressCastMethod = _manager._progressCastMethod;
+            progressCastMethod = _progressCastMethod;
 
         TryLoadActiveMods();
 
@@ -1348,21 +1324,21 @@ public class Manager
         _manager._currentCellSlants = new float?[world.Width, world.Height];
         _manager._currentMaxUpdateSpan = 0;
 
-        _manager._worldReady = true;
+        WorldIsReady = true;
 
         ForceWorldCleanup();
     }
 
     public static void GenerateNewWorldAsync(int seed, Texture2D heightmap = null, ProgressCastDelegate progressCastMethod = null)
     {
-        _manager._simulationRunning = false;
-        _manager._performingAsyncTask = true;
+        SimulationRunning = false;
+        PerformingAsyncTask = true;
 
-        _manager._progressCastMethod = progressCastMethod;
+        _progressCastMethod = progressCastMethod;
 
-        if (_manager._progressCastMethod == null)
+        if (_progressCastMethod == null)
         {
-            _manager._progressCastMethod = (value, message, reset) => { };
+            _progressCastMethod = (value, message, reset) => { };
         }
 
         Debug.Log(string.Format("Trying to generate world with seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, River Strength: {3}, Avg. Temperature: {4}, Avg. Rainfall: {5}",
@@ -1386,24 +1362,24 @@ public class Manager
                 });
             }
 
-            _manager._performingAsyncTask = false;
-            _manager._simulationRunning = true;
+            PerformingAsyncTask = false;
+            SimulationRunning = true;
         });
     }
 
     public static void RegenerateWorld(GenerationType type)
     {
-        _manager._worldReady = false;
+        WorldIsReady = false;
 
         World world = _manager._currentWorld;
 
-        if (_manager._progressCastMethod == null)
+        if (_progressCastMethod == null)
         {
             world.ProgressCastMethod = (value, message, reset) => { };
         }
         else
         {
-            world.ProgressCastMethod = _manager._progressCastMethod;
+            world.ProgressCastMethod = _progressCastMethod;
         }
 
         world.StartReinitialization(0f, 1.0f);
@@ -1413,21 +1389,21 @@ public class Manager
         _manager._currentCellSlants = new float?[world.Width, world.Height];
         _manager._currentMaxUpdateSpan = 0;
 
-        _manager._worldReady = true;
+        WorldIsReady = true;
 
         ForceWorldCleanup();
     }
 
     public static void RegenerateWorldAsync(GenerationType type, ProgressCastDelegate progressCastMethod = null)
     {
-        _manager._simulationRunning = false;
-        _manager._performingAsyncTask = true;
+        SimulationRunning = false;
+        PerformingAsyncTask = true;
 
-        _manager._progressCastMethod = progressCastMethod;
+        _progressCastMethod = progressCastMethod;
 
-        if (_manager._progressCastMethod == null)
+        if (_progressCastMethod == null)
         {
-            _manager._progressCastMethod = (value, message, reset) => { };
+            _progressCastMethod = (value, message, reset) => { };
         }
 
         Debug.Log(string.Format("Trying to regenerate world with seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, River Strength: {3}, Avg. Temperature: {4}, Avg. Rainfall: {5}",
@@ -1447,8 +1423,8 @@ public class Manager
                 });
             }
 
-            _manager._performingAsyncTask = false;
-            _manager._simulationRunning = true;
+            PerformingAsyncTask = false;
+            SimulationRunning = true;
         });
     }
 
@@ -1497,14 +1473,14 @@ public class Manager
 
     public static void SaveWorldAsync(string path, ProgressCastDelegate progressCastMethod = null)
     {
-        _manager._simulationRunning = false;
-        _manager._performingAsyncTask = true;
+        SimulationRunning = false;
+        PerformingAsyncTask = true;
 
-        _manager._progressCastMethod = progressCastMethod;
+        _progressCastMethod = progressCastMethod;
 
-        if (_manager._progressCastMethod == null)
+        if (_progressCastMethod == null)
         {
-            _manager._progressCastMethod = (value, message, reset) => { };
+            _progressCastMethod = (value, message, reset) => { };
         }
 
         Debug.Log("Trying to save world to file: " + Path.GetFileName(path));
@@ -1523,8 +1499,8 @@ public class Manager
                 });
             }
 
-            _manager._performingAsyncTask = false;
-            _manager._simulationRunning = true;
+            PerformingAsyncTask = false;
+            SimulationRunning = true;
         });
     }
 
@@ -1547,16 +1523,16 @@ public class Manager
 
     public static void LoadWorld(string path)
     {
-        _manager._worldReady = false;
+        WorldIsReady = false;
 
         LastStageProgress = 0;
 
         ProgressCastDelegate progressCastMethod;
 
-        if (_manager._progressCastMethod == null)
+        if (_progressCastMethod == null)
             progressCastMethod = (value, message, reset) => { };
         else
-            progressCastMethod = _manager._progressCastMethod;
+            progressCastMethod = _progressCastMethod;
 
         ResetWorldLoadTrack();
 
@@ -1569,13 +1545,13 @@ public class Manager
             world = serializer.Deserialize(stream) as World;
         }
 
-        if (_manager._progressCastMethod == null)
+        if (_progressCastMethod == null)
         {
             world.ProgressCastMethod = (value, message, reset) => { };
         }
         else
         {
-            world.ProgressCastMethod = _manager._progressCastMethod;
+            world.ProgressCastMethod = _progressCastMethod;
         }
 
         LastStageProgress = StageProgressIncFromLoading;
@@ -1601,7 +1577,7 @@ public class Manager
 
         progressCastMethod(progressBeforeFinalizing, "Finalizing...");
 
-        world.FinalizeLoad(progressBeforeFinalizing, 1.0f, _manager._progressCastMethod);
+        world.FinalizeLoad(progressBeforeFinalizing, 1.0f, _progressCastMethod);
 
         _manager._currentWorld = world;
         _manager._currentCellSlants = new float?[world.Width, world.Height];
@@ -1609,7 +1585,7 @@ public class Manager
 
         WorldBeingLoaded = null;
 
-        _manager._worldReady = true;
+        WorldIsReady = true;
 
         ForceWorldCleanup();
     }
@@ -1623,14 +1599,14 @@ public class Manager
         Debug_IsLoadedWorld = true;
 #endif
 
-        _manager._simulationRunning = false;
-        _manager._performingAsyncTask = true;
+        SimulationRunning = false;
+        PerformingAsyncTask = true;
 
-        _manager._progressCastMethod = progressCastMethod;
+        _progressCastMethod = progressCastMethod;
 
-        if (_manager._progressCastMethod == null)
+        if (_progressCastMethod == null)
         {
-            _manager._progressCastMethod = (value, message, reset) => { };
+            _progressCastMethod = (value, message, reset) => { };
         }
 
         Debug.Log("Trying to load world from file: " + Path.GetFileName(path));
@@ -1652,8 +1628,8 @@ public class Manager
                 });
             }
 
-            _manager._performingAsyncTask = false;
-            _manager._simulationRunning = true;
+            PerformingAsyncTask = false;
+            SimulationRunning = true;
         });
     }
 
@@ -1682,7 +1658,7 @@ public class Manager
 
         float value = LastStageProgress + (StageProgressIncFromLoading * _loadTicks / (float)_totalLoadTicks);
 
-        _manager._progressCastMethod?.Invoke(Mathf.Min(1, value));
+        _progressCastMethod?.Invoke(Mathf.Min(1, value));
     }
 
     private static void SetObservableUpdateTypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
@@ -4607,11 +4583,11 @@ public class Manager
 
         foreach (string path in paths)
         {
-            if (_manager._progressCastMethod != null)
+            if (_progressCastMethod != null)
             {
                 string directoryName = Path.GetFileName(path);
 
-                _manager._progressCastMethod(LastStageProgress, "Loading Mod '" + directoryName + "'...");
+                _progressCastMethod(LastStageProgress, "Loading Mod '" + directoryName + "'...");
             }
 
             LoadMod(path, progressPerMod);
@@ -4648,7 +4624,7 @@ public class Manager
 
                 accProgress += progressPerFile;
 
-                _manager._progressCastMethod?.Invoke(accProgress);
+                _progressCastMethod?.Invoke(accProgress);
             }
         }
     }
