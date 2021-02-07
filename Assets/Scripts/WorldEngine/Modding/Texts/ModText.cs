@@ -7,13 +7,14 @@ public class ModText : IInputRequester, IFormattedStringGenerator
 {
     private string _partsString;
 
-    private List<IFormattedStringGenerator> textParts = new List<IFormattedStringGenerator>();
+    private readonly List<IFormattedStringGenerator> _textParts =
+        new List<IFormattedStringGenerator>();
 
     public bool RequiresInput
     {
         get
         {
-            foreach (IFormattedStringGenerator part in textParts)
+            foreach (IFormattedStringGenerator part in _textParts)
             {
                 if ((part is IExpression exp) && exp.RequiresInput)
                 {
@@ -37,37 +38,32 @@ public class ModText : IInputRequester, IFormattedStringGenerator
             {
                 //Debug.Log("string: " + value);
 
-                textParts.Add(new StringTextPart(value));
+                _textParts.Add(new StringTextPart(value));
             }
-            else
+            else if (!string.IsNullOrEmpty(value = match.Groups["expression"].Value))
             {
-                value = match.Groups["expression"].Value;
+                //Debug.Log("expression: " + value);
 
-                if (!string.IsNullOrEmpty(value))
+                IBaseValueExpression exp =
+                    ValueExpressionBuilder.BuildValueExpression(
+                        context, value, allowInputRequesters);
+
+                if (exp is IFormattedStringGenerator)
                 {
-                    //Debug.Log("expression: " + value);
-
-                    IBaseValueExpression exp =
-                        ValueExpressionBuilder.BuildValueExpression(
-                            context, value, allowInputRequesters);
-
-                    if (exp is IFormattedStringGenerator)
-                    {
-                        textParts.Add(exp);
-                    }
-                    else
-                    {
-                        throw new System.Exception(
-                            "Error: Text part '" + value +
-                            "' is not an expression that can be evaluated into a text element");
-                    }
+                    _textParts.Add(exp);
                 }
                 else
                 {
                     throw new System.Exception(
                         "Error: Text part '" + value +
-                        "' could not be matched to a string or expression");
+                        "' is not an expression that can generate a formatted string element");
                 }
+            }
+            else
+            {
+                throw new System.Exception(
+                    "Error: Text part '" + value +
+                    "' could not be matched to a string or expression");
             }
 
             _partsString += match.Value;
@@ -91,7 +87,7 @@ public class ModText : IInputRequester, IFormattedStringGenerator
     {
         string output = "";
 
-        foreach (IFormattedStringGenerator part in textParts)
+        foreach (IFormattedStringGenerator part in _textParts)
         {
             output += part.GetFormattedString();
         }
@@ -103,7 +99,7 @@ public class ModText : IInputRequester, IFormattedStringGenerator
     {
         string output = "";
 
-        foreach (IFormattedStringGenerator part in textParts)
+        foreach (IFormattedStringGenerator part in _textParts)
         {
             if (part is IExpression exp)
             {
@@ -120,7 +116,7 @@ public class ModText : IInputRequester, IFormattedStringGenerator
 
     public bool TryGetRequest(out InputRequest request)
     {
-        foreach (IFormattedStringGenerator part in textParts)
+        foreach (IFormattedStringGenerator part in _textParts)
         {
             if ((part is IExpression exp) && exp.TryGetRequest(out request))
             {
