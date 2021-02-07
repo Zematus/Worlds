@@ -243,6 +243,10 @@ public class Manager
 
     public static InputRequest CurrentInputRequest = null;
 
+    public static bool PerformingAsyncTask { get; private set; }
+    public static bool SimulationRunning { get; private set; }
+    public static bool WorldIsReady { get; private set; }
+
     private static bool _isLoadReady = false;
 
     private static string _debugLogFilename = "debug";
@@ -301,6 +305,8 @@ public class Manager
 
     private static ProgressCastDelegate _progressCastMethod = null;
 
+    private static bool _simulationStep = false;
+
     private World _currentWorld = null;
 
     private Texture2D _currentMapTexture = null;
@@ -325,10 +331,6 @@ public class Manager
 
     public XmlAttributeOverrides AttributeOverrides { get; private set; }
 
-    public static bool PerformingAsyncTask { get; private set; }
-    public static bool SimulationRunning { get; private set; }
-    public static bool WorldIsReady { get; private set; }
-
     public static bool SimulationCanRun
     {
         get
@@ -339,52 +341,26 @@ public class Manager
         }
     }
 
-    public static PlanetOverlay PlanetOverlay
-    {
-        get
-        {
-            return _planetOverlay;
-        }
-    }
+    public static PlanetOverlay PlanetOverlay => _planetOverlay;
 
-    public static string PlanetOverlaySubtype
-    {
-        get
-        {
-            return _planetOverlaySubtype;
-        }
-    }
+    public static string PlanetOverlaySubtype => _planetOverlaySubtype;
 
-    public static bool DisplayRoutes
-    {
-        get
-        {
-            return _displayRoutes;
-        }
-    }
+    public static bool DisplayRoutes => _displayRoutes;
 
-    public static bool DisplayGroupActivity
-    {
-        get
-        {
-            return _displayGroupActivity;
-        }
-    }
+    public static bool DisplayGroupActivity => _displayGroupActivity;
 
-    public static int UndoableEditorActionsCount
-    {
-        get
-        {
-            return _undoableEditorActions.Count;
-        }
-    }
+    public static int UndoableEditorActionsCount => _undoableEditorActions.Count;
+    public static int RedoableEditorActionsCount => _redoableEditorActions.Count;
 
-    public static int RedoableEditorActionsCount
+    public static bool SimulationPerformingStep => _simulationStep;
+
+    public static bool PerformSimulationStep()
     {
-        get
-        {
-            return _redoableEditorActions.Count;
-        }
+        bool step = _simulationStep;
+
+        _simulationStep = false;
+
+        return step;
     }
 
     public static void UpdateMainThreadReference()
@@ -423,6 +399,11 @@ public class Manager
             return false;
 
         return true;
+    }
+
+    public static void SetToPerformSimulationStep()
+    {
+        _simulationStep = true;
     }
 
     public static void HandleKeyUp(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)
