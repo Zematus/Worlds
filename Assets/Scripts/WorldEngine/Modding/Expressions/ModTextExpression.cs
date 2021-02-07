@@ -23,7 +23,7 @@ public class ModTextExpression : IValueExpression<ModText>
 
     public override string ToString() => _modText.ToString();
 
-    public string GetFormattedString() => _modText.EvaluateString();
+    public string GetFormattedString() => _modText.GetFormattedString();
 
     public string ToPartiallyEvaluatedString(bool evaluate = true) =>
         _modText.ToPartiallyEvaluatedString(evaluate);
