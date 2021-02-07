@@ -26,9 +26,9 @@ public class ValueGetterExpression<T> : IValueExpression<T>
 
     public string GetFormattedString()
     {
-        if (Value is IEntity entity)
+        if (Value is IFormattedStringGenerator generator)
         {
-            return entity.GetFormattedString();
+            return generator.GetFormattedString();
         }
 
         return Value.ToString().ToBoldFormat();

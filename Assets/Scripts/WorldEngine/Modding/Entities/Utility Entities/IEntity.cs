@@ -1,13 +1,11 @@
 ﻿using System.Collections.Generic;
 using System;
 
-public interface IEntity : IComparable<object>, IInputRequester
+public interface IEntity : IComparable<object>, IInputRequester, IFormattedStringGenerator
 {
     string Id { get; }
 
     EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null);
-
-    string GetFormattedString();
 
     string GetDebugString();
 

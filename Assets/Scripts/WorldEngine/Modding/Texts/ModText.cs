@@ -3,17 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class ModText : IInputRequester
+public class ModText : IInputRequester, IFormattedStringGenerator
 {
     private string _partsString;
 
-    private List<IModTextPart> textParts = new List<IModTextPart>();
+    private List<IFormattedStringGenerator> textParts = new List<IFormattedStringGenerator>();
 
     public bool RequiresInput
     {
         get
         {
-            foreach (IModTextPart part in textParts)
+            foreach (IFormattedStringGenerator part in textParts)
             {
                 if ((part is IExpression exp) && exp.RequiresInput)
                 {
@@ -51,7 +51,7 @@ public class ModText : IInputRequester
                         ValueExpressionBuilder.BuildValueExpression(
                             context, value, allowInputRequesters);
 
-                    if (exp is IModTextPart)
+                    if (exp is IFormattedStringGenerator)
                     {
                         textParts.Add(exp);
                     }
@@ -91,7 +91,7 @@ public class ModText : IInputRequester
     {
         string output = "";
 
-        foreach (IModTextPart part in textParts)
+        foreach (IFormattedStringGenerator part in textParts)
         {
             output += part.GetFormattedString();
         }
@@ -103,7 +103,7 @@ public class ModText : IInputRequester
     {
         string output = "";
 
-        foreach (IModTextPart part in textParts)
+        foreach (IFormattedStringGenerator part in textParts)
         {
             if (part is IExpression exp)
             {
@@ -120,7 +120,7 @@ public class ModText : IInputRequester
 
     public bool TryGetRequest(out InputRequest request)
     {
-        foreach (IModTextPart part in textParts)
+        foreach (IFormattedStringGenerator part in textParts)
         {
             if ((part is IExpression exp) && exp.TryGetRequest(out request))
             {
@@ -132,4 +132,6 @@ public class ModText : IInputRequester
 
         return false;
     }
+
+    public string GetFormattedString() => EvaluateString();
 }
