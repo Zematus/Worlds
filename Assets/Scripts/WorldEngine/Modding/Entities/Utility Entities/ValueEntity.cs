@@ -15,7 +15,7 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
 
     protected override object _reference => Value;
 
-    private IValueExpression<T> _valueExpression = null;
+    private IValueExpression<T> _valGetterExpression = null;
 
     public ValueEntity(Context c, string id) : base(c, id)
     {
@@ -68,10 +68,11 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
     {
         get
         {
-            _valueExpression = _valueExpression ??
-                new ValueGetterExpression<T>(Id, GetValue, _partialEvalStringConverter);
+            _valGetterExpression = _valGetterExpression ??
+                new ValueGetterExpression<T>(
+                    Id, GetValue, _partialEvalStringConverter);
 
-            return _valueExpression;
+            return _valGetterExpression;
         }
     }
 
