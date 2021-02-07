@@ -87,7 +87,7 @@ public class ModText : IInputRequester, IFormattedStringGenerator
         return _partsString;
     }
 
-    public string EvaluateString()
+    public string GetFormattedString()
     {
         string output = "";
 
@@ -132,6 +132,4 @@ public class ModText : IInputRequester, IFormattedStringGenerator
 
         return false;
     }
-
-    public string GetFormattedString() => EvaluateString();
 }

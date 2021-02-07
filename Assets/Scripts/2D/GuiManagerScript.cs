@@ -2337,7 +2337,7 @@ public class GuiManagerScript : MonoBehaviour
         {
             ChangePlanetOverlay(PlanetOverlay.RegionSelection);
 
-            DisplayNonBlockingMessage.Invoke(rsRequest.Text.EvaluateString());
+            DisplayNonBlockingMessage.Invoke(rsRequest.Text.GetFormattedString());
         }
     }
 

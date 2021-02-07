@@ -142,33 +142,33 @@ public class ModTest
 
         Debug.Log("Test text " + (testCounter++));
         ModText text = new ModText(testContext, "normal string");
-        Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("normal string", text.EvaluateString());
+        Debug.Log("evaluated text: " + text.GetFormattedString());
+        Assert.AreEqual("normal string", text.GetFormattedString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "1 + 1 equals <<1 + 1>>");
-        Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("1 + 1 equals <b>2</b>", text.EvaluateString());
+        Debug.Log("evaluated text: " + text.GetFormattedString());
+        Assert.AreEqual("1 + 1 equals <b>2</b>", text.GetFormattedString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "<<2 > 3>>, 2 is not greater than 3");
-        Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("<b>False</b>, 2 is not greater than 3", text.EvaluateString());
+        Debug.Log("evaluated text: " + text.GetFormattedString());
+        Assert.AreEqual("<b>False</b>, 2 is not greater than 3", text.GetFormattedString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "<<string>> and <<anotherString>>");
-        Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("<b>string</b> and <b>anotherString</b>", text.EvaluateString());
+        Debug.Log("evaluated text: " + text.GetFormattedString());
+        Assert.AreEqual("<b>string</b> and <b>anotherString</b>", text.GetFormattedString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "lerp(2,4,0.5) equals <<lerp(2,4,0.5)>>");
-        Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("lerp(2,4,0.5) equals <b>3</b>", text.EvaluateString());
+        Debug.Log("evaluated text: " + text.GetFormattedString());
+        Assert.AreEqual("lerp(2,4,0.5) equals <b>3</b>", text.GetFormattedString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "space between the numbers <<5 + 2>> <<7>>");
-        Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("space between the numbers <b>7</b> <b>7</b>", text.EvaluateString());
+        Debug.Log("evaluated text: " + text.GetFormattedString());
+        Assert.AreEqual("space between the numbers <b>7</b> <b>7</b>", text.GetFormattedString());
     }
 
     [Test]
@@ -308,7 +308,7 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual(
             "test string",
-            (expression as IValueExpression<ModText>).Value.EvaluateString());
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "(''inner test string'')");
@@ -316,7 +316,7 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual(
             "inner test string",
-            (expression as IValueExpression<ModText>).Value.EvaluateString());
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "((''inner test string 2''))");
@@ -324,7 +324,7 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual(
             "inner test string 2",
-            (expression as IValueExpression<ModText>).Value.EvaluateString());
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "(((''inner test string 3'')))");
@@ -332,7 +332,7 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual(
             "inner test string 3",
-            (expression as IValueExpression<ModText>).Value.EvaluateString());
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "''test string <<1 + 1>> with a expression''");
@@ -340,7 +340,7 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual(
             "test string <b>2</b> with a expression",
-            (expression as IValueExpression<ModText>).Value.EvaluateString());
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "(''test string <<6 / 2>>'')");
@@ -348,7 +348,7 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual(
             "test string <b>3</b>",
-            (expression as IValueExpression<ModText>).Value.EvaluateString());
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "(''test string (<<2 * 2>>)'')");
@@ -356,7 +356,7 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual(
             "test string (<b>4</b>)",
-            (expression as IValueExpression<ModText>).Value.EvaluateString());
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "((''test string (<<(2 * 2) + 0.5>>)''))");
@@ -364,7 +364,7 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual(
             "test string (<b>4.5</b>)",
-            (expression as IValueExpression<ModText>).Value.EvaluateString());
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
 
         /// NOTE: The following commented tests do not pass because the parser can't
         /// can't interpret paranthesis enclosed texts with unclosed parenthesis within
