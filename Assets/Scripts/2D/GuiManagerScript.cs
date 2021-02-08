@@ -87,17 +87,28 @@ public class GuiManagerScript : MonoBehaviour
     public UnityEvent WorldRegenerated;
     public UnityEvent WorldLoaded;
 
+    public UnityEvent EffectHandlingRequested;
+
     public ToggleEvent ToggledGlobeViewing;
 
     public SpeedChangeEvent OnSimulationSpeedChanged;
 
     public MessageEvent DisplayNonBlockingMessage;
 
+    // Indicates that the game should not progress after finishing a parallel op
+    // because something else is pausing the simulation (resolving an action or
+    // decision, for example). Example parallel ops: save, export
     private bool _eventPauseActive = false;
 
+    // Indicates that the pause button has been pressed by the user to pause the
+    // simulation (as opposed to the simulation being paused by a dialog, for example)
     private bool _pauseButtonPressed = false;
 
-    private bool _pausingDialogActive = false;
+    // Indicates that something is pausing the simulation (dialog, action, etc...)
+    private bool _pausingConditionActive = false;
+
+    // Indicates that the simulation is waiting for the user to complete an action
+    private bool _handlingRequest = false;
 
     private bool _displayedTip_mapScroll = false;
     private bool _displayedTip_initialPopulation = false;
@@ -727,7 +738,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private bool CanAlterRunningStateOrSpeed()
     {
-        return Manager.SimulationCanRun && !_pausingDialogActive;
+        return Manager.SimulationCanRun && !_pausingConditionActive;
     }
 
     private void PauseSimulationIfRunning()
@@ -832,6 +843,12 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_Escape()
     {
+        if (_handlingRequest)
+        {
+            // Do not process if waiting for the player to complete an action
+            return;
+        }
+
         Manager.HandleKeyUp(KeyCode.Escape, false, false, HandleEscapeOp);
     }
 
@@ -842,6 +859,12 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_Menus()
     {
+        if (_handlingRequest)
+        {
+            // Do not process if waiting for the player to complete an action
+            return;
+        }
+
         Manager.HandleKeyUp(KeyCode.X, true, false, ExportImageAs);
         Manager.HandleKeyUp(KeyCode.S, true, false, SaveWorldAs);
         Manager.HandleKeyUp(KeyCode.L, true, false, LoadWorld);
@@ -861,6 +884,12 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_MapViews()
     {
+        if (_handlingRequest)
+        {
+            // Do not process if waiting for the player to complete an action
+            return;
+        }
+
         Manager.HandleKeyUp(KeyCode.V, false, false, SetNextView);
     }
 
@@ -871,6 +900,12 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_MapOverlays()
     {
+        if (_handlingRequest)
+        {
+            // Do not process if waiting for the player to complete an action
+            return;
+        }
+
         Manager.HandleKeyUp(KeyCode.N, false, false, DisableAllOverlays);
 
         if (Manager.GameMode == GameMode.Simulator)
@@ -1014,7 +1049,11 @@ public class GuiManagerScript : MonoBehaviour
     private void ReadKeyboardInput()
     {
         if (_backgroundProcessActive)
-            return; // Do not process keyboard inputs while a background process (generate/load/save/export) is executing.
+        {
+            // Do not process any keyboard inputs while a background process
+            // (generate/load/save/export) is executing
+            return;
+        }
 
         ReadKeyboardInput_TimeControls();
         ReadKeyboardInput_Escape();
@@ -2070,7 +2109,7 @@ public class GuiManagerScript : MonoBehaviour
     /// <param name="speedLevelIndex">The speed level index to use</param>
     private void SetMaxSpeedLevelIfNotPaused(int speedLevelIndex)
     {
-        if (_pausingDialogActive || _pauseButtonPressed)
+        if (_pausingConditionActive || _pauseButtonPressed)
         {
             return;
         }
@@ -2261,6 +2300,15 @@ public class GuiManagerScript : MonoBehaviour
         StopSimulation();
     }
 
+    private void SetHandlingEffect()
+    {
+        _handlingRequest = true;
+
+        EffectHandlingRequested.Invoke();
+
+        StopSimulation();
+    }
+
     private void StopSimulation()
     {
         InterruptSimulation(true);
@@ -2305,7 +2353,7 @@ public class GuiManagerScript : MonoBehaviour
 
         if (!HandlePendingEffects())
         {
-            StopSimulation();
+            SetHandlingEffect();
 
             return false;
         }
@@ -2591,11 +2639,11 @@ public class GuiManagerScript : MonoBehaviour
 
     public void InterruptSimulation(bool state)
     {
-        _pausingDialogActive = state;
+        _pausingConditionActive = state;
 
         OnSimulationInterrupted.Invoke(state);
 
-        bool holdState = _pausingDialogActive || _pauseButtonPressed;
+        bool holdState = _pausingConditionActive || _pauseButtonPressed;
 
         HoldSimulation(holdState);
     }
