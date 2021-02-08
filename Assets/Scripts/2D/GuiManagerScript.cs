@@ -94,6 +94,7 @@ public class GuiManagerScript : MonoBehaviour
     public SpeedChangeEvent OnSimulationSpeedChanged;
 
     public MessageEvent DisplayNonBlockingMessage;
+    public UnityEvent HideNonBlockingMessage;
 
     // Indicates that the game should not progress after finishing a parallel op
     // because something else is pausing the simulation (resolving an action or
@@ -123,6 +124,12 @@ public class GuiManagerScript : MonoBehaviour
     private PlanetView _planetView = PlanetView.Biomes;
 
     private PlanetOverlay _planetOverlay = PlanetOverlay.General;
+
+    private Stack<PlanetOverlay> _tempOverlayStack =
+        new Stack<PlanetOverlay>();
+
+    private Stack<string> _tempOverlaySubtypeStack =
+        new Stack<string>();
 
     private string _planetOverlaySubtype = "None";
 
@@ -730,7 +737,8 @@ public class GuiManagerScript : MonoBehaviour
         EnteredEditorMode.Invoke();
 
 #if DEBUG
-        ChangePlanetOverlay(PlanetOverlay.None); // When debugging we might like to autoselect a different default overlay
+        // When debugging we might like to autoselect a different default overlay
+        ChangePlanetOverlay(PlanetOverlay.None);
 #else
 		ChangePlanetOverlay(PlanetOverlay.None);
 #endif
@@ -1614,7 +1622,7 @@ public class GuiManagerScript : MonoBehaviour
         DisplayTip_MapScroll();
     }
 
-    public void ClickOp_SelectCell(Vector2 mapPosition)
+    private void ClickOp_SelectCell(Vector2 mapPosition)
     {
         int longitude = (int)mapPosition.x;
         int latitude = (int)mapPosition.y;
@@ -1624,7 +1632,40 @@ public class GuiManagerScript : MonoBehaviour
         MapEntitySelected.Invoke();
     }
 
-    public void ClickOp_SelectPopulationPlacement(Vector2 mapPosition)
+    private void ClickOp_SelectRequestTarget(Vector2 mapPosition)
+    {
+        int longitude = (int)mapPosition.x;
+        int latitude = (int)mapPosition.y;
+
+        TerrainCell clickedCell = Manager.CurrentWorld.GetCell(longitude, latitude);
+
+        if (Manager.CurrentInputRequest is RegionSelectionRequest rsRequest)
+        {
+            TryCompleteRegionSelectionRequest(rsRequest, clickedCell);
+        }
+    }
+
+    private void TryCompleteRegionSelectionRequest(
+        RegionSelectionRequest rsRequest,
+        TerrainCell targetCell)
+    {
+        Region targetRegion = targetCell.Region;
+
+        if ((targetRegion != null) &&
+            (targetRegion.AssignedFilterType == Region.FilterType.Selectable))
+        {
+            rsRequest.Set(targetRegion);
+            rsRequest.Close();
+
+            HideNonBlockingMessage.Invoke();
+
+            RevertTempPlanetOverlay();
+
+            _mapLeftClickOp -= ClickOp_SelectRequestTarget;
+        }
+    }
+
+    private void ClickOp_SelectPopulationPlacement(Vector2 mapPosition)
     {
         int population = AddPopulationDialogScript.Population;
 
@@ -2385,9 +2426,11 @@ public class GuiManagerScript : MonoBehaviour
 
         if (request is RegionSelectionRequest rsRequest)
         {
-            ChangePlanetOverlay(PlanetOverlay.RegionSelection);
+            ChangePlanetOverlay(PlanetOverlay.RegionSelection, temporary: true);
 
             DisplayNonBlockingMessage.Invoke(rsRequest.Text.GetFormattedString());
+
+            _mapLeftClickOp += ClickOp_SelectRequestTarget;
         }
     }
 
@@ -2818,9 +2861,32 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void ChangePlanetOverlay(PlanetOverlay overlay, string planetOverlaySubtype, bool invokeEvent = true)
+    private void RevertTempPlanetOverlay()
     {
-        _regenMapOverlayTexture |= _planetOverlaySubtype != planetOverlaySubtype;
+        if (_tempOverlayStack.Count <= 0)
+        {
+            throw new System.Exception("Temp overlay stack is empty");
+        }
+
+        PlanetOverlay prevOverlay = _tempOverlayStack.Pop();
+        string prevOverlaySubtype = _tempOverlaySubtypeStack.Pop();
+
+        ChangePlanetOverlay(prevOverlay, prevOverlaySubtype);
+    }
+
+    private void ChangePlanetOverlay(
+        PlanetOverlay overlay,
+        string overlaySubtype,
+        bool invokeEvent = true,
+        bool temporary = false)
+    {
+        if (temporary)
+        {
+            _tempOverlayStack.Push(_planetOverlay);
+            _tempOverlaySubtypeStack.Push(_planetOverlaySubtype);
+        }
+
+        _regenMapOverlayTexture |= _planetOverlaySubtype != overlaySubtype;
         _regenMapOverlayTexture |= _planetOverlay != overlay;
 
         if ((_planetOverlay != overlay) && (_planetOverlay != PlanetOverlay.None))
@@ -2828,7 +2894,7 @@ public class GuiManagerScript : MonoBehaviour
             _planetOverlaySubtypeCache[_planetOverlay] = _planetOverlaySubtype;
         }
 
-        _planetOverlaySubtype = planetOverlaySubtype;
+        _planetOverlaySubtype = overlaySubtype;
 
         _planetOverlay = overlay;
 
@@ -2852,19 +2918,17 @@ public class GuiManagerScript : MonoBehaviour
         OverlaySubtypeChanged.Invoke();
     }
 
-    public void ChangePlanetOverlay(PlanetOverlay overlay)
-    {
-        ChangePlanetOverlay(overlay, true);
-    }
-
-    public void ChangePlanetOverlay(PlanetOverlay overlay, bool invokeEvent)
+    private void ChangePlanetOverlay(
+        PlanetOverlay overlay,
+        bool invokeEvent = true,
+        bool temporary = false)
     {
         if (!_planetOverlaySubtypeCache.TryGetValue(overlay, out string currentOverlaySubtype))
         {
             currentOverlaySubtype = "None";
         }
 
-        ChangePlanetOverlay(overlay, currentOverlaySubtype, invokeEvent);
+        ChangePlanetOverlay(overlay, currentOverlaySubtype, invokeEvent, temporary);
     }
 
     private void HandleOverlayWithSubtypes(PlanetOverlay value)
