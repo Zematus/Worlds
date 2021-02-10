@@ -87,7 +87,7 @@ public class GuiManagerScript : MonoBehaviour
     public UnityEvent WorldRegenerated;
     public UnityEvent WorldLoaded;
 
-    public UnityEvent EffectHandlingRequested;
+    public ToggleEvent EffectHandlingRequested;
 
     public ToggleEvent ToggledGlobeViewing;
 
@@ -96,20 +96,33 @@ public class GuiManagerScript : MonoBehaviour
     public MessageEvent DisplayNonBlockingMessage;
     public UnityEvent HideNonBlockingMessage;
 
-    // Indicates that the game should not progress after finishing a parallel op
-    // because something else is pausing the simulation (resolving an action or
-    // decision, for example). Example parallel ops: save, export
+    /// <summary>
+    /// Indicates that the game should not progress after finishing a parallel op
+    /// because something else is pausing the simulation (resolving an action or
+    /// decision, for example). Example parallel ops: save, export
+    /// </summary>
     private bool _eventPauseActive = false;
 
-    // Indicates that the pause button has been pressed by the user to pause the
-    // simulation (as opposed to the simulation being paused by a dialog, for example)
+    /// <summary>
+    /// Indicates that the pause button has been pressed by the user to pause the
+    /// simulation (as opposed to the simulation being paused by a dialog, for example)
+    /// </summary>
     private bool _pauseButtonPressed = false;
 
-    // Indicates that something is pausing the simulation (dialog, action, etc...)
+    /// <summary>
+    /// Indicates that something is pausing the simulation (dialog, action, etc...)
+    /// </summary>
     private bool _pausingConditionActive = false;
 
-    // Indicates that the simulation is waiting for the user to complete an action
-    private bool _handlingRequest = false;
+    /// <summary>
+    /// Indicates that the simulation is waiting for the user to complete a set of requests
+    /// </summary>
+    private bool _handlingRequests = false;
+
+    /// <summary>
+    /// Indicates that the user finished handling a request
+    /// </summary>
+    private bool _doneHandlingRequest = false;
 
     private bool _displayedTip_mapScroll = false;
     private bool _displayedTip_initialPopulation = false;
@@ -215,7 +228,6 @@ public class GuiManagerScript : MonoBehaviour
     private long _simulationDateSpan = 0;
 
     private bool _resolvedDecision = false;
-    private bool _completedAction = false;
 
     private int _mapUpdateCount = 0;
     private int _pixelUpdateCount = 0;
@@ -509,6 +521,16 @@ public class GuiManagerScript : MonoBehaviour
             ShowHiddenInteractionPanels();
         }
 
+        if (_doneHandlingRequest)
+        {
+            if (HandlePendingEffects())
+            {
+                SetHandlingEffects(false);
+            }
+
+            _doneHandlingRequest = false;
+        }
+
         bool simulationRunning =
             Manager.SimulationCanRun &&
             (Manager.SimulationRunning || Manager.SimulationPerformingStep);
@@ -550,11 +572,7 @@ public class GuiManagerScript : MonoBehaviour
                     }
                     else
                     {
-                        if (_completedAction)
-                        {
-                            _completedAction = false;
-                        }
-                        else if (!ValidateAnyPendingAction())
+                        if (!ResolvePendingAction())
                         {
                             break;
                         }
@@ -851,7 +869,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_Escape()
     {
-        if (_handlingRequest)
+        if (_handlingRequests)
         {
             // Do not process if waiting for the player to complete an action
             return;
@@ -867,7 +885,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_Menus()
     {
-        if (_handlingRequest)
+        if (_handlingRequests)
         {
             // Do not process if waiting for the player to complete an action
             return;
@@ -892,7 +910,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_MapViews()
     {
-        if (_handlingRequest)
+        if (_handlingRequests)
         {
             // Do not process if waiting for the player to complete an action
             return;
@@ -908,7 +926,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_MapOverlays()
     {
-        if (_handlingRequest)
+        if (_handlingRequests)
         {
             // Do not process if waiting for the player to complete an action
             return;
@@ -1380,13 +1398,6 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
-    private void ContinueSimulation()
-    {
-        InterruptSimulation(false);
-
-        _eventPauseActive = false;
-    }
-
     public void CloseErrorMessageAction()
     {
         ErrorMessageDialogPanelScript.SetVisible(false);
@@ -1641,11 +1652,12 @@ public class GuiManagerScript : MonoBehaviour
 
         if (Manager.CurrentInputRequest is RegionSelectionRequest rsRequest)
         {
-            TryCompleteRegionSelectionRequest(rsRequest, clickedCell);
+            _doneHandlingRequest = TryCompleteRegionSelectionRequest(rsRequest, clickedCell);
+            return;
         }
     }
 
-    private void TryCompleteRegionSelectionRequest(
+    private bool TryCompleteRegionSelectionRequest(
         RegionSelectionRequest rsRequest,
         TerrainCell targetCell)
     {
@@ -1662,7 +1674,11 @@ public class GuiManagerScript : MonoBehaviour
             RevertTempPlanetOverlay();
 
             _mapLeftClickOp -= ClickOp_SelectRequestTarget;
+
+            return true;
         }
+
+        return false;
     }
 
     private void ClickOp_SelectPopulationPlacement(Vector2 mapPosition)
@@ -2341,23 +2357,33 @@ public class GuiManagerScript : MonoBehaviour
         StopSimulation();
     }
 
-    private void SetHandlingEffect()
+    private void SetHandlingEffects(bool state)
     {
-        _handlingRequest = true;
+        _handlingRequests = state;
 
-        EffectHandlingRequested.Invoke();
+        EffectHandlingRequested.Invoke(!state);
 
-        StopSimulation();
+        EventPauseSimulation(state);
+    }
+
+    private void EventPauseSimulation(bool state)
+    {
+        InterruptSimulation(state);
+
+        _eventPauseActive = state;
     }
 
     private void StopSimulation()
     {
-        InterruptSimulation(true);
-
-        _eventPauseActive = true;
+        EventPauseSimulation(true);
     }
 
-    private bool ValidateAnyPendingAction()
+    private void ResumeSimulation()
+    {
+        EventPauseSimulation(false);
+    }
+
+    private bool ResolvePendingAction()
     {
         ModAction action = Manager.CurrentWorld.PullActionToExecute();
 
@@ -2370,7 +2396,7 @@ public class GuiManagerScript : MonoBehaviour
         {
             ShowErrorMessage(
                 "The guided faction is no longer present",
-                ContinueSimulation);
+                ResumeSimulation);
 
             StopSimulation();
 
@@ -2383,7 +2409,7 @@ public class GuiManagerScript : MonoBehaviour
         {
             ShowErrorMessage(
                 "The requirements to perform the selected action are no longer met",
-                ContinueSimulation);
+                ResumeSimulation);
 
             StopSimulation();
 
@@ -2394,7 +2420,7 @@ public class GuiManagerScript : MonoBehaviour
 
         if (!HandlePendingEffects())
         {
-            SetHandlingEffect();
+            SetHandlingEffects(true);
 
             return false;
         }
@@ -2473,7 +2499,7 @@ public class GuiManagerScript : MonoBehaviour
             SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
         }
 
-        ContinueSimulation();
+        ResumeSimulation();
 
         _resolvedDecision = true;
     }
@@ -2495,7 +2521,7 @@ public class GuiManagerScript : MonoBehaviour
             SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
         }
 
-        ContinueSimulation();
+        ResumeSimulation();
 
         _resolvedDecision = true;
     }
