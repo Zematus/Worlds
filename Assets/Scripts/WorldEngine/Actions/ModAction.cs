@@ -169,13 +169,13 @@ public class ModAction : Context, IDebugLogger
         return true;
     }
 
-    public void SetEffectsToHandle()
+    public void SetEffectsToResolve()
     {
         World world = Target.Faction.World;
 
         foreach (IEffectExpression exp in Effects)
         {
-            world.AddEffectToHandle(exp);
+            world.AddEffectToResolve(exp);
         }
     }
 

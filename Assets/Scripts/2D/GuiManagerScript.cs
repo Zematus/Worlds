@@ -124,6 +124,8 @@ public class GuiManagerScript : MonoBehaviour
     /// </summary>
     private bool _doneHandlingRequest = false;
 
+    private IEffectExpression _unresolvedEffect = null;
+
     private bool _displayedTip_mapScroll = false;
     private bool _displayedTip_initialPopulation = false;
 
@@ -523,9 +525,9 @@ public class GuiManagerScript : MonoBehaviour
 
         if (_doneHandlingRequest)
         {
-            if (HandlePendingEffects())
+            if (ResolvePendingEffects())
             {
-                SetHandlingEffects(false);
+                SetResolvingEffects(false);
             }
 
             _doneHandlingRequest = false;
@@ -2357,7 +2359,7 @@ public class GuiManagerScript : MonoBehaviour
         StopSimulation();
     }
 
-    private void SetHandlingEffects(bool state)
+    private void SetResolvingEffects(bool state)
     {
         _handlingRequests = state;
 
@@ -2416,11 +2418,11 @@ public class GuiManagerScript : MonoBehaviour
             return false;
         }
 
-        action.SetEffectsToHandle();
+        action.SetEffectsToResolve();
 
-        if (!HandlePendingEffects())
+        if (!ResolvePendingEffects())
         {
-            SetHandlingEffects(true);
+            SetResolvingEffects(true);
 
             return false;
         }
@@ -2428,19 +2430,34 @@ public class GuiManagerScript : MonoBehaviour
         return true;
     }
 
-    private bool HandlePendingEffects()
+    /// <summary>
+    /// Takes care of resolving effects queued by an action or a decision
+    /// </summary>
+    /// <returns>'true' if all effects have been resolved, or there are none to
+    /// resolve, 'false' if there are still effects to be fully resolved</returns>
+    private bool ResolvePendingEffects()
     {
-        while (Manager.CurrentWorld.HasEffectsToHandle())
+        while (true)
         {
-            IEffectExpression effect = Manager.CurrentWorld.PullEffectToHandle();
+            if (Manager.CurrentWorld.HasEffectsToResolve())
+            {
+                // if we still had a previous unresolved effect, continue with it,
+                // otherwise replace it with the next one on the queue
+                _unresolvedEffect =
+                    _unresolvedEffect ?? Manager.CurrentWorld.PullEffectToResolve();
+            }
 
-            if (effect.TryGetRequest(out InputRequest request))
+            if (_unresolvedEffect == null)
+                break;
+
+            if (_unresolvedEffect.TryGetRequest(out InputRequest request))
             {
                 HandleInputRequest(request);
                 return false;
             }
 
-            effect.Apply();
+            _unresolvedEffect.Apply();
+            _unresolvedEffect = null;
         }
 
         return true;
