@@ -2003,11 +2003,11 @@ public class Manager
         {
             faction.SetUnderPlayerGuidance(true);
 
-            EventManager.GuidedFactionSet.Invoke();
+            EventManager.GuidedFactionSet.Invoke(true);
         }
         else
         {
-            EventManager.GuidedFactionUnset.Invoke();
+            EventManager.GuidedFactionSet.Invoke(false);
         }
     }
 
