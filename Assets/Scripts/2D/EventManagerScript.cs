@@ -10,8 +10,7 @@ using UnityEngine.Profiling;
 public class EventManagerScript : MonoBehaviour
 {
     public UnityEvent GuidedFactionStatusChange;
-    public UnityEvent GuidedFactionSet;
-    public UnityEvent GuidedFactionUnset;
+    public ToggleEvent GuidedFactionSet;
 
     public void Start()
     {
