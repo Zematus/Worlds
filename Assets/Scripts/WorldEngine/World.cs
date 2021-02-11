@@ -347,7 +347,7 @@ public class World : ISynchronizable, IWorldDateGetter
 
     private ModAction _actionToExecute = null;
 
-    private readonly Queue<IEffectExpression> _effectsToHandle =
+    private readonly Queue<IEffectExpression> _effectsToResolve =
         new Queue<IEffectExpression>();
 
     private Vector2[] _continentOffsets;
@@ -2185,9 +2185,9 @@ public class World : ISynchronizable, IWorldDateGetter
         _modDecisionsToResolve.Enqueue(decision);
     }
 
-    public void AddEffectToHandle(IEffectExpression effect)
+    public void AddEffectToResolve(IEffectExpression effect)
     {
-        _effectsToHandle.Enqueue(effect);
+        _effectsToResolve.Enqueue(effect);
     }
 
     public void SetActionToExecute(ModAction action)
@@ -2206,9 +2206,9 @@ public class World : ISynchronizable, IWorldDateGetter
         return _modDecisionsToResolve.Count > 0;
     }
 
-    public bool HasEffectsToHandle()
+    public bool HasEffectsToResolve()
     {
-        return _effectsToHandle.Count > 0;
+        return _effectsToResolve.Count > 0;
     }
 
     [System.Obsolete]
@@ -2222,9 +2222,9 @@ public class World : ISynchronizable, IWorldDateGetter
         return _modDecisionsToResolve.Dequeue();
     }
 
-    public IEffectExpression PullEffectToHandle()
+    public IEffectExpression PullEffectToResolve()
     {
-        return _effectsToHandle.Dequeue();
+        return _effectsToResolve.Dequeue();
     }
 
     public ModAction PullActionToExecute()
