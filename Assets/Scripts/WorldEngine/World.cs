@@ -1432,7 +1432,7 @@ public class World : ISynchronizable, IWorldDateGetter
                 }
 #endif
 
-                long maxDate = CurrentDate + (Manager.PerformSimulationStep() ? 1 : MaxTimeToSkip);
+                long maxDate = CurrentDate + MaxTimeToSkip;
 
                 if (maxDate >= MaxSupportedDate)
                 {
