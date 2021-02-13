@@ -354,15 +354,6 @@ public class Manager
 
     public static bool SimulationPerformingStep => _simulationStep;
 
-    public static bool PerformSimulationStep()
-    {
-        bool step = _simulationStep;
-
-        _simulationStep = false;
-
-        return step;
-    }
-
     public static void UpdateMainThreadReference()
     {
         MainThread = Thread.CurrentThread;
@@ -401,9 +392,9 @@ public class Manager
         return true;
     }
 
-    public static void SetToPerformSimulationStep()
+    public static void SetToPerformSimulationStep(bool state)
     {
-        _simulationStep = true;
+        _simulationStep = state;
     }
 
     public static void HandleKeyUp(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)

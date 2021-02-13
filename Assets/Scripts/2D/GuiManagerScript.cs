@@ -2424,6 +2424,8 @@ public class GuiManagerScript : MonoBehaviour
         {
             SetResolvingEffects(true);
 
+            Manager.SetToPerformSimulationStep(false);
+
             return false;
         }
 
