@@ -33,7 +33,7 @@ public class ActionButtonScript : MonoBehaviour
 
         if (Manager.SimulationCanRun && !Manager.SimulationRunning)
         {
-            Manager.SetToPerformSimulationStep();
+            Manager.SetToPerformSimulationStep(true);
         }
     }
 
