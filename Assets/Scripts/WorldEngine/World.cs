@@ -1434,6 +1434,13 @@ public class World : ISynchronizable, IWorldDateGetter
 
                 long maxDate = CurrentDate + MaxTimeToSkip;
 
+                if (Manager.SimulationPerformingStep)
+                {
+                    // move date ahead by one single step instead
+                    maxDate = CurrentDate + 1;
+                    Manager.SetToPerformSimulationStep(false);
+                }
+
                 if (maxDate >= MaxSupportedDate)
                 {
                     Debug.LogWarning("World.EvaluateEventsToHappen - 'maxDate' is greater than " + MaxSupportedDate + " (date = " + maxDate + ")");
