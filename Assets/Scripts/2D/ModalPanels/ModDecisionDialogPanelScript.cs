@@ -88,9 +88,11 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
         {
             if (option.Effects != null)
             {
+                World world = _decision.Target.Faction.World;
+
                 foreach (DecisionOptionEffect effect in option.Effects)
                 {
-                    effect.Result.Apply();
+                    world.AddEffectToResolve(effect.Result);
                 }
             }
 
