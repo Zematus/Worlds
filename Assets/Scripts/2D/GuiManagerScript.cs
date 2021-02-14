@@ -117,7 +117,7 @@ public class GuiManagerScript : MonoBehaviour
     /// <summary>
     /// Indicates that the simulation is waiting for the user to complete a set of requests
     /// </summary>
-    private bool _handlingRequests = false;
+    private bool _resolvingRequests = false;
 
     /// <summary>
     /// Indicates that the user finished handling a request
@@ -229,6 +229,7 @@ public class GuiManagerScript : MonoBehaviour
     private float _accDeltaTime = 0;
     private long _simulationDateSpan = 0;
 
+    private bool _continueResolvingDecision = false;
     private bool _resolvedDecision = false;
 
     private int _mapUpdateCount = 0;
@@ -525,13 +526,20 @@ public class GuiManagerScript : MonoBehaviour
 
         if (_doneHandlingRequest)
         {
-            if (ResolvePendingEffects())
+            if (TryResolvePendingEffects())
             {
                 SetResolvingEffects(false);
             }
 
             _doneHandlingRequest = false;
         }
+
+        if (!_resolvingRequests && _continueResolvingDecision)
+        {
+            FinishResolvingDesicion();
+        }
+
+        TryResolvePendingAction();
 
         bool simulationRunning =
             Manager.SimulationCanRun &&
@@ -574,11 +582,6 @@ public class GuiManagerScript : MonoBehaviour
                     }
                     else
                     {
-                        if (!ResolvePendingAction())
-                        {
-                            break;
-                        }
-
                         world.EvaluateEventsToHappen();
                     }
 
@@ -588,9 +591,8 @@ public class GuiManagerScript : MonoBehaviour
                         break;
                     }
 
-                    if (world.HasModDecisionsToResolve())
+                    if (!TryResolveModDecisions())
                     {
-                        RequestModDecisionResolution();
                         break;
                     }
 
@@ -871,7 +873,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_Escape()
     {
-        if (_handlingRequests)
+        if (_resolvingRequests)
         {
             // Do not process if waiting for the player to complete an action
             return;
@@ -887,7 +889,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_Menus()
     {
-        if (_handlingRequests)
+        if (_resolvingRequests)
         {
             // Do not process if waiting for the player to complete an action
             return;
@@ -912,7 +914,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_MapViews()
     {
-        if (_handlingRequests)
+        if (_resolvingRequests)
         {
             // Do not process if waiting for the player to complete an action
             return;
@@ -928,7 +930,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_MapOverlays()
     {
-        if (_handlingRequests)
+        if (_resolvingRequests)
         {
             // Do not process if waiting for the player to complete an action
             return;
@@ -2340,10 +2342,30 @@ public class GuiManagerScript : MonoBehaviour
         StopSimulation();
     }
 
-    private void RequestModDecisionResolution()
+    private bool TryResolveModDecisions()
     {
-        ModDecision decisionToResolve = Manager.CurrentWorld.PullModDecisionToResolve();
+        while (Manager.CurrentWorld.HasModDecisionsToResolve())
+        {
+            ModDecision decisionToResolve = Manager.CurrentWorld.PullModDecisionToResolve();
 
+            Faction targetFaction = decisionToResolve.Target.Faction;
+
+            if (targetFaction.IsUnderPlayerGuidance)
+            {
+                RequestModDecisionResolution(decisionToResolve);
+                return false;
+            }
+            else
+            {
+                decisionToResolve.AutoEvaluate();
+            }
+        }
+
+        return true;
+    }
+
+    private void RequestModDecisionResolution(ModDecision decisionToResolve)
+    {
         ModDecisionDialogPanelScript.Set(decisionToResolve, _selectedMaxSpeedLevelIndex);
 
         if (!IsMenuPanelActive())
@@ -2361,7 +2383,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void SetResolvingEffects(bool state)
     {
-        _handlingRequests = state;
+        _resolvingRequests = state;
 
         EffectHandlingRequested.Invoke(!state);
 
@@ -2385,7 +2407,7 @@ public class GuiManagerScript : MonoBehaviour
         EventPauseSimulation(false);
     }
 
-    private bool ResolvePendingAction()
+    private bool TryResolvePendingAction()
     {
         ModAction action = Manager.CurrentWorld.PullActionToExecute();
 
@@ -2420,11 +2442,15 @@ public class GuiManagerScript : MonoBehaviour
 
         action.SetEffectsToResolve();
 
-        if (!ResolvePendingEffects())
+        if (Manager.SimulationCanRun && !Manager.SimulationRunning)
+        {
+            // Make sure that the effects are applied even if the simulation is paused
+            Manager.SetToPerformSimulationStep(true);
+        }
+
+        if (!TryResolvePendingEffects())
         {
             SetResolvingEffects(true);
-
-            Manager.SetToPerformSimulationStep(false);
 
             return false;
         }
@@ -2437,7 +2463,7 @@ public class GuiManagerScript : MonoBehaviour
     /// </summary>
     /// <returns>'true' if all effects have been resolved, or there are none to
     /// resolve, 'false' if there are still effects to be fully resolved</returns>
-    private bool ResolvePendingEffects()
+    private bool TryResolvePendingEffects()
     {
         while (true)
         {
@@ -2527,6 +2553,22 @@ public class GuiManagerScript : MonoBehaviour
     {
         ModDecisionDialogPanelScript.SetVisible(false);
 
+        if (Manager.SimulationCanRun && !Manager.SimulationRunning)
+        {
+            // Make sure that the effects are applied even if the simulation is paused
+            Manager.SetToPerformSimulationStep(true);
+        }
+
+        if (!TryResolvePendingEffects())
+        {
+            SetResolvingEffects(true);
+        }
+
+        _continueResolvingDecision = true;
+    }
+
+    public void FinishResolvingDesicion()
+    {
         int resumeSpeedLevelIndex = ModDecisionDialogPanelScript.ResumeSpeedLevelIndex;
 
         if (resumeSpeedLevelIndex == -1)
