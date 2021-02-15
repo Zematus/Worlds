@@ -117,7 +117,12 @@ public class GuiManagerScript : MonoBehaviour
     /// <summary>
     /// Indicates that the simulation is waiting for the user to complete a set of requests
     /// </summary>
-    private bool _resolvingRequests = false;
+    private bool _resolvingEffects = false;
+
+    /// <summary>
+    /// Indicates that the simulation is waiting for the user to resolve a decision
+    /// </summary>
+    private bool _resolvingDecision = false;
 
     /// <summary>
     /// Indicates that the user finished handling a request
@@ -229,7 +234,7 @@ public class GuiManagerScript : MonoBehaviour
     private float _accDeltaTime = 0;
     private long _simulationDateSpan = 0;
 
-    private bool _continueResolvingDecision = false;
+    private bool _willFinishResolvingDecision = false;
     private bool _resolvedDecision = false;
 
     private int _mapUpdateCount = 0;
@@ -325,7 +330,7 @@ public class GuiManagerScript : MonoBehaviour
 
             Manager.EnqueueTaskAndWait(() =>
             {
-                PauseSimulation(true);
+                PlayerPauseSimulation(true);
 
                 ResetAllDialogs();
 
@@ -534,9 +539,19 @@ public class GuiManagerScript : MonoBehaviour
             _doneHandlingRequest = false;
         }
 
-        if (!_resolvingRequests && _continueResolvingDecision)
+        if (!_resolvingEffects)
         {
-            FinishResolvingDesicion();
+            if (_willFinishResolvingDecision)
+            {
+                FinishResolvingDecision();
+            }
+
+            if (!_resolvingEffects && !_resolvingDecision)
+            {
+                // if we are not waiting on the user, try resolving
+                // other pending decisions
+                TryResolvePendingDecisions();
+            }
         }
 
         TryResolvePendingAction();
@@ -576,6 +591,7 @@ public class GuiManagerScript : MonoBehaviour
                 // Simulate up to the max amout of iterations allowed per frame
                 while ((lastUpdateDate + maxDateSpanBetweenUpdates) > world.CurrentDate)
                 {
+                    // If we just resolved a decision then skip event evaluation
                     if (_resolvedDecision)
                     {
                         _resolvedDecision = false;
@@ -591,8 +607,10 @@ public class GuiManagerScript : MonoBehaviour
                         break;
                     }
 
-                    if (!TryResolveModDecisions())
+                    if (!TryResolvePendingDecisions())
                     {
+                        // Stop world update if resolving the decision will
+                        // require player input
                         break;
                     }
 
@@ -773,7 +791,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void PauseSimulationIfRunning()
     {
-        PauseSimulation(Manager.SimulationRunning);
+        PlayerPauseSimulation(Manager.SimulationRunning);
     }
 
     private void SetMaxSpeedLevelTo0()
@@ -873,7 +891,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_Escape()
     {
-        if (_resolvingRequests)
+        if (_resolvingEffects)
         {
             // Do not process if waiting for the player to complete an action
             return;
@@ -889,7 +907,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_Menus()
     {
-        if (_resolvingRequests)
+        if (_resolvingEffects)
         {
             // Do not process if waiting for the player to complete an action
             return;
@@ -914,7 +932,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_MapViews()
     {
-        if (_resolvingRequests)
+        if (_resolvingEffects)
         {
             // Do not process if waiting for the player to complete an action
             return;
@@ -930,7 +948,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_MapOverlays()
     {
-        if (_resolvingRequests)
+        if (_resolvingEffects)
         {
             // Do not process if waiting for the player to complete an action
             return;
@@ -1559,7 +1577,8 @@ public class GuiManagerScript : MonoBehaviour
         OpenModeSelectionDialog();
 
         _selectedMaxSpeedLevelIndex = Manager.StartSpeedIndex;
-        _resolvedDecision = false;
+
+        ResetSimulationState();
 
         SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
 
@@ -2214,7 +2233,7 @@ public class GuiManagerScript : MonoBehaviour
             GetMaxSpeedOptionFromCurrentWorld();
 
             // Always start paused for running worlds
-            PauseSimulation(true);
+            PlayerPauseSimulation(true);
         }
     }
 
@@ -2251,12 +2270,21 @@ public class GuiManagerScript : MonoBehaviour
         ValidateLayersPresent();
         SetGameModeAccordingToCurrentWorld();
 
-        _resolvedDecision = false;
+        ResetSimulationState();
 
         _postProgressOp -= PostProgressOp_LoadAction;
 
         _loadWorldPostProgressOp?.Invoke();
         WorldLoaded.Invoke();
+    }
+
+    private void ResetSimulationState()
+    {
+        _resolvedDecision = false;
+        _resolvingDecision = false;
+        _willFinishResolvingDecision = false;
+        _doneHandlingRequest = false;
+        _resolvingEffects = false;
     }
 
     /// <summary>Resets the state of the GUI manager before loading or generating a new world.</summary>
@@ -2339,10 +2367,10 @@ public class GuiManagerScript : MonoBehaviour
             HideInteractionPanel(DecisionDialogPanelScript);
         }
 
-        StopSimulation();
+        EventStopSimulation();
     }
 
-    private bool TryResolveModDecisions()
+    private bool TryResolvePendingDecisions()
     {
         while (Manager.CurrentWorld.HasModDecisionsToResolve())
         {
@@ -2378,18 +2406,26 @@ public class GuiManagerScript : MonoBehaviour
             HideInteractionPanel(ModDecisionDialogPanelScript);
         }
 
-        StopSimulation();
+        _resolvingDecision = true;
+
+        EventStopSimulation();
     }
 
     private void SetResolvingEffects(bool state)
     {
-        _resolvingRequests = state;
+        _resolvingEffects = state;
 
         EffectHandlingRequested.Invoke(!state);
 
         EventPauseSimulation(state);
     }
 
+    /// <summary>
+    /// Method called when an action, decision or effect requires the simulation
+    /// to change state between running or stopped
+    /// </summary>
+    /// <param name="state">'true' if the simulation should pause, 'false' if the
+    /// simulation should resume</param>
     private void EventPauseSimulation(bool state)
     {
         InterruptSimulation(state);
@@ -2397,12 +2433,20 @@ public class GuiManagerScript : MonoBehaviour
         _eventPauseActive = state;
     }
 
-    private void StopSimulation()
+    /// <summary>
+    /// Method called when an action, decision or effect requires the simulation
+    /// to pause
+    /// </summary>
+    private void EventStopSimulation()
     {
         EventPauseSimulation(true);
     }
 
-    private void ResumeSimulation()
+    /// <summary>
+    /// Method called when an action, decision or effect no longer requires the
+    /// simulation to be paused
+    /// </summary>
+    private void EventResumeSimulation()
     {
         EventPauseSimulation(false);
     }
@@ -2420,9 +2464,9 @@ public class GuiManagerScript : MonoBehaviour
         {
             ShowErrorMessage(
                 "The guided faction is no longer present",
-                ResumeSimulation);
+                EventResumeSimulation);
 
-            StopSimulation();
+            EventStopSimulation();
 
             return false;
         }
@@ -2433,20 +2477,14 @@ public class GuiManagerScript : MonoBehaviour
         {
             ShowErrorMessage(
                 "The requirements to perform the selected action are no longer met",
-                ResumeSimulation);
+                EventResumeSimulation);
 
-            StopSimulation();
+            EventStopSimulation();
 
             return false;
         }
 
         action.SetEffectsToResolve();
-
-        if (Manager.SimulationCanRun && !Manager.SimulationRunning)
-        {
-            // Make sure that the effects are applied even if the simulation is paused
-            Manager.SetToPerformSimulationStep(true);
-        }
 
         if (!TryResolvePendingEffects())
         {
@@ -2515,7 +2553,7 @@ public class GuiManagerScript : MonoBehaviour
 
         if (startSpeedLevelIndex == -1)
         {
-            PauseSimulation(true);
+            PlayerPauseSimulation(true);
         }
         else
         {
@@ -2535,7 +2573,7 @@ public class GuiManagerScript : MonoBehaviour
 
         if (resumeSpeedLevelIndex == -1)
         {
-            PauseSimulation(true);
+            PlayerPauseSimulation(true);
         }
         else
         {
@@ -2544,7 +2582,7 @@ public class GuiManagerScript : MonoBehaviour
             SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
         }
 
-        ResumeSimulation();
+        EventResumeSimulation();
 
         _resolvedDecision = true;
     }
@@ -2553,27 +2591,21 @@ public class GuiManagerScript : MonoBehaviour
     {
         ModDecisionDialogPanelScript.SetVisible(false);
 
-        if (Manager.SimulationCanRun && !Manager.SimulationRunning)
-        {
-            // Make sure that the effects are applied even if the simulation is paused
-            Manager.SetToPerformSimulationStep(true);
-        }
-
         if (!TryResolvePendingEffects())
         {
             SetResolvingEffects(true);
         }
 
-        _continueResolvingDecision = true;
+        _willFinishResolvingDecision = true;
     }
 
-    public void FinishResolvingDesicion()
+    public void FinishResolvingDecision()
     {
         int resumeSpeedLevelIndex = ModDecisionDialogPanelScript.ResumeSpeedLevelIndex;
 
         if (resumeSpeedLevelIndex == -1)
         {
-            PauseSimulation(true);
+            PlayerPauseSimulation(true);
         }
         else
         {
@@ -2582,8 +2614,10 @@ public class GuiManagerScript : MonoBehaviour
             SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
         }
 
-        ResumeSimulation();
+        EventResumeSimulation();
 
+        _willFinishResolvingDecision = false;
+        _resolvingDecision = false;
         _resolvedDecision = true;
     }
 
@@ -2756,7 +2790,13 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void PauseSimulation(bool state)
+    /// <summary>
+    /// Method called when the player requests the simulation to change state between
+    /// running / paused
+    /// </summary>
+    /// <param name="state">'true' if the player requests the simulation to stop
+    /// 'false' if the player requests the simulation to continue</param>
+    public void PlayerPauseSimulation(bool state)
     {
         OnSimulationPaused.Invoke(state);
 
