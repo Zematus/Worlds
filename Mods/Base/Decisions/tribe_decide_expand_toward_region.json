@@ -21,7 +21,14 @@
         {
           "id": "option_allow_expansion",
           "text": "Allow tribe to expand...",
-          "weight": "1 - cohesion_preference"
+          "weight": "1 - cohesion_preference",
+          "effects": [
+            {
+              "id": "allow",
+              "text": "<<selected_region>> becomes one of the <<target_polity>> tribe's core regions",
+              "result": "target_polity.add_core_region(selected_region)"
+            }
+          ]
         },
         {
           "id": "option_prevent_expansion",

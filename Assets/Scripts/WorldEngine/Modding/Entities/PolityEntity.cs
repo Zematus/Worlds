@@ -17,6 +17,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string SplitAttributeId = "split";
     public const string MergeAttributeId = "merge";
     public const string NeighborRegionsAttributeId = "neighbor_regions";
+    public const string AddCoreRegionAttributeId = "add_core_region";
 
     public virtual Polity Polity
     {
@@ -222,6 +223,9 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
             case NeighborRegionsAttributeId:
                 return GetNeighborRegionsAttribute();
+
+            case AddCoreRegionAttributeId:
+                return new AddCoreRegionAttribute(this, arguments);
         }
 
         throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);
