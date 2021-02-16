@@ -147,7 +147,14 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
     {
         ResumeSpeedLevelIndex = currentSpeedIndex;
 
-        SpeedButtonText.text = Speed.Levels[currentSpeedIndex];
+        if (currentSpeedIndex == -1)
+        {
+            SpeedButtonText.text = Speed.Zero;
+        }
+        else
+        {
+            SpeedButtonText.text = Speed.Levels[currentSpeedIndex];
+        }
 
         string dialogText = "";
 
