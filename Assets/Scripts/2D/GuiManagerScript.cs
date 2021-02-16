@@ -2394,7 +2394,14 @@ public class GuiManagerScript : MonoBehaviour
 
     private void RequestModDecisionResolution(ModDecision decisionToResolve)
     {
-        ModDecisionDialogPanelScript.Set(decisionToResolve, _selectedMaxSpeedLevelIndex);
+        int currentSpeedIndex = _selectedMaxSpeedLevelIndex;
+
+        if (_pauseButtonPressed)
+        {
+            currentSpeedIndex = -1;
+        }
+
+        ModDecisionDialogPanelScript.Set(decisionToResolve, currentSpeedIndex);
 
         if (!IsMenuPanelActive())
         {
@@ -2609,9 +2616,9 @@ public class GuiManagerScript : MonoBehaviour
         }
         else
         {
-            _selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
+            SetMaxSpeedLevel(resumeSpeedLevelIndex);
 
-            SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
+            PlayerPauseSimulation(false);
         }
 
         EventResumeSimulation();
