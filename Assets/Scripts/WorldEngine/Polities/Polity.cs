@@ -156,7 +156,7 @@ public abstract class Polity : ISynchronizable
         _needsToFindNeighborRegions = true;
     }
 
-    private void AddCoreRegion(Region region)
+    public void AddCoreRegion(Region region)
     {
         CoreRegions.Add(region);
         CoreRegionIds.Add(region.Id);
@@ -166,7 +166,7 @@ public abstract class Polity : ISynchronizable
         _needsToFindNeighborRegions = true;
     }
 
-    private void RemoveCoreRegion(Region region)
+    public void RemoveCoreRegion(Region region)
     {
         CoreRegions.Remove(region);
         CoreRegionIds.Remove(region.Id);
