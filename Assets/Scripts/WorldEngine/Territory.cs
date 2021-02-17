@@ -479,6 +479,26 @@ public class Territory : ISynchronizable, ICellCollectionGetter
                 World.AddRegionInfo(cellRegion.Info);
             }
         }
+
+        foreach (TerrainCell nCell in cell.NeighborList)
+        {
+            cellRegion = nCell.Region;
+
+            if (cellRegion == null)
+            {
+                cellRegion = Region.TryGenerateRegion(nCell, Polity.Culture.Language);
+
+                if (cellRegion != null)
+                {
+                    if (World.GetRegionInfo(cellRegion.Id) != null)
+                    {
+                        throw new System.Exception("RegionInfo with Id " + cellRegion.Id + " already present");
+                    }
+
+                    World.AddRegionInfo(cellRegion.Info);
+                }
+            }
+        }
     }
 
     private void RemoveCell(TerrainCell cell)
