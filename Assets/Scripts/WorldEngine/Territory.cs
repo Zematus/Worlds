@@ -38,6 +38,8 @@ public class Territory : ISynchronizable, ICellCollectionGetter
     private HashSet<TerrainCell> _outerBorderCellsToValidate = new HashSet<TerrainCell>();
     private HashSet<TerrainCell> _validatedOuterBorderCells = new HashSet<TerrainCell>();
 
+    private Dictionary<Region, int> _regionAccessCounts = new Dictionary<Region, int>();
+
     public Territory()
     {
 
@@ -47,6 +49,11 @@ public class Territory : ISynchronizable, ICellCollectionGetter
     {
         World = polity.World;
         Polity = polity;
+    }
+
+    public ICollection<Region> GetAccessibleRegions()
+    {
+        return _regionAccessCounts.Keys;
     }
 
     public ICollection<TerrainCell> GetCells()
@@ -480,6 +487,8 @@ public class Territory : ISynchronizable, ICellCollectionGetter
             }
         }
 
+        IncreaseAccessToRegion(cellRegion);
+
         foreach (TerrainCell nCell in cell.NeighborList)
         {
             cellRegion = nCell.Region;
@@ -497,6 +506,11 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
                     World.AddRegionInfo(cellRegion.Info);
                 }
+            }
+
+            if (cellRegion != null)
+            {
+                IncreaseAccessToRegion(cellRegion);
             }
         }
     }
@@ -532,6 +546,16 @@ public class Territory : ISynchronizable, ICellCollectionGetter
             {
                 _innerBorderCells.Add(nCell);
                 Manager.AddUpdatedCell(nCell, CellUpdateType.Territory, CellUpdateSubType.Membership);
+            }
+        }
+
+        DecreaseAccessToRegion(cell.Region);
+
+        foreach (TerrainCell nCell in cell.NeighborList)
+        {
+            if (nCell.Region != null)
+            {
+                DecreaseAccessToRegion(nCell.Region);
             }
         }
     }
@@ -588,5 +612,37 @@ public class Territory : ISynchronizable, ICellCollectionGetter
                 }
             }
         }
+    }
+
+    private void IncreaseAccessToRegion(Region region)
+    {
+        if (_regionAccessCounts.ContainsKey(region))
+        {
+            _regionAccessCounts[region]++;
+        }
+        else
+        {
+            _regionAccessCounts[region] = 1;
+
+            Polity.AccessibleRegionsUpdate();
+        }
+    }
+
+    private void DecreaseAccessToRegion(Region region)
+    {
+        if (!_regionAccessCounts.TryGetValue(region, out int count))
+        {
+            throw new System.Exception("Region was not accessible");
+        }
+
+        if (count == 1)
+        {
+            _regionAccessCounts.Remove(region);
+
+            Polity.AccessibleRegionsUpdate();
+            return;
+        }
+
+        _regionAccessCounts[region]--;
     }
 }
