@@ -16,7 +16,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string FactionCountAttributeId = "faction_count";
     public const string SplitAttributeId = "split";
     public const string MergeAttributeId = "merge";
-    public const string NeighborRegionsAttributeId = "neighbor_regions";
+    public const string AccessibleNeighborRegionsAttributeId = "accessible_neighbor_regions";
     public const string AddCoreRegionAttributeId = "add_core_region";
 
     public virtual Polity Polity
@@ -37,7 +37,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     private AgentEntity _leaderEntity = null;
     private FactionEntity _dominantFactionEntity = null;
 
-    private RegionCollectionEntity _neighborRegionsEntity = null;
+    private RegionCollectionEntity _accessibleNeighborRegionsEntity = null;
 
     private readonly List<GroupEntity>
         _groupEntitiesToSet = new List<GroupEntity>();
@@ -76,15 +76,15 @@ public class PolityEntity : DelayedSetEntity<Polity>
         return _dominantFactionEntity.GetThisEntityAttribute(this);
     }
 
-    public EntityAttribute GetNeighborRegionsAttribute()
+    public EntityAttribute GetAccessibleNeighborRegionsAttribute()
     {
-        _neighborRegionsEntity =
-            _neighborRegionsEntity ?? new RegionCollectionEntity(
-            GetNeighborRegions,
+        _accessibleNeighborRegionsEntity =
+            _accessibleNeighborRegionsEntity ?? new RegionCollectionEntity(
+            GetAccessibleNeighborRegions,
             Context,
-            BuildAttributeId(NeighborRegionsAttributeId));
+            BuildAttributeId(AccessibleNeighborRegionsAttributeId));
 
-        return _neighborRegionsEntity.GetThisEntityAttribute(this);
+        return _accessibleNeighborRegionsEntity.GetThisEntityAttribute(this);
     }
 
     public EntityAttribute GetLeaderAttribute()
@@ -171,7 +171,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
     public Faction GetDominantFaction() => Polity.DominantFaction;
 
-    public ICollection<Region> GetNeighborRegions() => Polity.NeighborRegions;
+    public ICollection<Region> GetAccessibleNeighborRegions() => Polity.AccessibleNeighborRegions;
 
     public Agent GetLeader() => Polity.CurrentLeader;
 
@@ -221,8 +221,8 @@ public class PolityEntity : DelayedSetEntity<Polity>
             case MergeAttributeId:
                 return new MergePolityAttribute(this, arguments);
 
-            case NeighborRegionsAttributeId:
-                return GetNeighborRegionsAttribute();
+            case AccessibleNeighborRegionsAttributeId:
+                return GetAccessibleNeighborRegionsAttribute();
 
             case AddCoreRegionAttributeId:
                 return new AddCoreRegionAttribute(this, arguments);
@@ -247,6 +247,6 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
         _leaderEntity?.Reset();
         _dominantFactionEntity?.Reset();
-        _neighborRegionsEntity?.Reset();
+        _accessibleNeighborRegionsEntity?.Reset();
     }
 }

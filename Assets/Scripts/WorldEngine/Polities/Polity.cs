@@ -120,40 +120,37 @@ public abstract class Polity : ISynchronizable
         }
     }
 
-    public HashSet<Region> NeighborRegions
+    public HashSet<Region> AccessibleNeighborRegions
     {
         get
         {
-            if (_needsToFindNeighborRegions)
+            if (_needsToFindAccessibleRegions)
             {
-                FindNeighborRegions();
+                FindAccessibleNeighborRegions();
             }
 
-            return _neighborRegions;
+            return _accessibleNeighborRegions;
         }
     }
 
-    private void FindNeighborRegions()
+    private void FindAccessibleNeighborRegions()
     {
-        _neighborRegions = new HashSet<Region>();
+        _accessibleNeighborRegions = new HashSet<Region>();
 
-        foreach (Region region in CoreRegions)
+        foreach (Region region in Territory.GetAccessibleRegions())
         {
-            foreach (Region nRegion in region.NeighborRegions)
-            {
-                if (CoreRegions.Contains(nRegion))
-                    continue;
+            if (CoreRegions.Contains(region))
+                continue;
 
-                _neighborRegions.Add(nRegion);
-            }
+            _accessibleNeighborRegions.Add(region);
         }
 
-        _needsToFindNeighborRegions = false;
+        _needsToFindAccessibleRegions = false;
     }
 
-    private void CoreRegionUpdateEventHandler(Region region)
+    public void AccessibleRegionsUpdate()
     {
-        _needsToFindNeighborRegions = true;
+        _needsToFindAccessibleRegions = true;
     }
 
     public void AddCoreRegion(Region region)
@@ -161,9 +158,7 @@ public abstract class Polity : ISynchronizable
         CoreRegions.Add(region);
         CoreRegionIds.Add(region.Id);
 
-        region.AddUpdateEventHandler(CoreRegionUpdateEventHandler);
-
-        _needsToFindNeighborRegions = true;
+        _needsToFindAccessibleRegions = true;
     }
 
     public void RemoveCoreRegion(Region region)
@@ -171,9 +166,7 @@ public abstract class Polity : ISynchronizable
         CoreRegions.Remove(region);
         CoreRegionIds.Remove(region.Id);
 
-        region.RemoveUpdateEventHandler(CoreRegionUpdateEventHandler);
-
-        _needsToFindNeighborRegions = true;
+        _needsToFindAccessibleRegions = true;
     }
 
     /// <summary>
@@ -248,8 +241,8 @@ public abstract class Polity : ISynchronizable
     private Dictionary<Identifier, PolityContact> _contacts =
         new Dictionary<Identifier, PolityContact>();
 
-    private bool _needsToFindNeighborRegions = true;
-    private HashSet<Region> _neighborRegions;
+    private bool _needsToFindAccessibleRegions = true;
+    private HashSet<Region> _accessibleNeighborRegions;
 
     public Polity()
     {
