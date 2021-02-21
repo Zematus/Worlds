@@ -5,8 +5,6 @@ using System.Text.RegularExpressions;
 
 public class RegionCollectionEntity : CollectionEntity<Region>
 {
-    public const string RequestSelectionAttributeId = "request_selection";
-
     private int _selectedRegionIndex = 0;
 
     private readonly List<RegionEntity>
@@ -18,7 +16,7 @@ public class RegionCollectionEntity : CollectionEntity<Region>
     {
     }
 
-    private EntityAttribute GenerateRequestSelectionAttribute(IExpression[] arguments)
+    protected override EntityAttribute GenerateRequestSelectionAttribute(IExpression[] arguments)
     {
         int index = _selectedRegionIndex++;
         int iterOffset = Context.GetNextIterOffset() + index;
@@ -45,17 +43,6 @@ public class RegionCollectionEntity : CollectionEntity<Region>
         _regionEntitiesToSet.Add(entity);
 
         return entity.GetThisEntityAttribute(this);
-    }
-
-    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
-    {
-        switch (attributeId)
-        {
-            case RequestSelectionAttributeId:
-                return GenerateRequestSelectionAttribute(arguments);
-        }
-
-        throw new System.ArgumentException("RegionCollection: Unable to find attribute: " + attributeId);
     }
 
     public override string GetDebugString()
