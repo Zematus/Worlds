@@ -35,7 +35,7 @@ public class RegionEntity : DelayedSetEntity<Region>
         {
         }
 
-        throw new System.ArgumentException("Agent: Unable to find attribute: " + attributeId);
+        throw new System.ArgumentException(Id + ": Unable to find attribute: " + attributeId);
     }
 
     public override string GetDebugString()
