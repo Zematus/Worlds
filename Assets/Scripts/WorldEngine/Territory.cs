@@ -470,47 +470,23 @@ public class Territory : ISynchronizable, ICellCollectionGetter
             }
         }
 
-        Region cellRegion = cell.Region;
+        Region region = cell.GetRegion(Polity.Culture.Language);
 
-        if (cellRegion == null)
+        if (region == null)
         {
-            cellRegion = Region.TryGenerateRegion(cell, Polity.Culture.Language);
-
-            if (cellRegion != null)
-            {
-                if (World.GetRegionInfo(cellRegion.Id) != null)
-                {
-                    throw new System.Exception("RegionInfo with Id " + cellRegion.Id + " already present");
-                }
-
-                World.AddRegionInfo(cellRegion.Info);
-            }
+            throw new System.Exception(
+                "Unable to generate region for cell " + cell.Position);
         }
 
-        IncreaseAccessToRegion(cellRegion);
+        IncreaseAccessToRegion(region);
 
         foreach (TerrainCell nCell in cell.NeighborList)
         {
-            cellRegion = nCell.Region;
+            region = nCell.GetRegion(Polity.Culture.Language);
 
-            if (cellRegion == null)
+            if (region != null)
             {
-                cellRegion = Region.TryGenerateRegion(nCell, Polity.Culture.Language);
-
-                if (cellRegion != null)
-                {
-                    if (World.GetRegionInfo(cellRegion.Id) != null)
-                    {
-                        throw new System.Exception("RegionInfo with Id " + cellRegion.Id + " already present");
-                    }
-
-                    World.AddRegionInfo(cellRegion.Info);
-                }
-            }
-
-            if (cellRegion != null)
-            {
-                IncreaseAccessToRegion(cellRegion);
+                IncreaseAccessToRegion(region);
             }
         }
     }
