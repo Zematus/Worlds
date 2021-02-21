@@ -4,7 +4,12 @@ public delegate ICollection<T> CollectionGetterMethod<T>();
 
 public abstract class CollectionEntity<T> : Entity
 {
+    public const string CountAttributeId = "count";
+    public const string RequestSelectionAttributeId = "request_selection";
+
     private CollectionGetterMethod<T> _getterMethod = null;
+
+    private ValueGetterEntityAttribute<float> _countAttribute;
 
     protected override object _reference => Collection;
 
@@ -38,6 +43,27 @@ public abstract class CollectionEntity<T> : Entity
 
     protected virtual void ResetInternal()
     {
+    }
+
+    protected abstract EntityAttribute GenerateRequestSelectionAttribute(IExpression[] arguments);
+
+    private float GetCount() => Collection.Count;
+
+    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
+    {
+        switch (attributeId)
+        {
+            case RequestSelectionAttributeId:
+                return GenerateRequestSelectionAttribute(arguments);
+
+            case CountAttributeId:
+                _countAttribute =
+                    _countAttribute ?? new ValueGetterEntityAttribute<float>(
+                        CountAttributeId, this, GetCount);
+                return _countAttribute;
+        }
+
+        throw new System.ArgumentException(Id + ": Unable to find attribute: " + attributeId);
     }
 
     protected virtual ICollection<T> Collection

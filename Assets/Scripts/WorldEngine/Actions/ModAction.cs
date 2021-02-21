@@ -6,10 +6,6 @@ using UnityEngine.Profiling;
 /// </summary>
 public class ModAction : Context, IDebugLogger
 {
-    public const string TerritoryCategoryId = "territory";
-    public const string DiplomacyCategoryId = "diplomacy";
-    //public const string CultureCategoryId = "culture";
-
     public static HashSet<string> CategoryIds;
 
     public const string FactionTargetType = "faction";
