@@ -591,15 +591,11 @@ public class TerrainCell
             {
                 if (World.GetRegionInfo(region.Id) != null)
                 {
-                    throw new System.Exception("RegionInfo with Id " + region.Id + " already present");
+                    throw new System.Exception(
+                        "RegionInfo with Id " + region.Id + " already present");
                 }
 
                 World.AddRegionInfo(region.Info);
-            }
-            else
-            {
-                throw new System.Exception(
-                    "No region could be generated with from cell " + Position);
             }
         }
 

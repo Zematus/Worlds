@@ -286,6 +286,12 @@ public abstract class Polity : ISynchronizable
         //// Make sure there's a region to spawn into
         Region startRegion = coreGroup.Cell.GetRegion(Culture.Language);
 
+        if (startRegion == null)
+        {
+            throw new System.Exception(
+                "No region could be generated with from cell " + coreGroup.Cell);
+        }
+
         AddCoreRegion(startRegion);
     }
 
