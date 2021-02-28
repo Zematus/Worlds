@@ -251,10 +251,6 @@ public class World : ISynchronizable, IWorldDateGetter
     public bool FactionsHaveBeenUpdated = false;
     [XmlIgnore]
     public bool PolitiesHaveBeenUpdated = false;
-    //[XmlIgnore]
-    //public bool TerritoriesHaveBeenUpdated = false;
-    [XmlIgnore]
-    public bool PolityClustersHaveBeenUpdated = false;
 
 #if DEBUG
     private bool _needsDrainageRegeneration = true;
@@ -326,7 +322,6 @@ public class World : ISynchronizable, IWorldDateGetter
     private HashSet<Faction> _factionsToRemove = new HashSet<Faction>();
 
     private HashSet<Polity> _politiesToUpdate = new HashSet<Polity>();
-    private HashSet<Polity> _politiesThatNeedClusterUpdate = new HashSet<Polity>();
     private HashSet<Polity> _politiesToRemove = new HashSet<Polity>();
 
     private HashSet<Territory> _territoriesToUpdate = new HashSet<Territory>();
@@ -1246,8 +1241,6 @@ public class World : ISynchronizable, IWorldDateGetter
 
     private void UpdateTerritories()
     {
-        //TerritoriesHaveBeenUpdated = true;
-
         // To avoid update conflicts we must make sure to do all remove
         // operations before all add operations
 
@@ -1270,21 +1263,6 @@ public class World : ISynchronizable, IWorldDateGetter
         }
 
         _territoriesToUpdate.Clear();
-    }
-
-    private void UpdatePolityClusters()
-    {
-        PolityClustersHaveBeenUpdated = true;
-
-        foreach (Polity polity in _politiesThatNeedClusterUpdate)
-        {
-            if (!polity.StillPresent)
-                continue;
-
-            polity.ClusterUpdate();
-        }
-
-        _politiesThatNeedClusterUpdate.Clear();
     }
 
     private void RemovePolities()
@@ -1578,12 +1556,6 @@ public class World : ISynchronizable, IWorldDateGetter
 
         //Profiler.EndSample();
 
-        //Profiler.BeginSample("UpdatePolityClusters");
-
-        UpdatePolityClusters();
-
-        //Profiler.EndSample();
-
         //Profiler.BeginSample("SetNextGroupUpdates");
 
         SetNextGroupUpdates();
@@ -1700,8 +1672,6 @@ public class World : ISynchronizable, IWorldDateGetter
         // reset update flags
         GroupsHaveBeenUpdated = false;
         PolitiesHaveBeenUpdated = false;
-        PolityClustersHaveBeenUpdated = false;
-        //TerritoriesHaveBeenUpdated = false;
 
         CleanupFactions();
 
@@ -2148,22 +2118,6 @@ public class World : ISynchronizable, IWorldDateGetter
         polity.WillBeUpdated = true;
     }
 
-    public void AddPolityThatNeedsClusterUpdate(Polity polity)
-    {
-        if (PolityClustersHaveBeenUpdated)
-        {
-            throw new System.Exception("Trying to add polity with clusters to update " +
-                "after polity clusters have already been updated this iteration. Id: " + polity.Id);
-        }
-
-        if (!polity.StillPresent)
-        {
-            throw new System.Exception("Polity with clusters to update no longer present. Id: " + polity.Id + ", Date: " + CurrentDate);
-        }
-
-        _politiesThatNeedClusterUpdate.Add(polity);
-    }
-
     public void AddPolityToRemove(Polity polity)
     {
         _politiesToRemove.Add(polity);
@@ -2171,13 +2125,6 @@ public class World : ISynchronizable, IWorldDateGetter
 
     public void AddTerritoryToUpdate(Territory territory)
     {
-        //if (TerritoriesHaveBeenUpdated)
-        //{
-        //    throw new System.Exception(
-        //        "Trying to add territory to update after territories have already " +
-        //        "been updated this iteration. Polity Id: " + territory.Polity.Id);
-        //}
-
         _territoriesToUpdate.Add(territory);
     }
 
