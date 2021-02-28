@@ -632,9 +632,6 @@ public class ModTest
         _testGroup5.SetProminenceCoreDistances_test(_testPolity2, 1001, 1001);
         _testGroup6.SetProminenceCoreDistances_test(_testPolity2, 1001, 1001);
 
-        _testPolity1.ClusterUpdate();
-        _testPolity2.ClusterUpdate();
-
         Faction.SetRelationship(_testFaction0, _testFaction1, 0.6f);
 
         Polity.AddContact(_testPolity1, _testPolity2, 1);

@@ -243,7 +243,7 @@ public class FactionCulture : Culture
         CellGroup coreGroup = Faction.CoreGroup;
 
         if ((coreGroup == null) || (!coreGroup.StillPresent))
-            throw new System.Exception("CoreGroup is null or no longer present");
+            throw new System.Exception("CoreGroup is null or no longer present: Faction id: " + Faction.Id);
 
         CellCulture coreCulture = coreGroup.Culture;
 
