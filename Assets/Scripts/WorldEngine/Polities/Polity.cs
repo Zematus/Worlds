@@ -233,9 +233,6 @@ public abstract class Polity : ISynchronizable
 
     private bool _willBeRemoved = false;
 
-    private SortedDictionary<Identifier, PolityProminence> _prominencesToAddToClusters =
-        new SortedDictionary<Identifier, PolityProminence>();
-
     private HashSet<long> _eventMessageIds = new HashSet<long>();
 
     private Dictionary<Identifier, PolityContact> _contacts =
@@ -878,9 +875,7 @@ public abstract class Polity : ISynchronizable
     {
         Groups.Add(prominence.Id, prominence.Group);
 
-        _prominencesToAddToClusters[prominence.Id] = prominence;
-
-        World.AddPolityThatNeedsClusterUpdate(this);
+        AddToCluster(prominence);
 
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
@@ -905,7 +900,7 @@ public abstract class Polity : ISynchronizable
 
         PolityProminenceCluster cluster = prominence.Cluster;
 
-        if (prominence.Cluster != null)
+        if (cluster != null)
         {
             cluster.RemoveProminence(prominence);
 
@@ -919,6 +914,10 @@ public abstract class Polity : ISynchronizable
 #if DEBUG
         else
         {
+            Debug.LogError("Removing group with null cluster, id: " + prominence.Id +
+                ", init date: " + prominence.Group.InitDate +
+                ", polity: " + prominence.Polity.Id);
+
             // Validate that this prominence was not part of any cluster
             foreach (PolityProminenceCluster c in ProminenceClusters)
             {
@@ -948,144 +947,123 @@ public abstract class Polity : ISynchronizable
 #endif
     }
 
-    public void ClusterUpdate()
+    private void AddToCluster(PolityProminence prominence)
     {
         //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Manager.TracingData.PolityId == Id)
+        //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //            {
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Polity.ClusterUpdate 1 - Polity:" + Id,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", _prominencesToAddToClusters.Count: " + _prominencesToAddToClusters.Count +
-        //                    ", ProminenceClusters.Count: " + ProminenceClusters.Count +
-        //                    "", World.CurrentDate);
+        //                if (Manager.TracingData.PolityId == Id)
+        //                {
+        //                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Polity.ClusterUpdate 2 - Polity:" + Id,
+        //                        "CurrentDate: " + World.CurrentDate +
+        //                        ", prominence.Id: " + prominence.Id +
+        //                        ", prominence.Group.LastUpdateDate: " + prominence.Group.LastUpdateDate +
+        //                        " [offset: " + (prominence.Group.LastUpdateDate - Manager.TracingData.LastSaveDate) + "]" +
+        //                        "", World.CurrentDate);
 
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //                }
         //            }
-        //        }
         //#endif
 
-        foreach (PolityProminence prominence in _prominencesToAddToClusters.Values)
+        PolityProminenceCluster clusterToAddTo = null;
+
+        CellGroup group = prominence.Group;
+
+        foreach (CellGroup nGroup in group.NeighborGroups)
         {
-            //#if DEBUG
-            //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-            //            {
-            //                if (Manager.TracingData.PolityId == Id)
-            //                {
-            //                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Polity.ClusterUpdate 2 - Polity:" + Id,
-            //                        "CurrentDate: " + World.CurrentDate +
-            //                        ", prominence.Id: " + prominence.Id +
-            //                        ", prominence.Group.LastUpdateDate: " + prominence.Group.LastUpdateDate +
-            //                        " [offset: " + (prominence.Group.LastUpdateDate - Manager.TracingData.LastSaveDate) + "]" +
-            //                        "", World.CurrentDate);
+            PolityProminence nProminence = nGroup.GetPolityProminence(this);
 
-            //                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            //                }
-            //            }
-            //#endif
-
-            PolityProminenceCluster clusterToAddTo = null;
-
-            CellGroup group = prominence.Group;
-
-            foreach (CellGroup nGroup in group.NeighborGroups)
+            if ((nProminence != null) && (nProminence.Cluster != null))
             {
-                PolityProminence nProminence = nGroup.GetPolityProminence(this);
-
-                if ((nProminence != null) && (nProminence.Cluster != null))
-                {
-                    clusterToAddTo = nProminence.Cluster;
-
-                    //#if DEBUG
-                    //                    if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-                    //                    {
-                    //                        if (Manager.TracingData.PolityId == Id)
-                    //                        {
-                    //                            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Polity.ClusterUpdate add to cluster - Polity:" + Id,
-                    //                                "CurrentDate: " + World.CurrentDate +
-                    //                                ", ProminenceClusters.Count: " + ProminenceClusters.Count +
-                    //                                ", clusterToAddTo.Id: " + clusterToAddTo.Id +
-                    //                                ", clusterToAddTo.Size: " + clusterToAddTo.Size +
-                    //                                ", prominence.Id: " + prominence.Id +
-                    //                                ", prominence.Group.LastUpdateDate: " + prominence.Group.LastUpdateDate +
-                    //                                " [offset: " + (prominence.Group.LastUpdateDate - Manager.TracingData.LastSaveDate) + "]" +
-                    //                                "", World.CurrentDate);
-
-                    //                            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                    //                        }
-                    //                    }
-                    //#endif
-
-                    clusterToAddTo.AddProminence(prominence);
-
-                    if (clusterToAddTo.Size > PolityProminenceCluster.MaxSize)
-                    {
-#if DEBUG
-                        PolityProminenceCluster parentCluster = clusterToAddTo;
-                        int oldSize = parentCluster.Size;
-#endif
-
-                        clusterToAddTo = clusterToAddTo.Split(prominence);
-                        ProminenceClusters.Add(clusterToAddTo);
-
-                        //#if DEBUG
-                        //                        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-                        //                        {
-                        //                            if (Manager.TracingData.PolityId == Id)
-                        //                            {
-                        //                                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Polity.ClusterUpdate split cluster - Polity:" + Id,
-                        //                                    "CurrentDate: " + World.CurrentDate +
-                        //                                    ", _prominencesToAddToClusters.Count: " + _prominencesToAddToClusters.Count +
-                        //                                    ", ProminenceClusters.Count: " + ProminenceClusters.Count +
-                        //                                    ", clusterToAddTo.Id: " + clusterToAddTo.Id +
-                        //                                    ", clusterToAddTo.Size: " + clusterToAddTo.Size +
-                        //                                    ", parentCluster.Id: " + parentCluster.Id +
-                        //                                    ", parentCluster.Size: " + parentCluster.Size +
-                        //                                    ", parentCluster.Size (previous): " + oldSize +
-                        //                                    ", prominence.Id: " + prominence.Id +
-                        //                                    "", World.CurrentDate);
-
-                        //                                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                        //                            }
-                        //                        }
-
-                        //                        LastClusterAddedDate = World.CurrentDate;
-                        //#endif
-                    }
-                    break;
-                }
-            }
-
-            if (clusterToAddTo == null)
-            {
-                clusterToAddTo = new PolityProminenceCluster(prominence);
-                ProminenceClusters.Add(clusterToAddTo);
+                clusterToAddTo = nProminence.Cluster;
 
                 //#if DEBUG
-                //                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-                //                {
-                //                    if (Manager.TracingData.PolityId == Id)
+                //                    if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
                 //                    {
-                //                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Polity.ClusterUpdate null cluster - Polity:" + Id,
-                //                            "CurrentDate: " + World.CurrentDate +
-                //                            ", _prominencesToAddToClusters.Count: " + _prominencesToAddToClusters.Count +
-                //                            ", ProminenceClusters.Count: " + ProminenceClusters.Count +
-                //                            ", clusterToAddTo.Id: " + clusterToAddTo.Id +
-                //                            ", clusterToAddTo.Size: " + clusterToAddTo.Size +
-                //                            ", prominence.Id: " + prominence.Id +
-                //                            "", World.CurrentDate);
+                //                        if (Manager.TracingData.PolityId == Id)
+                //                        {
+                //                            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Polity.ClusterUpdate add to cluster - Polity:" + Id,
+                //                                "CurrentDate: " + World.CurrentDate +
+                //                                ", ProminenceClusters.Count: " + ProminenceClusters.Count +
+                //                                ", clusterToAddTo.Id: " + clusterToAddTo.Id +
+                //                                ", clusterToAddTo.Size: " + clusterToAddTo.Size +
+                //                                ", prominence.Id: " + prominence.Id +
+                //                                ", prominence.Group.LastUpdateDate: " + prominence.Group.LastUpdateDate +
+                //                                " [offset: " + (prominence.Group.LastUpdateDate - Manager.TracingData.LastSaveDate) + "]" +
+                //                                "", World.CurrentDate);
 
-                //                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                //                            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                //                        }
                 //                    }
-                //                }
-
-                //                LastClusterAddedDate = World.CurrentDate;
                 //#endif
+
+                clusterToAddTo.AddProminence(prominence);
+
+                if (clusterToAddTo.Size > PolityProminenceCluster.MaxSize)
+                {
+#if DEBUG
+                    PolityProminenceCluster parentCluster = clusterToAddTo;
+                    int oldSize = parentCluster.Size;
+#endif
+
+                    clusterToAddTo = clusterToAddTo.Split(prominence);
+                    ProminenceClusters.Add(clusterToAddTo);
+
+                    //#if DEBUG
+                    //                        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+                    //                        {
+                    //                            if (Manager.TracingData.PolityId == Id)
+                    //                            {
+                    //                                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Polity.ClusterUpdate split cluster - Polity:" + Id,
+                    //                                    "CurrentDate: " + World.CurrentDate +
+                    //                                    ", _prominencesToAddToClusters.Count: " + _prominencesToAddToClusters.Count +
+                    //                                    ", ProminenceClusters.Count: " + ProminenceClusters.Count +
+                    //                                    ", clusterToAddTo.Id: " + clusterToAddTo.Id +
+                    //                                    ", clusterToAddTo.Size: " + clusterToAddTo.Size +
+                    //                                    ", parentCluster.Id: " + parentCluster.Id +
+                    //                                    ", parentCluster.Size: " + parentCluster.Size +
+                    //                                    ", parentCluster.Size (previous): " + oldSize +
+                    //                                    ", prominence.Id: " + prominence.Id +
+                    //                                    "", World.CurrentDate);
+
+                    //                                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                    //                            }
+                    //                        }
+
+                    //                        LastClusterAddedDate = World.CurrentDate;
+                    //#endif
+                }
+                break;
             }
         }
 
-        _prominencesToAddToClusters.Clear();
+        if (clusterToAddTo == null)
+        {
+            clusterToAddTo = new PolityProminenceCluster(prominence);
+            ProminenceClusters.Add(clusterToAddTo);
+
+            //#if DEBUG
+            //                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+            //                {
+            //                    if (Manager.TracingData.PolityId == Id)
+            //                    {
+            //                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Polity.ClusterUpdate null cluster - Polity:" + Id,
+            //                            "CurrentDate: " + World.CurrentDate +
+            //                            ", _prominencesToAddToClusters.Count: " + _prominencesToAddToClusters.Count +
+            //                            ", ProminenceClusters.Count: " + ProminenceClusters.Count +
+            //                            ", clusterToAddTo.Id: " + clusterToAddTo.Id +
+            //                            ", clusterToAddTo.Size: " + clusterToAddTo.Size +
+            //                            ", prominence.Id: " + prominence.Id +
+            //                            "", World.CurrentDate);
+
+            //                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            //                    }
+            //                }
+
+            //                LastClusterAddedDate = World.CurrentDate;
+            //#endif
+        }
     }
 
     public virtual void Synchronize()
