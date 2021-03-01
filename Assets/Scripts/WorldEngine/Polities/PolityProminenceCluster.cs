@@ -26,12 +26,18 @@ public class PolityProminenceCluster : Identifiable
     [XmlIgnore]
     public Polity Polity;
 
+    [XmlIgnore]
+    public Region Region;
+
     private int _rngOffset;
 
 #if DEBUG
     [XmlIgnore]
     public long LastProminenceChangeDate = -1;
 #endif
+
+    [XmlIgnore]
+    public float Area { get; private set; }
 
     public int Size => _prominences.Count;
 
@@ -82,6 +88,11 @@ public class PolityProminenceCluster : Identifiable
 
     public void AddProminence(PolityProminence prominence)
     {
+        if (Region == null)
+        {
+            Region = prominence.Group.Cell.Region;
+        }
+
         _prominences.Add(prominence.Id, prominence);
         prominence.Cluster = this;
 
@@ -305,6 +316,11 @@ public class PolityProminenceCluster : Identifiable
 
         foreach (KeyValuePair<Identifier, PolityProminence> pair in _prominences)
         {
+            if (Region == null)
+            {
+                Region = pair.Value.Group.Cell.Region;
+            }
+
             PolityProminence p = pair.Value;
 
             World world = Polity.World;

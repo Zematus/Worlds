@@ -5,7 +5,8 @@
       "name": "tribe decide expand toward region",
       "target": "faction",
       "parameters": [
-        { "id": "selected_region", "type": "region" }
+        { "id": "selected_region", "type": "region" },
+        { "id": "chance_of_making_attempt", "type": "number", "default": "1" }
       ],
       "properties": [
         { "id": "target_polity", "value": "target.polity" },
@@ -21,7 +22,7 @@
         {
           "id": "option_allow_expansion",
           "text": "Allow tribe to expand...",
-          "weight": "1 - cohesion_preference",
+          "weight": "chance_of_making_attempt",
           "effects": [
             {
               "id": "allow",
@@ -33,7 +34,7 @@
         {
           "id": "option_prevent_expansion",
           "text": "Prevent tribe from expanding...",
-          "weight": "cohesion_preference"
+          "weight": "1 - chance_of_making_attempt"
         }
       ]
     }
