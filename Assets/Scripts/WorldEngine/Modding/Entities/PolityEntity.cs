@@ -18,6 +18,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string MergeAttributeId = "merge";
     public const string AccessibleNeighborRegionsAttributeId = "accessible_neighbor_regions";
     public const string AddCoreRegionAttributeId = "add_core_region";
+    public const string CoreRegionSaturationAttributeId = "core_region_saturation";
 
     public virtual Polity Polity
     {
@@ -33,6 +34,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     private ValueGetterEntityAttribute<string> _typeAttribute;
     private ValueGetterEntityAttribute<float> _contactCountAttribute;
     private ValueGetterEntityAttribute<float> _factionCountAttribute;
+    private ValueGetterEntityAttribute<float> _coreRegionSaturationAttribute;
 
     private AgentEntity _leaderEntity = null;
     private FactionEntity _dominantFactionEntity = null;
@@ -226,6 +228,12 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
             case AddCoreRegionAttributeId:
                 return new AddCoreRegionAttribute(this, arguments);
+
+            case CoreRegionSaturationAttributeId:
+                _coreRegionSaturationAttribute =
+                    _coreRegionSaturationAttribute ?? new ValueGetterEntityAttribute<float>(
+                        CoreRegionSaturationAttributeId, this, () => Polity.CoreRegionSaturation.Value);
+                return _coreRegionSaturationAttribute;
         }
 
         throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);

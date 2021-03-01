@@ -45,6 +45,24 @@ public class RegionCollectionEntity : CollectionEntity<Region>
         return entity.GetThisEntityAttribute(this);
     }
 
+    protected override EntityAttribute GenerateSelectRandomAttribute()
+    {
+        int index = _selectedRegionIndex++;
+        int iterOffset = Context.GetNextIterOffset() + index;
+
+        RegionEntity entity = new RegionEntity(
+            () => {
+                int offset = iterOffset + Context.GetBaseOffset();
+                return Collection.RandomSelect(Context.GetNextRandomInt, offset); 
+            },
+            Context,
+            BuildAttributeId("selected_region_" + index));
+
+        _regionEntitiesToSet.Add(entity);
+
+        return entity.GetThisEntityAttribute(this);
+    }
+
     public override string GetDebugString()
     {
         return "region_collection";

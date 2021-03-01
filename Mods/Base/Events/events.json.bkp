@@ -144,30 +144,29 @@
     },
     {
       "id": "expand_toward_region",
-      "name": "expand toward region",
+      "name": "Expand Toward Region",
       "target": "faction",
-      "assignOn" : ["spawn", "status_change", "control_change"],
+      "assignOn" : ["spawn", "status_change", "region_accessibility_change", "control_change"],
       "properties": [
         { "id": "target_polity", "value": "target.polity" },
+        { "id": "neighbor_regions", "value": "target_polity.accessible_neighbor_regions" },
+        { "id": "selected_region", "value": "neighbor_regions.select_random()" },
         { "id": "cohesion_preference", "value": "target.preferences.cohesion" },
-        { "id": "neighbor_region_set", "value": "target_polity._neighbor_regions" },
-        { "id": "target_region", "value": "neighbor_region_set.get_random()" },
-        { "id": "core_region_count", "value": "target_polity.core_regions.count" },
-        { "id": "total_core_region_saturation", "value": "target.preferences.isolation" },
-        { "id": "chance_of_making_attempt", "value": "total_core_region_saturation / core_region_count" }
+        { "id": "core_saturation", "value": "target_polity.core_region_saturation" },
+        { "id": "chance_of_making_attempt", "value": "core_saturation * (1 - cohesion_preference)" }
       ],
       "assignmentConditions": [
         "target.guide == simulation",
         "target == target_polity.dominant_faction",
-        "target_polity.type == tribe"
+        "target_polity.type == tribe",
+        "neighbor_regions.count > 0"
       ],
       "triggerConditions": [
-        "cohesion_preference < 0.65",
-        "chance_of_making_attempt > 0.8"
+        "chance_of_making_attempt > 0"
       ],
-      "timeToTrigger": "9125 + random(9125000 * cohesion_preference)",
+      "timeToTrigger": "9125 + random(9125000 * cohesion_preference * (1 - core_saturation))",
       "effects": [
-        "target.trigger_decision(tribe_decide_expand_toward_region, target_region, chance_of_making_attempt)"
+        "target.trigger_decision(tribe_decide_expand_toward_region, selected_region, chance_of_making_attempt)"
       ],
       "repeatable" : true
     }
