@@ -22,13 +22,16 @@ public abstract class Polity : ISynchronizable
     public static List<IWorldEventGenerator> OnPolityContactChangeEventGenerators;
 
     [XmlAttribute("AC")]
-    public float TotalAdministrativeCost_Internal = 0; // This is public to be XML-serializable (I know there are more proper solutions. I'm just being lazy)
+    public float TotalAdministrativeCost_Internal = 0; // This is public to be XML-serializable
 
     [XmlAttribute("P")]
-    public float TotalPopulation_Internal = 0; // This is public to be XML-serializable (I know there are more proper solutions. I'm just being lazy)
+    public float TotalPopulation_Internal = 0; // This is public to be XML-serializable
 
     [XmlAttribute("A")]
-    public float ProminenceArea_Internal = 0; // This is public to be XML-serializable (I know there are more proper solutions. I'm just being lazy)
+    public float ProminenceArea_Internal = 0; // This is public to be XML-serializable
+
+    [XmlAttribute("CRS")]
+    public float CoreRegionSaturation_Internal = 0; // This is public to be XML-serializable
 
     [XmlAttribute("NC")]
     public bool NeedsNewCensus = true;
@@ -120,6 +123,19 @@ public abstract class Polity : ISynchronizable
         }
     }
 
+    public float CoreRegionSaturation
+    {
+        get
+        {
+            if (NeedsNewCensus)
+            {
+                RunCensus();
+            }
+
+            return CoreRegionSaturation_Internal;
+        }
+    }
+
     public HashSet<Region> AccessibleNeighborRegions
     {
         get
@@ -159,6 +175,8 @@ public abstract class Polity : ISynchronizable
         CoreRegionIds.Add(region.Id);
 
         _needsToFindAccessibleRegions = true;
+
+        NeedsNewCensus |= true;
     }
 
     public void RemoveCoreRegion(Region region)
@@ -167,6 +185,8 @@ public abstract class Polity : ISynchronizable
         CoreRegionIds.Remove(region.Id);
 
         _needsToFindAccessibleRegions = true;
+
+        NeedsNewCensus |= true;
     }
 
     /// <summary>
@@ -305,6 +325,26 @@ public abstract class Polity : ISynchronizable
         }
 
         InitializeInternal();
+    }
+
+    public float CalculateCoreRegionSaturation()
+    {
+        float coreRegionArea = 0;
+        foreach (Region region in CoreRegions)
+        {
+            coreRegionArea += region.TotalArea;
+        }
+
+        float coreProminenceArea = 0;
+        foreach (PolityProminenceCluster cluster in ProminenceClusters)
+        {
+            if (CoreRegions.Contains(cluster.Region))
+            {
+                coreProminenceArea += cluster.ProminenceArea;
+            }
+        }
+
+        return coreProminenceArea / coreRegionArea;
     }
 
     public abstract void InitializeInternal();
@@ -868,6 +908,8 @@ public abstract class Polity : ISynchronizable
         }
 #endif
 
+        CoreRegionSaturation_Internal = CalculateCoreRegionSaturation();
+
         NeedsNewCensus = false;
     }
 
@@ -970,12 +1012,28 @@ public abstract class Polity : ISynchronizable
 
         CellGroup group = prominence.Group;
 
+        Region region = group.Cell.GetRegion(Culture.Language);
+
+        if (region == null)
+        {
+            throw new System.Exception("Region is null. Group Id: " + group.Id);
+        }
+
         foreach (CellGroup nGroup in group.NeighborGroups)
         {
             PolityProminence nProminence = nGroup.GetPolityProminence(this);
 
             if ((nProminence != null) && (nProminence.Cluster != null))
             {
+                Region nRegion = nGroup.Cell.GetRegion(Culture.Language);
+
+                if (nRegion == null)
+                {
+                    throw new System.Exception("Region is null. Neighbor group Id: " + nGroup.Id);
+                }
+
+                if (nRegion != region) break;
+
                 clusterToAddTo = nProminence.Cluster;
 
                 //#if DEBUG

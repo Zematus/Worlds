@@ -20,8 +20,7 @@
       ],
       "effects": [
         "target.trigger_decision(tribe_decide_expand_toward_region, selected_region)"
-      ],
-      "debug": "true"
+      ]
     }
   ]
 }

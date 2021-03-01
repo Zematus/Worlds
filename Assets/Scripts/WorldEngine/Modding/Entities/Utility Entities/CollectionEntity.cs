@@ -6,6 +6,7 @@ public abstract class CollectionEntity<T> : Entity
 {
     public const string CountAttributeId = "count";
     public const string RequestSelectionAttributeId = "request_selection";
+    public const string SelectRandomAttributeId = "select_random";
 
     private CollectionGetterMethod<T> _getterMethod = null;
 
@@ -47,6 +48,8 @@ public abstract class CollectionEntity<T> : Entity
 
     protected abstract EntityAttribute GenerateRequestSelectionAttribute(IExpression[] arguments);
 
+    protected abstract EntityAttribute GenerateSelectRandomAttribute();
+
     private float GetCount() => Collection.Count;
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -55,6 +58,9 @@ public abstract class CollectionEntity<T> : Entity
         {
             case RequestSelectionAttributeId:
                 return GenerateRequestSelectionAttribute(arguments);
+
+            case SelectRandomAttributeId:
+                return GenerateSelectRandomAttribute();
 
             case CountAttributeId:
                 _countAttribute =
