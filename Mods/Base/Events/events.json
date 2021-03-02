@@ -141,6 +141,34 @@
         "target.trigger_decision(tribe_decide_merge, contact.polity, chance_of_making_attempt)"
       ],
       "repeatable" : true
+    },
+    {
+      "id": "expand_toward_region",
+      "name": "Expand Toward Region",
+      "target": "faction",
+      "assignOn" : ["spawn", "status_change", "region_accessibility_change", "control_change"],
+      "properties": [
+        { "id": "target_polity", "value": "target.polity" },
+        { "id": "neighbor_regions", "value": "target_polity.accessible_neighbor_regions" },
+        { "id": "selected_region", "value": "neighbor_regions.select_random()" },
+        { "id": "cohesion_preference", "value": "target.preferences.cohesion" },
+        { "id": "core_saturation", "value": "target_polity.core_region_saturation" },
+        { "id": "chance_of_making_attempt", "value": "core_saturation * (1 - cohesion_preference)" }
+      ],
+      "assignmentConditions": [
+        "target.guide == simulation",
+        "target == target_polity.dominant_faction",
+        "target_polity.type == tribe",
+        "neighbor_regions.count > 0"
+      ],
+      "triggerConditions": [
+        "chance_of_making_attempt > 0"
+      ],
+      "timeToTrigger": "9125 + random(9125000 * cohesion_preference * (1 - core_saturation))",
+      "effects": [
+        "target.trigger_decision(tribe_decide_expand_toward_region, selected_region, chance_of_making_attempt)"
+      ],
+      "repeatable" : true
     }
   ]
 }

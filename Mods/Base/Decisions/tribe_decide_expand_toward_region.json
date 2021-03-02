@@ -6,7 +6,7 @@
       "target": "faction",
       "parameters": [
         { "id": "selected_region", "type": "region" },
-        { "id": "chance_of_making_attempt", "type": "number", "default": "1" }
+        { "id": "chance_of_making_attempt", "type": "number" }
       ],
       "properties": [
         { "id": "target_polity", "value": "target.polity" },
