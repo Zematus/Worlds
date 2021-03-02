@@ -232,7 +232,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
             case CoreRegionSaturationAttributeId:
                 _coreRegionSaturationAttribute =
                     _coreRegionSaturationAttribute ?? new ValueGetterEntityAttribute<float>(
-                        CoreRegionSaturationAttributeId, this, () => Polity.CoreRegionSaturation.Value);
+                        CoreRegionSaturationAttributeId, this, () => Polity.CoreRegionSaturation);
                 return _coreRegionSaturationAttribute;
         }
 
