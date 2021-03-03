@@ -15,6 +15,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
     public const string SplitAttributeId = "split";
     public const string CoreGroupAttributeId = "core_group";
     public const string TypeAttributeId = "type";
+    public const string GuideAttributeId = "guide";
     public const string GetRelationshipAttributeId = "get_relationship";
     public const string SetRelationshipAttributeId = "set_relationship";
 
@@ -25,6 +26,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
     }
 
     private ValueGetterEntityAttribute<string> _typeAttribute;
+    private ValueGetterEntityAttribute<string> _guideAttribute;
     private ValueGetterEntityAttribute<float> _administrativeLoadAttribute;
     private ValueGetterEntityAttribute<float> _influenceAttribute;
 
@@ -100,6 +102,9 @@ public class FactionEntity : DelayedSetEntity<Faction>
         return _coreGroupEntity.GetThisEntityAttribute(this);
     }
 
+    public string GetGuide() =>
+        Faction.IsUnderPlayerGuidance ? "player" : "simulation";
+
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)
@@ -109,6 +114,12 @@ public class FactionEntity : DelayedSetEntity<Faction>
                     _typeAttribute ?? new ValueGetterEntityAttribute<string>(
                         TypeAttributeId, this, () => Faction.Type);
                 return _typeAttribute;
+
+            case GuideAttributeId:
+                _guideAttribute =
+                    _guideAttribute ?? new ValueGetterEntityAttribute<string>(
+                        GuideAttributeId, this, GetGuide);
+                return _guideAttribute;
 
             case AdministrativeLoadAttributeId:
                 _administrativeLoadAttribute =
