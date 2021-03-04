@@ -38,6 +38,11 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         CellGroup.OnCoreHighestProminenceChangeEventGenerators.Add(this);
     }
 
+    public override void SetToAssignOnRegionAccessibilityUpdate()
+    {
+        Polity.OnRegionAccessibilityUpdateEventGenerators.Add(this);
+    }
+
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
         FactionModEvent modEvent = new FactionModEvent(this, Target.Faction, triggerDate);
