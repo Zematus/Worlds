@@ -146,7 +146,7 @@
       "id": "expand_toward_region",
       "name": "Expand Toward Region",
       "target": "faction",
-      "assignOn" : ["spawn", "status_change", "region_accessibility_change", "control_change"],
+      "assignOn" : ["spawn", "status_change", "region_accessibility_update", "control_change"],
       "properties": [
         { "id": "target_polity", "value": "target.polity" },
         { "id": "neighbor_regions", "value": "target_polity.accessible_neighbor_regions" },

@@ -20,6 +20,7 @@ public abstract class Polity : ISynchronizable
     public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
 
     public static List<IWorldEventGenerator> OnPolityContactChangeEventGenerators;
+    public static List<IWorldEventGenerator> OnRegionAccessibilityUpdateEventGenerators;
 
     [XmlAttribute("AC")]
     public float TotalAdministrativeCost_Internal = 0; // This is public to be XML-serializable
@@ -167,6 +168,8 @@ public abstract class Polity : ISynchronizable
     public void AccessibleRegionsUpdate()
     {
         _needsToFindAccessibleRegions = true;
+
+        ApplyRegionAccessibilityUpdate();
     }
 
     public void AddCoreRegion(Region region)
@@ -195,6 +198,7 @@ public abstract class Polity : ISynchronizable
     public static void ResetEventGenerators()
     {
         OnPolityContactChangeEventGenerators = new List<IWorldEventGenerator>();
+        OnRegionAccessibilityUpdateEventGenerators = new List<IWorldEventGenerator>();
     }
 
     public float TotalPopulation
@@ -1616,6 +1620,23 @@ public abstract class Polity : ISynchronizable
     public void ApplyPolityContactChange()
     {
         foreach (IWorldEventGenerator generator in OnPolityContactChangeEventGenerators)
+        {
+            if (generator is IFactionEventGenerator fGenerator)
+            {
+                foreach (Faction faction in _factions.Values)
+                {
+                    fGenerator.TryGenerateEventAndAssign(faction);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Applies the effects of gaining or loosing access to a region
+    /// </summary>
+    public void ApplyRegionAccessibilityUpdate()
+    {
+        foreach (IWorldEventGenerator generator in OnRegionAccessibilityUpdateEventGenerators)
         {
             if (generator is IFactionEventGenerator fGenerator)
             {
