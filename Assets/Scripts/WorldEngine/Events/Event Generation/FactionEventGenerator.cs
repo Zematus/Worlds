@@ -43,6 +43,11 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         Polity.OnRegionAccessibilityUpdateEventGenerators.Add(this);
     }
 
+    public override void SetToAssignOnGuideSwitch()
+    {
+        Faction.OnGuideSwitchEventGenerators.Add(this);
+    }
+
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
         FactionModEvent modEvent = new FactionModEvent(this, Target.Faction, triggerDate);

@@ -51,6 +51,12 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
             "OnAssign does not support 'region_accessibility_update' for Cell Groups");
     }
 
+    public override void SetToAssignOnGuideSwitch()
+    {
+        throw new System.InvalidOperationException(
+            "OnAssign does not support 'guide_switch' for Cell Groups");
+    }
+
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
         CellGroupModEvent modEvent =

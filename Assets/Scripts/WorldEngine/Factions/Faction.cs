@@ -9,8 +9,9 @@ using System;
 [XmlInclude(typeof(Clan))]
 public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 {
-    public static List<IFactionEventGenerator> OnSpawnEventGenerators;
-    public static List<IFactionEventGenerator> OnStatusChangeEventGenerators;
+    public static List<IWorldEventGenerator> OnSpawnEventGenerators;
+    public static List<IWorldEventGenerator> OnStatusChangeEventGenerators;
+    public static List<IWorldEventGenerator> OnGuideSwitchEventGenerators;
 
     [XmlAttribute("Inf")]
     public float InfluenceInternal;
@@ -686,6 +687,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public void SetUnderPlayerGuidance(bool state)
     {
         IsUnderPlayerGuidance = state;
+
+        GenerateGuideSwitchEvents();
     }
 
     public void ChangePolity(Polity targetPolity, float targetInfluence)
@@ -770,15 +773,19 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public static void ResetEventGenerators()
     {
-        OnSpawnEventGenerators = new List<IFactionEventGenerator>();
-        OnStatusChangeEventGenerators = new List<IFactionEventGenerator>();
+        OnSpawnEventGenerators = new List<IWorldEventGenerator>();
+        OnStatusChangeEventGenerators = new List<IWorldEventGenerator>();
+        OnGuideSwitchEventGenerators = new List<IWorldEventGenerator>();
     }
 
     private void InitializeOnSpawnEvents()
     {
-        foreach (IFactionEventGenerator generator in OnSpawnEventGenerators)
+        foreach (var generator in OnSpawnEventGenerators)
         {
-            generator.TryGenerateEventAndAssign(this);
+            if (generator is IFactionEventGenerator fGenerator)
+            {
+                fGenerator.TryGenerateEventAndAssign(this);
+            }
         }
     }
 
@@ -795,18 +802,31 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     /// </summary>
     public void ApplyStatusChange()
     {
-        foreach (IFactionEventGenerator generator in OnStatusChangeEventGenerators)
+        foreach (var generator in OnStatusChangeEventGenerators)
         {
-            //generator.OpenDebugOutput("Evaluating Assigment on Status Change:");
-
-            generator.TryGenerateEventAndAssign(this);
-
-            //generator.CloseDebugOutput("Finished: Evaluating Assigment on Status Change");
+            if (generator is IFactionEventGenerator fGenerator)
+            {
+                fGenerator.TryGenerateEventAndAssign(this);
+            }
         }
 
         if (IsUnderPlayerGuidance)
         {
             Manager.InvokeGuidedFactionStatusChangeEvent();
+        }
+    }
+
+    /// <summary>
+    /// Tries to generate and apply all events related to guide switching
+    /// </summary>
+    public void GenerateGuideSwitchEvents()
+    {
+        foreach (var generator in OnGuideSwitchEventGenerators)
+        {
+            if (generator is IFactionEventGenerator fGenerator)
+            {
+                fGenerator.TryGenerateEventAndAssign(this);
+            }
         }
     }
 
