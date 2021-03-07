@@ -27,9 +27,6 @@ public abstract class WorldEvent : ISynchronizable
     public const long RejectMergeTribesOfferDecisionEventId = 27;
     public const long AcceptMergeTribesOfferDecisionEventId = 28;
 
-    public const long OpenTribeDecisionEventId = 30;
-    public const long AvoidOpenTribeDecisionEventId = 31;
-
     [XmlIgnore]
     public World World;
 
