@@ -164,7 +164,7 @@
       "triggerConditions": [
         "chance_of_making_attempt > 0"
       ],
-      "timeToTrigger": "9125 + random(91250000 * cohesion_preference * (1 - core_saturation))",
+      "timeToTrigger": "9125 + random(91250000 * cohesion_preference * max(0, 1 - core_saturation))",
       "effects": [
         "target.trigger_decision(tribe_decide_expand_toward_region, selected_region, chance_of_making_attempt)"
       ],
