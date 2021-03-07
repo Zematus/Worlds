@@ -11,8 +11,6 @@ public class SuperRegion : Region
 
     private HashSet<TerrainCell> _cells = null;
 
-    private HashSet<TerrainCell> _innerBorderCells = null;
-
     private TerrainCell _mostCenteredCell = null;
 
     public SuperRegion()
@@ -30,7 +28,6 @@ public class SuperRegion : Region
         _subRegions.Add(subRegion);
 
         _cells = null;
-        _innerBorderCells = null;
         _mostCenteredCell = null;
     }
 
@@ -80,7 +77,7 @@ public class SuperRegion : Region
         if (!cellRegion.IsInnerBorderCell(cell))
             return false;
 
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             if (!IsWithinRegion(nCell))
                 return true;

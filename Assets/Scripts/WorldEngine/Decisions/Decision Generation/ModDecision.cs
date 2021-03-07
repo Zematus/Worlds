@@ -9,7 +9,7 @@ public class ModDecision : Context
 
     private int _randomOffset;
 
-    private readonly FactionEntity _target;
+    public readonly FactionEntity Target;
 
     private Entity[] _parameterEntities;
 
@@ -39,10 +39,10 @@ public class ModDecision : Context
 
         _randomOffset = IdHash;
 
-        _target = new FactionEntity(this, TargetEntityId);
+        Target = new FactionEntity(this, TargetEntityId);
 
         // Add the target to the context's entity map
-        AddEntity(_target);
+        AddEntity(Target);
     }
 
     public void SetParameterEntities(Entity[] parameterEntities)
@@ -80,12 +80,12 @@ public class ModDecision : Context
     }
 
     public override int GetNextRandomInt(int iterOffset, int maxValue) =>
-        _target.Faction.GetNextLocalRandomInt(iterOffset, maxValue);
+        Target.Faction.GetNextLocalRandomInt(iterOffset, maxValue);
 
     public override float GetNextRandomFloat(int iterOffset) =>
-        _target.Faction.GetNextLocalRandomFloat(iterOffset);
+        Target.Faction.GetNextLocalRandomFloat(iterOffset);
 
-    public override int GetBaseOffset() => _target.Faction.GetHashCode();
+    public override int GetBaseOffset() => Target.Faction.GetHashCode();
 
     public override void Reset()
     {
@@ -106,7 +106,7 @@ public class ModDecision : Context
     {
         Reset();
 
-        _target.Set(targetFaction);
+        Target.Set(targetFaction);
 
         if (_parameterEntities == null) // we are expecting no parameters
         {
@@ -135,9 +135,9 @@ public class ModDecision : Context
     }
 
     /// <summary>
-    /// This function will be called by the AI when the target faction is not controlled by a player
+    /// This function will be used by the AI when the target faction is not controlled by a player
     /// </summary>
-    private void AutoEvaluate()
+    public void AutoEvaluate()
     {
         float totalWeight = 0;
         float[] optionWeights = new float[Options.Length];
@@ -147,24 +147,25 @@ public class ModDecision : Context
         {
             DecisionOption option = Options[i];
 
-            // If option is not available set its weight to 0
+            // Set weight to 0 for options that are meant to be used only by a human
+            // player, or can't be currently shown or used
             float weight = 0;
-            if (option.CanShow())
+            if ((option.AllowedGuide != GuideType.Player) && option.CanShow())
             {
                 weight = (option.Weight != null ) ? option.Weight.Value : 1;
-            }
 
-            if (weight < 0)
-            {
-                string weightPartialExpression =
-                    (option.Weight != null) ?
-                    ("\n - expression: " + option.Weight.ToPartiallyEvaluatedString(true)) :
-                    string.Empty;
+                if (weight < 0)
+                {
+                    string weightPartialExpression =
+                        (option.Weight != null) ?
+                        ("\n - expression: " + option.Weight.ToPartiallyEvaluatedString(true)) :
+                        string.Empty;
 
-                throw new System.Exception(
-                    Id + "->" + option.Id + ", decision option weight is less than zero: " +
-                    weightPartialExpression +
-                    "\n - weight: " + weight);
+                    throw new System.Exception(
+                        Id + "->" + option.Id + ", decision option weight is less than zero: " +
+                        weightPartialExpression +
+                        "\n - weight: " + weight);
+                }
             }
 
             totalWeight += weight;
@@ -174,7 +175,7 @@ public class ModDecision : Context
         if (totalWeight <= 0)
         {
             // Something went wrong, at least one option should be
-            // available everytime we evaluate a decision
+            // available every time we evaluate a decision
 
             throw new System.Exception(
                 Id + ", total decision option weight is equal or less than zero: " +
@@ -204,20 +205,12 @@ public class ModDecision : Context
 
     public void Evaluate()
     {
-        Faction targetFaction = _target.Faction;
+        Faction targetFaction = Target.Faction;
 
         // Uncomment this line to test the decision dialog
         //Manager.SetGuidedFaction(targetFaction);
 
         targetFaction.CoreGroup.SetToUpdate();
-
-        if (targetFaction.IsUnderPlayerGuidance)
-        {
-            targetFaction.World.AddDecisionToResolve(this);
-        }
-        else
-        {
-            AutoEvaluate();
-        }
+        targetFaction.World.AddDecisionToResolve(this);
     }
 }

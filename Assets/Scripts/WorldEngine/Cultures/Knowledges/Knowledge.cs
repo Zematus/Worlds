@@ -21,17 +21,29 @@ public class Knowledge : CellCulturalKnowledge
     {
         // TODO: this function should use modded knowledges instead of hardcoded ones
 
-        Knowledge shipbuildingKnowledge = new Knowledge();
+        Knowledge shipbuildingKnowledge = new Knowledge()
+        {
+            Id = ShipbuildingKnowledge.KnowledgeId,
+            Name = ShipbuildingKnowledge.KnowledgeName
+        };
         shipbuildingKnowledge.ResetEventGenerators();
-        Knowledges.Add(ShipbuildingKnowledge.KnowledgeId, shipbuildingKnowledge);
+        Knowledges.Add(shipbuildingKnowledge.Id, shipbuildingKnowledge);
 
-        Knowledge agricultureKnowledge = new Knowledge();
+        Knowledge agricultureKnowledge = new Knowledge()
+        {
+            Id = AgricultureKnowledge.KnowledgeId,
+            Name = AgricultureKnowledge.KnowledgeName
+        };
         agricultureKnowledge.ResetEventGenerators();
-        Knowledges.Add(AgricultureKnowledge.KnowledgeId, agricultureKnowledge);
+        Knowledges.Add(agricultureKnowledge.Id, agricultureKnowledge);
 
-        Knowledge socialOrganizationKnowledge = new Knowledge();
+        Knowledge socialOrganizationKnowledge = new Knowledge()
+        {
+            Id = SocialOrganizationKnowledge.KnowledgeId,
+            Name = SocialOrganizationKnowledge.KnowledgeName
+        };
         socialOrganizationKnowledge.ResetEventGenerators();
-        Knowledges.Add(SocialOrganizationKnowledge.KnowledgeId, socialOrganizationKnowledge);
+        Knowledges.Add(socialOrganizationKnowledge.Id, socialOrganizationKnowledge);
     }
 
     public static Knowledge GetKnowledge(string id)

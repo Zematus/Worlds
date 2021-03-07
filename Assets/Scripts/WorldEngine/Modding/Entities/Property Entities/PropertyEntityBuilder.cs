@@ -10,64 +10,37 @@ public static class PropertyEntityBuilder
         Context context,
         Context.LoadedContext.LoadedProperty p)
     {
-        string pType = p.type;
-
-        if (string.IsNullOrEmpty(pType))
-        {
-            pType = ValueType;
-        }
-
-        IReseteableEntity entity;
-
-        switch (pType)
-        {
-            case ConditionSetType:
-                entity = new ConditionSetPropertyEntity(context, p);
-                break;
-
-            case RandomRangeType:
-                entity = new RandomRangePropertyEntity(context, p);
-                break;
-
-            case ValueType:
-                entity = BuildValuePropertyEntity(context, p);
-                break;
-
-            default:
-                throw new ArgumentException("Property type not recognized: " + p.type);
-        }
-
-        return entity;
-    }
-
-    public static IReseteableEntity BuildValuePropertyEntity(
-        Context context, Context.LoadedContext.LoadedProperty p)
-    {
         if (string.IsNullOrEmpty(p.value))
         {
             throw new ArgumentException("'value' can't be null or empty");
         }
 
-        IBaseValueExpression exp = ValueExpressionBuilder.BuildValueExpression(context, p.value);
+        IBaseValueExpression exp =
+            ValueExpressionBuilder.BuildValueExpression(context, p.value, true);
 
         if (exp is IValueExpression<float>)
         {
-            return new ValuePropertyEntity<float>(context, p.id, exp);
+            return new PropertyEntity<float>(context, p.id, exp);
         }
 
         if (exp is IValueExpression<bool>)
         {
-            return new ValuePropertyEntity<bool>(context, p.id, exp);
+            return new PropertyEntity<bool>(context, p.id, exp);
         }
 
         if (exp is IValueExpression<string>)
         {
-            return new ValuePropertyEntity<string>(context, p.id, exp);
+            return new PropertyEntity<string>(context, p.id, exp);
         }
 
-        if (exp is IValueExpression<Entity>)
+        if (exp is IValueExpression<IEntity>)
         {
-            return new ValuePropertyEntity<Entity>(context, p.id, exp);
+            return new PropertyEntity<IEntity>(context, p.id, exp);
+        }
+
+        if (exp is IValueExpression<ModText>)
+        {
+            return new PropertyEntity<ModText>(context, p.id, exp);
         }
 
         throw new ArgumentException("Unhandled expression type: " + exp.GetType());

@@ -12,6 +12,8 @@ public abstract class EntityAttributeExpression : IExpression
         _attribute = attribute;
     }
 
+    public bool RequiresInput => _attribute.RequiresInput;
+
     public string ToPartiallyEvaluatedString(bool evaluate)
     {
         if (_attribute.Arguments == null)
@@ -53,4 +55,7 @@ public abstract class EntityAttributeExpression : IExpression
 
         return output;
     }
+
+    public bool TryGetRequest(out InputRequest request) =>
+        _attribute.TryGetRequest(out request);
 }

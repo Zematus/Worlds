@@ -107,9 +107,9 @@ public class CellCulture : Culture
 
         Manager.AddUpdatedCell(Group.Cell);
 
-        foreach (CellGroup nGroup in Group.NeighborGroups)
+        foreach (KeyValuePair<Direction, CellGroup> pair in Group.Neighbors)
         {
-            Manager.AddUpdatedCell(nGroup.Cell);
+            Manager.AddUpdatedCell(pair.Value.Cell);
         }
     }
 
@@ -225,6 +225,56 @@ public class CellCulture : Culture
         return HasDiscovery(id) | DiscoveriesToFind.ContainsKey(id);
     }
 
+    /// <summary>
+    /// Removes the influence from a reference culture from this culture
+    /// </summary>
+    /// <param name="referenceCulture">culture with properties to unmerge</param>
+    /// <param name="percentage">how much to 'unmerge'</param>
+    public void UnmergeCulture(Culture referenceCulture, float percentage)
+    {
+        if (percentage == 1)
+        {
+            // Trying to unmerge property values by 100% will generate NaN values,
+            // and the prominence will get removed anyway (hopefully), so skipping....
+
+            //Debug.LogWarning("Trying to unmerge culture by 100%");
+            return;
+        }
+
+        foreach (CulturalPreference p in referenceCulture.GetPreferences())
+        {
+            CellCulturalPreference preference = GetAcquiredPreferenceOrToAcquire(p.Id);
+
+            if (preference != null)
+            {
+                preference.Unmerge(p, percentage);
+            }
+        }
+
+        foreach (CulturalActivity a in referenceCulture.GetActivities())
+        {
+            CellCulturalActivity activity = GetPerformedActivityOrToPerform(a.Id);
+
+            if (activity != null)
+            {
+                activity.Unmerge(a, percentage);
+            }
+        }
+
+        foreach (CulturalSkill s in referenceCulture.GetSkills())
+        {
+            CellCulturalSkill skill = GetLearnedSkillOrToLearn(s.Id);
+
+            if (skill != null)
+            {
+                skill.Unmerge(s, percentage);
+            }
+        }
+
+        // NOTE: Knowledges and discoveries can't be easily 'unmerged' without
+        // making some wild assumptions. So it's simpler just to leave them the same
+    }
+
     public void MergeCulture(Culture sourceCulture, float percentage)
     {
         foreach (CulturalPreference p in sourceCulture.GetPreferences())
@@ -313,7 +363,12 @@ public class CellCulture : Culture
         }
     }
 
-    public void UpdatePolityCulturalProminence(PolityProminence polityProminence, long timeSpan)
+    /// <summary>
+    /// Updates a cell's culture with the influence of a prominence's polity culture
+    /// </summary>
+    /// <param name="polityProminence">the influencing prominence</param>
+    /// <param name="timeSpan">the time span since the last cell update</param>
+    public void UpdateProminenceCulturalProperties(PolityProminence polityProminence, long timeSpan)
     {
         PolityCulture polityCulture = polityProminence.Polity.Culture;
 
@@ -391,13 +446,17 @@ public class CellCulture : Culture
         }
     }
 
-    public void PostUpdatePolityCulturalProminence(PolityProminence polityProminence)
+    /// <summary>
+    /// Post updates a cell culture through the influence of a polity prominence
+    /// </summary>
+    /// <param name="polityProminence">the influencing prominence</param>
+    public void PostUpdateProminenceCulturalProperties(PolityProminence polityProminence)
     {
         PolityCulture polityCulture = polityProminence.Polity.Culture;
 
         if (Group.HighestPolityProminence == null)
         {
-            throw new System.Exception("HighestPolityProminence is null");
+            throw new System.Exception("HighestPolityProminence is null. Group: " + Group.Id);
         }
 
         if (((Language == null) ||

@@ -46,6 +46,8 @@ public class Biome
 
     public string Name;
     public string Id;
+    public string SkillId;
+    public string SkillName;
     public int IdHash;
     
     public Color Color = Color.black;

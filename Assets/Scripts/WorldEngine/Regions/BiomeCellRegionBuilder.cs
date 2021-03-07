@@ -13,16 +13,16 @@ public static class BiomeCellRegionBuilder
     public const int MaxEnclosedRectArea = 125;
     public const int MinAreaSize = 8;
 
-    private static TerrainCell _startCell;
-    private static int _rngOffset;
-
     private static int _borderCount;
     private static List<Border> _borders;
     private static HashSet<TerrainCell> _exploredBorderCells;
     private static int _largestBorderRectArea;
     private static Border _largestBorder;
 
-    private static HashSet<TerrainCell> _cellsThatCouldBeAdded;
+    private static bool CanAddCellToEnclosedArea(TerrainCell cell)
+    {
+        return !cell.IsLiquidSea;
+    }
 
     private static bool CanAddCellToRegion(TerrainCell cell, string biomeId)
     {
@@ -60,7 +60,7 @@ public static class BiomeCellRegionBuilder
             TerrainCell cell = borderCellsToExplore.Dequeue();
 
             // first separate neighbor cells that are inside and outside border
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 if (borderCells.Contains(nCell))
                 {
@@ -89,7 +89,7 @@ public static class BiomeCellRegionBuilder
         out CellSet addedCellSet,
         out Border outsideBorder,
         out List<CellSet> unincorporatedEnclosedAreas,
-        int abortSize = -1)
+        int stopSize = -1)
     {
         outsideBorder = null;
         addedCellSet = new CellSet();
@@ -115,9 +115,9 @@ public static class BiomeCellRegionBuilder
         {
             TerrainCell cell = cellsToExplore.Dequeue();
 
-            if ((abortSize > 0) && (addedCount >= abortSize)) return false;
+            if ((stopSize > 0) && (addedCount >= stopSize)) return false;
 
-            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.GetNonDiagonalNeighbors())
+            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.NonDiagonalNeighbors)
             {
                 TerrainCell nCell = pair.Value;
 
@@ -150,9 +150,11 @@ public static class BiomeCellRegionBuilder
         {
             if (border == outsideBorder) continue;
 
-            CellSet cellSet = border.GetEnclosedCellSet(addedCellSet.Cells);
-
-            if (cellSet == null) continue;
+            if (!border.TryGetEnclosedCellSet(
+                addedCellSet.Cells,
+                out CellSet cellSet,
+                CanAddCellToEnclosedArea))
+                continue;
 
             if (cellSet.Area <= MinAreaSize)
             {
@@ -199,27 +201,22 @@ public static class BiomeCellRegionBuilder
         Language language,
         HashSet<TerrainCell> cellsToIgnore = null)
     {
-        //if ((startCell.Latitude == 141) && (startCell.Longitude == 318))
-        //{
-        //    Debug.Log("Debugging TryGenerateRegion...");
-        //}
-
         if (startCell.WaterBiomePresence >= 1)
             return null;
 
         if (startCell.Region != null)
             return null;
 
-#if DEBUG
-        string debugRegionStr = "region";
+//#if DEBUG
+//        string debugRegionStr = "region";
 
-        if (cellsToIgnore != null)
-        {
-            debugRegionStr = "enclosed region";
-        }
+//        if (cellsToIgnore != null)
+//        {
+//            debugRegionStr = "enclosed region";
+//        }
 
-        Debug.Log("Generating " + debugRegionStr + " from cell " + startCell.Position);
-#endif
+//        Debug.Log("Generating " + debugRegionStr + " from cell " + startCell.Position);
+//#endif
 
         string biomeId = startCell.GetLocalAndNeighborhoodMostPresentBiome(true);
 
@@ -249,9 +246,6 @@ public static class BiomeCellRegionBuilder
 
             foreach (TerrainCell borderCell in outsideBorder.Cells)
             {
-#if DEBUG
-                Manager.AddUpdatedCell(borderCell, CellUpdateType.Region, CellUpdateSubType.Membership);
-#endif
                 if (cellsToSkip.Contains(borderCell)) continue;
                 if (borderCell.IsLiquidSea) continue;
                 if (borderCell.Region != null) continue;
@@ -323,7 +317,6 @@ public static class BiomeCellRegionBuilder
 
         Region region = CellSubRegionSetBuilder.GenerateRegionFromCellSet(
             startCell,
-            GetRandomInt,
             acceptedCellSet,
             language);
 
@@ -349,22 +342,17 @@ public static class BiomeCellRegionBuilder
                 superRegion.Add(enclosedRegion);
             }
 
-#if DEBUG
-            Debug.Log("Finished generating super " + debugRegionStr + " from cell " + startCell.Position);
-#endif
+//#if DEBUG
+//            Debug.Log("Finished generating super " + debugRegionStr + " from cell " + startCell.Position);
+//#endif
 
             return superRegion;
         }
 
-#if DEBUG
-        Debug.Log("Finished generating " + debugRegionStr + " from cell " + startCell.Position);
-#endif
+//#if DEBUG
+//        Debug.Log("Finished generating " + debugRegionStr + " from cell " + startCell.Position);
+//#endif
 
         return region;
-    }
-
-    private static int GetRandomInt(int maxValue)
-    {
-        return _startCell.GetNextLocalRandomInt(_rngOffset++, maxValue);
     }
 }

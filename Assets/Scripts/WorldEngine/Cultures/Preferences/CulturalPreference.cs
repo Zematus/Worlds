@@ -4,22 +4,14 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-// Cultural Preferences
-// -- Authority
-// -- Cohesion
-// -- Isolation
-
 [XmlInclude(typeof(CellCulturalPreference))]
 public class CulturalPreference : CulturalPreferenceInfo
 {
-    public static HashSet<string> Preferences;
-
-    [System.Obsolete]
+    // NOTE: Some preference value Ids might need to remain hardcoded
     public const string AuthorityPreferenceId = "authority";
-    [System.Obsolete]
     public const string CohesionPreferenceId = "cohesion";
-    [System.Obsolete]
     public const string IsolationPreferenceId = "isolation";
+    public const string AggressionPreferenceId = "aggression";
 
     [System.Obsolete]
     public const string AuthorityPreferenceName = "Authority";
@@ -35,17 +27,14 @@ public class CulturalPreference : CulturalPreferenceInfo
     [System.Obsolete]
     public const int IsolationPreferenceRngOffset = 2;
 
-    [XmlAttribute]
-    public float Value;
+    [XmlAttribute("V")]
+    public float ValueInternal;
 
-    public static void InitializePreferences()
+    [XmlIgnore]
+    public virtual float Value
     {
-        Preferences = new HashSet<string>
-        {
-            AuthorityPreferenceId,
-            CohesionPreferenceId,
-            IsolationPreferenceId
-        };
+        get => ValueInternal;
+        set => ValueInternal = value;
     }
 
     public CulturalPreference()

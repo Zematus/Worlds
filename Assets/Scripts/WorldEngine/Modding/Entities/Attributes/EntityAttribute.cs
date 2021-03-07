@@ -3,24 +3,41 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class EntityAttribute
+public abstract class EntityAttribute : IInputRequester
 {
     public string Id;
-    public Entity Entity;
+    public IEntity Entity;
     public IExpression[] Arguments;
 
-    private EntityAttributeExpression _attrExpression = null;
+    private IExpression _attrExpression = null;
 
-    public EntityAttribute(string id, Entity entity, IExpression[] arguments)
+    public virtual bool RequiresInput
+    {
+        get
+        {
+            if (Arguments != null)
+            {
+                foreach (IExpression e in Arguments)
+                {
+                    if (e.RequiresInput)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    public EntityAttribute(string id, IEntity entity, IExpression[] arguments)
     {
         Id = id;
         Entity = entity;
         Arguments = arguments;
     }
 
-    protected abstract EntityAttributeExpression BuildExpression();
+    protected abstract IExpression BuildExpression();
 
-    public EntityAttributeExpression GetExpression()
+    public IExpression GetExpression()
     {
         _attrExpression = _attrExpression ?? BuildExpression();
 
@@ -33,4 +50,20 @@ public abstract class EntityAttribute
     }
 
     public virtual string ToPartiallyEvaluatedString(bool evaluate) => ToString();
+
+    public virtual bool TryGetRequest(out InputRequest request)
+    {
+        if (Arguments != null)
+        {
+            foreach (IExpression e in Arguments)
+            {
+                if (e.TryGetRequest(out request))
+                    return true;
+            }
+        }
+
+        request = null;
+
+        return false;
+    }
 }

@@ -15,13 +15,6 @@ public abstract class WorldEvent : ISynchronizable
     public const long BoatMakingDiscoveryEventId = 500;
     public const long PlantCultivationDiscoveryEventId = 600;
 
-    [Obsolete]
-    public const long ClanSplitDecisionEventId = 7;
-    [Obsolete]
-    public const long PreventClanSplitEventId = 8;
-
-    public const long ExpandPolityProminenceEventId = 9;
-
     public const long TribeSplitDecisionEventId = 10;
     public const long SplitClanPreventTribeSplitEventId = 11;
     public const long PreventTribeSplitEventId = 12;
@@ -29,23 +22,10 @@ public abstract class WorldEvent : ISynchronizable
     public const long PolityFormationEventId = 13;
     public const long ClanCoreMigrationEventId = 14;
 
-    public const long ClanDemandsInfluenceDecisionEventId = 15;
-    public const long ClanAvoidsInfluenceDemandDecisionEventId = 16;
-    public const long RejectInfluenceDemandDecisionEventId = 17;
-    public const long AcceptInfluenceDemandDecisionEventId = 18;
-
-    public const long FosterTribeRelationDecisionEventId = 20;
-    public const long AvoidFosterTribeRelationDecisionEventId = 21;
-    public const long RejectFosterTribeRelationDecisionEventId = 22;
-    public const long AcceptFosterTribeRelationDecisionEventId = 23;
-
     public const long MergeTribesDecisionEventId = 25;
     public const long AvoidMergeTribesAttemptDecisionEventId = 26;
     public const long RejectMergeTribesOfferDecisionEventId = 27;
     public const long AcceptMergeTribesOfferDecisionEventId = 28;
-
-    public const long OpenTribeDecisionEventId = 30;
-    public const long AvoidOpenTribeDecisionEventId = 31;
 
     [XmlIgnore]
     public World World;
@@ -146,6 +126,10 @@ public abstract class WorldEvent : ISynchronizable
         return true;
     }
 
+    /// <summary>
+    /// Check if the event can be triggered under the current circumstances
+    /// </summary>
+    /// <returns>'true' if the event can be triggered, otherwise 'false'</returns>
     public virtual bool CanTrigger()
     {
         return IsStillValid();
@@ -161,6 +145,9 @@ public abstract class WorldEvent : ISynchronizable
 
     }
 
+    /// <summary>
+    /// Trigger all the effects of this event
+    /// </summary>
     public abstract void Trigger();
 
     public void Destroy()
@@ -168,6 +155,9 @@ public abstract class WorldEvent : ISynchronizable
         DestroyInternal();
     }
 
+    /// <summary>
+    /// Performs subclass-specific cleanup tasks before destroying the object
+    /// </summary>
     protected virtual void DestroyInternal()
     {
 

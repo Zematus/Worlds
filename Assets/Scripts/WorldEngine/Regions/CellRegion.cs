@@ -27,7 +27,7 @@ public class CellRegion : Region
 
     public void Update()
     {
-        Manager.AddUpdatedCells(_cells, CellUpdateType.Region, CellUpdateSubType.Membership, IsSelected);
+        Manager.AddUpdatedCells(this, CellUpdateType.Region, CellUpdateSubType.Membership);
     }
 
     public void AddCells(IEnumerable<TerrainCell> cells)
@@ -98,7 +98,7 @@ public class CellRegion : Region
 
             bool isNotFullyWater = (cell.WaterBiomePresence < 1);
 
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 if (nCell.Region != this)
                 {
@@ -106,6 +106,11 @@ public class CellRegion : Region
 
                     if (_outerBorderCells.Add(nCell))
                     {
+                        if (nCell.Region != null)
+                        {
+                            SetAsNeighbors(this, nCell.Region);
+                        }
+
                         float nCellArea = nCell.Area;
 
                         outerBorderArea += nCellArea;

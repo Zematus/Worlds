@@ -1,31 +1,48 @@
 ﻿using System;
 using UnityEngine;
 
-public abstract class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
+public class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
 {
     private bool _evaluated = false;
+
+    private IValueExpression<T> _valExpression = null;
 
     protected override object _reference => this;
 
     protected readonly string _id;
     protected readonly int _idHash;
 
-    public PropertyEntity(Context c, Context.LoadedContext.LoadedProperty p)
-        : base(c, p.id)
-    {
-        _id = p.id;
-        _idHash = p.id.GetHashCode();
+    public override bool RequiresInput => _valExpression.RequiresInput;
 
-        _partialEvalStringConverter = ToPartiallyEvaluatedString;
+    public override T Value
+    {
+        get
+        {
+            if (!_evaluated)
+            {
+                _value = _valExpression.Value;
+                _evaluated = true;
+            }
+
+            return _value;
+        }
+        protected set
+        {
+            throw new System.Exception("Value should be never be set for " + this.GetType());
+        }
     }
 
-    protected PropertyEntity(Context c, string id)
-        : base(c, id)
+    private T _value = default;
+
+    public PropertyEntity(Context c, string id, IExpression exp) : base(c, id)
     {
         _id = id;
         _idHash = id.GetHashCode();
 
         _partialEvalStringConverter = ToPartiallyEvaluatedString;
+
+        _valExpression = ValueExpressionBuilder.ValidateValueExpression<T>(exp);
+
     }
 
     public void Reset()
@@ -33,16 +50,11 @@ public abstract class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
         _evaluated = false;
     }
 
-    protected abstract void Calculate();
+    public override string ToPartiallyEvaluatedString(bool evaluate) =>
+        _valExpression.ToPartiallyEvaluatedString(evaluate);
 
-    protected void EvaluateIfNeeded()
-    {
-        if (!_evaluated)
-        {
-            Calculate();
-            _evaluated = true;
-        }
-    }
+    public override bool TryGetRequest(out InputRequest request) =>
+        _valExpression.TryGetRequest(out request);
 
     public override void Set(T v)
     {

@@ -12,7 +12,7 @@ public abstract class AssignableValueEntityAttribute<T> : EntityAttribute
 
     public abstract T Value { get; set; }
 
-    protected override EntityAttributeExpression BuildExpression()
+    protected override IExpression BuildExpression()
     {
         return new AssignableValueEntityAttributeExpression<T>(this);
     }

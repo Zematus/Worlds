@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public abstract class EffectEntityAttribute : EntityAttribute
 {
     public EffectEntityAttribute(
-        string id, Entity entity, IExpression[] arguments, int minArguments = 0)
+        string id, IEntity entity, IExpression[] arguments, int minArguments = 0)
         : base(id, entity, arguments)
     {
         if ((minArguments > 0) && ((arguments == null) || (arguments.Length < minArguments)))
@@ -18,7 +18,7 @@ public abstract class EffectEntityAttribute : EntityAttribute
 
     public abstract void Apply();
 
-    protected override EntityAttributeExpression BuildExpression()
+    protected override IExpression BuildExpression()
     {
         return new EffectEntityAttributeExpression(this);
     }

@@ -7,10 +7,10 @@ using UnityEngine.Profiling;
 
 public abstract class CellCulturalKnowledge : CulturalKnowledge
 {
-#if DEBUG
-    [XmlIgnore]
-    public long AcquisitionDate = -1; // This property is used for debugging purposes
-#endif
+//#if DEBUG
+//    [XmlIgnore]
+//    public long AcquisitionDate = -1; // This property is used for debugging purposes
+//#endif
 
     public const float MinProgressLevel = 0.001f;
 
@@ -48,28 +48,28 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         _referenceKnowledge = Knowledge.GetKnowledge(id);
 
-#if DEBUG
-        AcquisitionDate = group.World.CurrentDate;
+//#if DEBUG
+//        AcquisitionDate = group.World.CurrentDate;
 
-        //if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //{
-        //    if (Group.Id == Manager.TracingData.GroupId)
-        //    {
-        //        string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//        {
+//            if (Group.Id == Manager.TracingData.GroupId)
+//            {
+//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-        //        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //            "CellCulturalKnowledge.CellCulturalKnowledge - Group:" + groupId,
-        //            "CurrentDate: " + Group.World.CurrentDate +
-        //            ", Id: " + Id +
-        //            ", IsPresent: " + IsPresent +
-        //            ", Value: " + Value +
-        //            ", _newValue: " + _newValue +
-        //            "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellCulturalKnowledge.CellCulturalKnowledge - Group:" + groupId,
+//                    "CurrentDate: " + Group.World.CurrentDate +
+//                    ", Id: " + Id +
+//                    ", IsPresent: " + IsPresent +
+//                    ", Value: " + Value +
+//                    ", _newValue: " + _newValue +
+//                    "");
 
-        //        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //    }
-        //}
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         SetLimit(limit);
     }
@@ -170,9 +170,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     public void Merge(int value, float percentage)
     {
-        float d;
         // _newvalue should have been set correctly either by the constructor or by the Update function
-        int mergedValue = MathUtility.LerpToIntAndGetDecimals(_newValue, value, percentage, out d);
+        int mergedValue = MathUtility.LerpToIntAndGetDecimals(_newValue, value, percentage, out float d);
 
         if (d > Group.GetNextLocalRandomFloat(RngOffsets.KNOWLEDGE_MERGE + InstanceRngOffset))
             mergedValue++;
@@ -186,30 +185,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
             }
         }
 #endif
-
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Group.Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "CellCulturalKnowledge.Merge - Group:" + groupId,
-        //                    "CurrentDate: " + Group.World.CurrentDate +
-        //                    ", Id: " + Id +
-        //                    ", IsPresent: " + IsPresent +
-        //                    ", Value: " + Value +
-        //                    ", _newValue: " + _newValue +
-        //                    ", mergedValue: " + mergedValue +
-        //                    ", value (param): " + value +
-        //                    ", percentage: " + percentage +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
 
         _newValue = mergedValue;
     }
@@ -274,7 +249,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
                 Debug.LogWarning("Group with low social organization has faction cores - Id: " + Group + ", newValue:" + newValue);
             }
 
-            if (Group.WillBecomeFactionCore)
+            if (Group.WillBecomeCoreOfFaction != null)
             {
                 Debug.LogWarning("Group with low social organization will become a faction core - Id: " + Group + ", newValue:" + newValue);
             }

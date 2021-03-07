@@ -3,31 +3,53 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class PolityEntity : Entity
+public class PolityEntity : DelayedSetEntity<Polity>
 {
     public const string GetRandomGroupAttributeId = "get_random_group";
+    public const string GetRandomContactAttributeId = "get_random_contact";
+    public const string GetContactAttributeId = "get_contact";
     public const string DominantFactionAttributeId = "dominant_faction";
     public const string TransferInfluenceAttributeId = "transfer_influence";
     public const string TypeAttributeId = "type";
+    public const string LeaderAttributeId = "leader";
+    public const string ContactCountAttributeId = "contact_count";
+    public const string FactionCountAttributeId = "faction_count";
+    public const string SplitAttributeId = "split";
+    public const string MergeAttributeId = "merge";
+    public const string AccessibleNeighborRegionsAttributeId = "accessible_neighbor_regions";
+    public const string AddCoreRegionAttributeId = "add_core_region";
+    public const string CoreRegionSaturationAttributeId = "core_region_saturation";
 
-    public virtual Polity Polity { get; protected set; }
-
-    public int RandomGroupIndex = 0;
+    public virtual Polity Polity
+    {
+        get => Setable;
+        private set => Setable = value;
+    }
 
     protected override object _reference => Polity;
 
+    private int _groupIndex = 0;
+    private int _contactIndex = 0;
+
     private ValueGetterEntityAttribute<string> _typeAttribute;
+    private ValueGetterEntityAttribute<float> _contactCountAttribute;
+    private ValueGetterEntityAttribute<float> _factionCountAttribute;
+    private ValueGetterEntityAttribute<float> _coreRegionSaturationAttribute;
 
-    private DelayedSetFactionEntity _dominantFactionEntity = null;
+    private AgentEntity _leaderEntity = null;
+    private FactionEntity _dominantFactionEntity = null;
 
-    private bool _alreadyReset = false;
+    private RegionCollectionEntity _accessibleNeighborRegionsEntity = null;
 
-    private readonly List<RandomGroupEntity>
-        _randomGroupEntitiesToSet = new List<RandomGroupEntity>();
+    private readonly List<GroupEntity>
+        _groupEntitiesToSet = new List<GroupEntity>();
+
+    private readonly List<ContactEntity>
+        _contactEntitiesToSet = new List<ContactEntity>();
 
     public override string GetDebugString()
     {
-        return "polity:" + Polity.Name.Text;
+        return "polity:" + Polity.GetName();
     }
 
     public override string GetFormattedString()
@@ -39,10 +61,16 @@ public class PolityEntity : Entity
     {
     }
 
+    public PolityEntity(
+        ValueGetterMethod<Polity> getterMethod, Context c, string id)
+        : base(getterMethod, c, id)
+    {
+    }
+
     public EntityAttribute GetDominantFactionAttribute()
     {
         _dominantFactionEntity =
-            _dominantFactionEntity ?? new DelayedSetFactionEntity(
+            _dominantFactionEntity ?? new FactionEntity(
             GetDominantFaction,
             Context,
             BuildAttributeId(DominantFactionAttributeId));
@@ -50,59 +78,104 @@ public class PolityEntity : Entity
         return _dominantFactionEntity.GetThisEntityAttribute(this);
     }
 
-    private class RandomGroupEntity : GroupEntity
+    public EntityAttribute GetAccessibleNeighborRegionsAttribute()
     {
-        private int _index;
-        private int _iterOffset;
-        private PolityEntity _polityEntity;
+        _accessibleNeighborRegionsEntity =
+            _accessibleNeighborRegionsEntity ?? new RegionCollectionEntity(
+            GetAccessibleNeighborRegions,
+            Context,
+            BuildAttributeId(AccessibleNeighborRegionsAttributeId));
 
-        private CellGroup _group = null;
-
-        public RandomGroupEntity(int index, PolityEntity entity)
-            : base(entity.Context, entity.Id + ".random_group_" + index)
-        {
-            _index = index;
-            _iterOffset = entity.Context.GetNextIterOffset() + index;
-            _polityEntity = entity;
-        }
-
-        public void Reset()
-        {
-            _group = null;
-        }
-
-        public override CellGroup Group
-        {
-            get
-            {
-                if (_group == null)
-                {
-                    Polity polity = _polityEntity.Polity;
-
-                    int offset = polity.GetHashCode() + _iterOffset + Context.GetBaseOffset();
-
-                    _group = polity.GetRandomGroup(offset);
-
-                    Set(_group);
-                }
-
-                return _group;
-            }
-        }
+        return _accessibleNeighborRegionsEntity.GetThisEntityAttribute(this);
     }
 
-    private EntityAttribute GenerateRandomGroupEntityAttribute()
+    public EntityAttribute GetLeaderAttribute()
     {
-        int groupIndex = RandomGroupIndex++;
+        _leaderEntity =
+            _leaderEntity ?? new AgentEntity(
+                GetLeader,
+                Context,
+                BuildAttributeId(LeaderAttributeId));
 
-        RandomGroupEntity entity = new RandomGroupEntity(groupIndex, this);
+        return _leaderEntity.GetThisEntityAttribute(this);
+    }
 
-        _randomGroupEntitiesToSet.Add(entity);
+    private EntityAttribute GenerateGetRandomGroupEntityAttribute()
+    {
+        int index = _groupIndex++;
+        int iterOffset = Context.GetNextIterOffset() + index;
+
+        GroupEntity entity = new GroupEntity(
+            () => {
+                int offset = Polity.GetHashCode() + iterOffset + Context.GetBaseOffset();
+                return Polity.GetRandomGroup(offset);
+            },
+            Context,
+            BuildAttributeId("random_group_" + index));
+
+        _groupEntitiesToSet.Add(entity);
+
+        return entity.GetThisEntityAttribute(this);
+    }
+
+    private EntityAttribute GenerateGetRandomContactEntityAttribute()
+    {
+        int index = _contactIndex++;
+        int iterOffset = Context.GetNextIterOffset() + index;
+
+        ContactEntity entity = new ContactEntity(
+            () => {
+                int offset = Polity.GetHashCode() + iterOffset + Context.GetBaseOffset();
+                return Polity.GetRandomPolityContact(offset);
+            },
+            Context,
+            BuildAttributeId("random_contact_" + index));
+
+        _contactEntitiesToSet.Add(entity);
+
+        return entity.GetThisEntityAttribute(this);
+    }
+
+    private EntityAttribute GenerateGetContactEntityAttribute(IExpression[] arguments)
+    {
+        if ((arguments == null) || (arguments.Length < 1))
+        {
+            throw new System.ArgumentException(
+                GetContactAttributeId + ": number of arguments given less than 1");
+        }
+
+        IValueExpression<IEntity> polityArgument =
+            ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
+
+        int index = _contactIndex++;
+
+        ContactEntity entity = new ContactEntity(
+            () => {
+                PolityEntity polityEntity = polityArgument.Value as PolityEntity;
+
+                if (polityEntity == null)
+                {
+                    throw new System.ArgumentException(
+                        "split: invalid contact polity: " +
+                        "\n - expression: " + ToString() +
+                        "\n - contact polity: " + polityArgument.ToPartiallyEvaluatedString());
+                }
+
+                return Polity.GetContact(polityEntity.Polity);
+            },
+            Context,
+            BuildAttributeId("contact_" + index));
+
+        _contactEntitiesToSet.Add(entity);
 
         return entity.GetThisEntityAttribute(this);
     }
 
     public Faction GetDominantFaction() => Polity.DominantFaction;
+
+    public ICollection<Region> GetAccessibleNeighborRegions() => Polity.AccessibleNeighborRegions;
+
+    public Agent GetLeader() => Polity.CurrentLeader;
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
@@ -114,58 +187,74 @@ public class PolityEntity : Entity
                         TypeAttributeId, this, () => Polity.Type);
                 return _typeAttribute;
 
+            case ContactCountAttributeId:
+                _contactCountAttribute =
+                    _contactCountAttribute ?? new ValueGetterEntityAttribute<float>(
+                        ContactCountAttributeId, this, () => Polity.GetContacts().Count);
+                return _contactCountAttribute;
+
+            case FactionCountAttributeId:
+                _factionCountAttribute =
+                    _factionCountAttribute ?? new ValueGetterEntityAttribute<float>(
+                        FactionCountAttributeId, this, () => Polity.FactionCount);
+                return _factionCountAttribute;
+
+            case LeaderAttributeId:
+                return GetLeaderAttribute();
+
             case GetRandomGroupAttributeId:
-                return GenerateRandomGroupEntityAttribute();
+                return GenerateGetRandomGroupEntityAttribute();
+
+            case GetRandomContactAttributeId:
+                return GenerateGetRandomContactEntityAttribute();
 
             case DominantFactionAttributeId:
                 return GetDominantFactionAttribute();
 
             case TransferInfluenceAttributeId:
                 return new TransferInfluenceAttribute(this, arguments);
+
+            case GetContactAttributeId:
+                return GenerateGetContactEntityAttribute(arguments);
+
+            case SplitAttributeId:
+                return new SplitPolityAttribute(this, arguments);
+
+            case MergeAttributeId:
+                return new MergePolityAttribute(this, arguments);
+
+            case AccessibleNeighborRegionsAttributeId:
+                return GetAccessibleNeighborRegionsAttribute();
+
+            case AddCoreRegionAttributeId:
+                return new AddCoreRegionAttribute(this, arguments);
+
+            case CoreRegionSaturationAttributeId:
+                _coreRegionSaturationAttribute =
+                    _coreRegionSaturationAttribute ?? new ValueGetterEntityAttribute<float>(
+                        CoreRegionSaturationAttributeId, this, () => Polity.CoreRegionSaturation);
+                return _coreRegionSaturationAttribute;
         }
 
         throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);
     }
 
-    protected void ResetInternal()
+    protected override void ResetInternal()
     {
-        if (_alreadyReset)
-        {
-            return;
-        }
+        if (_isReset) return;
 
-        foreach (RandomGroupEntity groupEntity in _randomGroupEntitiesToSet)
+        foreach (GroupEntity groupEntity in _groupEntitiesToSet)
         {
             groupEntity.Reset();
         }
 
+        foreach (ContactEntity contactEntity in _contactEntitiesToSet)
+        {
+            contactEntity.Reset();
+        }
+
+        _leaderEntity?.Reset();
         _dominantFactionEntity?.Reset();
-
-        _alreadyReset = true;
-    }
-
-    public void Set(Polity p)
-    {
-        Polity = p;
-
-        ResetInternal();
-
-        _alreadyReset = false;
-    }
-
-    public override void Set(object o)
-    {
-        if (o is PolityEntity e)
-        {
-            Set(e.Polity);
-        }
-        else if (o is Polity p)
-        {
-            Set(p);
-        }
-        else
-        {
-            throw new System.ArgumentException("Unexpected type: " + o.GetType());
-        }
+        _accessibleNeighborRegionsEntity?.Reset();
     }
 }

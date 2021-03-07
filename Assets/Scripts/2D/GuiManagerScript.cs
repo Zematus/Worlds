@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine.Profiling;
@@ -41,8 +40,6 @@ public class GuiManagerScript : MonoBehaviour
 
     public TextInputDialogPanelScript SaveFileDialogPanelScript;
     public TextInputDialogPanelScript ExportMapDialogPanelScript;
-    [System.Obsolete]
-    public DecisionDialogPanelScript DecisionDialogPanelScript;
     public ModDecisionDialogPanelScript ModDecisionDialogPanelScript;
     public LoadFileDialogPanelScript LoadFileDialogPanelScript;
     public SelectFactionDialogPanelScript SelectFactionDialogPanelScript;
@@ -57,7 +54,6 @@ public class GuiManagerScript : MonoBehaviour
     public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
     public AddPopulationDialogScript AddPopulationDialogScript;
     public FocusPanelScript FocusPanelScript;
-    public GuidingPanelScript GuidingPanelScript;
     public ModalPanelScript CreditsDialogPanelScript;
 
     public PaletteScript BiomePaletteScript;
@@ -89,15 +85,49 @@ public class GuiManagerScript : MonoBehaviour
     public UnityEvent WorldRegenerated;
     public UnityEvent WorldLoaded;
 
+    public ToggleEvent EffectHandlingRequested;
+
     public ToggleEvent ToggledGlobeViewing;
 
     public SpeedChangeEvent OnSimulationSpeedChanged;
 
+    public MessageEvent DisplayNonBlockingMessage;
+    public UnityEvent HideNonBlockingMessage;
+
+    /// <summary>
+    /// Indicates that the game should not progress after finishing a parallel op
+    /// because something else is pausing the simulation (resolving an action or
+    /// decision, for example). Example parallel ops: save, export
+    /// </summary>
     private bool _eventPauseActive = false;
 
+    /// <summary>
+    /// Indicates that the pause button has been pressed by the user to pause the
+    /// simulation (as opposed to the simulation being paused by a dialog, for example)
+    /// </summary>
     private bool _pauseButtonPressed = false;
 
-    private bool _pausingDialogActive = false;
+    /// <summary>
+    /// Indicates that something is pausing the simulation (dialog, action, etc...)
+    /// </summary>
+    private bool _pausingConditionActive = false;
+
+    /// <summary>
+    /// Indicates that the simulation is waiting for the user to complete a set of requests
+    /// </summary>
+    private bool _resolvingEffects = false;
+
+    /// <summary>
+    /// Indicates that the simulation is waiting for the user to resolve a decision
+    /// </summary>
+    private bool _resolvingDecision = false;
+
+    /// <summary>
+    /// Indicates that the user finished handling a request
+    /// </summary>
+    private bool _doneHandlingRequest = false;
+
+    private IEffectExpression _unresolvedEffect = null;
 
     private bool _displayedTip_mapScroll = false;
     private bool _displayedTip_initialPopulation = false;
@@ -112,6 +142,12 @@ public class GuiManagerScript : MonoBehaviour
     private PlanetView _planetView = PlanetView.Biomes;
 
     private PlanetOverlay _planetOverlay = PlanetOverlay.General;
+
+    private Stack<PlanetOverlay> _tempOverlayStack =
+        new Stack<PlanetOverlay>();
+
+    private Stack<string> _tempOverlaySubtypeStack =
+        new Stack<string>();
 
     private string _planetOverlaySubtype = "None";
 
@@ -160,7 +196,8 @@ public class GuiManagerScript : MonoBehaviour
     private List<PlanetOverlay> _debugOverlays = new List<PlanetOverlay>()
     {
         PlanetOverlay.PopChange,
-        PlanetOverlay.UpdateSpan
+        PlanetOverlay.UpdateSpan,
+        PlanetOverlay.Migration
     };
     private int _currentDebugOverlay = 0;
 
@@ -195,12 +232,12 @@ public class GuiManagerScript : MonoBehaviour
     private float _accDeltaTime = 0;
     private long _simulationDateSpan = 0;
 
+    private bool _willFinishResolvingDecision = false;
     private bool _resolvedDecision = false;
 
     private int _mapUpdateCount = 0;
     private int _pixelUpdateCount = 0;
     private float _timeSinceLastMapUpdate = 0;
-    private long _lastUpdateDate = 0;
 
     private int _topMaxSpeedLevelIndex;
     private int _selectedMaxSpeedLevelIndex;
@@ -210,6 +247,8 @@ public class GuiManagerScript : MonoBehaviour
     private List<ModalPanelScript> _hiddenInteractionPanels = new List<ModalPanelScript>();
 
     private System.Exception _cachedException = null;
+
+    private System.Action _closeErrorActionToPerform = null;
 
     void OnEnable()
     {
@@ -262,7 +301,6 @@ public class GuiManagerScript : MonoBehaviour
         SelectionPanelScript.RemoveAllOptions();
         SelectionPanelScript.SetVisible(false);
 
-        DecisionDialogPanelScript.SetVisible(false);
         ModDecisionDialogPanelScript.SetVisible(false);
         SelectFactionDialogPanelScript.SetVisible(false);
         MainMenuDialogPanelScript.SetVisible(false);
@@ -274,7 +312,6 @@ public class GuiManagerScript : MonoBehaviour
         AddPopulationDialogScript.SetVisible(false);
 
         FocusPanelScript.SetVisible(false);
-        GuidingPanelScript.SetVisible(false);
 
         QuickTipPanelScript.SetVisible(false);
         InfoTooltipScript.SetVisible(false);
@@ -290,7 +327,7 @@ public class GuiManagerScript : MonoBehaviour
 
             Manager.EnqueueTaskAndWait(() =>
             {
-                PauseSimulation(true);
+                PlayerPauseSimulation(true);
 
                 ResetAllDialogs();
 
@@ -369,9 +406,14 @@ public class GuiManagerScript : MonoBehaviour
             //GenerateWorld(false, 888101979);
             //GenerateWorld(false, 6353535);
             //GenerateWorld(false, 1137426545);
-            //GenerateWorld(false, 1277025723);
-            GenerateWorld(false, 1602826489);
+            ///GenerateWorld(false, 1277025723);
+            ///GenerateWorld(false, 1602826489);
             //GenerateWorld(false, 1251521690);
+            //GenerateWorld(false, 82226810);
+            //GenerateWorld(false, 122520965);
+            //GenerateWorld(false, 1757624864);
+            //GenerateWorld(false, 1253572363);
+            GenerateWorld(false, 403265427);
         }
         else
         {
@@ -410,14 +452,25 @@ public class GuiManagerScript : MonoBehaviour
 
         ReadKeyboardInput();
 
-        if (Manager.DebugModeEnabled && Manager.WorldIsReady)
+        if ((Manager.CurrentDevMode != DevMode.None) && Manager.WorldIsReady)
         {
             _timeSinceLastMapUpdate += Time.deltaTime;
 
             if (_timeSinceLastMapUpdate > 1) // Every second
             {
                 Manager.LastEventsTriggeredCount = Manager.CurrentWorld.EventsTriggered;
+                Manager.LastEventsEvaluatedCount = Manager.CurrentWorld.EventsEvaluated;
+
+                foreach (KeyValuePair<string, World.EventEvalStats> pair in
+                    Manager.CurrentWorld.EventEvalStatsPerType)
+                {
+                    Manager.LastEventEvalStatsPerType[pair.Key] = pair.Value;
+                }
+
                 Manager.CurrentWorld.EventsTriggered = 0;
+                Manager.CurrentWorld.EventsEvaluated = 0;
+
+                Manager.CurrentWorld.EventEvalStatsPerType.Clear();
 
                 Manager.LastMapUpdateCount = _mapUpdateCount;
                 _mapUpdateCount = 0;
@@ -431,13 +484,13 @@ public class GuiManagerScript : MonoBehaviour
                 {
                     long currentDate = Manager.CurrentWorld.CurrentDate;
 
-                    Manager.LastDateSpan = currentDate - _lastUpdateDate;
-                    _lastUpdateDate = currentDate;
+                    Manager.LastDevModeDateSpan = currentDate - Manager.LastDevModeUpdateDate;
+                    Manager.LastDevModeUpdateDate = currentDate;
                 }
                 else
                 {
-                    Manager.LastDateSpan = 0;
-                    _lastUpdateDate = 0;
+                    Manager.LastDevModeDateSpan = 0;
+                    Manager.LastDevModeUpdateDate = 0;
                 }
             }
         }
@@ -473,7 +526,36 @@ public class GuiManagerScript : MonoBehaviour
             ShowHiddenInteractionPanels();
         }
 
-        bool simulationRunning = Manager.SimulationCanRun && Manager.SimulationRunning;
+        if (_doneHandlingRequest)
+        {
+            if (TryResolvePendingEffects())
+            {
+                SetResolvingEffects(false);
+            }
+
+            _doneHandlingRequest = false;
+        }
+
+        if (!_resolvingEffects)
+        {
+            if (_willFinishResolvingDecision)
+            {
+                FinishResolvingDecision();
+            }
+
+            if (!_resolvingEffects && !_resolvingDecision)
+            {
+                // if we are not waiting on the user, try resolving
+                // other pending decisions
+                TryResolvePendingDecisions();
+            }
+        }
+
+        TryResolvePendingAction();
+
+        bool simulationRunning =
+            Manager.SimulationCanRun &&
+            (Manager.SimulationRunning || Manager.SimulationPerformingStep);
 
         if (simulationRunning)
         {
@@ -506,6 +588,7 @@ public class GuiManagerScript : MonoBehaviour
                 // Simulate up to the max amout of iterations allowed per frame
                 while ((lastUpdateDate + maxDateSpanBetweenUpdates) > world.CurrentDate)
                 {
+                    // If we just resolved a decision then skip event evaluation
                     if (_resolvedDecision)
                     {
                         _resolvedDecision = false;
@@ -515,15 +598,10 @@ public class GuiManagerScript : MonoBehaviour
                         world.EvaluateEventsToHappen();
                     }
 
-                    if (world.HasDecisionsToResolve())
+                    if (!TryResolvePendingDecisions())
                     {
-                        RequestDecisionResolution();
-                        break;
-                    }
-
-                    if (world.HasModDecisionsToResolve())
-                    {
-                        RequestModDecisionResolution();
+                        // Stop world update if resolving the decision will
+                        // require player input
                         break;
                     }
 
@@ -612,7 +690,7 @@ public class GuiManagerScript : MonoBehaviour
 
             Profiler.EndSample();
 
-            if (Manager.DebugModeEnabled)
+            if (Manager.CurrentDevMode != DevMode.None)
             {
                 _pixelUpdateCount += Manager.UpdatedPixelCount;
                 _mapUpdateCount++;
@@ -629,7 +707,7 @@ public class GuiManagerScript : MonoBehaviour
 
             Manager.UpdateTextures();
 
-            if (Manager.DebugModeEnabled)
+            if (Manager.CurrentDevMode != DevMode.None)
             {
                 _pixelUpdateCount += Manager.UpdatedPixelCount;
                 _mapUpdateCount++;
@@ -640,7 +718,6 @@ public class GuiManagerScript : MonoBehaviour
 
         InfoPanelScript.UpdateInfoPanel();
         UpdateFocusPanel();
-        UpdateGuidingPanel();
         UpdateSelectionMenu();
 
         if (Manager.GameMode == GameMode.Editor)
@@ -691,7 +768,8 @@ public class GuiManagerScript : MonoBehaviour
         EnteredEditorMode.Invoke();
 
 #if DEBUG
-        ChangePlanetOverlay(PlanetOverlay.None); // When debugging we might like to autoselect a different default overlay
+        // When debugging we might like to autoselect a different default overlay
+        ChangePlanetOverlay(PlanetOverlay.None);
 #else
 		ChangePlanetOverlay(PlanetOverlay.None);
 #endif
@@ -699,12 +777,12 @@ public class GuiManagerScript : MonoBehaviour
 
     private bool CanAlterRunningStateOrSpeed()
     {
-        return Manager.SimulationCanRun && !_pausingDialogActive;
+        return Manager.SimulationCanRun && !_pausingConditionActive;
     }
 
     private void PauseSimulationIfRunning()
     {
-        PauseSimulation(Manager.SimulationRunning);
+        PlayerPauseSimulation(Manager.SimulationRunning);
     }
 
     private void SetMaxSpeedLevelTo0()
@@ -804,6 +882,12 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_Escape()
     {
+        if (_resolvingEffects)
+        {
+            // Do not process if waiting for the player to complete an action
+            return;
+        }
+
         Manager.HandleKeyUp(KeyCode.Escape, false, false, HandleEscapeOp);
     }
 
@@ -814,6 +898,12 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_Menus()
     {
+        if (_resolvingEffects)
+        {
+            // Do not process if waiting for the player to complete an action
+            return;
+        }
+
         Manager.HandleKeyUp(KeyCode.X, true, false, ExportImageAs);
         Manager.HandleKeyUp(KeyCode.S, true, false, SaveWorldAs);
         Manager.HandleKeyUp(KeyCode.L, true, false, LoadWorld);
@@ -833,6 +923,12 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_MapViews()
     {
+        if (_resolvingEffects)
+        {
+            // Do not process if waiting for the player to complete an action
+            return;
+        }
+
         Manager.HandleKeyUp(KeyCode.V, false, false, SetNextView);
     }
 
@@ -843,6 +939,12 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_MapOverlays()
     {
+        if (_resolvingEffects)
+        {
+            // Do not process if waiting for the player to complete an action
+            return;
+        }
+
         Manager.HandleKeyUp(KeyCode.N, false, false, DisableAllOverlays);
 
         if (Manager.GameMode == GameMode.Simulator)
@@ -851,7 +953,7 @@ public class GuiManagerScript : MonoBehaviour
             Manager.HandleKeyUp(KeyCode.O, false, false, ActivatePopOverlay);
             Manager.HandleKeyUp(KeyCode.P, false, false, ActivatePolityOverlay);
 
-            if (Manager.DebugModeEnabled)
+            if (Manager.CurrentDevMode != DevMode.None)
             {
                 Manager.HandleKeyUp(KeyCode.D, false, false, ActivateDebugOverlay);
             }
@@ -903,9 +1005,9 @@ public class GuiManagerScript : MonoBehaviour
         ChangePlanetOverlay(_popOverlays[_currentPopOverlay]);
     }
 
-    private void SkipDebugOverlaysIfNotEnabled()
+    private void SkipDevOverlaysIfNotEnabled()
     {
-        if ((!Manager.DebugModeEnabled) &&
+        if ((Manager.CurrentDevMode == DevMode.None) &&
             ((_polityOverlays[_currentPolityOverlay] == PlanetOverlay.FactionCoreDistance) ||
             (_polityOverlays[_currentPolityOverlay] == PlanetOverlay.PolityCluster)))
         {
@@ -920,14 +1022,14 @@ public class GuiManagerScript : MonoBehaviour
             _currentPolityOverlay = (_currentPolityOverlay + 1) % _polityOverlays.Count;
         }
 
-        SkipDebugOverlaysIfNotEnabled();
+        SkipDevOverlaysIfNotEnabled();
 
         ChangePlanetOverlay(_polityOverlays[_currentPolityOverlay]);
     }
 
     private void SkipLayerOverlayIfNotPresent()
     {
-        // Skip layer overlay if now layers are present in this world
+        // Skip layer overlay if no layers are present in this world
         if ((!Manager.LayersPresent) &&
             (_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Layer))
         {
@@ -986,7 +1088,11 @@ public class GuiManagerScript : MonoBehaviour
     private void ReadKeyboardInput()
     {
         if (_backgroundProcessActive)
-            return; // Do not process keyboard inputs while a background process (generate/load/save/export) is executing.
+        {
+            // Do not process any keyboard inputs while a background process
+            // (generate/load/save/export) is executing
+            return;
+        }
 
         ReadKeyboardInput_TimeControls();
         ReadKeyboardInput_Escape();
@@ -1032,22 +1138,6 @@ public class GuiManagerScript : MonoBehaviour
         else
         {
             FocusPanelScript.SetVisible(false);
-        }
-    }
-
-    private void UpdateGuidingPanel()
-    {
-        Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
-
-        if (guidedFaction != null)
-        {
-            GuidingPanelScript.SetVisible(true);
-
-            GuidingPanelScript.SetState(guidedFaction);
-        }
-        else
-        {
-            GuidingPanelScript.SetVisible(false);
         }
     }
 
@@ -1112,12 +1202,6 @@ public class GuiManagerScript : MonoBehaviour
             PolityFormationEventMessage polityFormationEventMessage = eventMessage as PolityFormationEventMessage;
 
             ShowEventMessageForPolity(eventMessage, polityFormationEventMessage.PolityId);
-        }
-        else if (eventMessage is PolityEventMessage)
-        {
-            PolityEventMessage polityEventMessage = eventMessage as PolityEventMessage;
-
-            ShowEventMessageForPolity(eventMessage, polityEventMessage.PolityId);
         }
         else if (eventMessage is DiscoveryEventMessage)
         {
@@ -1210,8 +1294,9 @@ public class GuiManagerScript : MonoBehaviour
 
         SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
         SettingsDialogPanelScript.UIScalingToggle.isOn = Manager.UIScalingEnabled;
-        SettingsDialogPanelScript.DebugModeToggle.isOn = Manager.DebugModeEnabled;
         SettingsDialogPanelScript.AnimationShadersToggle.isOn = Manager.AnimationShadersEnabled;
+
+        SettingsDialogPanelScript.RefreshDevButtonText();
 
         SettingsDialogPanelScript.SetVisible(true);
 
@@ -1246,29 +1331,56 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void ToogleDebugMode(bool state)
+    public void ToogleDevMode()
     {
-        Manager.DebugModeEnabled = state;
+        DevMode nextDevMode;
 
-        if (state)
+        switch (Manager.CurrentDevMode)
+        {
+            case DevMode.None:
+                nextDevMode = DevMode.Basic;
+                break;
+            case DevMode.Basic:
+                nextDevMode = DevMode.Advanced;
+                break;
+            case DevMode.Advanced:
+                nextDevMode = DevMode.None;
+                break;
+            default:
+                throw new System.Exception("Unhandled Dev Mode: " + Manager.CurrentDevMode);
+        }
+
+        Manager.CurrentDevMode = nextDevMode;
+
+        SettingsDialogPanelScript.RefreshDevButtonText();
+
+        if (nextDevMode != DevMode.None)
         {
             Manager.CurrentWorld.EventsTriggered = 0;
+            Manager.CurrentWorld.EventsEvaluated = 0;
+
+            Manager.CurrentWorld.EventEvalStatsPerType.Clear();
+
             _mapUpdateCount = 0;
             _pixelUpdateCount = 0;
             _timeSinceLastMapUpdate = 0;
 
             Manager.LastEventsTriggeredCount = 0;
+            Manager.LastEventsEvaluatedCount = 0;
+
+            Manager.LastEventEvalStatsPerType.Clear();
+
             Manager.LastMapUpdateCount = 0;
             Manager.LastPixelUpdateCount = 0;
-            Manager.LastDateSpan = 0;
+            Manager.LastDevModeDateSpan = 0;
 
             if (Manager.WorldIsReady)
             {
-                _lastUpdateDate = Manager.CurrentWorld.CurrentDate;
+                Manager.LastDevModeUpdateDate = Manager.CurrentWorld.CurrentDate;
             }
             else
             {
-                _lastUpdateDate = 0;
+                Manager.LastDevModeUpdateDate = 0;
             }
         }
     }
@@ -1297,7 +1409,8 @@ public class GuiManagerScript : MonoBehaviour
     {
         ErrorMessageDialogPanelScript.SetVisible(false);
 
-        SetGenerationSeed();
+        _closeErrorActionToPerform?.Invoke();
+        _closeErrorActionToPerform = null;
     }
 
     public void CloseExceptionMessageAction()
@@ -1403,8 +1516,10 @@ public class GuiManagerScript : MonoBehaviour
         GenerateWorldInternal(seed, useHeightmap);
     }
 
-    private void ShowErrorMessage(string message)
+    private void ShowErrorMessage(string message, System.Action closeErrorActionToPerform = null)
     {
+        _closeErrorActionToPerform = closeErrorActionToPerform;
+
         ErrorMessageDialogPanelScript.SetDialogText(message);
         ErrorMessageDialogPanelScript.SetVisible(true);
     }
@@ -1417,7 +1532,7 @@ public class GuiManagerScript : MonoBehaviour
 
         if (seed < 0)
         {
-            ShowErrorMessage(errorMessage);
+            ShowErrorMessage(errorMessage, SetGenerationSeed);
             return;
         }
 
@@ -1447,6 +1562,8 @@ public class GuiManagerScript : MonoBehaviour
         OpenModeSelectionDialog();
 
         _selectedMaxSpeedLevelIndex = Manager.StartSpeedIndex;
+
+        ResetSimulationState();
 
         SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
 
@@ -1524,7 +1641,7 @@ public class GuiManagerScript : MonoBehaviour
         DisplayTip_MapScroll();
     }
 
-    public void ClickOp_SelectCell(Vector2 mapPosition)
+    private void ClickOp_SelectCell(Vector2 mapPosition)
     {
         int longitude = (int)mapPosition.x;
         int latitude = (int)mapPosition.y;
@@ -1534,7 +1651,45 @@ public class GuiManagerScript : MonoBehaviour
         MapEntitySelected.Invoke();
     }
 
-    public void ClickOp_SelectPopulationPlacement(Vector2 mapPosition)
+    private void ClickOp_SelectRequestTarget(Vector2 mapPosition)
+    {
+        int longitude = (int)mapPosition.x;
+        int latitude = (int)mapPosition.y;
+
+        TerrainCell clickedCell = Manager.CurrentWorld.GetCell(longitude, latitude);
+
+        if (Manager.CurrentInputRequest is RegionSelectionRequest rsRequest)
+        {
+            _doneHandlingRequest = TryCompleteRegionSelectionRequest(rsRequest, clickedCell);
+            return;
+        }
+    }
+
+    private bool TryCompleteRegionSelectionRequest(
+        RegionSelectionRequest rsRequest,
+        TerrainCell targetCell)
+    {
+        Region targetRegion = targetCell.Region;
+
+        if ((targetRegion != null) &&
+            (targetRegion.AssignedFilterType == Region.FilterType.Selectable))
+        {
+            rsRequest.Set(targetRegion);
+            rsRequest.Close();
+
+            HideNonBlockingMessage.Invoke();
+
+            RevertTempPlanetOverlay();
+
+            _mapLeftClickOp -= ClickOp_SelectRequestTarget;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private void ClickOp_SelectPopulationPlacement(Vector2 mapPosition)
     {
         int population = AddPopulationDialogScript.Population;
 
@@ -1801,11 +1956,17 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.Region:
                 planetOverlayStr = "_region";
                 break;
+            case PlanetOverlay.RegionSelection:
+                planetOverlayStr = "_region_select";
+                break;
             case PlanetOverlay.PopChange:
                 planetOverlayStr = "_population_change";
                 break;
             case PlanetOverlay.UpdateSpan:
                 planetOverlayStr = "_update_span";
+                break;
+            case PlanetOverlay.Migration:
+                planetOverlayStr = "_migration_event";
                 break;
             default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
         }
@@ -2013,7 +2174,7 @@ public class GuiManagerScript : MonoBehaviour
     /// <param name="speedLevelIndex">The speed level index to use</param>
     private void SetMaxSpeedLevelIfNotPaused(int speedLevelIndex)
     {
-        if (_pausingDialogActive || _pauseButtonPressed)
+        if (_pausingConditionActive || _pauseButtonPressed)
         {
             return;
         }
@@ -2057,7 +2218,7 @@ public class GuiManagerScript : MonoBehaviour
             GetMaxSpeedOptionFromCurrentWorld();
 
             // Always start paused for running worlds
-            PauseSimulation(true);
+            PlayerPauseSimulation(true);
         }
     }
 
@@ -2094,10 +2255,21 @@ public class GuiManagerScript : MonoBehaviour
         ValidateLayersPresent();
         SetGameModeAccordingToCurrentWorld();
 
+        ResetSimulationState();
+
         _postProgressOp -= PostProgressOp_LoadAction;
 
         _loadWorldPostProgressOp?.Invoke();
         WorldLoaded.Invoke();
+    }
+
+    private void ResetSimulationState()
+    {
+        _resolvedDecision = false;
+        _resolvingDecision = false;
+        _willFinishResolvingDecision = false;
+        _doneHandlingRequest = false;
+        _resolvingEffects = false;
     }
 
     /// <summary>Resets the state of the GUI manager before loading or generating a new world.</summary>
@@ -2163,33 +2335,38 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
-    [System.Obsolete]
-    private void RequestDecisionResolution()
+    private bool TryResolvePendingDecisions()
     {
-        Decision decisionToResolve = Manager.CurrentWorld.PullDecisionToResolve();
-
-        DecisionDialogPanelScript.Set(decisionToResolve, _selectedMaxSpeedLevelIndex);
-
-        if (!IsMenuPanelActive())
+        while (Manager.CurrentWorld.HasModDecisionsToResolve())
         {
-            DecisionDialogPanelScript.SetVisible(true);
-        }
-        else
-        {
-            // Hide the decision dialog until all menu panels are inactive
-            HideInteractionPanel(DecisionDialogPanelScript);
+            ModDecision decisionToResolve = Manager.CurrentWorld.PullModDecisionToResolve();
+
+            Faction targetFaction = decisionToResolve.Target.Faction;
+
+            if (targetFaction.IsUnderPlayerGuidance)
+            {
+                RequestModDecisionResolution(decisionToResolve);
+                return false;
+            }
+            else
+            {
+                decisionToResolve.AutoEvaluate();
+            }
         }
 
-        InterruptSimulation(true);
-
-        _eventPauseActive = true;
+        return true;
     }
 
-    private void RequestModDecisionResolution()
+    private void RequestModDecisionResolution(ModDecision decisionToResolve)
     {
-        ModDecision decisionToResolve = Manager.CurrentWorld.PullModDecisionToResolve();
+        int currentSpeedIndex = _selectedMaxSpeedLevelIndex;
 
-        ModDecisionDialogPanelScript.Set(decisionToResolve, _selectedMaxSpeedLevelIndex);
+        if (_pauseButtonPressed)
+        {
+            currentSpeedIndex = -1;
+        }
+
+        ModDecisionDialogPanelScript.Set(decisionToResolve, currentSpeedIndex);
 
         if (!IsMenuPanelActive())
         {
@@ -2201,9 +2378,141 @@ public class GuiManagerScript : MonoBehaviour
             HideInteractionPanel(ModDecisionDialogPanelScript);
         }
 
-        InterruptSimulation(true);
+        _resolvingDecision = true;
 
-        _eventPauseActive = true;
+        EventStopSimulation();
+    }
+
+    private void SetResolvingEffects(bool state)
+    {
+        _resolvingEffects = state;
+
+        EffectHandlingRequested.Invoke(!state);
+
+        EventPauseSimulation(state);
+    }
+
+    /// <summary>
+    /// Method called when an action, decision or effect requires the simulation
+    /// to change state between running or stopped
+    /// </summary>
+    /// <param name="state">'true' if the simulation should pause, 'false' if the
+    /// simulation should resume</param>
+    private void EventPauseSimulation(bool state)
+    {
+        InterruptSimulation(state);
+
+        _eventPauseActive = state;
+    }
+
+    /// <summary>
+    /// Method called when an action, decision or effect requires the simulation
+    /// to pause
+    /// </summary>
+    private void EventStopSimulation()
+    {
+        EventPauseSimulation(true);
+    }
+
+    /// <summary>
+    /// Method called when an action, decision or effect no longer requires the
+    /// simulation to be paused
+    /// </summary>
+    private void EventResumeSimulation()
+    {
+        EventPauseSimulation(false);
+    }
+
+    private bool TryResolvePendingAction()
+    {
+        ModAction action = Manager.CurrentWorld.PullActionToExecute();
+
+        if (action == null)
+            return true;
+
+        Faction faction = Manager.CurrentWorld.GuidedFaction;
+
+        if (faction == null)
+        {
+            ShowErrorMessage(
+                "The guided faction is no longer present",
+                EventResumeSimulation);
+
+            EventStopSimulation();
+
+            return false;
+        }
+
+        action.SetTarget(faction);
+
+        if (!action.CanExecute())
+        {
+            ShowErrorMessage(
+                "The requirements to perform the selected action are no longer met",
+                EventResumeSimulation);
+
+            EventStopSimulation();
+
+            return false;
+        }
+
+        action.SetEffectsToResolve();
+
+        if (!TryResolvePendingEffects())
+        {
+            SetResolvingEffects(true);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Takes care of resolving effects queued by an action or a decision
+    /// </summary>
+    /// <returns>'true' if all effects have been resolved, or there are none to
+    /// resolve, 'false' if there are still effects to be fully resolved</returns>
+    private bool TryResolvePendingEffects()
+    {
+        while (true)
+        {
+            if (Manager.CurrentWorld.HasEffectsToResolve())
+            {
+                // if we still had a previous unresolved effect, continue with it,
+                // otherwise replace it with the next one on the queue
+                _unresolvedEffect =
+                    _unresolvedEffect ?? Manager.CurrentWorld.PullEffectToResolve();
+            }
+
+            if (_unresolvedEffect == null)
+                break;
+
+            if (_unresolvedEffect.TryGetRequest(out InputRequest request))
+            {
+                HandleInputRequest(request);
+                return false;
+            }
+
+            _unresolvedEffect.Apply();
+            _unresolvedEffect = null;
+        }
+
+        return true;
+    }
+
+    private void HandleInputRequest(InputRequest request)
+    {
+        Manager.CurrentInputRequest = request;
+
+        if (request is RegionSelectionRequest rsRequest)
+        {
+            ChangePlanetOverlay(PlanetOverlay.RegionSelection, temporary: true);
+
+            DisplayNonBlockingMessage.Invoke(rsRequest.Text.GetFormattedString());
+
+            _mapLeftClickOp += ClickOp_SelectRequestTarget;
+        }
     }
 
     /// <summary>
@@ -2216,7 +2525,7 @@ public class GuiManagerScript : MonoBehaviour
 
         if (startSpeedLevelIndex == -1)
         {
-            PauseSimulation(true);
+            PlayerPauseSimulation(true);
         }
         else
         {
@@ -2227,52 +2536,37 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    [System.Obsolete]
-    public void ResolveDecision()
-    {
-        DecisionDialogPanelScript.SetVisible(false);
-
-        int resumeSpeedLevelIndex = DecisionDialogPanelScript.ResumeSpeedLevelIndex;
-
-        if (resumeSpeedLevelIndex == -1)
-        {
-            PauseSimulation(true);
-        }
-        else
-        {
-            _selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
-
-            SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
-        }
-
-        InterruptSimulation(false);
-
-        _eventPauseActive = false;
-
-        _resolvedDecision = true;
-    }
-
     public void ResolveModDecision()
     {
         ModDecisionDialogPanelScript.SetVisible(false);
 
+        if (!TryResolvePendingEffects())
+        {
+            SetResolvingEffects(true);
+        }
+
+        _willFinishResolvingDecision = true;
+    }
+
+    public void FinishResolvingDecision()
+    {
         int resumeSpeedLevelIndex = ModDecisionDialogPanelScript.ResumeSpeedLevelIndex;
 
         if (resumeSpeedLevelIndex == -1)
         {
-            PauseSimulation(true);
+            PlayerPauseSimulation(true);
         }
         else
         {
-            _selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
+            SetMaxSpeedLevel(resumeSpeedLevelIndex);
 
-            SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
+            PlayerPauseSimulation(false);
         }
 
-        InterruptSimulation(false);
+        EventResumeSimulation();
 
-        _eventPauseActive = false;
-
+        _willFinishResolvingDecision = false;
+        _resolvingDecision = false;
         _resolvedDecision = true;
     }
 
@@ -2406,6 +2700,10 @@ public class GuiManagerScript : MonoBehaviour
         {
             ChangePlanetOverlay(PlanetOverlay.UpdateSpan, false);
         }
+        else if (OverlayDialogPanelScript.MigrationToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Migration, false);
+        }
         else
         {
             ChangePlanetOverlay(PlanetOverlay.None, false);
@@ -2441,7 +2739,13 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void PauseSimulation(bool state)
+    /// <summary>
+    /// Method called when the player requests the simulation to change state between
+    /// running / paused
+    /// </summary>
+    /// <param name="state">'true' if the player requests the simulation to stop
+    /// 'false' if the player requests the simulation to continue</param>
+    public void PlayerPauseSimulation(bool state)
     {
         OnSimulationPaused.Invoke(state);
 
@@ -2454,11 +2758,11 @@ public class GuiManagerScript : MonoBehaviour
 
     public void InterruptSimulation(bool state)
     {
-        _pausingDialogActive = state;
+        _pausingConditionActive = state;
 
         OnSimulationInterrupted.Invoke(state);
 
-        bool holdState = _pausingDialogActive || _pauseButtonPressed;
+        bool holdState = _pausingConditionActive || _pauseButtonPressed;
 
         HoldSimulation(holdState);
     }
@@ -2633,9 +2937,32 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void ChangePlanetOverlay(PlanetOverlay overlay, string planetOverlaySubtype, bool invokeEvent = true)
+    private void RevertTempPlanetOverlay()
     {
-        _regenMapOverlayTexture |= _planetOverlaySubtype != planetOverlaySubtype;
+        if (_tempOverlayStack.Count <= 0)
+        {
+            throw new System.Exception("Temp overlay stack is empty");
+        }
+
+        PlanetOverlay prevOverlay = _tempOverlayStack.Pop();
+        string prevOverlaySubtype = _tempOverlaySubtypeStack.Pop();
+
+        ChangePlanetOverlay(prevOverlay, prevOverlaySubtype);
+    }
+
+    private void ChangePlanetOverlay(
+        PlanetOverlay overlay,
+        string overlaySubtype,
+        bool invokeEvent = true,
+        bool temporary = false)
+    {
+        if (temporary)
+        {
+            _tempOverlayStack.Push(_planetOverlay);
+            _tempOverlaySubtypeStack.Push(_planetOverlaySubtype);
+        }
+
+        _regenMapOverlayTexture |= _planetOverlaySubtype != overlaySubtype;
         _regenMapOverlayTexture |= _planetOverlay != overlay;
 
         if ((_planetOverlay != overlay) && (_planetOverlay != PlanetOverlay.None))
@@ -2643,7 +2970,7 @@ public class GuiManagerScript : MonoBehaviour
             _planetOverlaySubtypeCache[_planetOverlay] = _planetOverlaySubtype;
         }
 
-        _planetOverlaySubtype = planetOverlaySubtype;
+        _planetOverlaySubtype = overlaySubtype;
 
         _planetOverlay = overlay;
 
@@ -2667,19 +2994,17 @@ public class GuiManagerScript : MonoBehaviour
         OverlaySubtypeChanged.Invoke();
     }
 
-    public void ChangePlanetOverlay(PlanetOverlay overlay)
-    {
-        ChangePlanetOverlay(overlay, true);
-    }
-
-    public void ChangePlanetOverlay(PlanetOverlay overlay, bool invokeEvent)
+    private void ChangePlanetOverlay(
+        PlanetOverlay overlay,
+        bool invokeEvent = true,
+        bool temporary = false)
     {
         if (!_planetOverlaySubtypeCache.TryGetValue(overlay, out string currentOverlaySubtype))
         {
             currentOverlaySubtype = "None";
         }
 
-        ChangePlanetOverlay(overlay, currentOverlaySubtype, invokeEvent);
+        ChangePlanetOverlay(overlay, currentOverlaySubtype, invokeEvent, temporary);
     }
 
     private void HandleOverlayWithSubtypes(PlanetOverlay value)
@@ -2945,7 +3270,10 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
-    public void SetFactionToGuideAction()
+    /// <summary>
+    /// Sets the faction to be guided by the player
+    /// </summary>
+    public void SetFactionToGuide()
     {
         SelectFactionDialogPanelScript.SetVisible(false);
 
@@ -3171,13 +3499,15 @@ public class GuiManagerScript : MonoBehaviour
 
         if (activity != null)
         {
-            string text = activity.Name + " Contribution: " + activity.Contribution.ToString("P") + "\n\nFactions:";
+            string text = activity.Name + " Contribution: " +
+                activity.Contribution.ToString("P") + "\n\nFactions:";
 
             foreach (Faction faction in polity.GetFactions())
             {
-                activity = faction.Culture.GetActivity(_planetOverlaySubtype);
+                float activityContribution =
+                    faction.Culture.GetActivityContribution(_planetOverlaySubtype);
 
-                text += "\n " + faction.Name.Text + ": " + activity.Contribution.ToString("P");
+                text += "\n " + faction.Name.Text + ": " + activityContribution.ToString("P");
             }
 
             InfoTooltipScript.DisplayTip(text, position, fadeStart);
@@ -3258,6 +3588,41 @@ public class GuiManagerScript : MonoBehaviour
         _lastHoveredOverRegion = cell.Region;
 
         if (_lastHoveredOverRegion == null)
+        {
+            InfoTooltipScript.SetVisible(false);
+            return;
+        }
+
+        WorldPosition regionCenterCellPosition = _lastHoveredOverRegion.GetMostCenteredCell().Position;
+
+        Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(regionCenterCellPosition) + _tooltipOffset;
+
+        InfoTooltipScript.DisplayTip(_lastHoveredOverRegion.Name.Text, tooltipPos);
+    }
+
+    private void ShowCellInfoToolTip_RegionSelection(TerrainCell cell)
+    {
+        Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
+
+        if (guidedFaction == null)
+        {
+            throw new System.Exception("Can't show tooltip without an active guided faction");
+        }
+
+        if (cell.Region == _lastHoveredOverRegion)
+            return;
+
+        RegionSelectionRequest request = Manager.CurrentInputRequest as RegionSelectionRequest;
+
+        if (request == null)
+        {
+            throw new System.Exception("Can't show tooltip without an region selection request");
+        }
+
+        _lastHoveredOverRegion = cell.Region;
+
+        if ((_lastHoveredOverRegion == null) ||
+            (_lastHoveredOverRegion.AssignedFilterType != Region.FilterType.Selectable))
         {
             InfoTooltipScript.SetVisible(false);
             return;
@@ -3357,6 +3722,8 @@ public class GuiManagerScript : MonoBehaviour
             Manager.EditorBrushTargetCell = hoveredCell;
         }
 
+        Manager.SetHoveredCell(hoveredCell);
+
         if (hoveredCell == null)
             return;
 
@@ -3364,5 +3731,7 @@ public class GuiManagerScript : MonoBehaviour
             ShowCellInfoToolTip_PolityTerritory(hoveredCell);
         else if (_planetOverlay == PlanetOverlay.Region)
             ShowCellInfoToolTip_Region(hoveredCell);
+        else if (_planetOverlay == PlanetOverlay.RegionSelection)
+            ShowCellInfoToolTip_RegionSelection(hoveredCell);
     }
 }

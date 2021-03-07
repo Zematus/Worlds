@@ -14,9 +14,39 @@ public class Border : CellSet
         AddCell(startCell);
     }
 
-    public CellSet GetEnclosedCellSet(HashSet<TerrainCell> outsideSet)
+    private bool IsSetOutside(HashSet<TerrainCell> set)
     {
-        CellSet cellSet = new CellSet();
+        TerrainCell northOfTop = Top.GetNeighborCell(Direction.North);
+        if ((northOfTop != null) && set.Contains(northOfTop))
+            return true;
+
+        TerrainCell westOfLeft = Left.GetNeighborCell(Direction.West);
+        if ((westOfLeft != null) && set.Contains(westOfLeft))
+            return true;
+
+        TerrainCell southOfBottom = Bottom.GetNeighborCell(Direction.South);
+        if ((southOfBottom != null) && set.Contains(southOfBottom))
+            return true;
+
+        TerrainCell eastOfRight = Right.GetNeighborCell(Direction.East);
+        if ((eastOfRight != null) && set.Contains(eastOfRight))
+            return true;
+
+        return false;
+    }
+
+    public bool TryGetEnclosedCellSet(
+        HashSet<TerrainCell> outsideSet,
+        out CellSet enclosedCellSet,
+        CanAddCellDelegate canAddCell = null)
+    {
+        enclosedCellSet = null;
+
+        // Test if border encloses an area not in outsideSet
+        if (!IsSetOutside(outsideSet))
+            return false;
+
+        enclosedCellSet = new CellSet();
 
         HashSet<TerrainCell> exploredSet = new HashSet<TerrainCell>();
         exploredSet.UnionWith(outsideSet);
@@ -29,23 +59,21 @@ public class Border : CellSet
         {
             TerrainCell cell = toAdd.Dequeue();
 
-            if (!cell.IsLiquidSea)
+            if ((canAddCell == null) || canAddCell(cell))
             {
-                cellSet.AddCell(cell);
+                enclosedCellSet.AddCell(cell);
             }
 
-            if (cellSet.Area > RectArea)
+            if (enclosedCellSet.Area > RectArea)
             {
                 throw new System.Exception("Border does not fully enclose inner area");
             }
 
-            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.Neighbors)
+            foreach (KeyValuePair<Direction, TerrainCell> pair in cell.NonDiagonalNeighbors)
             {
                 TerrainCell nCell = pair.Value;
 
                 if (exploredSet.Contains(nCell)) continue;
-
-                if (TerrainCell.IsDiagonalDirection(pair.Key)) continue;
 
                 if (!IsCellEnclosed(nCell)) continue;
 
@@ -54,14 +82,14 @@ public class Border : CellSet
             }
         }
 
-        if (cellSet.Area == 0)
+        if (enclosedCellSet.Area == 0)
         {
-            return null;
+            return false;
         }
 
-        cellSet.Update();
+        enclosedCellSet.Update();
 
-        return cellSet;
+        return true;
     }
 
     public void Consolidate(HashSet<TerrainCell> innerArea)

@@ -5,13 +5,26 @@ using System.Linq;
 
 [XmlInclude(typeof(CellRegion))]
 [XmlInclude(typeof(SuperRegion))]
-public abstract class Region : ISynchronizable
+public abstract class Region : ISynchronizable, ICellCollectionGetter
 {
+    public enum FilterType
+    {
+        None,
+        Core,
+        Selectable
+    }
+
     [XmlIgnore]
     public RegionInfo Info;
 
     [XmlIgnore]
     public bool IsSelected = false;
+
+    [XmlIgnore]
+    public bool IsHovered = false;
+
+    [XmlIgnore]
+    public FilterType AssignedFilterType = FilterType.None;
 
     [XmlIgnore]
     public Region Parent = null;
@@ -61,6 +74,9 @@ public abstract class Region : ISynchronizable
     [XmlIgnore]
     public float WaterPercentage;
 
+    [XmlIgnore]
+    public HashSet<Region> NeighborRegions = new HashSet<Region>();
+
     public Identifier Id => Info.Id;
 
     public Name Name => Info.Name;
@@ -73,6 +89,8 @@ public abstract class Region : ISynchronizable
 
     protected Dictionary<string, float> _biomePresences;
 
+    protected event System.Action<Region> UpdateEvent;
+
     public Region()
     {
 
@@ -83,14 +101,28 @@ public abstract class Region : ISynchronizable
         Info = new RegionInfo(this, originCell, idOffset, language);
     }
 
-    [System.Obsolete]
-    public void ResetInfo()
+    public static void SetAsNeighbors(Region r1, Region r2)
     {
-        //RegionInfo newInfo = new RegionInfo(this, Info.OriginCell, Info.Language);
+        r1.AddNeighbor(r2);
+        r2.AddNeighbor(r1);
+    }
 
-        //Info.Region = null; // Old region info object should no longer point to this region but remain in memory for further references
+    private void AddNeighbor(Region region)
+    {
+        if (NeighborRegions.Add(region))
+        {
+            UpdateEvent?.Invoke(this);
+        }
+    }
 
-        //Info = newInfo; // Replace info object with new one
+    public void AddUpdateEventHandler(System.Action<Region> updateEventHandler)
+    {
+        UpdateEvent += updateEventHandler;
+    }
+
+    public void RemoveUpdateEventHandler(System.Action<Region> updateEventHandler)
+    {
+        UpdateEvent -= updateEventHandler;
     }
 
     public bool IsEqualToOrDescentantFrom(Region region)

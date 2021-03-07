@@ -7,9 +7,7 @@ public class SplitFactionAttribute : EffectEntityAttribute
 {
     private FactionEntity _factionEntity;
 
-    private ModDecision _decisionToTrigger = null;
-
-    private readonly IValueExpression<Entity> _coreGroupArg;
+    private readonly IValueExpression<IEntity> _coreGroupArg;
     private readonly IValueExpression<float> _influencePercentToTransferArg;
     private readonly IValueExpression<float> _relationshipValueArg;
     private readonly IValueExpression<string> _newFactionTypeArg = null;
@@ -20,7 +18,7 @@ public class SplitFactionAttribute : EffectEntityAttribute
         _factionEntity = factionEntity;
 
         _coreGroupArg =
-            ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);
+            ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
         _influencePercentToTransferArg =
             ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
         _relationshipValueArg =

@@ -26,12 +26,18 @@ public class PolityProminenceCluster : Identifiable
     [XmlIgnore]
     public Polity Polity;
 
+    [XmlIgnore]
+    public Region Region;
+
     private int _rngOffset;
 
 #if DEBUG
     [XmlIgnore]
     public long LastProminenceChangeDate = -1;
 #endif
+
+    [XmlIgnore]
+    public float Area { get; private set; }
 
     public int Size => _prominences.Count;
 
@@ -56,35 +62,19 @@ public class PolityProminenceCluster : Identifiable
         TotalPopulation = 0;
         ProminenceArea = 0;
 
-        Profiler.BeginSample("foreach group");
-
         foreach (PolityProminence prominence in _prominences.Values)
         {
-            Profiler.BeginSample("add administrative cost");
-
             if (prominence.AdministrativeCost < float.MaxValue)
                 TotalAdministrativeCost += prominence.AdministrativeCost;
             else
                 TotalAdministrativeCost = float.MaxValue;
 
-            Profiler.EndSample();
-
-            Profiler.BeginSample("add pop");
-
             float polityPop = prominence.Group.Population * prominence.Value;
 
             TotalPopulation += polityPop;
 
-            Profiler.EndSample();
-
-            Profiler.BeginSample("add area");
-
             ProminenceArea += prominence.Group.Cell.Area;
-
-            Profiler.EndSample();
         }
-
-        Profiler.EndSample();
 
         NeedsNewCensus = false;
     }
@@ -98,6 +88,11 @@ public class PolityProminenceCluster : Identifiable
 
     public void AddProminence(PolityProminence prominence)
     {
+        if (Region == null)
+        {
+            Region = prominence.Group.Cell.Region;
+        }
+
         _prominences.Add(prominence.Id, prominence);
         prominence.Cluster = this;
 
@@ -321,10 +316,18 @@ public class PolityProminenceCluster : Identifiable
 
         foreach (KeyValuePair<Identifier, PolityProminence> pair in _prominences)
         {
+            if (Region == null)
+            {
+                Region = pair.Value.Group.Cell.Region;
+            }
+
             PolityProminence p = pair.Value;
 
-            p.Group = Polity.World.GetGroup(pair.Key);
+            World world = Polity.World;
+
+            p.Group = world.GetGroup(pair.Key);
             p.Polity = Polity;
+            p.ClosestFaction = Polity.GetFaction(p.ClosestFactionId);
             p.Cluster = this;
         }
     }

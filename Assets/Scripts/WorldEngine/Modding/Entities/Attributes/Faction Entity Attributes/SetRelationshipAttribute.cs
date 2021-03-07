@@ -7,7 +7,7 @@ public class SetRelationshipAttribute : EffectEntityAttribute
 {
     private FactionEntity _factionEntity;
 
-    private readonly IValueExpression<Entity> _factionExp;
+    private readonly IValueExpression<IEntity> _factionExp;
     private readonly IValueExpression<float> _valueExp;
 
     public SetRelationshipAttribute(FactionEntity factionEntity, IExpression[] arguments)
@@ -15,7 +15,7 @@ public class SetRelationshipAttribute : EffectEntityAttribute
     {
         _factionEntity = factionEntity;
 
-        _factionExp = ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);
+        _factionExp = ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
         _valueExp = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
     }
 

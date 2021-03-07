@@ -2,8 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using UnityEngine.Profiling;
 
-public class FactionEntity : Entity
+public class FactionEntity : DelayedSetEntity<Faction>
 {
     public const string AdministrativeLoadAttributeId = "administrative_load";
     public const string InfluenceAttributeId = "influence";
@@ -12,25 +13,28 @@ public class FactionEntity : Entity
     public const string PreferencesAttributeId = "preferences";
     public const string TriggerDecisionAttributeId = "trigger_decision";
     public const string SplitAttributeId = "split";
-    public const string GroupCanBeCoreAttributeId = "group_can_be_core";
     public const string CoreGroupAttributeId = "core_group";
     public const string TypeAttributeId = "type";
-    public const string RelationshipAttributeId = "relationship";
+    public const string GuideAttributeId = "guide";
+    public const string GetRelationshipAttributeId = "get_relationship";
     public const string SetRelationshipAttributeId = "set_relationship";
 
-    public virtual Faction Faction { get; private set; }
-
-    private bool _alreadyReset = false;
+    public virtual Faction Faction
+    {
+        get => Setable;
+        private set => Setable = value;
+    }
 
     private ValueGetterEntityAttribute<string> _typeAttribute;
+    private ValueGetterEntityAttribute<string> _guideAttribute;
     private ValueGetterEntityAttribute<float> _administrativeLoadAttribute;
     private ValueGetterEntityAttribute<float> _influenceAttribute;
 
-    private DelayedSetAgentEntity _leaderEntity = null;
-    private DelayedSetPolityEntity _polityEntity = null;
-    private DelayedSetGroupEntity _coreGroupEntity = null;
+    private AgentEntity _leaderEntity = null;
+    private PolityEntity _polityEntity = null;
+    private GroupEntity _coreGroupEntity = null;
 
-    private CulturalPreferencesEntity _preferencesEntity = null;
+    private AssignableCulturalPreferencesEntity _preferencesEntity = null;
 
     protected override object _reference => Faction;
 
@@ -48,10 +52,17 @@ public class FactionEntity : Entity
     {
     }
 
+    public FactionEntity(
+        ValueGetterMethod<Faction> getterMethod, Context c, string id)
+        : base(getterMethod, c, id)
+    {
+    }
+
     public EntityAttribute GetPreferencesAttribute()
     {
         _preferencesEntity =
-            _preferencesEntity ?? new CulturalPreferencesEntity(
+            _preferencesEntity ?? new AssignableCulturalPreferencesEntity(
+                GetCulture,
                 Context,
                 BuildAttributeId(PreferencesAttributeId));
 
@@ -61,7 +72,7 @@ public class FactionEntity : Entity
     public EntityAttribute GetLeaderAttribute()
     {
         _leaderEntity =
-            _leaderEntity ?? new DelayedSetAgentEntity(
+            _leaderEntity ?? new AgentEntity(
                 GetLeader,
                 Context,
                 BuildAttributeId(LeaderAttributeId));
@@ -72,7 +83,7 @@ public class FactionEntity : Entity
     public EntityAttribute GetPolityAttribute()
     {
         _polityEntity =
-            _polityEntity ?? new DelayedSetPolityEntity(
+            _polityEntity ?? new PolityEntity(
                 GetPolity,
                 Context,
                 BuildAttributeId(PolityAttributeId));
@@ -83,13 +94,16 @@ public class FactionEntity : Entity
     public EntityAttribute GetCoreGroupAttribute()
     {
         _coreGroupEntity =
-            _coreGroupEntity ?? new DelayedSetGroupEntity(
+            _coreGroupEntity ?? new GroupEntity(
                 GetCoreGroup,
                 Context,
                 BuildAttributeId(CoreGroupAttributeId));
 
         return _coreGroupEntity.GetThisEntityAttribute(this);
     }
+
+    public string GetGuide() =>
+        Faction.IsUnderPlayerGuidance ? "player" : "simulation";
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
@@ -100,6 +114,12 @@ public class FactionEntity : Entity
                     _typeAttribute ?? new ValueGetterEntityAttribute<string>(
                         TypeAttributeId, this, () => Faction.Type);
                 return _typeAttribute;
+
+            case GuideAttributeId:
+                _guideAttribute =
+                    _guideAttribute ?? new ValueGetterEntityAttribute<string>(
+                        GuideAttributeId, this, GetGuide);
+                return _guideAttribute;
 
             case AdministrativeLoadAttributeId:
                 _administrativeLoadAttribute =
@@ -122,11 +142,8 @@ public class FactionEntity : Entity
             case SplitAttributeId:
                 return new SplitFactionAttribute(this, arguments);
 
-            case GroupCanBeCoreAttributeId:
-                return new GroupCanBeCoreAttribute(this, arguments);
-
-            case RelationshipAttributeId:
-                return new RelationshipAttribute(this, arguments);
+            case GetRelationshipAttributeId:
+                return new GetRelationshipAttribute(this, arguments);
 
             case SetRelationshipAttributeId:
                 return new SetRelationshipAttribute(this, arguments);
@@ -144,9 +161,9 @@ public class FactionEntity : Entity
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
     }
 
-    protected void ResetInternal()
+    protected override void ResetInternal()
     {
-        if (_alreadyReset)
+        if (_isReset)
         {
             return;
         }
@@ -155,20 +172,7 @@ public class FactionEntity : Entity
         _polityEntity?.Reset();
         _coreGroupEntity?.Reset();
 
-        _alreadyReset = true;
-    }
-
-    public virtual void Set(Faction f)
-    {
-        f.PreUpdate();
-
-        Faction = f;
-
-        _preferencesEntity?.Set(Faction.Culture);
-
-        ResetInternal();
-
-        _alreadyReset = false;
+        _preferencesEntity?.Reset();
     }
 
     public Agent GetLeader() => Faction.CurrentLeader;
@@ -177,19 +181,5 @@ public class FactionEntity : Entity
 
     public CellGroup GetCoreGroup() => Faction.CoreGroup;
 
-    public override void Set(object o)
-    {
-        if (o is FactionEntity e)
-        {
-            Set(e.Faction);
-        }
-        else if (o is Faction f)
-        {
-            Set(f);
-        }
-        else
-        {
-            throw new System.ArgumentException("Unexpected type: " + o.GetType());
-        }
-    }
+    public Culture GetCulture() => Faction.Culture;
 }

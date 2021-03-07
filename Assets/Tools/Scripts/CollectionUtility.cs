@@ -6,7 +6,9 @@ using System;
 using System.Linq;
 
 public delegate int GetRandomIntDelegate(int maxValue);
+public delegate int GetRandomIntWithOffsetDelegate(int offset, int maxValue);
 public delegate float GetRandomFloatDelegate();
+public delegate float GetRandomFloatWithOffsetDelegate(int offset);
 
 public static class CollectionUtility
 {
@@ -50,7 +52,7 @@ public static class CollectionUtility
         {
             if (selectionValue == 1) selectionValue = 0;
 
-            int index = (int)Mathf.Floor(selectionValue * count);
+            int index = (int)(selectionValue * count);
 
             int i = 0;
             foreach (ElementWeightPair<T> pair in elementWeightPairs)
@@ -112,6 +114,20 @@ public static class CollectionUtility
     public static T RandomSelect<T>(this ICollection<T> collection, GetRandomIntDelegate getRandomInt, int emptyInstances = 0)
     {
         int index = getRandomInt(collection.Count + emptyInstances);
+
+        if (index >= collection.Count)
+            return default(T);
+
+        return collection.ElementAt(index);
+    }
+
+    public static T RandomSelect<T>(
+        this ICollection<T> collection,
+        GetRandomIntWithOffsetDelegate getRandomInt,
+        int offset,
+        int emptyInstances = 0)
+    {
+        int index = getRandomInt(offset, collection.Count + emptyInstances);
 
         if (index >= collection.Count)
             return default(T);

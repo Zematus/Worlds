@@ -7,9 +7,8 @@ public class TooltipHandlerScript : MonoBehaviour
     public GameObject Tooltip;
 
     private GameObject _relativeObject = null;
-    private bool _mirroredPosition = false;
 
-    private const float _timeToSpawn = 2;
+    private const float _timeToSpawn = 1f;
     private float _timeSinceSet = 0;
 
     private bool _setToShow = false;
@@ -27,8 +26,8 @@ public class TooltipHandlerScript : MonoBehaviour
 
         if (_timeSinceSet >= _timeToSpawn)
         {
-            SetPosition();
             Tooltip.SetActive(true);
+            SetPosition();
         }
     }
 
@@ -51,22 +50,14 @@ public class TooltipHandlerScript : MonoBehaviour
     public void SetPositionRelativeTo(GameObject obj)
     {
         _relativeObject = obj;
-        _mirroredPosition = false;
-    }
-
-    public void SetPositionRelativeTo_Mirror(GameObject obj)
-    {
-        _relativeObject = obj;
-        _mirroredPosition = true;
     }
 
     private void SetPosition()
     {
         RectTransform rectTransform = _relativeObject.GetComponent<RectTransform>();
-        RectTransform rectTransformTooltip = Tooltip.GetComponent<RectTransform>();
 
         Vector3 position = _relativeObject.transform.position;
-        position.x += rectTransform.rect.center.x - (_mirroredPosition ? rectTransformTooltip.rect.width : 0);
+        position.x += rectTransform.rect.center.x;
         position.y += rectTransform.rect.center.y;
 
         Tooltip.transform.position = position;
