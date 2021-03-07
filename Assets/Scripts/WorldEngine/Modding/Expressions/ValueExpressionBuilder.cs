@@ -7,12 +7,6 @@ public static class ValueExpressionBuilder
     public static IValueExpression<T> BuildValueExpression<T>(
         Context context, string expressionStr, bool allowInputRequesters = false)
     {
-#if DEBUG
-        if (expressionStr == "target.polity")
-        {
-            Debug.LogWarning("Debugging BuildValueExpression: " + expressionStr);
-        }
-#endif
         return ValidateValueExpression<T>(
             ExpressionBuilder.BuildExpression(context, expressionStr, allowInputRequesters));
     }
