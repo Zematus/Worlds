@@ -31,10 +31,6 @@ public class RegionEntity : DelayedSetEntity<Region>
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
-        switch (attributeId)
-        {
-        }
-
         throw new System.ArgumentException(Id + ": Unable to find attribute: " + attributeId);
     }
 

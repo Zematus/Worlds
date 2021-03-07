@@ -147,7 +147,6 @@ public class World : ISynchronizable, IWorldDateGetter
         XmlArrayItem(Type = typeof(MigratePopulationEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
         XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
-        XmlArrayItem(Type = typeof(OpenTribeDecisionEvent)),
         XmlArrayItem(Type = typeof(Discovery.DiscoveryEvent)),
         XmlArrayItem(Type = typeof(FactionModEvent)),
         XmlArrayItem(Type = typeof(CellGroupModEvent))]
@@ -332,10 +331,6 @@ public class World : ISynchronizable, IWorldDateGetter
     private HashSet<long> _eventMessageIds = new HashSet<long>();
     private Queue<WorldEventMessage> _eventMessagesToShow =
         new Queue<WorldEventMessage>();
-
-    [System.Obsolete]
-    private Queue<Decision> _decisionsToResolve =
-        new Queue<Decision>();
 
     private readonly Queue<ModDecision> _modDecisionsToResolve =
         new Queue<ModDecision>();
@@ -2128,12 +2123,6 @@ public class World : ISynchronizable, IWorldDateGetter
         _territoriesToUpdate.Add(territory);
     }
 
-    [System.Obsolete]
-    public void AddDecisionToResolve(Decision decision)
-    {
-        _decisionsToResolve.Enqueue(decision);
-    }
-
     public void AddDecisionToResolve(ModDecision decision)
     {
         _modDecisionsToResolve.Enqueue(decision);
@@ -2149,12 +2138,6 @@ public class World : ISynchronizable, IWorldDateGetter
         _actionToExecute = action;
     }
 
-    [System.Obsolete]
-    public bool HasDecisionsToResolve()
-    {
-        return _decisionsToResolve.Count > 0;
-    }
-
     public bool HasModDecisionsToResolve()
     {
         return _modDecisionsToResolve.Count > 0;
@@ -2163,12 +2146,6 @@ public class World : ISynchronizable, IWorldDateGetter
     public bool HasEffectsToResolve()
     {
         return _effectsToResolve.Count > 0;
-    }
-
-    [System.Obsolete]
-    public Decision PullDecisionToResolve()
-    {
-        return _decisionsToResolve.Dequeue();
     }
 
     public ModDecision PullModDecisionToResolve()

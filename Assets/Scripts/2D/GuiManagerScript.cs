@@ -40,8 +40,6 @@ public class GuiManagerScript : MonoBehaviour
 
     public TextInputDialogPanelScript SaveFileDialogPanelScript;
     public TextInputDialogPanelScript ExportMapDialogPanelScript;
-    [System.Obsolete]
-    public DecisionDialogPanelScript DecisionDialogPanelScript;
     public ModDecisionDialogPanelScript ModDecisionDialogPanelScript;
     public LoadFileDialogPanelScript LoadFileDialogPanelScript;
     public SelectFactionDialogPanelScript SelectFactionDialogPanelScript;
@@ -303,7 +301,6 @@ public class GuiManagerScript : MonoBehaviour
         SelectionPanelScript.RemoveAllOptions();
         SelectionPanelScript.SetVisible(false);
 
-        DecisionDialogPanelScript.SetVisible(false);
         ModDecisionDialogPanelScript.SetVisible(false);
         SelectFactionDialogPanelScript.SetVisible(false);
         MainMenuDialogPanelScript.SetVisible(false);
@@ -599,12 +596,6 @@ public class GuiManagerScript : MonoBehaviour
                     else
                     {
                         world.EvaluateEventsToHappen();
-                    }
-
-                    if (world.HasDecisionsToResolve())
-                    {
-                        RequestDecisionResolution();
-                        break;
                     }
 
                     if (!TryResolvePendingDecisions())
@@ -1211,12 +1202,6 @@ public class GuiManagerScript : MonoBehaviour
             PolityFormationEventMessage polityFormationEventMessage = eventMessage as PolityFormationEventMessage;
 
             ShowEventMessageForPolity(eventMessage, polityFormationEventMessage.PolityId);
-        }
-        else if (eventMessage is PolityEventMessage)
-        {
-            PolityEventMessage polityEventMessage = eventMessage as PolityEventMessage;
-
-            ShowEventMessageForPolity(eventMessage, polityEventMessage.PolityId);
         }
         else if (eventMessage is DiscoveryEventMessage)
         {
@@ -2350,26 +2335,6 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
-    [System.Obsolete]
-    private void RequestDecisionResolution()
-    {
-        Decision decisionToResolve = Manager.CurrentWorld.PullDecisionToResolve();
-
-        DecisionDialogPanelScript.Set(decisionToResolve, _selectedMaxSpeedLevelIndex);
-
-        if (!IsMenuPanelActive())
-        {
-            DecisionDialogPanelScript.SetVisible(true);
-        }
-        else
-        {
-            // Hide the decision dialog until all menu panels are inactive
-            HideInteractionPanel(DecisionDialogPanelScript);
-        }
-
-        EventStopSimulation();
-    }
-
     private bool TryResolvePendingDecisions()
     {
         while (Manager.CurrentWorld.HasModDecisionsToResolve())
@@ -2569,29 +2534,6 @@ public class GuiManagerScript : MonoBehaviour
 
             SetMaxSpeedToSelected();
         }
-    }
-
-    [System.Obsolete]
-    public void ResolveDecision()
-    {
-        DecisionDialogPanelScript.SetVisible(false);
-
-        int resumeSpeedLevelIndex = DecisionDialogPanelScript.ResumeSpeedLevelIndex;
-
-        if (resumeSpeedLevelIndex == -1)
-        {
-            PlayerPauseSimulation(true);
-        }
-        else
-        {
-            _selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
-
-            SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
-        }
-
-        EventResumeSimulation();
-
-        _resolvedDecision = true;
     }
 
     public void ResolveModDecision()
