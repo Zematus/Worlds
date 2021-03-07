@@ -77,40 +77,9 @@ public class Tribe : Polity
         //		Debug.Log ("New tribe '" + Name + "' from tribe '" + parentPolity.Name + "' with total transfered influence = " + transferedInfluence);
     }
 
-    public override void InitializeInternal()
-    {
-        long triggerDate = OpenTribeDecisionEvent.CalculateTriggerDate(this);
-        if (triggerDate > 0)
-        {
-            if (triggerDate <= World.CurrentDate)
-            {
-                throw new System.Exception(
-                    "OpenTribeDecisionEvent Trigger Date (" + triggerDate +
-                    ") less or equal to current date: " + World.CurrentDate);
-            }
-
-            AddEvent(new OpenTribeDecisionEvent(this, triggerDate));
-        }
-    }
-
     public static void GenerateTribeNounVariations()
     {
         TribeNounVariations = NameTools.GenerateNounVariations(TribeNounVariants);
-    }
-
-    protected override void GenerateEventsFromData()
-    {
-        foreach (PolityEventData eData in EventDataList)
-        {
-            switch (eData.TypeId)
-            {
-                case WorldEvent.OpenTribeDecisionEventId:
-                    AddEvent(new OpenTribeDecisionEvent(this, eData));
-                    break;
-                default:
-                    throw new System.Exception("Unhandled polity event type id: " + eData.TypeId);
-            }
-        }
     }
 
     private void SwitchCellProminences(Polity sourcePolity, Clan triggerClan)

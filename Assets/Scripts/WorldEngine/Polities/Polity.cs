@@ -327,8 +327,6 @@ public abstract class Polity : ISynchronizable
                 faction.Initialize();
             }
         }
-
-        InitializeInternal();
     }
 
     public float CalculateCoreRegionSaturation()
@@ -350,8 +348,6 @@ public abstract class Polity : ISynchronizable
 
         return coreProminenceArea / coreRegionArea;
     }
-
-    public abstract void InitializeInternal();
 
     public void Destroy()
     {
@@ -1274,11 +1270,7 @@ public abstract class Polity : ISynchronizable
                 throw new System.Exception("Polity is null, Id: " + contact.Id);
             }
         }
-
-        GenerateEventsFromData();
     }
-
-    protected abstract void GenerateEventsFromData();
 
     public void AddEvent(PolityEvent polityEvent)
     {

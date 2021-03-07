@@ -165,16 +165,6 @@ public class TestPolity : Polity
         throw new NotImplementedException();
     }
 
-    public override void InitializeInternal()
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override void GenerateEventsFromData()
-    {
-        throw new NotImplementedException();
-    }
-
     protected override void GenerateName()
     {
         throw new NotImplementedException();
