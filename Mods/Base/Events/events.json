@@ -94,7 +94,7 @@
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
         { "id": "influence_delta", "value": "max(0, dominant_faction.influence - target.influence)" },
-        { "id": "admin_factors", "value": "relationship_value * influence_delta * target.preferences.cohesion" },
+        { "id": "admin_factors", "value": "0.01 + relationship_value * influence_delta * target.preferences.cohesion" },
         { "id": "min_admin_load", "value": "100000 * admin_factors" },
         { "id": "max_admin_load", "value": "5000000 * admin_factors" },
         { "id": "chance_of_making_attempt", "value": "normalize(dominant_faction.administrative_load, min_admin_load, max_admin_load)" }
