@@ -3389,7 +3389,7 @@ public class Manager
             throw new System.Exception("Can't generate overlay without an active guided faction");
         }
 
-        RegionSelectionRequest request = CurrentInputRequest as RegionSelectionRequest;
+        var request = CurrentInputRequest as RegionSelectionRequest;
 
         if (request == null)
         {

@@ -23,7 +23,7 @@ public class RegionSelectionRequest : EntitySelectionRequest<Region>
         Polity guidedPolity = guidedFaction.Polity;
 
         _involvedRegions = new HashSet<Region>(guidedPolity.CoreRegions);
-        _involvedRegions.IntersectWith(collection);
+        _involvedRegions.UnionWith(collection);
 
         // Set involved regions as filtered so that the UI can quickly filter them
 
