@@ -37,7 +37,7 @@
         { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
         { "id": "influence_delta", "value": "max(0, dominant_faction.influence - target.influence)" },
         { "id": "target_authority", "value": "target.preferences.authority" },
-        { "id": "admin_factors", "value": "relationship_value * influence_delta * target.preferences.authority" },
+        { "id": "admin_factors", "value": "0.01 + relationship_value * influence_delta * target.preferences.authority" },
         { "id": "min_admin_load", "value": "100000 * admin_factors" },
         { "id": "max_admin_load", "value": "5000000 * admin_factors" },
         { "id": "chance_of_making_demand", "value": "(1 - normalize(target.administrative_load, min_admin_load, max_admin_load) * target_authority * 2)" }
@@ -112,7 +112,8 @@
       "effects": [
         "target.trigger_decision(clan_decide_form_new_tribe, chance_of_making_attempt)"
       ],
-      "repeatable" : true
+      "repeatable" : true,
+      "debug" : true
     },
     {
       "id": "tribe_decide_merge",

@@ -250,6 +250,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private System.Action _closeErrorActionToPerform = null;
 
+    private int _lastExLogHash = 0;
+
     void OnEnable()
     {
         Manager.InitializeDebugLog();
@@ -319,10 +321,18 @@ public class GuiManagerScript : MonoBehaviour
 
     public void HandleLog(string logString, string stackTrace, LogType type)
     {
+        if ((type == LogType.Exception) && (logString.GetHashCode() == _lastExLogHash))
+        {
+            // There's no need to log multiple instances of the exact same exception
+            return;
+        }
+
         Manager.HandleLog(logString, stackTrace, type);
 
         if (type == LogType.Exception)
         {
+            _lastExLogHash = logString.GetHashCode();
+
             Manager.EnableLogBackup();
 
             Manager.EnqueueTaskAndWait(() =>

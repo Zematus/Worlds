@@ -77,7 +77,8 @@
             }
           ]
         }
-      ]
+      ],
+      "debug" : true
     },
     {
       "id": "clan_attempts_form_new_tribe",
@@ -90,7 +91,7 @@
         { "id": "relationship_value", "value": "target.get_relationship(splitting_faction)" },
         { "id": "leader_charisma", "value": "target.leader.charisma" },
         { "id": "target_authority", "value": "target.preferences.authority" },
-        { "id": "admin_factors", "value": "relationship_value * target_authority * leader_charisma" },
+        { "id": "admin_factors", "value": "0.01 + relationship_value * target_authority * leader_charisma" },
         { "id": "min_admin_load", "value": "0" },
         { "id": "max_admin_load", "value": "6000000 * admin_factors" },
         { "id": "chance_of_preventing_split", "value": "1 - normalize(target.administrative_load, min_admin_load, max_admin_load)" }
@@ -204,7 +205,8 @@
             }
           ]
         }
-      ]
+      ],
+      "debug" : true
     },
     {
       "id": "tribe_allowed_split",

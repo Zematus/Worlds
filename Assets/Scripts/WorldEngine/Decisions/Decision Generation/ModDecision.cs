@@ -126,12 +126,23 @@ public class ModDecision : Context
                 "', " + parameters.Length + ", below minimum expected " + _parameterEntities.Length);
         }
 
+        OpenDebugOutput("Setting Decision Parameters:");
+
         for (int i = 0; i < _parameterEntities.Length; i++)
         {
+            if (DebugEnabled)
+            {
+                AddDebugOutput("  Parameter: " + _parameterEntities[i].Id +
+                 "\n   - Partial eval: " + parameters[i].ToPartiallyEvaluatedString() +
+                 "\n   - Value: " + parameters[i].ValueObject);
+            }
+
             _parameterEntities[i].Set(
                 parameters[i].ValueObject,
                 parameters[i].ToPartiallyEvaluatedString);
         }
+
+        CloseDebugOutput();
     }
 
     /// <summary>

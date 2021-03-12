@@ -134,7 +134,7 @@ public abstract class Context : IDebugLogger
         return _parentContext.TryGetEntity(id, out e);
     }
 
-    public void OpenDebugOutput(string message)
+    public void OpenDebugOutput(string message = null)
     {
         if (DebugEnabled)
         {
@@ -151,23 +151,29 @@ public abstract class Context : IDebugLogger
 
     public void AddDebugOutput(string message)
     {
+        if (string.IsNullOrEmpty(message))
+            return;
+
         if (DebugEnabled)
         {
+            string idString = "[" + Id + "] ";
+            string idTabStr = new string(' ', idString.Length);
+
             if (_dbgStr == null)
             {
-                _dbgStr = "";
+                _dbgStr = idString;
             }
             else
             {
-                _dbgStr += "\n";
+                _dbgStr += "\n" + idTabStr;
             }
 
-            message = message.Replace("\n", "\n" + _dbgTab);
+            message = message.Replace("\n", "\n" + idTabStr + _dbgTab);
             _dbgStr += _dbgTab + message;
         }
     }
 
-    public void CloseDebugOutput(string message)
+    public void CloseDebugOutput(string message = null)
     {
         AddDebugOutput(message);
 
