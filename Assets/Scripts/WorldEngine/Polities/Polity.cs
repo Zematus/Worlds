@@ -406,6 +406,7 @@ public abstract class Polity : ISynchronizable
         {
             case Tribe.PolityTypeStr:
                 Tribe newTribe = new Tribe(splittingFaction as Clan, this as Tribe);
+                newPolity = newTribe;
 
                 AddEventMessage(new TribeSplitEventMessage(
                     splittingFaction as Clan,
