@@ -24,7 +24,7 @@ public class MinFunctionExpression : FunctionExpression, IValueExpression<float>
     public float Value
     {
         get {
-            float min = float.MinValue;
+            float min = float.MaxValue;
 
             foreach (IValueExpression<float> exp in _parameterExps)
             {
