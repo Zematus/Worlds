@@ -116,6 +116,8 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     public virtual void Initialize()
     {
+        DebugType = "Event";
+
         EventSetFlag = Id + "_set";
 
         World.EventGenerators.Add(Id, this);
@@ -179,7 +181,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     protected bool CanAssignEventToTarget()
     {
-        OpenDebugOutput("Evaluating Assigment Conditions:");
+        OpenDebugOutput("Evaluating Assignment Conditions:");
 
         if (AssignmentConditions != null)
         {
@@ -187,25 +189,17 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             {
                 bool value = exp.Value;
 
-                if (DebugEnabled)
-                {
-                    string expStr = exp.ToString();
-                    string expPartialStr = exp.ToPartiallyEvaluatedString(true);
-
-                    AddDebugOutput("  Condition: " + expStr +
-                     "\n   - Partial eval: " + expPartialStr +
-                     "\n   - Result: " + value);
-                }
+                AddExpDebugOutput("Condition", exp);
 
                 if (!value)
                 {
-                    CloseDebugOutput("Assigment Result: False");
+                    CloseDebugOutput("Assignment Result: False");
                     return false;
                 }
             }
         }
 
-        CloseDebugOutput("Assigment Result: True");
+        CloseDebugOutput("Assignment Result: True");
         return true;
     }
 
@@ -237,15 +231,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             {
                 bool value = exp.Value;
 
-                if (DebugEnabled)
-                {
-                    string expStr = exp.ToString();
-                    string expPartialStr = exp.ToPartiallyEvaluatedString(true);
-
-                    AddDebugOutput("  Condition: " + expStr +
-                     "\n   - Partial eval: " + expPartialStr +
-                     "\n   - Result: " + value);
-                }
+                AddExpDebugOutput("Condition", exp);
 
                 if (!value)
                 {
@@ -272,15 +258,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
         float timeToTrigger = TimeToTrigger.Value;
 
-        if (DebugEnabled)
-        {
-            string expStr = TimeToTrigger.ToString();
-            string expPartialStr = TimeToTrigger.ToPartiallyEvaluatedString();
-
-            AddDebugOutput("  TimeToTrigger: " + expStr +
-             "\n   - Partial eval: " + expPartialStr +
-             "\n   - Result (days): " + timeToTrigger);
-        }
+        AddExpDebugOutput("TimeToTrigger", TimeToTrigger);
 
         if (timeToTrigger < 0)
         {
@@ -312,10 +290,16 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     public void TriggerEvent()
     {
+        OpenDebugOutput("Applying Effects:");
+
         foreach (IEffectExpression exp in Effects)
         {
+            AddExpDebugOutput("Effect", exp);
+
             exp.Apply();
         }
+
+        CloseDebugOutput();
     }
 
     protected abstract WorldEvent GenerateEvent(long triggerDate);

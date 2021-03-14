@@ -30,6 +30,8 @@ public class ModDecision : Context
 
     public ModDecision(string id, string targetStr)
     {
+        DebugType = "Decision";
+
         if (targetStr != FactionTargetType)
         {
             throw new System.ArgumentException("Invalid target type: " + targetStr);
@@ -130,12 +132,7 @@ public class ModDecision : Context
 
         for (int i = 0; i < _parameterEntities.Length; i++)
         {
-            if (DebugEnabled)
-            {
-                AddDebugOutput("  Parameter: " + _parameterEntities[i].Id +
-                 "\n   - Partial eval: " + parameters[i].ToPartiallyEvaluatedString() +
-                 "\n   - Value: " + parameters[i].ValueObject);
-            }
+            AddExpDebugOutput("Parameter '" + _parameterEntities[i].Id + "'", parameters[i]);
 
             _parameterEntities[i].Set(
                 parameters[i].ValueObject,
@@ -153,6 +150,8 @@ public class ModDecision : Context
         float totalWeight = 0;
         float[] optionWeights = new float[Options.Length];
 
+        OpenDebugOutput("Auto Evaluating Decision:");
+
         // Calculate the current weights for all options
         for (int i = 0; i < Options.Length; i++)
         {
@@ -161,9 +160,24 @@ public class ModDecision : Context
             // Set weight to 0 for options that are meant to be used only by a human
             // player, or can't be currently shown or used
             float weight = 0;
+
+            OpenDebugOutput("Testing option '" + option.Id + "':" +
+                "\n  Allowed guide: " + option.AllowedGuide);
+
             if ((option.AllowedGuide != GuideType.Player) && option.CanShow())
             {
-                weight = (option.Weight != null ) ? option.Weight.Value : 1;
+                if (option.Weight != null)
+                {
+                    weight = option.Weight.Value;
+
+                    AddExpDebugOutput("Weight", option.Weight);
+                }
+                else
+                {
+                    weight = 1;
+
+                    AddDebugOutput("  Using default weight: 1");
+                }
 
                 if (weight < 0)
                 {
@@ -179,9 +193,13 @@ public class ModDecision : Context
                 }
             }
 
+            CloseDebugOutput();
+
             totalWeight += weight;
             optionWeights[i] = totalWeight;
         }
+
+        AddDebugOutput("  Total options weight: " + totalWeight);
 
         if (totalWeight <= 0)
         {
@@ -212,6 +230,8 @@ public class ModDecision : Context
                 effect.Result.Apply();
             }
         }
+
+        CloseDebugOutput();
     }
 
     public void Evaluate()

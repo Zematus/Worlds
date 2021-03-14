@@ -642,21 +642,19 @@ public class Manager
             return;
 
         string worldInfoStr = "";
-        string worldInfoTabStr = "";
 
         if (CurrentWorld != null)
         {
             worldInfoStr += "[Date: " + GetDateString(CurrentWorld.CurrentDate) + "] - ";
-            worldInfoTabStr = new string(' ', worldInfoStr.Length);
         }
 
-        logString = logString.Replace("\n", "\n" + worldInfoTabStr);
+        logString = logString.Replace("\n", "\n\t");
         _debugLogStream.WriteLine(worldInfoStr + logString);
 
         if (type == LogType.Exception)
         {
             stackTrace = stackTrace.Replace("\r\n", "\n").Replace("\n\r", "\n").Replace("\r", "\n").Replace("\n", "\n\t");
-            _debugLogStream.WriteLine(worldInfoTabStr + "\t" + stackTrace);
+            _debugLogStream.WriteLine("\t" + stackTrace);
         }
 
         _debugLogStream.Flush();

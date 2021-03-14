@@ -14,17 +14,26 @@ public class OptionalDescription : Description
 
     public bool CanShow()
     {
+        OpenDebugOutput("Evaluation if option '" + Id + "' can be shown:");
+
         if (Conditions == null)
         {
+            CloseDebugOutput("No Conditions. Eval Result: True");
             return true;
         }
 
-        foreach (IValueExpression<bool> exp in Conditions)
+        foreach (var exp in Conditions)
         {
+            AddExpDebugOutput("Condition", exp);
+
             if (!exp.Value)
+            {
+                CloseDebugOutput("Eval Result: False");
                 return false;
+            }
         }
 
+        CloseDebugOutput("Eval Result: True");
         return true;
     }
 }

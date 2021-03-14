@@ -21,7 +21,7 @@ public abstract class Context : IDebugLogger
 
     public string Id;
 
-    public bool DebugEnabled => (Manager.CurrentDevMode != DevMode.None) && _debug;
+    public bool DebugEnabled => (Manager.CurrentDevMode == DevMode.Advanced) && _debug;
 
     protected int _currentIterOffset = 0;
 
@@ -32,6 +32,8 @@ public abstract class Context : IDebugLogger
     private string _dbgStr = null;
     private int _dbgTabCount = -1;
     private string _dbgTab;
+
+    protected string DebugType = "Context";
 
     [Serializable]
     public class LoadedContext
@@ -144,9 +146,62 @@ public abstract class Context : IDebugLogger
             {
                 _dbgTab += "\t";
             }
-        }
 
-        AddDebugOutput(message);
+            AddDebugOutput(message);
+        }
+    }
+
+    public void AddExpDebugOutput(
+        string label, IExpression exp)
+    {
+        if (DebugEnabled)
+        {
+            if (exp != null)
+            {
+                AddDebugOutput("\t" + label + ": " + exp.ToString() +
+                    "\n\t - Partial eval: " + exp.ToPartiallyEvaluatedString());
+            }
+            else
+            {
+                AddDebugOutput("  " + label + " is null");
+            }
+        }
+    }
+
+    public void AddExpDebugOutput<T>(
+        string label, IValueExpression<T> exp)
+    {
+        if (DebugEnabled)
+        {
+            if (exp != null)
+            {
+                AddDebugOutput("\t" + label + ": " + exp.ToString() +
+                    "\n\t - Partial eval: " + exp.ToPartiallyEvaluatedString() + 
+                    "\n\t - Value: " + exp.Value);
+            }
+            else
+            {
+                AddDebugOutput("  " + label + " is null");
+            }
+        }
+    }
+
+    public void AddExpDebugOutput(
+        string label, IBaseValueExpression exp)
+    {
+        if (DebugEnabled)
+        {
+            if (exp != null)
+            {
+                AddDebugOutput("\t" + label + ": " + exp.ToString() +
+                    "\n\t - Partial eval: " + exp.ToPartiallyEvaluatedString() +
+                    "\n\t - Value: " + exp.ValueObject);
+            }
+            else
+            {
+                AddDebugOutput("  " + label + " is null");
+            }
+        }
     }
 
     public void AddDebugOutput(string message)
@@ -157,35 +212,34 @@ public abstract class Context : IDebugLogger
         if (DebugEnabled)
         {
             string idString = "[" + Id + "] ";
-            string idTabStr = new string(' ', idString.Length);
 
             if (_dbgStr == null)
             {
-                _dbgStr = idString;
+                _dbgStr = DebugType + " Mod Debug " + idString + ":\n\t";
             }
             else
             {
-                _dbgStr += "\n" + idTabStr;
+                _dbgStr += "\n\t";
             }
 
-            message = message.Replace("\n", "\n" + idTabStr + _dbgTab);
+            message = message.Replace("\n", "\n\t" + _dbgTab);
             _dbgStr += _dbgTab + message;
         }
     }
 
     public void CloseDebugOutput(string message = null)
     {
-        AddDebugOutput(message);
-
         if (DebugEnabled)
         {
+            AddDebugOutput(message);
+
             _dbgTabCount--;
 
             if (_dbgTabCount < 0)
             {
                 if (_dbgStr != null)
                 {
-                    UnityEngine.Debug.Log(_dbgStr);
+                    Debug.Log(_dbgStr);
                     _dbgStr = null;
                 }
             }
