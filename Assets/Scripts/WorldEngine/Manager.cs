@@ -1,7 +1,5 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
 using System.Threading;
@@ -242,6 +240,15 @@ public class Manager
     public static bool DisableShortcuts = false;
 
     public static InputRequest CurrentInputRequest = null;
+
+#if DEBUG
+    public static bool Debug_PauseSimRequested = false;
+    public static bool Debug_BreakRequested = false;
+    public static Identifier Debug_IdentifierOfInterest;
+    public static Identifier Debug_IdentifierOfInterest2;
+    public static Identifier Debug_IdentifierOfInterest3;
+    public static Identifier Debug_IdentifierOfInterest4;
+#endif
 
     public static bool PerformingAsyncTask { get; private set; }
     public static bool SimulationRunning { get; private set; }

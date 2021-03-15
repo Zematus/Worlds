@@ -563,6 +563,14 @@ public class GuiManagerScript : MonoBehaviour
 
         TryResolvePendingAction();
 
+#if DEBUG
+        if (Manager.Debug_PauseSimRequested)
+        {
+            PlayerPauseSimulation(true);
+            Manager.Debug_PauseSimRequested = false;
+        }
+#endif
+
         bool simulationRunning =
             Manager.SimulationCanRun &&
             (Manager.SimulationRunning || Manager.SimulationPerformingStep);
@@ -620,6 +628,11 @@ public class GuiManagerScript : MonoBehaviour
                     dateSpan += world.Update();
 
                     Profiler.EndSample();
+
+#if DEBUG
+                    if (Manager.Debug_PauseSimRequested)
+                        break;
+#endif
 
                     float deltaTimeIterations = Time.realtimeSinceStartup - startTimeIterations;
 

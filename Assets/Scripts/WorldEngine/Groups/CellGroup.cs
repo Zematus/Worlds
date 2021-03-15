@@ -2536,6 +2536,12 @@ public class CellGroup : Identifiable, IFlagHolder
 
         foreach (PolityProminence prominence in _polityProminences.Values)
         {
+            if (float.IsNaN(prominence.Value))
+            {
+                throw new System.Exception("Prominence value is Nan. Group: " + Id +
+                    ", Polity: " + prominence.PolityId);
+            }
+
             TotalPolityProminenceValue += prominence.Value;
         }
 
@@ -2602,6 +2608,11 @@ public class CellGroup : Identifiable, IFlagHolder
         {
             Debug.LogWarning("Trying to add a prominence delta of 0. Will ignore...");
             return;
+        }
+
+        if (float.IsNaN(delta))
+        {
+            throw new System.Exception("prominence delta is Nan. Group: " + Id);
         }
 
         if (_polityPromDeltas.ContainsKey(polity))
@@ -2674,6 +2685,11 @@ public class CellGroup : Identifiable, IFlagHolder
         foreach (float delta in _polityPromDeltas.Values)
         {
             polPromDeltaOffset = Mathf.Min(polPromDeltaOffset, delta);
+        }
+
+        if (float.IsNaN(polPromDeltaOffset))
+        {
+            throw new System.Exception("prominence delta offset is Nan. Group: " + Id);
         }
 
         // replace prom values with deltas minus offset, and get the total sum
@@ -2778,6 +2794,13 @@ public class CellGroup : Identifiable, IFlagHolder
 
             // round value to six decimals to avoid hidden bit serialization issues
             prom.Value = MathUtility.RoundToSixDecimals(finalValue);
+
+            if (float.IsNaN(prom.Value))
+            {
+                throw new System.Exception("Prominence value is Nan. Group: " + Id +
+                    ", Polity: " + prom.PolityId);
+            }
+
         }
 
         ResetProminenceValueDeltas();
@@ -2974,7 +2997,7 @@ public class CellGroup : Identifiable, IFlagHolder
         if ((_polityProminences.Count > 0) && (highestProminence == null))
         {
             throw new System.Exception("Highest prominence value not found event though " +
-                "there are multiple prominences. Group: " + Id);
+                "there is at least one prominence in Group: " + Id);
         }
 
         SetHighestPolityProminence(highestProminence);

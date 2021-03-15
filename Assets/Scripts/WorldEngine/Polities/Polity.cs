@@ -462,11 +462,17 @@ public abstract class Polity : ISynchronizable
         return _eventMessageIds.Contains(id);
     }
 
-    public void SetCoreGroup(CellGroup coreGroup)
+    public void SetCoreGroup(CellGroup coreGroup, bool resetCoreDistances = true)
     {
         if (CoreGroup != null)
         {
             Manager.AddUpdatedCell(CoreGroup.Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
+
+            if (resetCoreDistances)
+            {
+                PolityProminence prom = CoreGroup.GetPolityProminence(Id);
+                prom.ResetCoreDistances();
+            }
         }
 
         CoreGroup = coreGroup;
@@ -561,7 +567,9 @@ public abstract class Polity : ISynchronizable
     /// Sets the most dominant faction within a polity
     /// </summary>
     /// <param name="faction">faction to set as dominant</param>
-    public void SetDominantFaction(Faction faction)
+    /// <param name="resetCoreDistances">indicate if core distances should be
+    /// recalculated</param>
+    public void SetDominantFaction(Faction faction, bool resetCoreDistances = true)
     {
         if (DominantFaction == faction)
             return;
@@ -585,7 +593,7 @@ public abstract class Polity : ISynchronizable
 
             faction.SetDominant(true);
 
-            SetCoreGroup(faction.CoreGroup);
+            SetCoreGroup(faction.CoreGroup, resetCoreDistances);
 
             foreach (PolityContact contact in _contacts.Values)
             {
@@ -1643,6 +1651,15 @@ public abstract class Polity : ISynchronizable
 
     public void MergePolity(Polity polity)
     {
+//#if DEBUG
+//        Manager.Debug_PauseSimRequested = true;
+//        Manager.Debug_BreakRequested = true;
+//        Manager.Debug_IdentifierOfInterest = Id;
+//        Manager.Debug_IdentifierOfInterest2 = polity.Id;
+//        Manager.Debug_IdentifierOfInterest3 = polity.CoreGroupId;
+//        Manager.Debug_IdentifierOfInterest4 = CoreGroupId;
+//#endif
+
         World.AddPolityToRemove(polity);
         World.AddPolityToUpdate(this);
 

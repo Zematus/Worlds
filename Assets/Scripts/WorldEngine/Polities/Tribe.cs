@@ -62,7 +62,7 @@ public class Tribe : Polity
 
         AddFaction(clan);
 
-        SetDominantFaction(clan);
+        SetDominantFaction(clan, false);
     }
 
     public Tribe(Clan triggerClan, Polity parentPolity) :
@@ -84,6 +84,10 @@ public class Tribe : Polity
 
     private void SwitchCellProminences(Polity sourcePolity, Clan triggerClan)
     {
+//#if DEBUG
+//        Manager.DebugPauseSimRequested = true;
+//#endif
+
         float targetPolityInfluence = triggerClan.Influence;
         float sourcePolityInfluence = 1 - targetPolityInfluence;
 
@@ -145,6 +149,11 @@ public class Tribe : Polity
                 float sourcePolityWeight = sourcePolityInfluence * sourceDistanceFactor;
 
                 percentProminence = targetPolityWeight / (targetPolityWeight + sourcePolityWeight);
+
+                if (float.IsNaN(percentProminence))
+                {
+                    throw new System.Exception("percent prominence is Nan. Tribe: " + Id);
+                }
             }
 
             if (percentProminence <= 0)
@@ -210,7 +219,7 @@ public class Tribe : Polity
             faction.ChangePolity(this, faction.Influence);
         }
 
-        SetDominantFaction(dominantClan);
+        SetDominantFaction(dominantClan, false);
     }
 
     private float CalculateShortestCoreDistance(

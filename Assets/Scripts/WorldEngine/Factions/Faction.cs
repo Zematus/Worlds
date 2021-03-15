@@ -409,6 +409,10 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         float influenceToTransfer,
         float initialRelationshipValue)
     {
+//#if DEBUG
+//        Manager.DebugPauseSimRequested = true;
+//#endif
+
         Influence -= influenceToTransfer;
 
         if (newFactionCoreGroup == null)

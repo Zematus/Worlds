@@ -1034,7 +1034,7 @@ public class World : ISynchronizable, IWorldDateGetter
             PolityProminence polityProminence = promsToCalculate.Dequeue();
             promsToCalculateSet.Remove(polityProminence);
 
-//#if DEBUG
+            //#if DEBUG
             //if (calculatedProms.ContainsKey(polityProminence.Id))
             //{
             //    PromDistDebugInfo debugInfo = calculatedProms[polityProminence.Id];
@@ -1059,7 +1059,7 @@ public class World : ISynchronizable, IWorldDateGetter
             //        RecalcCount = 0
             //    });
             //}
-//#endif
+            //#endif
 
             if (!polityProminence.CalculateNewCoreDistances())
                 continue;
@@ -1828,14 +1828,14 @@ public class World : ISynchronizable, IWorldDateGetter
 
     public void AddPromToCalculateCoreDistFor(PolityProminence prominence)
     {
-//#if DEBUG
+        //#if DEBUG
         //if (prominence.Group.Position.Equals(5, 144) ||
         //    prominence.Group.Position.Equals(7, 144))
         //{
         //    Debug.LogWarning("DEBUG: AddPromToCalculateCoreDistFor: " + prominence.Group.Position +
         //        "\nstack: " + new System.Diagnostics.StackTrace() + "\n");
         //}
-//#endif
+        //#endif
 
         _promsWithCoreDistToCalculate.Add(prominence);
     }
