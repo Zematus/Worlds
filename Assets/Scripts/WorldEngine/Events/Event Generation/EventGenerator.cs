@@ -114,10 +114,13 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public abstract void SetToAssignOnRegionAccessibilityUpdate();
     public abstract void SetToAssignOnGuideSwitch();
 
-    public virtual void Initialize()
+    protected EventGenerator()
     {
         DebugType = "Event";
+    }
 
+    public virtual void Initialize()
+    {
         EventSetFlag = Id + "_set";
 
         World.EventGenerators.Add(Id, this);

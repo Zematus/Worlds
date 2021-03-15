@@ -90,7 +90,9 @@ public abstract class DelayedSetEntity<T> : Entity
         }
         else
         {
-            throw new System.ArgumentException("Unexpected type: " + o.GetType());
+            throw new System.ArgumentException("Unexpected entity value type: " +
+                o.GetType() + "\nVerify that the value pased to '" + Id + "' is properly " +
+                "defined when calling " + Context.DebugType + " '" + Context.Id + "'");
         }
     }
 

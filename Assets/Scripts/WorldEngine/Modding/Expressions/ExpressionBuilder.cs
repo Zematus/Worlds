@@ -272,7 +272,8 @@ public static class ExpressionBuilder
             return new FixedStringValueExpression(identifier);
         }
 
-        throw new System.ArgumentException("Unrecognized function identifier: " + identifier);
+        throw new System.ArgumentException("Unrecognized function identifier: " +
+            identifier + ", " + context.DebugType + " Id: " + context.Id);
     }
 
     private static IExpression BuildUnaryOpExpression(

@@ -33,7 +33,7 @@ public abstract class Context : IDebugLogger
     private int _dbgTabCount = -1;
     private string _dbgTab;
 
-    protected string DebugType = "Context";
+    public string DebugType { get; protected set; }
 
     [Serializable]
     public class LoadedContext
@@ -59,6 +59,11 @@ public abstract class Context : IDebugLogger
 
     readonly private List<IReseteableEntity> _propertyEntities =
         new List<IReseteableEntity>();
+
+    protected Context()
+    {
+        DebugType = "Context";
+    }
 
     public void Initialize(LoadedContext c)
     {
