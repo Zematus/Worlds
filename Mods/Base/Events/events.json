@@ -112,8 +112,7 @@
       "effects": [
         "target.trigger_decision(clan_decide_form_new_tribe, chance_of_making_attempt)"
       ],
-      "repeatable" : true,
-      "debug" : true
+      "repeatable" : true
     },
     {
       "id": "tribe_decide_merge",

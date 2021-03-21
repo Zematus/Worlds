@@ -77,8 +77,7 @@
             }
           ]
         }
-      ],
-      "debug" : true
+      ]
     },
     {
       "id": "clan_attempts_form_new_tribe",
@@ -205,8 +204,7 @@
             }
           ]
         }
-      ],
-      "debug" : true
+      ]
     },
     {
       "id": "tribe_allowed_split",

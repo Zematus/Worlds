@@ -96,7 +96,7 @@ public class CellRegion : Region
 
             bool isInnerBorder = false;
 
-            bool isNotFullyWater = (cell.WaterBiomePresence < 1);
+            bool isNotAllWater = !cell.IsAllWater;
 
             foreach (TerrainCell nCell in cell.NeighborList)
             {
@@ -116,7 +116,7 @@ public class CellRegion : Region
                         outerBorderArea += nCellArea;
                         AverageOuterBorderAltitude += cell.Altitude * nCellArea;
 
-                        if (isNotFullyWater && (nCell.WaterBiomePresence >= 1))
+                        if (isNotAllWater && nCell.IsAllWater)
                         {
                             coastalOuterBorderArea += nCellArea;
                         }

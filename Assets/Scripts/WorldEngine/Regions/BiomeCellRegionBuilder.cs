@@ -201,7 +201,7 @@ public static class BiomeCellRegionBuilder
         Language language,
         HashSet<TerrainCell> cellsToIgnore = null)
     {
-        if (startCell.WaterBiomePresence >= 1)
+        if (startCell.IsAllWater)
             return null;
 
         if (startCell.Region != null)

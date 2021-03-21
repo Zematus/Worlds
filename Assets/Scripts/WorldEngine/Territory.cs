@@ -435,9 +435,8 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     private void AddCell(TerrainCell cell)
     {
-
 //#if DEBUG
-//        if (cell.Position.Equals(6, 111))
+//        if (cell.Position.Equals(123, 93) && (Polity.Id == "0000000000237445853:2799754581787250256"))
 //        {
 //            Debug.LogWarning("Debugging AddCell, cell: " + cell.Position + ", group: " +
 //                cell.Group + ", polity: " + Polity.Id);
@@ -482,6 +481,9 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
         foreach (TerrainCell nCell in cell.NeighborList)
         {
+            if (nCell.IsAllWater)
+                continue;
+
             region = nCell.GetRegion(Polity.Culture.Language);
 
             if (region != null)
@@ -529,6 +531,9 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
         foreach (TerrainCell nCell in cell.NeighborList)
         {
+            if (nCell.IsAllWater)
+                continue;
+
             if (nCell.Region != null)
             {
                 DecreaseAccessToRegion(nCell.Region);
@@ -608,7 +613,9 @@ public class Territory : ISynchronizable, ICellCollectionGetter
     {
         if (!_regionAccessCounts.TryGetValue(region, out int count))
         {
-            throw new System.Exception("Region was not accessible");
+            throw new System.Exception(
+                "Region was not accessible. Polity: " +
+                Polity.Id + ", Region: " + region.Id);
         }
 
         if (count == 1)
