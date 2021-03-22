@@ -21,7 +21,18 @@ public abstract class Context : IDebugLogger
 
     public string Id;
 
-    public bool DebugEnabled => (Manager.CurrentDevMode == DevMode.Advanced) && _debug;
+    protected bool DebugEnabled
+    {
+        get
+        {
+            if (_parentContext != null)
+            {
+                return _parentContext.DebugEnabled;
+            }
+
+            return (Manager.CurrentDevMode == DevMode.Advanced) && _debug;
+        }
+    }
 
     protected int _currentIterOffset = 0;
 
@@ -143,6 +154,12 @@ public abstract class Context : IDebugLogger
 
     public void OpenDebugOutput(string message = null)
     {
+        if (_parentContext != null)
+        {
+            _parentContext.OpenDebugOutput(message);
+            return;
+        }
+
         if (DebugEnabled)
         {
             _dbgTabCount++;
@@ -159,6 +176,12 @@ public abstract class Context : IDebugLogger
     public void AddExpDebugOutput(
         string label, IExpression exp)
     {
+        if (_parentContext != null)
+        {
+            _parentContext.AddExpDebugOutput(label, exp);
+            return;
+        }
+
         if (DebugEnabled)
         {
             if (exp != null)
@@ -176,6 +199,12 @@ public abstract class Context : IDebugLogger
     public void AddExpDebugOutput<T>(
         string label, IValueExpression<T> exp)
     {
+        if (_parentContext != null)
+        {
+            _parentContext.AddExpDebugOutput(label, exp);
+            return;
+        }
+
         if (DebugEnabled)
         {
             if (exp != null)
@@ -194,6 +223,12 @@ public abstract class Context : IDebugLogger
     public void AddExpDebugOutput(
         string label, IBaseValueExpression exp)
     {
+        if (_parentContext != null)
+        {
+            _parentContext.AddExpDebugOutput(label, exp);
+            return;
+        }
+
         if (DebugEnabled)
         {
             if (exp != null)
@@ -211,6 +246,12 @@ public abstract class Context : IDebugLogger
 
     public void AddDebugOutput(string message)
     {
+        if (_parentContext != null)
+        {
+            _parentContext.AddDebugOutput(message);
+            return;
+        }
+
         if (string.IsNullOrEmpty(message))
             return;
 
@@ -234,6 +275,12 @@ public abstract class Context : IDebugLogger
 
     public void CloseDebugOutput(string message = null)
     {
+        if (_parentContext != null)
+        {
+            _parentContext.CloseDebugOutput(message);
+            return;
+        }
+
         if (DebugEnabled)
         {
             AddDebugOutput(message);
