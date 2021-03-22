@@ -11,7 +11,11 @@ public class ModDecision : Context
 
     public readonly FactionEntity Target;
 
+    private Faction _targetFaction;
+
     private Entity[] _parameterEntities;
+
+    private IBaseValueExpression[] _parameterValues;
 
     public static Dictionary<string, ModDecision> Decisions;
 
@@ -89,6 +93,18 @@ public class ModDecision : Context
 
     public override int GetBaseOffset() => Target.Faction.GetHashCode();
 
+    public void Set(Faction targetFaction, IBaseValueExpression[] parameterValues)
+    {
+        _targetFaction = targetFaction;
+        _parameterValues = parameterValues;
+
+        // Uncomment this line to test the decision dialog
+        //Manager.SetGuidedFaction(targetFaction);
+
+        targetFaction.CoreGroup.SetToUpdate();
+        targetFaction.World.AddDecisionToResolve(this);
+    }
+
     public override void Reset()
     {
         base.Reset();
@@ -104,39 +120,39 @@ public class ModDecision : Context
         }
     }
 
-    public void Set(Faction targetFaction, IBaseValueExpression[] parameters)
+    public void InitEvaluation()
     {
         Reset();
 
-        Target.Set(targetFaction);
+        Target.Set(_targetFaction);
 
         if (_parameterEntities == null) // we are expecting no parameters
         {
             return;
         }
 
-        if (parameters == null)
+        if (_parameterValues == null)
         {
             throw new System.Exception(
                 "No parameters given to decision '" + Id + "' when expected " + _parameterEntities.Length);
         }
 
-        if (parameters.Length < _parameterEntities.Length)
+        if (_parameterValues.Length < _parameterEntities.Length)
         {
             throw new System.Exception(
                 "Number of parameters given to decision '" + Id +
-                "', " + parameters.Length + ", below minimum expected " + _parameterEntities.Length);
+                "', " + _parameterValues.Length + ", below minimum expected " + _parameterEntities.Length);
         }
 
         OpenDebugOutput("Setting Decision Parameters:");
 
         for (int i = 0; i < _parameterEntities.Length; i++)
         {
-            AddExpDebugOutput("Parameter '" + _parameterEntities[i].Id + "'", parameters[i]);
+            AddExpDebugOutput("Parameter '" + _parameterEntities[i].Id + "'", _parameterValues[i]);
 
             _parameterEntities[i].Set(
-                parameters[i].ValueObject,
-                parameters[i].ToPartiallyEvaluatedString);
+                _parameterValues[i].ValueObject,
+                _parameterValues[i].ToPartiallyEvaluatedString);
         }
 
         CloseDebugOutput();
@@ -232,16 +248,5 @@ public class ModDecision : Context
         }
 
         CloseDebugOutput();
-    }
-
-    public void Evaluate()
-    {
-        Faction targetFaction = Target.Faction;
-
-        // Uncomment this line to test the decision dialog
-        //Manager.SetGuidedFaction(targetFaction);
-
-        targetFaction.CoreGroup.SetToUpdate();
-        targetFaction.World.AddDecisionToResolve(this);
     }
 }

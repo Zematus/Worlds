@@ -46,6 +46,5 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
         }
 
         _decisionToTrigger.Set(_factionEntity.Faction, _parameterExps);
-        _decisionToTrigger.Evaluate();
     }
 }

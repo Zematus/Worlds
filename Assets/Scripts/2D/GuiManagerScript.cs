@@ -2364,6 +2364,8 @@ public class GuiManagerScript : MonoBehaviour
         {
             ModDecision decisionToResolve = Manager.CurrentWorld.PullModDecisionToResolve();
 
+            decisionToResolve.InitEvaluation();
+
             Faction targetFaction = decisionToResolve.Target.Faction;
 
             if (targetFaction.IsUnderPlayerGuidance)

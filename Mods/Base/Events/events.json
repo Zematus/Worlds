@@ -4,7 +4,7 @@
       "id": "clan_decide_split",
       "name": "clan decide split",
       "target": "faction",
-      "assignOn" : ["spawn"],
+      "assignOn": ["spawn"],
       "properties": [
         { "id": "new_core_group", "value": "target.polity.get_random_group()" },
         { "id": "polity_prominence", "value": "new_core_group.prominence(target.polity)" }
@@ -25,13 +25,13 @@
       "effects": [
         "target.trigger_decision(clan_decide_split, new_core_group)"
       ],
-      "repeatable" : true
+      "repeatable": true
     },
     {
       "id": "clan_decide_performing_influence_demand",
       "name": "clan decide performing influence demand",
       "target": "faction",
-      "assignOn" : ["spawn", "status_change"],
+      "assignOn": ["spawn", "status_change"],
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
@@ -56,13 +56,14 @@
       "effects": [
         "target.trigger_decision(clan_decide_performing_influence_demand, dominant_faction, chance_of_making_demand)"
       ],
-      "repeatable" : true
+      "repeatable": true,
+      "debug": true
     },
     {
       "id": "tribe_decide_fostering_relationship",
       "name": "tribe decide fostering relationship",
       "target": "faction",
-      "assignOn" : ["spawn", "status_change", "polity_contact_change"],
+      "assignOn": ["spawn", "status_change", "polity_contact_change"],
       "properties": [
         { "id": "target_polity", "value": "target.polity" },
         { "id": "target_isolation", "value": "target.preferences.isolation" },
@@ -83,13 +84,13 @@
       "effects": [
         "target.trigger_decision(tribe_decide_fostering_relationship, contact.polity, chance_of_making_attempt)"
       ],
-      "repeatable" : true
+      "repeatable": true
     },
     {
       "id": "clan_decide_form_new_tribe",
       "name": "clan decide form new tribe",
       "target": "faction",
-      "assignOn" : ["spawn", "status_change"],
+      "assignOn": ["spawn", "status_change"],
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
@@ -112,13 +113,13 @@
       "effects": [
         "target.trigger_decision(clan_decide_form_new_tribe, chance_of_making_attempt)"
       ],
-      "repeatable" : true
+      "repeatable": true
     },
     {
       "id": "tribe_decide_merge",
       "name": "tribe decide merge",
       "target": "faction",
-      "assignOn" : ["spawn", "status_change", "polity_contact_change"],
+      "assignOn": ["spawn", "status_change", "polity_contact_change"],
       "properties": [
         { "id": "target_polity", "value": "target.polity" },
         { "id": "target_isolation", "value": "target.preferences.isolation" },
@@ -140,13 +141,13 @@
       "effects": [
         "target.trigger_decision(tribe_decide_merge, contact.polity, chance_of_making_attempt)"
       ],
-      "repeatable" : true
+      "repeatable": true
     },
     {
       "id": "expand_toward_region",
       "name": "Expand Toward Region",
       "target": "faction",
-      "assignOn" : ["spawn", "status_change", "region_accessibility_update", "guide_switch"],
+      "assignOn": ["spawn", "status_change", "region_accessibility_update", "guide_switch"],
       "properties": [
         { "id": "target_polity", "value": "target.polity" },
         { "id": "neighbor_regions", "value": "target_polity.accessible_neighbor_regions" },
@@ -168,7 +169,7 @@
       "effects": [
         "target.trigger_decision(tribe_decide_expand_toward_region, selected_region, chance_of_making_attempt)"
       ],
-      "repeatable" : true
+      "repeatable": true
     }
   ]
 }
