@@ -19,7 +19,7 @@
         "neighbor_regions.count > 0"
       ],
       "effects": [
-        "target.trigger_decision(tribe_decide_expand_toward_region, selected_region, 1)"
+        "target.trigger_decision(action_prio, tribe_decide_expand_toward_region, selected_region, 1)"
       ]
     }
   ]

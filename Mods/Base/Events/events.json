@@ -23,7 +23,7 @@
       ],
       "timeToTrigger": "9125 + random(9125000 * (1 - saturation(target.administrative_load, 400000)) * target.preferences.cohesion)",
       "effects": [
-        "target.trigger_decision(clan_decide_split, new_core_group)"
+        "target.trigger_decision(event_prio, clan_decide_split, new_core_group)"
       ],
       "repeatable": true
     },
@@ -54,7 +54,7 @@
       ],
       "timeToTrigger": "9125 + random(9125000 * (1 - saturation(target.administrative_load, 200000)) * target_authority)",
       "effects": [
-        "target.trigger_decision(clan_decide_performing_influence_demand, dominant_faction, chance_of_making_demand)"
+        "target.trigger_decision(event_prio, clan_decide_performing_influence_demand, dominant_faction, chance_of_making_demand)"
       ],
       "repeatable": true,
       "debug": true
@@ -82,7 +82,7 @@
       ],
       "timeToTrigger": "9125 + random(91250 * target_isolation)",
       "effects": [
-        "target.trigger_decision(tribe_decide_fostering_relationship, contact.polity, chance_of_making_attempt)"
+        "target.trigger_decision(event_prio, tribe_decide_fostering_relationship, contact.polity, chance_of_making_attempt)"
       ],
       "repeatable": true
     },
@@ -111,7 +111,7 @@
       ],
       "timeToTrigger": "9125 + random(9125000 * (1 - saturation(dominant_faction.administrative_load, max_admin_load)))",
       "effects": [
-        "target.trigger_decision(clan_decide_form_new_tribe, chance_of_making_attempt)"
+        "target.trigger_decision(event_prio, clan_decide_form_new_tribe, chance_of_making_attempt)"
       ],
       "repeatable": true
     },
@@ -139,7 +139,7 @@
       ],
       "timeToTrigger": "9125 + random(9125000 * target_isolation)",
       "effects": [
-        "target.trigger_decision(tribe_decide_merge, contact.polity, chance_of_making_attempt)"
+        "target.trigger_decision(event_prio, tribe_decide_merge, contact.polity, chance_of_making_attempt)"
       ],
       "repeatable": true
     },
@@ -167,7 +167,7 @@
       ],
       "timeToTrigger": "9125 + random(91250000 * cohesion_preference * max(0, 1 - core_saturation))",
       "effects": [
-        "target.trigger_decision(tribe_decide_expand_toward_region, selected_region, chance_of_making_attempt)"
+        "target.trigger_decision(event_prio, tribe_decide_expand_toward_region, selected_region, chance_of_making_attempt)"
       ],
       "repeatable": true
     }

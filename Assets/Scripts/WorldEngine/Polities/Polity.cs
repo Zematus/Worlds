@@ -792,7 +792,8 @@ public abstract class Polity : ISynchronizable
         // Can only tranfer influence between factions belonging to the same polity
 
         if (sourceFaction.PolityId != targetFaction.PolityId)
-            throw new System.Exception("Source faction and target faction do not belong to same polity");
+            throw new System.Exception("Source faction and target faction do not belong to same polity. " +
+                "source's Polity: " + sourceFaction.PolityId + ", target's polity: " + targetFaction.PolityId);
 
         // Always reduce influence of source faction and increase promience of target faction
 

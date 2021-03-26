@@ -21,20 +21,6 @@
         "target.add_knowledge(shipbuilding, 10)",
         "target.add_skill(seafaring)"
       ]
-    },
-    {
-      "id": "clan_split",
-      "name": "clan split",
-      "target": "faction",
-      "assignmentConditions": ["faction.type == clan"],
-      "triggerConditions": [
-        "target.administrative_load > 0.5",
-        "!target.preference.cohesion > 0.7"
-      ],
-      "timeToTrigger": "91250 * target.administrative_load * target.preference.cohesion",
-      "effects": [
-        "target.trigger_decision(clan_split)"
-      ]
     }
   ]
 }

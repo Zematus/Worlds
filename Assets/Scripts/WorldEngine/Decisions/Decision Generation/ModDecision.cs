@@ -93,7 +93,7 @@ public class ModDecision : Context
 
     public override int GetBaseOffset() => Target.Faction.GetHashCode();
 
-    public void Set(Faction targetFaction, IBaseValueExpression[] parameterValues)
+    public void Set(string triggerPrio, Faction targetFaction, IBaseValueExpression[] parameterValues)
     {
         _targetFaction = targetFaction;
         _parameterValues = parameterValues;
@@ -102,7 +102,7 @@ public class ModDecision : Context
         //Manager.SetGuidedFaction(targetFaction);
 
         targetFaction.CoreGroup.SetToUpdate();
-        targetFaction.World.AddDecisionToResolve(this);
+        targetFaction.World.AddDecisionToResolve(this, triggerPrio);
     }
 
     public override void Reset()
