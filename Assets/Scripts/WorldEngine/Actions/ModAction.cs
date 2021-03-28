@@ -83,6 +83,8 @@ public class ModAction : Context, IDebugLogger
 
     public ModAction()
     {
+        DebugType = "Action";
+
         Target = new FactionEntity(this, TargetEntityId);
 
         // Add the target to the context's entity map

@@ -10,6 +10,6 @@ public abstract class DelayedSetEntityInputRequest<T> : InputRequest
 
     public void Set(T t)
     {
-        Entity.Set(t);
+        Entity.SetRequestResult(t);
     }
 }

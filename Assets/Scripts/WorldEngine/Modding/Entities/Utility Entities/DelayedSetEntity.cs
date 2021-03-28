@@ -17,7 +17,12 @@ public abstract class DelayedSetEntity<T> : Entity
     private T _setable = default;
     protected bool _isReset = false;
 
+    private T _requestResult = default;
+    private bool _requestSatisfied = false;
+
     public override bool RequiresInput => _tryRequestGenMethod != null;
+
+    private bool _needsToSatisfyRequest => _isReset && (!_requestSatisfied);
 
     public DelayedSetEntity(
         ValueGetterMethod<T> getterMethod, Context c, string id)
@@ -31,12 +36,18 @@ public abstract class DelayedSetEntity<T> : Entity
         : base(c, id)
     {
         _tryRequestGenMethod = tryRequestGenMethod;
+        _getterMethod = RequestResultGetter;
     }
 
     public DelayedSetEntity(Context c, string id)
         : base(c, id)
     {
         _getterMethod = null;
+    }
+
+    public T RequestResultGetter()
+    {
+        return _requestResult;
     }
 
     public void Reset()
@@ -55,6 +66,13 @@ public abstract class DelayedSetEntity<T> : Entity
         ResetInternal();
 
         _isReset = false;
+        _requestSatisfied = false;
+    }
+
+    public void SetRequestResult(T t)
+    {
+        _requestResult = t;
+        _requestSatisfied = true;
     }
 
     protected virtual void ResetInternal()
@@ -98,14 +116,9 @@ public abstract class DelayedSetEntity<T> : Entity
 
     public override bool TryGetRequest(out InputRequest request)
     {
-        if ((!_isReset) || (!RequiresInput))
-        {
-            request = null;
-
-            return false;
-        }
-
-        if (!_tryRequestGenMethod(out DelayedSetEntityInputRequest<T> entityRequest))
+        if ((!RequiresInput) ||
+            (!_needsToSatisfyRequest) ||
+            (!_tryRequestGenMethod(out DelayedSetEntityInputRequest<T> entityRequest)))
         {
             request = null;
 

@@ -56,8 +56,7 @@
       "effects": [
         "target.trigger_decision(event_prio, clan_decide_performing_influence_demand, dominant_faction, chance_of_making_demand)"
       ],
-      "repeatable": true,
-      "debug": true
+      "repeatable": true
     },
     {
       "id": "tribe_decide_fostering_relationship",
@@ -126,7 +125,8 @@
         { "id": "contact", "value": "target_polity.get_random_contact()" },
         { "id": "contact_dominant_faction", "value": "contact.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.get_relationship(contact_dominant_faction)" },
-        { "id": "chance_of_making_attempt", "value": "relationship_value * (contact.strength * 3) * (1 - target_isolation)" }
+        { "id": "relationship_factor", "value": "max(0, (relationship_value * 2) - 1)" },
+        { "id": "chance_of_making_attempt", "value": "relationship_factor * (contact.strength * 3) * (1 - target_isolation)" }
       ],
       "assignmentConditions": [
         "target == target_polity.dominant_faction",
@@ -137,7 +137,7 @@
         "contact.polity.type == tribe",
         "chance_of_making_attempt > 0"
       ],
-      "timeToTrigger": "9125 + random(9125000 * target_isolation)",
+      "timeToTrigger": "9125 + random(27375000 * target_isolation)",
       "effects": [
         "target.trigger_decision(event_prio, tribe_decide_merge, contact.polity, chance_of_making_attempt)"
       ],

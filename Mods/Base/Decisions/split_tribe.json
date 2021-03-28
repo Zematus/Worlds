@@ -165,17 +165,6 @@
           "weight": "1 - min(1, chance_of_preventing_split)",
           "effects": [
             {
-              "id": "increase_relation",
-              "properties": [
-                { "id": "charisma_factor", "value": "0.5 - target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.get_relationship(splitting_faction)" },
-                { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
-                { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
-              ],
-              "text": "Clan <<target>>: relationship with <<splitting_faction>> increases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
-              "result": "target.set_relationship(splitting_faction, random(relationship_min, relationship_max))"
-            },
-            {
               "id": "split_tribe",
               "text": "Clan <<splitting_faction>> leaves <<target.polity>> and forms a new tribe...",
               "result": "target.polity.split(tribe, splitting_faction)"

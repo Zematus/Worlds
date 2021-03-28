@@ -87,8 +87,7 @@
           "text": "That's unfortunate...",
           "conditions": ["!is_part_of_polity"]
         }
-      ],
-      "debug": true
+      ]
     },
     {
       "id": "influence_demanded_from_clan",
@@ -247,8 +246,7 @@
           "text": "The current leader of clan <<demanding_faction>> will be notified of our decision...",
           "result": "demanding_faction.trigger_decision(decision_prio, faction_refuse_demand)"
         }
-      ],
-      "debug": true
+      ]
     },
     {
       "id": "faction_accede_demand",

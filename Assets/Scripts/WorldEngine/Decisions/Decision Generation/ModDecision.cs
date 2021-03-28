@@ -229,6 +229,8 @@ public class ModDecision : Context
 
         float randValue = GetNextRandomFloat(_randomOffset) * totalWeight;
 
+        AddDebugOutput("  Value rolled: " + randValue);
+
         // Figure out which option we should apply
         int chossenIndex = 0;
         while (optionWeights[chossenIndex] < randValue)
@@ -236,7 +238,11 @@ public class ModDecision : Context
             chossenIndex++;
         }
 
-        DecisionOptionEffect[] effects = Options[chossenIndex].Effects;
+        DecisionOption chossenOption = Options[chossenIndex];
+
+        AddDebugOutput("  Randomly picked option: " + chossenOption.Id);
+
+        DecisionOptionEffect[] effects = chossenOption.Effects;
 
         if (effects != null)
         {

@@ -174,22 +174,33 @@ public abstract class Polity : ISynchronizable
 
     public void AddCoreRegion(Region region)
     {
-        CoreRegions.Add(region);
+        if (!CoreRegions.Add(region))
+        {
+            // there's no need to do anything else if it is already part of the
+            // core regions
+            return;
+        }
+
         CoreRegionIds.Add(region.Id);
 
         _needsToFindAccessibleRegions = true;
 
-        NeedsNewCensus |= true;
+        NeedsNewCensus = true;
     }
 
     public void RemoveCoreRegion(Region region)
     {
-        CoreRegions.Remove(region);
+        if (!CoreRegions.Remove(region))
+        {
+            // there's no need to do anything else if it was alread removed
+            return;
+        }
+
         CoreRegionIds.Remove(region.Id);
 
         _needsToFindAccessibleRegions = true;
 
-        NeedsNewCensus |= true;
+        NeedsNewCensus = true;
     }
 
     /// <summary>
@@ -1701,6 +1712,11 @@ public abstract class Polity : ISynchronizable
             group.AddPolityProminenceValueDelta(this, ppValue);
 
             World.AddGroupToUpdate(group);
+        }
+
+        foreach (Region region in polity.CoreRegions)
+        {
+            AddCoreRegion(region);
         }
     }
 
