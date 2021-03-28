@@ -174,6 +174,16 @@ public class PolityProminence// : IKeyedValue<Identifier>
     /// <returns>the calculated shortest core distance</returns>
     private float CalculateShortestPolityCoreDistance()
     {
+//#if DEBUG
+//        if (Manager.Debug_BreakRequested &&
+//            (Manager.Debug_IdentifierOfInterest == PolityId) &&
+//            (Manager.Debug_IdentifierOfInterest3 == Id))
+//        {
+//            Debug.LogWarning("Debugging CalculateShortestPolityCoreDistance");
+//            Manager.Debug_BreakRequested = false;
+//        }
+//#endif
+
         if (Polity.CoreGroup == Group)
             return 0;
 

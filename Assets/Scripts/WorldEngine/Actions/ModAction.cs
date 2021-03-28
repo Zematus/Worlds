@@ -83,6 +83,8 @@ public class ModAction : Context, IDebugLogger
 
     public ModAction()
     {
+        DebugType = "Action";
+
         Target = new FactionEntity(this, TargetEntityId);
 
         // Add the target to the context's entity map
@@ -104,15 +106,7 @@ public class ModAction : Context, IDebugLogger
             {
                 bool value = exp.Value;
 
-                if (DebugEnabled)
-                {
-                    string expStr = exp.ToString();
-                    string expPartialStr = exp.ToPartiallyEvaluatedString(true);
-
-                    AddDebugOutput("  Condition: " + expStr +
-                     "\n   - Partial eval: " + expPartialStr +
-                     "\n   - Result: " + value);
-                }
+                AddExpDebugOutput("Condition", exp);
 
                 if (!value)
                 {
@@ -143,15 +137,7 @@ public class ModAction : Context, IDebugLogger
             {
                 bool value = exp.Value;
 
-                if (DebugEnabled)
-                {
-                    string expStr = exp.ToString();
-                    string expPartialStr = exp.ToPartiallyEvaluatedString(true);
-
-                    AddDebugOutput("  Condition: " + expStr +
-                     "\n   - Partial eval: " + expPartialStr +
-                     "\n   - Result: " + value);
-                }
+                AddExpDebugOutput("Condition", exp);
 
                 if (!value)
                 {

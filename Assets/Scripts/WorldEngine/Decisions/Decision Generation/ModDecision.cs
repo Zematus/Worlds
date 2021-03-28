@@ -11,7 +11,11 @@ public class ModDecision : Context
 
     public readonly FactionEntity Target;
 
+    private Faction _targetFaction;
+
     private Entity[] _parameterEntities;
+
+    private IBaseValueExpression[] _parameterValues;
 
     public static Dictionary<string, ModDecision> Decisions;
 
@@ -30,6 +34,8 @@ public class ModDecision : Context
 
     public ModDecision(string id, string targetStr)
     {
+        DebugType = "Decision";
+
         if (targetStr != FactionTargetType)
         {
             throw new System.ArgumentException("Invalid target type: " + targetStr);
@@ -87,6 +93,18 @@ public class ModDecision : Context
 
     public override int GetBaseOffset() => Target.Faction.GetHashCode();
 
+    public void Set(string triggerPrio, Faction targetFaction, IBaseValueExpression[] parameterValues)
+    {
+        _targetFaction = targetFaction;
+        _parameterValues = parameterValues;
+
+        // Uncomment this line to test the decision dialog
+        //Manager.SetGuidedFaction(targetFaction);
+
+        targetFaction.CoreGroup.SetToUpdate();
+        targetFaction.World.AddDecisionToResolve(this, triggerPrio);
+    }
+
     public override void Reset()
     {
         base.Reset();
@@ -102,36 +120,42 @@ public class ModDecision : Context
         }
     }
 
-    public void Set(Faction targetFaction, IBaseValueExpression[] parameters)
+    public void InitEvaluation()
     {
         Reset();
 
-        Target.Set(targetFaction);
+        Target.Set(_targetFaction);
 
         if (_parameterEntities == null) // we are expecting no parameters
         {
             return;
         }
 
-        if (parameters == null)
+        if (_parameterValues == null)
         {
             throw new System.Exception(
                 "No parameters given to decision '" + Id + "' when expected " + _parameterEntities.Length);
         }
 
-        if (parameters.Length < _parameterEntities.Length)
+        if (_parameterValues.Length < _parameterEntities.Length)
         {
             throw new System.Exception(
                 "Number of parameters given to decision '" + Id +
-                "', " + parameters.Length + ", below minimum expected " + _parameterEntities.Length);
+                "', " + _parameterValues.Length + ", below minimum expected " + _parameterEntities.Length);
         }
+
+        OpenDebugOutput("Setting Decision Parameters:");
 
         for (int i = 0; i < _parameterEntities.Length; i++)
         {
+            AddExpDebugOutput("Parameter '" + _parameterEntities[i].Id + "'", _parameterValues[i]);
+
             _parameterEntities[i].Set(
-                parameters[i].ValueObject,
-                parameters[i].ToPartiallyEvaluatedString);
+                _parameterValues[i].ValueObject,
+                _parameterValues[i].ToPartiallyEvaluatedString);
         }
+
+        CloseDebugOutput();
     }
 
     /// <summary>
@@ -142,6 +166,8 @@ public class ModDecision : Context
         float totalWeight = 0;
         float[] optionWeights = new float[Options.Length];
 
+        OpenDebugOutput("Auto Evaluating Decision:");
+
         // Calculate the current weights for all options
         for (int i = 0; i < Options.Length; i++)
         {
@@ -150,9 +176,24 @@ public class ModDecision : Context
             // Set weight to 0 for options that are meant to be used only by a human
             // player, or can't be currently shown or used
             float weight = 0;
+
+            OpenDebugOutput("Testing option '" + option.Id + "':" +
+                "\n  Allowed guide: " + option.AllowedGuide);
+
             if ((option.AllowedGuide != GuideType.Player) && option.CanShow())
             {
-                weight = (option.Weight != null ) ? option.Weight.Value : 1;
+                if (option.Weight != null)
+                {
+                    weight = option.Weight.Value;
+
+                    AddExpDebugOutput("Weight", option.Weight);
+                }
+                else
+                {
+                    weight = 1;
+
+                    AddDebugOutput("  Using default weight: 1");
+                }
 
                 if (weight < 0)
                 {
@@ -168,9 +209,13 @@ public class ModDecision : Context
                 }
             }
 
+            CloseDebugOutput();
+
             totalWeight += weight;
             optionWeights[i] = totalWeight;
         }
+
+        AddDebugOutput("  Total options weight: " + totalWeight);
 
         if (totalWeight <= 0)
         {
@@ -184,6 +229,8 @@ public class ModDecision : Context
 
         float randValue = GetNextRandomFloat(_randomOffset) * totalWeight;
 
+        AddDebugOutput("  Value rolled: " + randValue);
+
         // Figure out which option we should apply
         int chossenIndex = 0;
         while (optionWeights[chossenIndex] < randValue)
@@ -191,7 +238,11 @@ public class ModDecision : Context
             chossenIndex++;
         }
 
-        DecisionOptionEffect[] effects = Options[chossenIndex].Effects;
+        DecisionOption chossenOption = Options[chossenIndex];
+
+        AddDebugOutput("  Randomly picked option: " + chossenOption.Id);
+
+        DecisionOptionEffect[] effects = chossenOption.Effects;
 
         if (effects != null)
         {
@@ -201,16 +252,7 @@ public class ModDecision : Context
                 effect.Result.Apply();
             }
         }
-    }
 
-    public void Evaluate()
-    {
-        Faction targetFaction = Target.Faction;
-
-        // Uncomment this line to test the decision dialog
-        //Manager.SetGuidedFaction(targetFaction);
-
-        targetFaction.CoreGroup.SetToUpdate();
-        targetFaction.World.AddDecisionToResolve(this);
+        CloseDebugOutput();
     }
 }

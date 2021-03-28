@@ -191,6 +191,8 @@ public class TerrainCell
         }
     }
 
+    public bool IsAllWater => WaterBiomePresence >= 1;
+
     public WorldPosition Position;
 
     public Region Region = null;

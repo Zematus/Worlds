@@ -174,22 +174,33 @@ public abstract class Polity : ISynchronizable
 
     public void AddCoreRegion(Region region)
     {
-        CoreRegions.Add(region);
+        if (!CoreRegions.Add(region))
+        {
+            // there's no need to do anything else if it is already part of the
+            // core regions
+            return;
+        }
+
         CoreRegionIds.Add(region.Id);
 
         _needsToFindAccessibleRegions = true;
 
-        NeedsNewCensus |= true;
+        NeedsNewCensus = true;
     }
 
     public void RemoveCoreRegion(Region region)
     {
-        CoreRegions.Remove(region);
+        if (!CoreRegions.Remove(region))
+        {
+            // there's no need to do anything else if it was alread removed
+            return;
+        }
+
         CoreRegionIds.Remove(region.Id);
 
         _needsToFindAccessibleRegions = true;
 
-        NeedsNewCensus |= true;
+        NeedsNewCensus = true;
     }
 
     /// <summary>
@@ -406,6 +417,7 @@ public abstract class Polity : ISynchronizable
         {
             case Tribe.PolityTypeStr:
                 Tribe newTribe = new Tribe(splittingFaction as Clan, this as Tribe);
+                newPolity = newTribe;
 
                 AddEventMessage(new TribeSplitEventMessage(
                     splittingFaction as Clan,
@@ -461,11 +473,17 @@ public abstract class Polity : ISynchronizable
         return _eventMessageIds.Contains(id);
     }
 
-    public void SetCoreGroup(CellGroup coreGroup)
+    public void SetCoreGroup(CellGroup coreGroup, bool resetCoreDistances = true)
     {
         if (CoreGroup != null)
         {
             Manager.AddUpdatedCell(CoreGroup.Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
+
+            if (resetCoreDistances)
+            {
+                PolityProminence prom = CoreGroup.GetPolityProminence(Id);
+                prom.ResetCoreDistances();
+            }
         }
 
         CoreGroup = coreGroup;
@@ -560,7 +578,9 @@ public abstract class Polity : ISynchronizable
     /// Sets the most dominant faction within a polity
     /// </summary>
     /// <param name="faction">faction to set as dominant</param>
-    public void SetDominantFaction(Faction faction)
+    /// <param name="resetCoreDistances">indicate if core distances should be
+    /// recalculated</param>
+    public void SetDominantFaction(Faction faction, bool resetCoreDistances = true)
     {
         if (DominantFaction == faction)
             return;
@@ -584,7 +604,7 @@ public abstract class Polity : ISynchronizable
 
             faction.SetDominant(true);
 
-            SetCoreGroup(faction.CoreGroup);
+            SetCoreGroup(faction.CoreGroup, resetCoreDistances);
 
             foreach (PolityContact contact in _contacts.Values)
             {
@@ -783,7 +803,8 @@ public abstract class Polity : ISynchronizable
         // Can only tranfer influence between factions belonging to the same polity
 
         if (sourceFaction.PolityId != targetFaction.PolityId)
-            throw new System.Exception("Source faction and target faction do not belong to same polity");
+            throw new System.Exception("Source faction and target faction do not belong to same polity. " +
+                "source's Polity: " + sourceFaction.PolityId + ", target's polity: " + targetFaction.PolityId);
 
         // Always reduce influence of source faction and increase promience of target faction
 
@@ -1642,6 +1663,15 @@ public abstract class Polity : ISynchronizable
 
     public void MergePolity(Polity polity)
     {
+//#if DEBUG
+//        Manager.Debug_PauseSimRequested = true;
+//        Manager.Debug_BreakRequested = true;
+//        Manager.Debug_IdentifierOfInterest = Id;
+//        Manager.Debug_IdentifierOfInterest2 = polity.Id;
+//        Manager.Debug_IdentifierOfInterest3 = polity.CoreGroupId;
+//        Manager.Debug_IdentifierOfInterest4 = CoreGroupId;
+//#endif
+
         World.AddPolityToRemove(polity);
         World.AddPolityToUpdate(this);
 
@@ -1682,6 +1712,11 @@ public abstract class Polity : ISynchronizable
             group.AddPolityProminenceValueDelta(this, ppValue);
 
             World.AddGroupToUpdate(group);
+        }
+
+        foreach (Region region in polity.CoreRegions)
+        {
+            AddCoreRegion(region);
         }
     }
 

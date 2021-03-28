@@ -250,6 +250,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private System.Action _closeErrorActionToPerform = null;
 
+    private int _lastExLogHash = 0;
+
     void OnEnable()
     {
         Manager.InitializeDebugLog();
@@ -319,10 +321,18 @@ public class GuiManagerScript : MonoBehaviour
 
     public void HandleLog(string logString, string stackTrace, LogType type)
     {
+        if ((type == LogType.Exception) && (logString.GetHashCode() == _lastExLogHash))
+        {
+            // There's no need to log multiple instances of the exact same exception
+            return;
+        }
+
         Manager.HandleLog(logString, stackTrace, type);
 
         if (type == LogType.Exception)
         {
+            _lastExLogHash = logString.GetHashCode();
+
             Manager.EnableLogBackup();
 
             Manager.EnqueueTaskAndWait(() =>
@@ -553,6 +563,14 @@ public class GuiManagerScript : MonoBehaviour
 
         TryResolvePendingAction();
 
+#if DEBUG
+        if (Manager.Debug_PauseSimRequested)
+        {
+            PlayerPauseSimulation(true);
+            Manager.Debug_PauseSimRequested = false;
+        }
+#endif
+
         bool simulationRunning =
             Manager.SimulationCanRun &&
             (Manager.SimulationRunning || Manager.SimulationPerformingStep);
@@ -610,6 +628,11 @@ public class GuiManagerScript : MonoBehaviour
                     dateSpan += world.Update();
 
                     Profiler.EndSample();
+
+#if DEBUG
+                    if (Manager.Debug_PauseSimRequested)
+                        break;
+#endif
 
                     float deltaTimeIterations = Time.realtimeSinceStartup - startTimeIterations;
 
@@ -2340,6 +2363,8 @@ public class GuiManagerScript : MonoBehaviour
         while (Manager.CurrentWorld.HasModDecisionsToResolve())
         {
             ModDecision decisionToResolve = Manager.CurrentWorld.PullModDecisionToResolve();
+
+            decisionToResolve.InitEvaluation();
 
             Faction targetFaction = decisionToResolve.Target.Faction;
 

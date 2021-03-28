@@ -332,7 +332,10 @@ public class World : ISynchronizable, IWorldDateGetter
     private Queue<WorldEventMessage> _eventMessagesToShow =
         new Queue<WorldEventMessage>();
 
-    private readonly Queue<ModDecision> _modDecisionsToResolve =
+    private readonly Queue<ModDecision> _highPrioDecisionsToResolve =
+        new Queue<ModDecision>();
+
+    private readonly Queue<ModDecision> _lowPrioDecisionsToResolve =
         new Queue<ModDecision>();
 
     private ModAction _actionToExecute = null;
@@ -1034,7 +1037,7 @@ public class World : ISynchronizable, IWorldDateGetter
             PolityProminence polityProminence = promsToCalculate.Dequeue();
             promsToCalculateSet.Remove(polityProminence);
 
-//#if DEBUG
+            //#if DEBUG
             //if (calculatedProms.ContainsKey(polityProminence.Id))
             //{
             //    PromDistDebugInfo debugInfo = calculatedProms[polityProminence.Id];
@@ -1059,7 +1062,7 @@ public class World : ISynchronizable, IWorldDateGetter
             //        RecalcCount = 0
             //    });
             //}
-//#endif
+            //#endif
 
             if (!polityProminence.CalculateNewCoreDistances())
                 continue;
@@ -1828,14 +1831,14 @@ public class World : ISynchronizable, IWorldDateGetter
 
     public void AddPromToCalculateCoreDistFor(PolityProminence prominence)
     {
-//#if DEBUG
+        //#if DEBUG
         //if (prominence.Group.Position.Equals(5, 144) ||
         //    prominence.Group.Position.Equals(7, 144))
         //{
         //    Debug.LogWarning("DEBUG: AddPromToCalculateCoreDistFor: " + prominence.Group.Position +
         //        "\nstack: " + new System.Diagnostics.StackTrace() + "\n");
         //}
-//#endif
+        //#endif
 
         _promsWithCoreDistToCalculate.Add(prominence);
     }
@@ -2123,9 +2126,22 @@ public class World : ISynchronizable, IWorldDateGetter
         _territoriesToUpdate.Add(territory);
     }
 
-    public void AddDecisionToResolve(ModDecision decision)
+    public void AddDecisionToResolve(ModDecision decision, string triggerPrio)
     {
-        _modDecisionsToResolve.Enqueue(decision);
+        switch (triggerPrio)
+        {
+            case DecisionTriggerPriority.Decision:
+                _highPrioDecisionsToResolve.Enqueue(decision);
+                break;
+
+            case DecisionTriggerPriority.Action:
+                _lowPrioDecisionsToResolve.Enqueue(decision);
+                break;
+
+            case DecisionTriggerPriority.Event:
+                _lowPrioDecisionsToResolve.Enqueue(decision);
+                break;
+        }
     }
 
     public void AddEffectToResolve(IEffectExpression effect)
@@ -2140,7 +2156,9 @@ public class World : ISynchronizable, IWorldDateGetter
 
     public bool HasModDecisionsToResolve()
     {
-        return _modDecisionsToResolve.Count > 0;
+        return
+            (_lowPrioDecisionsToResolve.Count > 0) ||
+            (_highPrioDecisionsToResolve.Count > 0);
     }
 
     public bool HasEffectsToResolve()
@@ -2150,7 +2168,13 @@ public class World : ISynchronizable, IWorldDateGetter
 
     public ModDecision PullModDecisionToResolve()
     {
-        return _modDecisionsToResolve.Dequeue();
+        if (_highPrioDecisionsToResolve.Count > 0)
+            return _highPrioDecisionsToResolve.Dequeue();
+
+        if (_lowPrioDecisionsToResolve.Count > 0)
+            return _lowPrioDecisionsToResolve.Dequeue();
+
+        return null;
     }
 
     public IEffectExpression PullEffectToResolve()
