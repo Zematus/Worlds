@@ -8,9 +8,9 @@ public static class ExpressionBuilder
     public static IExpression BuildExpression(
         Context context, string expressionStr, bool allowInputRequesters = false)
     {
-#if DEBUG
-        //TestMatch(context, expressionStr);
-#endif
+//#if DEBUG
+//        TestMatch(context, expressionStr);
+//#endif
 
         IExpression expression = null;
 

@@ -11,7 +11,7 @@ Note: These are condensed summaries, not a full list of all changes
 - Land areas fully encompassed by a polity's territory are now considered part of that same territory (but only if depopulated)
 - Rewrote the entire population migration system to separate migrating groups by polity membership (or lack thereof)
 - Increased the speed at which population groups migrate
-- Removed polity influence transference, now polities grow exclusively through migration
+- Removed polity expansion through influence, now polities grow exclusively through migration
 - Polity populations are now limited to migrate only within a polity's core regions, with each polity starting with a single core region
 - Added scriptable player actions and the action toolbar
 - Added a player action that allows a polity to add neighboring regions to their set of core regions

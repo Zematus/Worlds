@@ -423,7 +423,8 @@ public class GuiManagerScript : MonoBehaviour
             //GenerateWorld(false, 122520965);
             //GenerateWorld(false, 1757624864);
             //GenerateWorld(false, 1253572363);
-            GenerateWorld(false, 403265427);
+            //GenerateWorld(false, 403265427);
+            GenerateWorld(false, 70275341);
         }
         else
         {

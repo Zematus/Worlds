@@ -1831,15 +1831,6 @@ public class World : ISynchronizable, IWorldDateGetter
 
     public void AddPromToCalculateCoreDistFor(PolityProminence prominence)
     {
-        //#if DEBUG
-        //if (prominence.Group.Position.Equals(5, 144) ||
-        //    prominence.Group.Position.Equals(7, 144))
-        //{
-        //    Debug.LogWarning("DEBUG: AddPromToCalculateCoreDistFor: " + prominence.Group.Position +
-        //        "\nstack: " + new System.Diagnostics.StackTrace() + "\n");
-        //}
-        //#endif
-
         _promsWithCoreDistToCalculate.Add(prominence);
     }
 
@@ -3950,13 +3941,6 @@ public class World : ISynchronizable, IWorldDateGetter
             if (!redoDrainageForAll && nCell.DrainageDone)
                 continue;
 
-            //#if DEBUG
-            //            if (nCell == _lowestEvaluatedCell)
-            //            {
-            //                Debug.Log("_lowestEvaluatedCell (" + nCell.Position + ") being drained on again, now from " + cell.Position);
-            //            }
-            //#endif
-
             float nCellAltitude = nAltitudes[nCell];
 
             float diff = Mathf.Max(0, cellAltitude - nCellAltitude);
@@ -3975,13 +3959,6 @@ public class World : ISynchronizable, IWorldDateGetter
 
             if (drainageTransferMinusLoss <= 0)
                 continue;
-
-#if DEBUG
-            if ((nCell.Longitude == 229) && (nCell.Latitude == 133))
-            {
-                Debug.Log("Debugging nCell " + nCell.Position);
-            }
-#endif
 
             if (nCell.Altitude > nCellAltitude)
             {
@@ -4446,13 +4423,6 @@ public class World : ISynchronizable, IWorldDateGetter
 
     private void GenerateTerrainBiomes(TerrainCell cell)
     {
-//#if DEBUG
-//        if ((cell.Longitude == 229) && (cell.Latitude == 133))
-//        {
-//            Debug.Log("Debugging cell " + cell.Position);
-//        }
-//#endif
-
         float totalBiomePresence = 0;
 
         Dictionary<string, float> biomePresences = new Dictionary<string, float>();
