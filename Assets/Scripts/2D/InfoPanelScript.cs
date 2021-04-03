@@ -14,6 +14,9 @@ public class InfoPanelScript : MonoBehaviour
         _infoTextMinimized = state;
     }
 
+    /// <summary>
+    /// Updates the upper left corner info panel
+    /// </summary>
     public void UpdateInfoPanel()
     {
         World world = Manager.CurrentWorld;
@@ -37,7 +40,7 @@ public class InfoPanelScript : MonoBehaviour
 
         InfoText.text += "\n";
 
-        if (Manager.DebugModeEnabled)
+        if (Manager.CurrentDevMode != DevMode.None)
         {
             InfoText.text += "\n -- Debug Data -- ";
 
@@ -45,13 +48,49 @@ public class InfoPanelScript : MonoBehaviour
                 (Manager.CurrentWorld.SelectedTerritory != null))
             {
                 InfoText.text += "\n";
-                InfoText.text += "\nSelected Territory's Polity Id: " + Manager.CurrentWorld.SelectedTerritory.Polity.Id;
+                InfoText.text += "\nSelected Territory's Polity Id: " +
+                    Manager.CurrentWorld.SelectedTerritory.Polity.Id;
             }
 
             InfoText.text += "\n";
+            InfoText.text += "\nEvents Evaluated Per Second: " + Manager.LastEventsEvaluatedCount;
             InfoText.text += "\nEvents Triggered Per Second: " + Manager.LastEventsTriggeredCount;
 
-            InfoText.text += "\n";
+            float successRate = 0;
+            if (Manager.LastEventsEvaluatedCount > 0)
+            {
+                successRate = Manager.LastEventsTriggeredCount / (float)Manager.LastEventsEvaluatedCount;
+            }
+
+            InfoText.text += "\nSuccess Rate: " + successRate.ToString("P");
+
+            if ((Manager.CurrentDevMode == DevMode.Advanced) &&
+                (Manager.LastEventEvalStatsPerType.Count > 0))
+            {
+                InfoText.text += "\n\n-- Breakdown by type --\n";
+
+                foreach (KeyValuePair<string, World.EventEvalStats> pair in Manager.LastEventEvalStatsPerType)
+                {
+                    int evalCount = pair.Value.EvaluationCount;
+
+                    if (evalCount <= 0)
+                    {
+                        throw new System.Exception("Event of type ("+ pair.Key + ") has 0 evaluations");
+                    }
+
+                    float percentOfTotal = evalCount / (float)Manager.LastEventsEvaluatedCount;
+
+                    successRate = pair.Value.TriggerCount / (float)evalCount;
+
+                    InfoText.text += "\n" + pair.Key + ": ";
+                    InfoText.text += "\nEvaluated: " + pair.Value.EvaluationCount +
+                        " (" + percentOfTotal.ToString("P") + " of all evaluated events)";
+                    InfoText.text += "\nTriggered: " + pair.Value.TriggerCount +
+                        " (" + successRate.ToString("P") + " success rate)";
+                    InfoText.text += "\n";
+                }
+            }
+
             InfoText.text += "\nMap Updates Per Second: " + Manager.LastMapUpdateCount;
             InfoText.text += "\nPixel Updates Per Second: " + Manager.LastPixelUpdateCount;
 
@@ -59,12 +98,13 @@ public class InfoPanelScript : MonoBehaviour
             {
                 float pixelUpdatesPerMapUpdate = Manager.LastPixelUpdateCount / (float)Manager.LastMapUpdateCount;
 
-                InfoText.text += "\nPixel Updates Per Map Update: " + pixelUpdatesPerMapUpdate.ToString("0.00");
+                InfoText.text +=
+                    "\nPixel Updates per Map Update: " + pixelUpdatesPerMapUpdate.ToString("0.00");
             }
 
             InfoText.text += "\n";
-            InfoText.text += "\nSimulated Time Per RTS:";
-            InfoText.text += "\n" + Manager.GetTimeSpanString(Manager.LastDateSpan);
+            InfoText.text += "\nSimulated Time per RTS:";
+            InfoText.text += "\n" + Manager.GetTimeSpanString(Manager.LastDevModeDateSpan);
             InfoText.text += "\n";
         }
     }
@@ -85,7 +125,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\n";
         InfoText.text += "\n -- Cell Terrain Data -- ";
         InfoText.text += "\n";
-        
+
         InfoText.text += "\nArea: " + cellArea + " Km^2";
         InfoText.text += "\nAltitude: " + cell.Altitude + " meters";
         InfoText.text += "\nRainfall: " + cell.Rainfall + " mm / year";
@@ -150,7 +190,7 @@ public class InfoPanelScript : MonoBehaviour
         }
         else
         {
-            InfoText.text += "\nCell is part of Region #" + region.Id + ": " + region.Name;
+            InfoText.text += "\nCell is part of Region Id: " + region.Id + ", Name: " + region.Name;
         }
     }
 
@@ -170,7 +210,7 @@ public class InfoPanelScript : MonoBehaviour
         }
         else
         {
-            InfoText.text += "\nRegion #" + region.Id + ": " + region.Name;
+            InfoText.text += "\nRegion Id: " + region.Id + ", Name: " + region.Name;
         }
         InfoText.text += "\n";
         InfoText.text += "\nAttributes: ";
@@ -227,7 +267,7 @@ public class InfoPanelScript : MonoBehaviour
     {
         float cellArea = cell.Area;
         float farmlandPercentage = cell.FarmlandPercentage;
-        
+
         InfoText.text += "\n";
         InfoText.text += "\n -- Cell Farmland Distribution Data -- ";
         InfoText.text += "\n";
@@ -292,10 +332,10 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nOptimal Population: " + optimalPopulation;
         InfoText.text += "\nPop Density: " + (population / cellArea).ToString("0.000") + " Pop / Km^2";
 
-        float modifiedSurvivability = 0;
-        float modifiedForagingCapacity = 0;
-
-        cell.Group.CalculateAdaptionToCell(cell, out modifiedForagingCapacity, out modifiedSurvivability);
+        cell.CalculateAdaptation(
+            cell.Group.Culture,
+            out float modifiedForagingCapacity,
+            out float modifiedSurvivability);
 
         InfoText.text += "\n";
         InfoText.text += "\nSurvivability: " + modifiedSurvivability.ToString("P");
@@ -333,7 +373,7 @@ public class InfoPanelScript : MonoBehaviour
             return;
         }
 
-        InfoText.text += "\n\tPredominant language at location: " + groupLanguage.Id;
+        InfoText.text += "\n\tPredominant language at location: " + groupLanguage;
     }
 
     private void AddCellDataToInfoPanel_UpdateSpan(TerrainCell cell)
@@ -448,7 +488,7 @@ public class InfoPanelScript : MonoBehaviour
         }
 
         Territory territory = cell.EncompassingTerritory;
-        
+
         if (territory == null)
         {
             InfoText.text += "\n\tGroup not part of a polity's territory";
@@ -473,7 +513,7 @@ public class InfoPanelScript : MonoBehaviour
 
         foreach (PolityContact contact in polity.GetContacts())
         {
-            Polity contactPolity = contact.Polity;
+            Polity contactPolity = contact.NeighborPolity;
 
             InfoText.text += "\n\n\tPolity: " + contactPolity.Name.Text + " " + contactPolity.Type.ToLower();
 
@@ -595,7 +635,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nFormation Date: " + Manager.GetDateString(polity.FormationDate);
         InfoText.text += "\n";
 
-        int totalPopulation = (int)Mathf.Floor(polity.TotalPopulation);
+        int totalPopulation = (int)polity.TotalPopulation;
 
         InfoText.text += "\n\tPolity population: " + totalPopulation;
         InfoText.text += "\n";
@@ -653,7 +693,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\n";
 
         float percentageOfPopulation = cell.Group.GetPolityProminenceValue(polity);
-        int prominencedPopulation = (int)Mathf.Floor(population * percentageOfPopulation);
+        int prominencedPopulation = (int)(population * percentageOfPopulation);
 
         float percentageOfPolity = 1;
 
@@ -721,7 +761,7 @@ public class InfoPanelScript : MonoBehaviour
 
                 if (prominenceCluster != null)
                 {
-                    InfoText.text += "\n\t\tCluster: " + prominenceCluster.Id.ToString();
+                    InfoText.text += "\n\t\tCluster: " + prominenceCluster;
                 }
                 else
                 {
@@ -1181,7 +1221,8 @@ public class InfoPanelScript : MonoBehaviour
             AddCellDataToInfoPanel_Terrain(cell);
         }
 
-        if (Manager.PlanetOverlay == PlanetOverlay.Region)
+        if ((Manager.PlanetOverlay == PlanetOverlay.Region) ||
+            (Manager.PlanetOverlay == PlanetOverlay.RegionSelection))
         {
             AddCellDataToInfoPanel_Region(cell);
         }
@@ -1208,7 +1249,8 @@ public class InfoPanelScript : MonoBehaviour
             AddCellDataToInfoPanel_PopDensity(cell);
         }
 
-        if (Manager.PlanetOverlay == PlanetOverlay.UpdateSpan)
+        if ((Manager.PlanetOverlay == PlanetOverlay.UpdateSpan) ||
+            (Manager.PlanetOverlay == PlanetOverlay.Migration))
         {
             AddCellDataToInfoPanel_UpdateSpan(cell);
         }

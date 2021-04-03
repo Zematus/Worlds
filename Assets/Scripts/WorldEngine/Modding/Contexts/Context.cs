@@ -2,15 +2,37 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum GuideType
+{
+    Player,
+    Simulation,
+    All
+}
+
 /// <summary>
 /// Context objects contain data used by sets of expressions to resolve references and receive input
 /// from the simulation
 /// </summary>
-public abstract class Context
+public abstract class Context : IDebugLogger
 {
+    public const string Guide_Simulation = "simulation";
+    public const string Guide_Player = "player";
+    public const string Guide_All = "all";
+
     public string Id;
 
-    public bool DebugEnabled => Manager.DebugModeEnabled && _debug;
+    protected bool DebugEnabled
+    {
+        get
+        {
+            if (_parentContext != null)
+            {
+                return _parentContext.DebugEnabled;
+            }
+
+            return (Manager.CurrentDevMode == DevMode.Advanced) && _debug;
+        }
+    }
 
     protected int _currentIterOffset = 0;
 
@@ -22,6 +44,8 @@ public abstract class Context
     private int _dbgTabCount = -1;
     private string _dbgTab;
 
+    public string DebugType { get; protected set; }
+
     [Serializable]
     public class LoadedContext
     {
@@ -31,10 +55,6 @@ public abstract class Context
         public class LoadedProperty
         {
             public string id;
-            public string type;
-            public string min;
-            public string max;
-            public string[] conditions;
             public string value;
         }
 
@@ -50,6 +70,11 @@ public abstract class Context
 
     readonly private List<IReseteableEntity> _propertyEntities =
         new List<IReseteableEntity>();
+
+    protected Context()
+    {
+        DebugType = "Context";
+    }
 
     public void Initialize(LoadedContext c)
     {
@@ -127,8 +152,14 @@ public abstract class Context
         return _parentContext.TryGetEntity(id, out e);
     }
 
-    public void OpenDebugOutput(string message)
+    public void OpenDebugOutput(string message = null)
     {
+        if (_parentContext != null)
+        {
+            _parentContext.OpenDebugOutput(message);
+            return;
+        }
+
         if (DebugEnabled)
         {
             _dbgTabCount++;
@@ -137,42 +168,130 @@ public abstract class Context
             {
                 _dbgTab += "\t";
             }
+
+            AddDebugOutput(message);
+        }
+    }
+
+    public void AddExpDebugOutput(
+        string label, IExpression exp)
+    {
+        if (_parentContext != null)
+        {
+            _parentContext.AddExpDebugOutput(label, exp);
+            return;
         }
 
-        AddDebugOutput(message);
+        if (DebugEnabled)
+        {
+            if (exp != null)
+            {
+                AddDebugOutput("\t" + label + ": " + exp.ToString() +
+                    "\n\t - Partial eval: " + exp.ToPartiallyEvaluatedString());
+            }
+            else
+            {
+                AddDebugOutput("  " + label + " is null");
+            }
+        }
+    }
+
+    public void AddExpDebugOutput<T>(
+        string label, IValueExpression<T> exp)
+    {
+        if (_parentContext != null)
+        {
+            _parentContext.AddExpDebugOutput(label, exp);
+            return;
+        }
+
+        if (DebugEnabled)
+        {
+            if (exp != null)
+            {
+                AddDebugOutput("\t" + label + ": " + exp.ToString() +
+                    "\n\t - Partial eval: " + exp.ToPartiallyEvaluatedString() + 
+                    "\n\t - Value: " + exp.Value);
+            }
+            else
+            {
+                AddDebugOutput("  " + label + " is null");
+            }
+        }
+    }
+
+    public void AddExpDebugOutput(
+        string label, IBaseValueExpression exp)
+    {
+        if (_parentContext != null)
+        {
+            _parentContext.AddExpDebugOutput(label, exp);
+            return;
+        }
+
+        if (DebugEnabled)
+        {
+            if (exp != null)
+            {
+                AddDebugOutput("\t" + label + ": " + exp.ToString() +
+                    "\n\t - Partial eval: " + exp.ToPartiallyEvaluatedString() +
+                    "\n\t - Value: " + exp.ValueObject);
+            }
+            else
+            {
+                AddDebugOutput("  " + label + " is null");
+            }
+        }
     }
 
     public void AddDebugOutput(string message)
     {
+        if (_parentContext != null)
+        {
+            _parentContext.AddDebugOutput(message);
+            return;
+        }
+
+        if (string.IsNullOrEmpty(message))
+            return;
+
         if (DebugEnabled)
         {
+            string idString = "[" + Id + "] ";
+
             if (_dbgStr == null)
             {
-                _dbgStr = "";
+                _dbgStr = DebugType + " Mod Debug " + idString + ":\n\t";
             }
             else
             {
-                _dbgStr += "\n";
+                _dbgStr += "\n\t";
             }
 
-            message = message.Replace("\n", "\n" + _dbgTab);
+            message = message.Replace("\n", "\n\t" + _dbgTab);
             _dbgStr += _dbgTab + message;
         }
     }
 
-    public void CloseDebugOutput(string message)
+    public void CloseDebugOutput(string message = null)
     {
-        AddDebugOutput(message);
+        if (_parentContext != null)
+        {
+            _parentContext.CloseDebugOutput(message);
+            return;
+        }
 
         if (DebugEnabled)
         {
+            AddDebugOutput(message);
+
             _dbgTabCount--;
 
             if (_dbgTabCount < 0)
             {
                 if (_dbgStr != null)
                 {
-                    UnityEngine.Debug.Log(_dbgStr);
+                    Debug.Log(_dbgStr);
                     _dbgStr = null;
                 }
             }

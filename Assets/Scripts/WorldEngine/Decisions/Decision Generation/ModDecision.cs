@@ -9,9 +9,13 @@ public class ModDecision : Context
 
     private int _randomOffset;
 
-    private readonly FactionEntity _target;
+    public readonly FactionEntity Target;
+
+    private Faction _targetFaction;
 
     private Entity[] _parameterEntities;
+
+    private IBaseValueExpression[] _parameterValues;
 
     public static Dictionary<string, ModDecision> Decisions;
 
@@ -30,6 +34,8 @@ public class ModDecision : Context
 
     public ModDecision(string id, string targetStr)
     {
+        DebugType = "Decision";
+
         if (targetStr != FactionTargetType)
         {
             throw new System.ArgumentException("Invalid target type: " + targetStr);
@@ -39,10 +45,10 @@ public class ModDecision : Context
 
         _randomOffset = IdHash;
 
-        _target = new FactionEntity(this, TargetEntityId);
+        Target = new FactionEntity(this, TargetEntityId);
 
         // Add the target to the context's entity map
-        AddEntity(_target);
+        AddEntity(Target);
     }
 
     public void SetParameterEntities(Entity[] parameterEntities)
@@ -80,12 +86,24 @@ public class ModDecision : Context
     }
 
     public override int GetNextRandomInt(int iterOffset, int maxValue) =>
-        _target.Faction.GetNextLocalRandomInt(iterOffset, maxValue);
+        Target.Faction.GetNextLocalRandomInt(iterOffset, maxValue);
 
     public override float GetNextRandomFloat(int iterOffset) =>
-        _target.Faction.GetNextLocalRandomFloat(iterOffset);
+        Target.Faction.GetNextLocalRandomFloat(iterOffset);
 
-    public override int GetBaseOffset() => (int)_target.Faction.Id;
+    public override int GetBaseOffset() => Target.Faction.GetHashCode();
+
+    public void Set(string triggerPrio, Faction targetFaction, IBaseValueExpression[] parameterValues)
+    {
+        _targetFaction = targetFaction;
+        _parameterValues = parameterValues;
+
+        // Uncomment this line to test the decision dialog
+        //Manager.SetGuidedFaction(targetFaction);
+
+        targetFaction.CoreGroup.SetToUpdate();
+        targetFaction.World.AddDecisionToResolve(this, triggerPrio);
+    }
 
     public override void Reset()
     {
@@ -102,79 +120,107 @@ public class ModDecision : Context
         }
     }
 
-    public void Set(Faction targetFaction, IBaseValueExpression[] parameters)
+    public void InitEvaluation()
     {
         Reset();
 
-        _target.Set(targetFaction);
+        Target.Set(_targetFaction);
 
         if (_parameterEntities == null) // we are expecting no parameters
         {
             return;
         }
 
-        if (parameters == null)
+        if (_parameterValues == null)
         {
             throw new System.Exception(
                 "No parameters given to decision '" + Id + "' when expected " + _parameterEntities.Length);
         }
 
-        if (parameters.Length < _parameterEntities.Length)
+        if (_parameterValues.Length < _parameterEntities.Length)
         {
             throw new System.Exception(
                 "Number of parameters given to decision '" + Id +
-                "', " + parameters.Length + ", below minimum expected " + _parameterEntities.Length);
+                "', " + _parameterValues.Length + ", below minimum expected " + _parameterEntities.Length);
         }
+
+        OpenDebugOutput("Setting Decision Parameters:");
 
         for (int i = 0; i < _parameterEntities.Length; i++)
         {
+            AddExpDebugOutput("Parameter '" + _parameterEntities[i].Id + "'", _parameterValues[i]);
+
             _parameterEntities[i].Set(
-                parameters[i].ValueObject,
-                parameters[i].ToPartiallyEvaluatedString);
+                _parameterValues[i].ValueObject,
+                _parameterValues[i].ToPartiallyEvaluatedString);
         }
+
+        CloseDebugOutput();
     }
 
     /// <summary>
-    /// This function will be called by the AI when the target faction is not controlled by a player
+    /// This function will be used by the AI when the target faction is not controlled by a player
     /// </summary>
-    private void AutoEvaluate()
+    public void AutoEvaluate()
     {
         float totalWeight = 0;
         float[] optionWeights = new float[Options.Length];
+
+        OpenDebugOutput("Auto Evaluating Decision:");
 
         // Calculate the current weights for all options
         for (int i = 0; i < Options.Length; i++)
         {
             DecisionOption option = Options[i];
 
-            // If option is not available set its weight to 0
+            // Set weight to 0 for options that are meant to be used only by a human
+            // player, or can't be currently shown or used
             float weight = 0;
-            if (option.CanShow())
+
+            OpenDebugOutput("Testing option '" + option.Id + "':" +
+                "\n  Allowed guide: " + option.AllowedGuide);
+
+            if ((option.AllowedGuide != GuideType.Player) && option.CanShow())
             {
-                weight = (option.Weight != null ) ? option.Weight.Value : 1;
+                if (option.Weight != null)
+                {
+                    weight = option.Weight.Value;
+
+                    AddExpDebugOutput("Weight", option.Weight);
+                }
+                else
+                {
+                    weight = 1;
+
+                    AddDebugOutput("  Using default weight: 1");
+                }
+
+                if (weight < 0)
+                {
+                    string weightPartialExpression =
+                        (option.Weight != null) ?
+                        ("\n - expression: " + option.Weight.ToPartiallyEvaluatedString(true)) :
+                        string.Empty;
+
+                    throw new System.Exception(
+                        Id + "->" + option.Id + ", decision option weight is less than zero: " +
+                        weightPartialExpression +
+                        "\n - weight: " + weight);
+                }
             }
 
-            if (weight < 0)
-            {
-                string weightPartialExpression =
-                    (option.Weight != null) ?
-                    ("\n - expression: " + option.Weight.ToPartiallyEvaluatedString(true)) :
-                    string.Empty;
-
-                throw new System.Exception(
-                    Id + "->" + option.Id + ", decision option weight is less than zero: " +
-                    weightPartialExpression +
-                    "\n - weight: " + weight);
-            }
+            CloseDebugOutput();
 
             totalWeight += weight;
             optionWeights[i] = totalWeight;
         }
 
+        AddDebugOutput("  Total options weight: " + totalWeight);
+
         if (totalWeight <= 0)
         {
             // Something went wrong, at least one option should be
-            // available everytime we evaluate a decision
+            // available every time we evaluate a decision
 
             throw new System.Exception(
                 Id + ", total decision option weight is equal or less than zero: " +
@@ -183,6 +229,8 @@ public class ModDecision : Context
 
         float randValue = GetNextRandomFloat(_randomOffset) * totalWeight;
 
+        AddDebugOutput("  Value rolled: " + randValue);
+
         // Figure out which option we should apply
         int chossenIndex = 0;
         while (optionWeights[chossenIndex] < randValue)
@@ -190,7 +238,11 @@ public class ModDecision : Context
             chossenIndex++;
         }
 
-        DecisionOptionEffect[] effects = Options[chossenIndex].Effects;
+        DecisionOption chossenOption = Options[chossenIndex];
+
+        AddDebugOutput("  Randomly picked option: " + chossenOption.Id);
+
+        DecisionOptionEffect[] effects = chossenOption.Effects;
 
         if (effects != null)
         {
@@ -200,24 +252,7 @@ public class ModDecision : Context
                 effect.Result.Apply();
             }
         }
-    }
 
-    public void Evaluate()
-    {
-        Faction targetFaction = _target.Faction;
-
-        // Uncomment this line to test the decision dialog
-        //Manager.SetGuidedFaction(targetFaction);
-
-        targetFaction.CoreGroup.SetToUpdate();
-
-        if (targetFaction.IsUnderPlayerGuidance)
-        {
-            targetFaction.World.AddDecisionToResolve(this);
-        }
-        else
-        {
-            AutoEvaluate();
-        }
+        CloseDebugOutput();
     }
 }

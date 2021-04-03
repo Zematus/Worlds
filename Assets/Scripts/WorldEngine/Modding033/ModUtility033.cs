@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-[System.Obsolete]
 public static class ModUtility033
 {
     public const string IdentifierRegexPart = @"[a-zA-Z_][a-zA-Z0-9_]*";

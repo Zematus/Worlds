@@ -24,7 +24,7 @@ public class Tribe : Polity
 
     private static string[] TribeNounVariants = new string[] {
         "nation", "tribe", "[in(person)]people", "folk", "community", "kin", "{kin:s:}person:s", "{kin:s:}[in(man)]men", "{kin:s:}[in(woman)]women", "[in(child)]children" };
-    
+
     private int _rngOffset;
 
     public Tribe()
@@ -34,45 +34,23 @@ public class Tribe : Polity
 
     public Tribe(CellGroup coreGroup) : base(PolityTypeStr, coreGroup)
     {
-        //// Make sure there's a region to spawn into
+        float randomValue = coreGroup.Cell.GetNextLocalRandomFloat(RngOffsets.TRIBE_GENERATE_NEW_TRIBE);
+        float coreProminenceFactor = BaseCoreProminence + randomValue * (1 - BaseCoreProminence);
 
-        TerrainCell coreCell = coreGroup.Cell;
+        // the initial prominence can only be taken from the unorganized bands in the core group
+        float ubProminence = 1f - coreGroup.TotalPolityProminenceValue;
+        coreProminenceFactor *= ubProminence;
 
-        Region cellRegion = coreGroup.Cell.Region;
-
-        if (cellRegion == null)
+        if (coreProminenceFactor == 0)
         {
-            //			#if DEBUG
-            //			if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
-            //				if ((Id == Manager.TracingData.PolityId) && (coreCell.Longitude == Manager.TracingData.Longitude) && (coreCell.Latitude == Manager.TracingData.Latitude)) {
-            //					bool debug = true;
-            //				}
-            //			}
-            //			#endif
-
-            cellRegion = Region.TryGenerateRegion(coreCell, Culture.Language);
-
-            if (cellRegion != null)
-            {
-                if (World.GetRegionInfo(cellRegion.Id) != null)
-                {
-                    throw new System.Exception("RegionInfo with Id " + cellRegion.Id + " already present");
-                }
-
-                World.AddRegionInfo(cellRegion.Info);
-            }
-            else
-            {
-                throw new System.Exception("No region could be generated");
-            }
+            throw new System.Exception(
+                "Unable to assign a core prominence bigger than zero. Group: " + coreGroup);
         }
 
-        ////
+        coreGroup.AddPolityProminenceValueDelta(this, coreProminenceFactor);
 
-        float randomValue = coreGroup.Cell.GetNextLocalRandomFloat(RngOffsets.TRIBE_GENERATE_NEW_TRIBE);
-        float coreProminence = BaseCoreProminence + randomValue * (1 - BaseCoreProminence);
-
-        coreGroup.SetPolityProminence(this, coreProminence, 0, 0);
+        // substract the new tribe prominence from the unorganized bands prominence
+        coreGroup.AddUBandsProminenceValueDelta(-coreProminenceFactor);
 
         GenerateName();
 
@@ -84,10 +62,11 @@ public class Tribe : Polity
 
         AddFaction(clan);
 
-        SetDominantFaction(clan);
+        SetDominantFaction(clan, false);
     }
 
-    public Tribe(Clan triggerClan, Polity parentPolity) : base(PolityTypeStr, triggerClan.CoreGroup, triggerClan.Id)
+    public Tribe(Clan triggerClan, Polity parentPolity) :
+        base(PolityTypeStr, triggerClan.CoreGroup, triggerClan.GetHashCode())
     {
         triggerClan.ChangePolity(this, triggerClan.Influence);
 
@@ -98,84 +77,25 @@ public class Tribe : Polity
         //		Debug.Log ("New tribe '" + Name + "' from tribe '" + parentPolity.Name + "' with total transfered influence = " + transferedInfluence);
     }
 
-    public override void InitializeInternal()
-    {
-        long triggerDate = FosterTribeRelationDecisionEvent.CalculateTriggerDate(this);
-        if (triggerDate > 0)
-        {
-            if (triggerDate <= World.CurrentDate)
-            {
-                throw new System.Exception(
-                    "FosterTribeRelationDecisionEvent Trigger Date (" + triggerDate +
-                    ") less or equal to current date: " + World.CurrentDate);
-            }
-
-            AddEvent(new FosterTribeRelationDecisionEvent(this, triggerDate));
-        }
-
-        triggerDate = MergeTribesDecisionEvent.CalculateTriggerDate(this);
-        if (triggerDate > 0)
-        {
-            if (triggerDate <= World.CurrentDate)
-            {
-                throw new System.Exception(
-                    "MergeTribesDecisionEvent Trigger Date (" + triggerDate +
-                    ") less or equal to current date: " + World.CurrentDate);
-            }
-
-            AddEvent(new MergeTribesDecisionEvent(this, triggerDate));
-        }
-
-        triggerDate = OpenTribeDecisionEvent.CalculateTriggerDate(this);
-        if (triggerDate > 0)
-        {
-            if (triggerDate <= World.CurrentDate)
-            {
-                throw new System.Exception(
-                    "OpenTribeDecisionEvent Trigger Date (" + triggerDate +
-                    ") less or equal to current date: " + World.CurrentDate);
-            }
-
-            AddEvent(new OpenTribeDecisionEvent(this, triggerDate));
-        }
-    }
-
     public static void GenerateTribeNounVariations()
     {
         TribeNounVariations = NameTools.GenerateNounVariations(TribeNounVariants);
     }
 
-    protected override void GenerateEventsFromData()
-    {
-        foreach (PolityEventData eData in EventDataList)
-        {
-            switch (eData.TypeId)
-            {
-                case WorldEvent.FosterTribeRelationDecisionEventId:
-                    AddEvent(new FosterTribeRelationDecisionEvent(this, eData));
-                    break;
-                case WorldEvent.MergeTribesDecisionEventId:
-                    AddEvent(new MergeTribesDecisionEvent(this, eData));
-                    break;
-                case WorldEvent.OpenTribeDecisionEventId:
-                    AddEvent(new OpenTribeDecisionEvent(this, eData));
-                    break;
-                default:
-                    throw new System.Exception("Unhandled polity event type id: " + eData.TypeId);
-            }
-        }
-    }
-
     private void SwitchCellProminences(Polity sourcePolity, Clan triggerClan)
     {
+//#if DEBUG
+//        Manager.DebugPauseSimRequested = true;
+//#endif
+
         float targetPolityInfluence = triggerClan.Influence;
         float sourcePolityInfluence = 1 - targetPolityInfluence;
-        
+
         if (targetPolityInfluence <= 0)
         {
             throw new System.Exception("Pulling clan influence equal or less than zero.");
         }
-        
+
         int maxGroupCount = sourcePolity.Groups.Count;
 
         Dictionary<CellGroup, float> groupDistances = new Dictionary<CellGroup, float>(maxGroupCount);
@@ -205,7 +125,7 @@ public class Tribe : Polity
 
             float distanceToTargetPolityCore = CalculateShortestCoreDistance(group, groupDistances);
 
-            if (distanceToTargetPolityCore >= CellGroup.MaxCoreDistance)
+            if (distanceToTargetPolityCore >= PolityProminence.MaxCoreDistance)
                 continue;
 
             groupDistances.Add(group, distanceToTargetPolityCore);
@@ -214,7 +134,7 @@ public class Tribe : Polity
 
             float percentProminence = 1f;
 
-            if (distanceToSourcePolityCore < CellGroup.MaxCoreDistance)
+            if (distanceToSourcePolityCore < PolityProminence.MaxCoreDistance)
             {
                 float ditanceToCoresSum = distanceToTargetPolityCore + distanceToSourcePolityCore;
 
@@ -229,6 +149,11 @@ public class Tribe : Polity
                 float sourcePolityWeight = sourcePolityInfluence * sourceDistanceFactor;
 
                 percentProminence = targetPolityWeight / (targetPolityWeight + sourcePolityWeight);
+
+                if (float.IsNaN(percentProminence))
+                {
+                    throw new System.Exception("percent prominence is Nan. Tribe: " + Id);
+                }
             }
 
             if (percentProminence <= 0)
@@ -261,9 +186,10 @@ public class Tribe : Polity
 
             float prominenceValue = pi.Value;
 
-            group.SetPolityProminence(sourcePolity, prominenceValue * (1 - percentProminence));
+            float sourceProminenceValueDelta = prominenceValue * percentProminence;
 
-            group.SetPolityProminence(this, prominenceValue * percentProminence, distanceToTargetPolityCore, distanceToTargetPolityCore);
+            group.AddPolityProminenceValueDelta(sourcePolity, -sourceProminenceValueDelta);
+            group.AddPolityProminenceValueDelta(this, sourceProminenceValueDelta);
 
             World.AddGroupToUpdate(group);
 
@@ -293,17 +219,16 @@ public class Tribe : Polity
             faction.ChangePolity(this, faction.Influence);
         }
 
-        SetDominantFaction(dominantClan);
-
-        //		Debug.Log ("SwitchCellProminences: source polity cells: " + maxGroupCount + ", reviewed cells: " + reviewedCells + ", switched cells: " + switchedCells);
+        SetDominantFaction(dominantClan, false);
     }
 
-    private float CalculateShortestCoreDistance(CellGroup group, Dictionary<CellGroup, float> groupDistances)
+    private float CalculateShortestCoreDistance(
+        CellGroup group, Dictionary<CellGroup, float> groupDistances)
     {
         if (groupDistances.Count <= 0)
             return 0;
 
-        float shortestDistance = CellGroup.MaxCoreDistance;
+        float shortestDistance = PolityProminence.MaxCoreDistance;
 
         foreach (KeyValuePair<Direction, CellGroup> pair in group.Neighbors)
         {
@@ -349,7 +274,7 @@ public class Tribe : Polity
     {
         Region coreRegion = CoreGroup.Cell.Region;
 
-        _rngOffset = RngOffsets.TRIBE_GENERATE_NAME + unchecked((int)Id);
+        _rngOffset = RngOffsets.TRIBE_GENERATE_NAME + unchecked(GetHashCode());
 
         string tribeNoun = TribeNounVariations.RandomSelect(GetRandomInt).Text;
 
@@ -372,25 +297,25 @@ public class Tribe : Polity
 
         Info.Name = new Name(untranslatedName, Culture.Language, World);
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            //if (Manager.TracingData.PolityId == Id)
-//            //{
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "Tribe.GenerateName - Polity.Id:" + Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
-//                    //", PrepositionVariations: [" + string.Join(",", PrepositionVariations) + "]" +
-//                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
-//                    ", TribeNounVariations.Length: " + TribeNounVariations.Length +
-//                    ", areaName: " + areaName +
-//                    "");
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            //if (Manager.TracingData.PolityId == Id)
+        //            //{
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "Tribe.GenerateName - Polity.Id:" + Id,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
+        //                    //", PrepositionVariations: [" + string.Join(",", PrepositionVariations) + "]" +
+        //                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
+        //                    ", TribeNounVariations.Length: " + TribeNounVariations.Length +
+        //                    ", areaName: " + areaName +
+        //                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            //}
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            //}
+        //        }
+        //#endif
 
         //		#if DEBUG
         //		Debug.Log ("Tribe #" + Id + " name: " + Name);
@@ -413,10 +338,7 @@ public class Tribe : Polity
         float prominenceFactor = sourceGroupTotalPolityProminenceValue / (targetGroupTotalPolityProminenceValue + sourceGroupTotalPolityProminenceValue);
         prominenceFactor = Mathf.Pow(prominenceFactor, 4);
 
-        float modifiedForagingCapacity = 0;
-        float modifiedSurvivability = 0;
-
-        CalculateAdaptionToCell(targetGroup.Cell, out modifiedForagingCapacity, out modifiedSurvivability);
+        targetGroup.Cell.CalculateAdaptation(Culture, out _, out float modifiedSurvivability);
 
         float survivabilityFactor = Mathf.Pow(modifiedSurvivability, 2);
 

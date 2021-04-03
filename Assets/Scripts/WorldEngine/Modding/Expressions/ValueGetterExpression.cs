@@ -8,22 +8,38 @@ public delegate string PartiallyEvaluatedStringConverter(bool evaluate);
 
 public class ValueGetterExpression<T> : IValueExpression<T>
 {
-    private readonly ValueGetterMethod<T> _getterMethod;
+    private readonly string _sourceId;
 
+    private readonly ValueGetterMethod<T> _getterMethod;
     private readonly PartiallyEvaluatedStringConverter _partialEvalStringConverter;
 
     public T Value => _getterMethod();
 
     public object ValueObject => Value;
 
-    public override string ToString() => Value.ToString();
+    public virtual bool RequiresInput => false;
 
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
+    public override string ToString()
+    {
+        return _sourceId;
+    }
+
+    public string GetFormattedString()
+    {
+        if (Value is IFormattedStringGenerator generator)
+        {
+            return generator.GetFormattedString();
+        }
+
+        return Value.ToString().ToBoldFormat();
+    }
 
     public ValueGetterExpression(
+        string sourceId,
         ValueGetterMethod<T> getterMethod,
         PartiallyEvaluatedStringConverter partialEvalStringConverter = null)
     {
+        _sourceId = sourceId;
         _getterMethod = getterMethod;
         _partialEvalStringConverter = partialEvalStringConverter;
     }
@@ -31,5 +47,12 @@ public class ValueGetterExpression<T> : IValueExpression<T>
     public string ToPartiallyEvaluatedString(bool evaluate)
     {
         return _partialEvalStringConverter?.Invoke(evaluate) ?? Value.ToString();
+    }
+
+    public virtual bool TryGetRequest(out InputRequest request)
+    {
+        request = null;
+
+        return false;
     }
 }

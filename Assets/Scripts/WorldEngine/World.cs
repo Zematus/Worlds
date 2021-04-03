@@ -8,125 +8,6 @@ using UnityEngine.Profiling;
 
 public delegate void ProgressCastDelegate(float value, string message = null, bool reset = false);
 
-public interface ISynchronizable
-{
-    void Synchronize();
-    void FinalizeLoad();
-}
-
-public static class RngOffsets
-{
-    //public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET = 0;
-    public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE = 1;
-
-    public const int CELL_GROUP_CONSIDER_SEA_MIGRATION = 2;
-
-    public const int CELL_GROUP_CALCULATE_NEXT_UPDATE = 3;
-
-    public const int CELL_GROUP_SET_POLITY_UPDATE = 4;
-
-    public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY = 5;
-    public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_TARGET = 6;
-    public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_CHANCE = 7;
-
-    public const int CELL_GROUP_UPDATE_MIGRATION_DIRECTION = 8;
-    public const int CELL_GROUP_GENERATE_GROUP_MIGRATION_DIRECTION = 9;
-    public const int CELL_GROUP_GENERATE_PROMINENCE_TRANSFER_DIRECTION = 10;
-    public const int CELL_GROUP_GENERATE_CORE_MIGRATION_DIRECTION = 11;
-
-    public const int PREFERENCE_UPDATE = 10000;
-    public const int PREFERENCE_POLITY_PROMINENCE = 10100;
-
-    public const int ACTIVITY_UPDATE = 11000;
-    public const int ACTIVITY_POLITY_PROMINENCE = 11100;
-
-    public const int KNOWLEDGE_MERGE = 20000;
-    public const int KNOWLEDGE_MODIFY_VALUE = 20100;
-    public const int KNOWLEDGE_UPDATE_VALUE_INTERNAL = 20200;
-    public const int KNOWLEDGE_POLITY_PROMINENCE = 20300;
-    public const int KNOWLEDGE_FACTION_CORE_UPDATE = 20400;
-
-    public const int SKILL_UPDATE = 30000;
-    public const int SKILL_POLITY_PROMINENCE = 30100;
-
-    public const int POLITY_CULTURE_NORMALIZE_ATTRIBUTE_VALUES = 40000;
-    public const int POLITY_CULTURE_GENERATE_NEW_LANGUAGE = 40100;
-
-    public const int POLITY_UPDATE_EFFECTS = 50000;
-
-    public const int REGION_GENERATE_NAME = 60000;
-    public const int REGION_SELECT_BORDER_REGION_TO_REPLACE_WITH = 61000;
-
-    public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
-    public const int TRIBE_GENERATE_NAME = 71000;
-
-    public const int FACTION_CULTURE_DISCOVERY_LOSS_CHANCE = 80500;
-
-    public const int CLAN_GENERATE_NAME = 85000;
-    public const int CLAN_CHOOSE_CORE_GROUP = 85100;
-    public const int CLAN_CHOOSE_TARGET_GROUP = 85200;
-    public const int CLAN_LEADER_GEN_OFFSET = 85300;
-    public const int CLAN_SPLIT = 85500;
-
-    public const int AGENT_GENERATE_BIO = 90000;
-    public const int AGENT_GENERATE_NAME = 91000;
-
-    public const int ROUTE_CHOOSE_NEXT_DEPTH_SEA_CELL = 100000;
-    public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL = 110000;
-    public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL_2 = 120000;
-
-    public const int TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE = 900003;
-
-    public const int CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900006;
-    public const int CLAN_SPLITTING_EVENT_PREFER_SPLIT = 900007;
-    public const int CLAN_SPLITTING_EVENT_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900008;
-
-    public const int TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900010;
-    public const int TRIBE_SPLITTING_EVENT_SPLITCLAN_PREFER_SPLIT = 900011;
-    public const int TRIBE_SPLITTING_EVENT_TRIBE_PREFER_SPLIT = 900012;
-    public const int TRIBE_SPLITTING_EVENT_SPLITCLAN_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900013;
-    public const int TRIBE_SPLITTING_EVENT_TRIBE_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900014;
-
-    public const int CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE = 900020;
-
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_CALCULATE_TRIGGER_DATE = 900021;
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_PERFORM_DEMAND = 900022;
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_ACCEPT_DEMAND = 900023;
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_AVOIDS_DEMAND_MODIFY_ATTRIBUTE = 900024;
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_DEMANDS_MODIFY_ATTRIBUTE = 900025;
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_DOMINANTCLAN_LEADER_REJECTS_DEMAND_MODIFY_ATTRIBUTE = 900026;
-    public const int CLAN_DEMANDS_INFLUENCE_EVENT_DOMINANTCLAN_LEADER_ACCEPTS_DEMAND_MODIFY_ATTRIBUTE = 900027;
-
-    public const int FOSTER_TRIBE_RELATION_EVENT_CALCULATE_TRIGGER_DATE = 900030;
-    public const int FOSTER_TRIBE_RELATION_EVENT_MAKE_ATTEMPT = 900031;
-    public const int FOSTER_TRIBE_RELATION_EVENT_REJECT_OFFER = 900032;
-    public const int FOSTER_TRIBE_RELATION_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE = 900033;
-    public const int FOSTER_TRIBE_RELATION_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE = 900034;
-    public const int FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_ACCEPT_OFFER = 900035;
-    public const int FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_REJECTS_OFFER_MODIFY_ATTRIBUTE = 900036;
-    public const int FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_ACCEPTS_OFFER_MODIFY_ATTRIBUTE = 900037;
-
-    public const int MERGE_TRIBES_EVENT_CALCULATE_TRIGGER_DATE = 900040;
-    public const int MERGE_TRIBES_EVENT_MAKE_ATTEMPT = 900041;
-    public const int MERGE_TRIBES_EVENT_REJECT_OFFER = 900042;
-    public const int MERGE_TRIBES_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE = 900043;
-    public const int MERGE_TRIBES_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE = 900044;
-    public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_ACCEPT_OFFER = 900045;
-    public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_REJECTS_OFFER_MODIFY_ATTRIBUTE = 900046;
-    public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_ACCEPTS_OFFER_MODIFY_ATTRIBUTE = 900047;
-
-    public const int OPEN_TRIBE_EVENT_CALCULATE_TRIGGER_DATE = 900050;
-    public const int OPEN_TRIBE_EVENT_MAKE_ATTEMPT = 900051;
-    public const int OPEN_TRIBE_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE = 900052;
-    public const int OPEN_TRIBE_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE = 900053;
-
-    public const int EVENT_TRIGGER = 1000000;
-    public const int EVENT_CAN_TRIGGER = 1100000;
-
-    public const int MIGRATING_GROUP_MOVE_FACTION_CORE = 2000000;
-    public const int EXPAND_POLITY_MOVE_FACTION_CORE = 2100000;
-}
-
 public enum GenerationType
 {
     Temperature = 0x03, // also generate rainfall
@@ -140,9 +21,10 @@ public enum GenerationType
 }
 
 [XmlRoot]
-public class World : ISynchronizable
+public class World : ISynchronizable, IWorldDateGetter
 {
-    public const long MaxSupportedDate = 9223372036L;
+    //public const long MaxSupportedDate = 9223372036L;
+    public const long MaxSupportedDate = long.MaxValue;
 
     public const int YearLength = 365;
 
@@ -188,8 +70,19 @@ public class World : ISynchronizable
     public const float TerrainGenerationSteps = 9;
 
     public static Dictionary<string, IWorldEventGenerator> EventGenerators;
+    public static Dictionary<string, PreferenceGenerator> PreferenceGenerators;
 
     public int EventsTriggered = 0;
+    public int EventsEvaluated = 0;
+
+    public class EventEvalStats
+    {
+        public int EvaluationCount = 0;
+        public int TriggerCount = 0;
+    }
+
+    public Dictionary<string, EventEvalStats> EventEvalStatsPerType =
+        new Dictionary<string, EventEvalStats>();
 
     [XmlAttribute]
     public int Width { get; set; }
@@ -251,17 +144,9 @@ public class World : ISynchronizable
     // Start wonky segment (save failures might happen here)
 
     [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
-        XmlArrayItem(Type = typeof(MigrateGroupEvent)),
-        XmlArrayItem(Type = typeof(ExpandPolityProminenceEvent)),
+        XmlArrayItem(Type = typeof(MigratePopulationEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
-        // TODO: cleanup
-        //XmlArrayItem(Type = typeof(ClanSplitDecisionEvent)),
-        //XmlArrayItem(Type = typeof(ClanDemandsInfluenceDecisionEvent)),
-        XmlArrayItem(Type = typeof(TribeSplitDecisionEvent)),
         XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
-        XmlArrayItem(Type = typeof(FosterTribeRelationDecisionEvent)),
-        XmlArrayItem(Type = typeof(MergeTribesDecisionEvent)),
-        XmlArrayItem(Type = typeof(OpenTribeDecisionEvent)),
         XmlArrayItem(Type = typeof(Discovery.DiscoveryEvent)),
         XmlArrayItem(Type = typeof(FactionModEvent)),
         XmlArrayItem(Type = typeof(CellGroupModEvent))]
@@ -300,8 +185,17 @@ public class World : ISynchronizable
     public Region SelectedRegion = null;
     [XmlIgnore]
     public Territory SelectedTerritory = null;
+
+    [XmlIgnore]
+    public TerrainCell HoveredCell = null;
+    [XmlIgnore]
+    public Region HoveredRegion = null;
+    [XmlIgnore]
+    public Territory HoveredTerritory = null;
+
     [XmlIgnore]
     public Faction GuidedFaction = null;
+
     [XmlIgnore]
     public HashSet<Polity> PolitiesUnderPlayerFocus = new HashSet<Polity>();
 
@@ -348,7 +242,7 @@ public class World : ISynchronizable
     public ProgressCastDelegate ProgressCastMethod { get; set; }
 
     [XmlIgnore]
-    public HumanGroup MigrationTaggedGroup = null;
+    public CellGroup MigrationTaggedGroup = null;
 
     [XmlIgnore]
     public bool GroupsHaveBeenUpdated = false;
@@ -356,8 +250,6 @@ public class World : ISynchronizable
     public bool FactionsHaveBeenUpdated = false;
     [XmlIgnore]
     public bool PolitiesHaveBeenUpdated = false;
-    [XmlIgnore]
-    public bool PolityClustersHaveBeenUpdated = false;
 
 #if DEBUG
     private bool _needsDrainageRegeneration = true;
@@ -390,9 +282,12 @@ public class World : ISynchronizable
     [XmlIgnore]
     public Dictionary<string, Discovery> ExistingDiscoveries = new Dictionary<string, Discovery>();
 
-    private Dictionary<long, FactionInfo> _factionInfos = new Dictionary<long, FactionInfo>();
-    private Dictionary<long, PolityInfo> _polityInfos = new Dictionary<long, PolityInfo>();
-    private Dictionary<long, RegionInfo> _regionInfos = new Dictionary<long, RegionInfo>();
+    private Dictionary<Identifier, FactionInfo> _factionInfos =
+        new Dictionary<Identifier, FactionInfo>();
+    private Dictionary<Identifier, PolityInfo> _polityInfos =
+        new Dictionary<Identifier, PolityInfo>();
+    private Dictionary<Identifier, RegionInfo> _regionInfos =
+        new Dictionary<Identifier, RegionInfo>();
 
     private BinaryTree<long, WorldEvent> _eventsToHappen = new BinaryTree<long, WorldEvent>();
 
@@ -403,35 +298,50 @@ public class World : ISynchronizable
     private HashSet<string> _culturalSkillIdList = new HashSet<string>();
     private HashSet<string> _culturalKnowledgeIdList = new HashSet<string>();
 
-    private Dictionary<long, CellGroup> _cellGroups = new Dictionary<long, CellGroup>();
+    private Dictionary<Identifier, CellGroup> _cellGroups =
+        new Dictionary<Identifier, CellGroup>();
 
     private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
 
+    private HashSet<PolityProminence> _promsWithCoreDistToCalculate = new HashSet<PolityProminence>();
+
     private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToCleanupAfterUpdate = new HashSet<CellGroup>();
 
-    private List<MigratingGroup> _migratingGroups = new List<MigratingGroup>();
+    private List<MigratingPopulation> _migratingPopulations = new List<MigratingPopulation>();
 
-    private Dictionary<long, Agent> _memorableAgents = new Dictionary<long, Agent>();
+    private Dictionary<Identifier, Agent> _memorableAgents =
+        new Dictionary<Identifier, Agent>();
 
-    private HashSet<Faction> _factionsToSplit = new HashSet<Faction>();
     private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
+    private HashSet<Faction> _factionsWithStatusChanges = new HashSet<Faction>();
+    private HashSet<Faction> _factionsToCleanup = new HashSet<Faction>();
     private HashSet<Faction> _factionsToRemove = new HashSet<Faction>();
 
     private HashSet<Polity> _politiesToUpdate = new HashSet<Polity>();
-    private HashSet<Polity> _politiesThatNeedClusterUpdate = new HashSet<Polity>();
     private HashSet<Polity> _politiesToRemove = new HashSet<Polity>();
 
-    private Dictionary<long, Language> _languages = new Dictionary<long, Language>();
+    private HashSet<Territory> _territoriesToUpdate = new HashSet<Territory>();
+
+    private Dictionary<Identifier, Language> _languages =
+        new Dictionary<Identifier, Language>();
 
     private HashSet<long> _eventMessageIds = new HashSet<long>();
-    private Queue<WorldEventMessage> _eventMessagesToShow = new Queue<WorldEventMessage>();
+    private Queue<WorldEventMessage> _eventMessagesToShow =
+        new Queue<WorldEventMessage>();
 
-    [System.Obsolete]
-    private Queue<Decision> _decisionsToResolve = new Queue<Decision>();
-    private readonly Queue<ModDecision> _modDecisionsToResolve = new Queue<ModDecision>();
+    private readonly Queue<ModDecision> _highPrioDecisionsToResolve =
+        new Queue<ModDecision>();
+
+    private readonly Queue<ModDecision> _lowPrioDecisionsToResolve =
+        new Queue<ModDecision>();
+
+    private ModAction _actionToExecute = null;
+
+    private readonly Queue<IEffectExpression> _effectsToResolve =
+        new Queue<IEffectExpression>();
 
     private Vector2[] _continentOffsets;
     private float[] _continentWidths;
@@ -474,15 +384,22 @@ public class World : ISynchronizable
     private ManagerTask<Vector3> _rainfallNoiseOffset2;
     private ManagerTask<Vector3> _rainfallNoiseOffset3;
 
-    private Dictionary<string, ManagerTask<Vector3>[]> _layerNoiseOffsets = new Dictionary<string, ManagerTask<Vector3>[]>();
+    private Dictionary<string, ManagerTask<Vector3>[]> _layerNoiseOffsets =
+        new Dictionary<string, ManagerTask<Vector3>[]>();
 
-    private static HashSet<TerrainCell> _cellsToRegen = new HashSet<TerrainCell>();
-    private static HashSet<TerrainCell> _cellsToInit = new HashSet<TerrainCell>();
-    private static HashSet<TerrainCell> _cellsToInitAfterDrainageRegen = new HashSet<TerrainCell>();
+    private static HashSet<TerrainCell> _cellsToRegen =
+        new HashSet<TerrainCell>();
+    private static HashSet<TerrainCell> _cellsToInit =
+        new HashSet<TerrainCell>();
+    private static HashSet<TerrainCell> _cellsToInitAfterDrainageRegen =
+        new HashSet<TerrainCell>();
 
-    private static HashSet<TerrainCell> _cellsToDrain = new HashSet<TerrainCell>();
-    private static BinaryHeap<TerrainCell> _drainageEvalHeap = new BinaryHeap<TerrainCell>(TerrainCell.CompareOriginalAltitude);
-    private static HashSet<TerrainCell> _cellsToFinalizeDrainageRegen = new HashSet<TerrainCell>();
+    private static HashSet<TerrainCell> _cellsToDrain =
+        new HashSet<TerrainCell>();
+    private static BinaryHeap<TerrainCell> _drainageEvalHeap =
+        new BinaryHeap<TerrainCell>(TerrainCell.CompareOriginalAltitude);
+    private static HashSet<TerrainCell> _cellsToFinalizeDrainageRegen =
+        new HashSet<TerrainCell>();
 
     //private OpenSimplexNoise _openSimplexNoise;
 
@@ -660,11 +577,29 @@ public class World : ISynchronizable
     public static void ResetStaticModData()
     {
         EventGenerators = new Dictionary<string, IWorldEventGenerator>();
+        PreferenceGenerators = new Dictionary<string, PreferenceGenerator>();
     }
 
     public static IWorldEventGenerator GetEventGenerator(string id)
     {
         if (!EventGenerators.TryGetValue(id, out IWorldEventGenerator generator))
+        {
+            return null;
+        }
+
+        return generator;
+    }
+
+    /// <summary>
+    /// Returns the generator for the preference with the specified id.
+    /// Generators are created through mods. So if the mod is not loaded,
+    /// this function will return null
+    /// </summary>
+    /// <param name="id">the id of the generator to obtain</param>
+    /// <returns>the preference generator</returns>
+    public static PreferenceGenerator GetPreferenceGenerator(string id)
+    {
+        if (!PreferenceGenerators.TryGetValue(id, out PreferenceGenerator generator))
         {
             return null;
         }
@@ -820,7 +755,7 @@ public class World : ISynchronizable
 
         Manager.ResetSlantsAround(cell);
 
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             Manager.AddUpdatedCell(nCell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
         }
@@ -957,11 +892,13 @@ public class World : ISynchronizable
     {
         MaxTimeToSkip = (value > 1) ? value : 1;
 
-        long maxDate = CurrentDate + MaxTimeToSkip;
+        long maxDate = CurrentDate + (Manager.SimulationPerformingStep? 1 : MaxTimeToSkip);
 
         if (maxDate >= MaxSupportedDate)
         {
-            Debug.LogWarning("World.SetMaxTimeToSkip - 'maxDate' is greater than " + MaxSupportedDate + " (date = " + maxDate + ")");
+            Debug.LogWarning(
+                "World.SetMaxTimeToSkip - 'maxDate' is greater than " +
+                MaxSupportedDate + " (date = " + maxDate + ")");
         }
 
         if (maxDate < 0)
@@ -1058,26 +995,135 @@ public class World : ISynchronizable
         _groupsToUpdate.Clear();
     }
 
-    private void MigrateGroups()
+//#if DEBUG
+    //private struct PromDistDebugInfo
+    //{
+    //    public PolityProminence Prominence;
+    //    public float InitialDistance;
+    //    public int RecalcCount;
+    //}
+//#endif
+
+    private void CalculateProminenceDistancesToCores()
     {
-        foreach (MigratingGroup group in _migratingGroups)
+        Queue<PolityProminence> promsToCalculate = new Queue<PolityProminence>();
+        HashSet<PolityProminence> promsToCalculateSet = new HashSet<PolityProminence>();
+
+//#if DEBUG
+        //Dictionary<Identifier, PromDistDebugInfo> calculatedProms =
+        //    new Dictionary<Identifier, PromDistDebugInfo>();
+
+        //bool debugPrint = false;
+//#endif
+
+        foreach (PolityProminence polityProminence in _promsWithCoreDistToCalculate)
         {
-            group.SplitFromSourceGroup();
+            if (!polityProminence.Group.StillPresent)
+                continue;
+
+            promsToCalculate.Enqueue(polityProminence);
+            promsToCalculateSet.Add(polityProminence);
+
+            //#if DEBUG
+            //if (polityProminence.Group.Position.Equals(6, 144) ||
+            //    polityProminence.Group.Position.Equals(7, 143) ||
+            //    polityProminence.Group.Position.Equals(7, 144))
+            //    debugPrint = true;
+            //#endif
         }
 
-        foreach (MigratingGroup group in _migratingGroups)
+        while (promsToCalculate.Count > 0)
         {
-            group.MoveToCell();
+            PolityProminence polityProminence = promsToCalculate.Dequeue();
+            promsToCalculateSet.Remove(polityProminence);
+
+            //#if DEBUG
+            //if (calculatedProms.ContainsKey(polityProminence.Id))
+            //{
+            //    PromDistDebugInfo debugInfo = calculatedProms[polityProminence.Id];
+
+            //    debugInfo.RecalcCount++;
+
+            //    if (debugInfo.RecalcCount > 50)
+            //    {
+            //        throw new System.Exception(
+            //            "Prominence core distance has been recualculated too many times"
+            //            + ", possibly on a infinite loop. Group: " + polityProminence.Id
+            //            + ", initial faction core distance: " + debugInfo.InitialDistance
+            //            + ", recalculations: " + debugInfo.RecalcCount);
+            //    }
+            //}
+            //else
+            //{
+            //    calculatedProms.Add(polityProminence.Id, new PromDistDebugInfo()
+            //    {
+            //        Prominence = polityProminence,
+            //        InitialDistance = polityProminence.FactionCoreDistance,
+            //        RecalcCount = 0
+            //    });
+            //}
+            //#endif
+
+            if (!polityProminence.CalculateNewCoreDistances())
+                continue;
+
+            float currentCoreFactionDist = polityProminence.FactionCoreDistance;
+
+            foreach (KeyValuePair<Direction, PolityProminence> pair in
+                polityProminence.NeighborProminences)
+            {
+                if (promsToCalculateSet.Contains(pair.Value))
+                    continue;
+
+                if (pair.Value.FactionCoreDistance <= currentCoreFactionDist)
+                    continue;
+
+                promsToCalculate.Enqueue(pair.Value);
+                promsToCalculateSet.Add(pair.Value);
+            }
         }
 
-        _migratingGroups.Clear();
+        //#if DEBUG
+        //if (debugPrint)
+        //{
+        //}
+        //#endif
+
+        _promsWithCoreDistToCalculate.Clear();
+    }
+
+    /// <summary>
+    /// Performs the migration actions over all populations migrating during this iteration
+    /// </summary>
+    private void MigratePopulations()
+    {
+        foreach (MigratingPopulation population in _migratingPopulations)
+        {
+            population.SplitFromSourceGroup();
+        }
+
+        foreach (MigratingPopulation population in _migratingPopulations)
+        {
+            population.MoveToCell();
+        }
+
+        _migratingPopulations.Clear();
     }
 
     private void PostUpdateGroups_BeforePolityUpdates()
     {
+        // ops in step 1 need to be executed for all updated groups before
+        // any op in step 2 is made
         foreach (CellGroup group in _updatedGroups)
         {
-            group.PostUpdate_BeforePolityUpdates();
+            group.PostUpdate_BeforePolityUpdates_Step1();
+        }
+
+        // ops in step 2 need to be executed after all ops in step 1
+        // have been made for all updated groups
+        foreach (CellGroup group in _updatedGroups)
+        {
+            group.PostUpdate_BeforePolityUpdates_Step2();
         }
     }
 
@@ -1129,16 +1175,9 @@ public class World : ISynchronizable
         _groupsToCleanupAfterUpdate.Clear();
     }
 
-    private void SplitFactions()
-    {
-        foreach (Faction faction in _factionsToSplit)
-        {
-            faction.Split();
-        }
-
-        _factionsToSplit.Clear();
-    }
-
+    /// <summary>
+    /// Updates all factions marked for update
+    /// </summary>
     private void UpdateFactions()
     {
         FactionsHaveBeenUpdated = true;
@@ -1149,6 +1188,31 @@ public class World : ISynchronizable
         }
 
         _factionsToUpdate.Clear();
+    }
+
+    private void ApplyFactionStatusChanges()
+    {
+        foreach (Faction faction in _factionsWithStatusChanges)
+        {
+            faction.ApplyStatusChange();
+        }
+
+        _factionsWithStatusChanges.Clear();
+    }
+
+    /// <summary>
+    /// Cleans up all factions that were marked for cleanup
+    /// </summary>
+    private void CleanupFactions()
+    {
+        FactionsHaveBeenUpdated = false;
+
+        foreach (Faction faction in _factionsToCleanup)
+        {
+            faction.Cleanup();
+        }
+
+        _factionsToCleanup.Clear();
     }
 
     private void RemoveFactions()
@@ -1173,19 +1237,30 @@ public class World : ISynchronizable
         _politiesToUpdate.Clear();
     }
 
-    private void UpdatePolityClusters()
+    private void UpdateTerritories()
     {
-        PolityClustersHaveBeenUpdated = true;
+        // To avoid update conflicts we must make sure to do all remove
+        // operations before all add operations
 
-        foreach (Polity polity in _politiesThatNeedClusterUpdate)
+        foreach (Territory territory in _territoriesToUpdate)
         {
-            if (!polity.StillPresent)
-                continue;
-
-            polity.ClusterUpdate();
+            territory.RemoveCells();
         }
 
-        _politiesThatNeedClusterUpdate.Clear();
+        foreach (Territory territory in _territoriesToUpdate)
+        {
+            territory.AddCells();
+        }
+
+        // After we have added and removed all pertinent cells, we can perform
+        // all remaining territory adjustments
+
+        foreach (Territory territory in _territoriesToUpdate)
+        {
+            territory.Update();
+        }
+
+        _territoriesToUpdate.Clear();
     }
 
     private void RemovePolities()
@@ -1205,6 +1280,76 @@ public class World : ISynchronizable
         return Update();
     }
 
+    /// <summary>
+    /// Increases the count of evaluated events (for debug mode)
+    /// </summary>
+    /// <param name="worldEvent">the event that was evaluated</param>
+    public void IncreaseEvaluatedEventCount(WorldEvent worldEvent)
+    {
+        if (Manager.CurrentDevMode == DevMode.None)
+            return;
+
+        EventsEvaluated++;
+
+        if (Manager.CurrentDevMode == DevMode.Basic)
+            return;
+
+        string idString = worldEvent.GetType().ToString();
+
+        if (worldEvent is FactionModEvent)
+        {
+            idString = (worldEvent as FactionModEvent).GeneratorId;
+        }
+        else if (worldEvent is CellGroupModEvent)
+        {
+            idString = (worldEvent as CellGroupModEvent).GeneratorId;
+        }
+
+        if (!EventEvalStatsPerType.ContainsKey(idString))
+        {
+            EventEvalStatsPerType[idString] = new EventEvalStats();
+        }
+
+        EventEvalStatsPerType[idString].EvaluationCount++;
+    }
+
+    /// <summary>
+    /// Increases the count of triggered events (for debug mode)
+    /// </summary>
+    /// <param name="worldEvent">the event that was triggered</param>
+    public void IncreaseTriggeredEventCount(WorldEvent worldEvent)
+    {
+        if (Manager.CurrentDevMode == DevMode.None)
+            return;
+
+        EventsTriggered++;
+
+        if (Manager.CurrentDevMode == DevMode.Basic)
+            return;
+
+        string idString = worldEvent.GetType().ToString();
+
+        if (worldEvent is FactionModEvent)
+        {
+            idString = (worldEvent as FactionModEvent).GeneratorId;
+        }
+        else if (worldEvent is CellGroupModEvent)
+        {
+            idString = (worldEvent as CellGroupModEvent).GeneratorId;
+        }
+
+        if (!EventEvalStatsPerType.ContainsKey(idString))
+        {
+            throw new System.Exception("triggering event that wasn't evaluated: " + idString);
+        }
+
+        EventEvalStatsPerType[idString].TriggerCount++;
+    }
+
+    /// <summary>
+    /// Tries to evaluate any event that should happen at the current world date
+    /// </summary>
+    /// <returns></returns>
     public bool EvaluateEventsToHappen()
     {
         if (CellGroupCount <= 0)
@@ -1222,7 +1367,11 @@ public class World : ISynchronizable
         {
             //if (_eventsToHappen.Count <= 0) break;
 
+            Profiler.BeginSample("Find Leftmost");
+
             _eventsToHappen.FindLeftmost(ValidateEventsToHappenNode, InvalidEventsToHappenNodeEffect);
+
+            Profiler.EndSample();
 
             // FindLeftMost() might have removed events so we need to check if there are events to happen left
             if (_eventsToHappen.Count <= 0) break;
@@ -1239,6 +1388,8 @@ public class World : ISynchronizable
                 throw new System.Exception("World.EvaluateEventsToHappen - eventToHappen.TriggerDate (" + eventToHappen.TriggerDate +
                     ") greater than MaxSupportedDate (" + MaxSupportedDate + "), eventToHappen: " + eventToHappen);
             }
+
+            //Profiler.BeginSample("eventToHappen.TriggerDate > CurrentDate");
 
             if (eventToHappen.TriggerDate > CurrentDate)
             {
@@ -1259,6 +1410,13 @@ public class World : ISynchronizable
 
                 long maxDate = CurrentDate + MaxTimeToSkip;
 
+                if (Manager.SimulationPerformingStep)
+                {
+                    // move date ahead by one single step instead
+                    maxDate = CurrentDate + 1;
+                    Manager.SetToPerformSimulationStep(false);
+                }
+
                 if (maxDate >= MaxSupportedDate)
                 {
                     Debug.LogWarning("World.EvaluateEventsToHappen - 'maxDate' is greater than " + MaxSupportedDate + " (date = " + maxDate + ")");
@@ -1273,29 +1431,26 @@ public class World : ISynchronizable
                 break;
             }
 
+            //Profiler.EndSample();
+
+            Profiler.BeginSample("Remove Leftmost Event");
+
             _eventsToHappen.RemoveLeftmost();
             EventsToHappenCount--;
 
-            //#if DEBUG
-            //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-            //            {
-            //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Being Triggered", "Triggering");
-
-            //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            //            }
-            //#endif
+            Profiler.EndSample();
 
 #if DEBUG
-            //string eventTypeName = eventToHappen.GetType().ToString();
+            string eventTypeName = eventToHappen.GetType().ToString();
 
             Profiler.BeginSample("Event CanTrigger");
-            //Profiler.BeginSample("Event CanTrigger - " + eventTypeName);
+            Profiler.BeginSample("Event CanTrigger - " + eventTypeName);
 #endif
 
             bool canTrigger = eventToHappen.CanTrigger();
 
 #if DEBUG
-            //Profiler.EndSample();
+            Profiler.EndSample();
             Profiler.EndSample();
 #endif
 
@@ -1305,9 +1460,15 @@ public class World : ISynchronizable
             }
             else
             {
+                Profiler.BeginSample("Event failed to trigger");
+
                 eventToHappen.FailedToTrigger = true;
                 eventToHappen.Destroy();
+
+                Profiler.EndSample();
             }
+
+            IncreaseEvaluatedEventCount(eventToHappen);
         }
 
         foreach (WorldEvent eventToHappen in _eventsToHappenNow)
@@ -1330,16 +1491,18 @@ public class World : ISynchronizable
 
             eventToHappen.Trigger();
 
-            if (Manager.DebugModeEnabled)
-            {
-                EventsTriggered++;
-            }
+            IncreaseTriggeredEventCount(eventToHappen);
 
 #if DEBUG
             Profiler.EndSample();
             Profiler.EndSample();
 #endif
+
+            Profiler.BeginSample("Destroy Event");
+
             eventToHappen.Destroy();
+
+            Profiler.EndSample();
         }
 
         _eventsToHappenNow.Clear();
@@ -1354,89 +1517,103 @@ public class World : ISynchronizable
         if (CellGroupCount <= 0)
             return 0;
 
-        Profiler.BeginSample("UpdateGroups");
+        //Profiler.BeginSample("UpdateGroups");
 
         UpdateGroups();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("MigrateGroups");
+        //Profiler.BeginSample("MigrateBands");
 
-        MigrateGroups();
+        MigratePopulations();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("PostUpdateGroups_BeforePolityUpdates");
+        //Profiler.BeginSample("PostUpdateGroups_BeforePolityUpdates");
 
         PostUpdateGroups_BeforePolityUpdates();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("ExecuteDeferredEffectsOnGroups");
+        //Profiler.BeginSample("ExecuteDeferredEffectsOnGroups");
 
         ExecuteDeferredEffectsOnGroups();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("RemoveGroups");
+        //Profiler.BeginSample("RemoveGroups");
 
         RemoveGroups();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("UpdatePolityClusters");
+        //Profiler.BeginSample("UpdateTerritories");
 
-        UpdatePolityClusters();
+        // We need to do this before polities are updated
+        UpdateTerritories();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("SetNextGroupUpdates");
+        //Profiler.BeginSample("SetNextGroupUpdates");
 
         SetNextGroupUpdates();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("SplitFactions");
-
-        SplitFactions();
-
-        Profiler.EndSample();
-
-        Profiler.BeginSample("RemoveFactions");
+        //Profiler.BeginSample("RemoveFactions");
 
         RemoveFactions();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("UpdateFactions");
+        //Profiler.BeginSample("UpdateFactions");
 
         UpdateFactions();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("UpdatePolities");
+        //Profiler.BeginSample("UpdatePolities");
 
         UpdatePolities();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("RemovePolities");
+        //Profiler.BeginSample("RemovePolities");
 
         RemovePolities();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("PostUpdateGroups_AfterPolityUpdates");
+        //Profiler.BeginSample("PostUpdateGroups_AfterPolityUpdates");
 
         PostUpdateGroups_AfterPolityUpdates();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("AfterUpdateGroupCleanup");
+        //Profiler.BeginSample("UpdateTerritories");
+
+        // Territories might have changed again after polity updates
+        UpdateTerritories();
+
+        //Profiler.EndSample();
+
+        //Profiler.BeginSample("CalculateProminenceDistancesToCores");
+
+        CalculateProminenceDistancesToCores();
+
+        //Profiler.EndSample();
+
+        //Profiler.BeginSample("AfterUpdateGroupCleanup");
 
         AfterUpdateGroupCleanup();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
+
+        //Profiler.BeginSample("ApplyFactionStatusChanges");
+
+        ApplyFactionStatusChanges();
+
+        //Profiler.EndSample();
 
         //
         // Skip to Next Event's Date
@@ -1492,9 +1669,9 @@ public class World : ISynchronizable
 
         // reset update flags
         GroupsHaveBeenUpdated = false;
-        FactionsHaveBeenUpdated = false;
         PolitiesHaveBeenUpdated = false;
-        PolityClustersHaveBeenUpdated = false;
+
+        CleanupFactions();
 
         return dateSpan;
     }
@@ -1506,7 +1683,7 @@ public class World : ISynchronizable
 
     public void InsertEventToHappen(WorldEvent eventToHappen)
     {
-        //		Profiler.BeginSample ("Insert Event To Happen");
+        Profiler.BeginSample("Insert Event To Happen");
 
         EventsToHappenCount++;
 
@@ -1520,38 +1697,41 @@ public class World : ISynchronizable
         //		}
         //		#endif
 
-        //		Profiler.EndSample ();
+        Profiler.EndSample();
     }
 
 #if DEBUG
-    public delegate void AddMigratingGroupCalledDelegate();
-
-    public static AddMigratingGroupCalledDelegate AddMigratingGroupCalled = null;
+    public delegate void AddMigratingBandsCalledDelegate();
+    public static AddMigratingBandsCalledDelegate AddMigratingPopulationCalled = null;
 #endif
 
-    public void AddMigratingGroup(MigratingGroup group)
+    /// <summary>
+    /// Adds a population set to migrate during this iteration
+    /// </summary>
+    /// <param name="migPop">migrating population object</param>
+    public void AddMigratingPopulation(MigratingPopulation migPop)
     {
 #if DEBUG
-        if (AddMigratingGroupCalled != null)
+        if (AddMigratingPopulationCalled != null)
         {
-            AddMigratingGroupCalled();
+            AddMigratingPopulationCalled();
         }
 #endif
 
-        _migratingGroups.Add(group);
+        _migratingPopulations.Add(migPop);
 
-        if (!group.SourceGroup.StillPresent)
+        if (!migPop.SourceGroup.StillPresent)
         {
-            Debug.LogWarning("Sourcegroup is no longer present. Group Id: " + group.SourceGroup.Id);
+            Debug.LogWarning("Sourcegroup is no longer present. Group Id: " + migPop.SourceGroup);
         }
 
         // Source Group needs to be updated
-        AddGroupToUpdate(group.SourceGroup);
+        AddGroupToUpdate(migPop.SourceGroup);
 
         // If Target Group is present, it also needs to be updated
-        if ((group.TargetCell.Group != null) && (group.TargetCell.Group.StillPresent))
+        if ((migPop.TargetCell.Group != null) && (migPop.TargetCell.Group.StillPresent))
         {
-            AddGroupToUpdate(group.TargetCell.Group);
+            AddGroupToUpdate(migPop.TargetCell.Group);
         }
     }
 
@@ -1573,11 +1753,14 @@ public class World : ISynchronizable
         CellGroupCount--;
     }
 
-    public CellGroup GetGroup(long id)
+    /// <summary>
+    /// Returns the cellgroup identified by the id
+    /// </summary>
+    /// <param name="id">the group's id</param>
+    /// <returns></returns>
+    public CellGroup GetGroup(Identifier id)
     {
-        CellGroup group;
-
-        _cellGroups.TryGetValue(id, out group);
+        _cellGroups.TryGetValue(id, out CellGroup group);
 
         return group;
     }
@@ -1605,7 +1788,7 @@ public class World : ISynchronizable
                 string callingMethod2 = method.Name;
                 string callingClass2 = method.DeclaringType.ToString();
 
-                string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
+                string groupId = "Id: " + group + " Pos: " + group.Position;
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
                     "AddGroupToUpdate - Group:" + groupId,
@@ -1633,15 +1816,22 @@ public class World : ISynchronizable
 
         if (GroupsHaveBeenUpdated)
         {
-            Debug.LogWarning("Trying to add group to update after groups have already been updated this iteration. Id: " + group.Id);
+            Debug.LogWarning(
+                "Trying to add group to update after groups have already been updated this iteration. Id: " +
+                group);
         }
 
         if (!group.StillPresent)
         {
-            Debug.LogWarning("Group to update is no longer present. Id: " + group.Id);
+            Debug.LogWarning("Group to update is no longer present. Id: " + group);
         }
 
         _groupsToUpdate.Add(group);
+    }
+
+    public void AddPromToCalculateCoreDistFor(PolityProminence prominence)
+    {
+        _promsWithCoreDistToCalculate.Add(prominence);
     }
 
     public void AddGroupToRemove(CellGroup group)
@@ -1656,14 +1846,14 @@ public class World : ISynchronizable
         LanguageCount++;
     }
 
-    public void RemoveLanguage(Region language)
+    public void RemoveLanguage(Language language)
     {
         _languages.Remove(language.Id);
 
         LanguageCount--;
     }
 
-    public Language GetLanguage(long id)
+    public Language GetLanguage(Identifier id)
     {
         _languages.TryGetValue(id, out Language language);
 
@@ -1677,7 +1867,7 @@ public class World : ISynchronizable
         RegionCount++;
     }
 
-    public RegionInfo GetRegionInfo(long id)
+    public RegionInfo GetRegionInfo(Identifier id)
     {
         RegionInfo regionInfo;
 
@@ -1696,7 +1886,7 @@ public class World : ISynchronizable
         }
     }
 
-    public Agent GetMemorableAgent(long id)
+    public Agent GetMemorableAgent(Identifier id)
     {
         Agent agent;
 
@@ -1712,7 +1902,7 @@ public class World : ISynchronizable
         FactionCount++;
     }
 
-    public FactionInfo GetFactionInfo(long id)
+    public FactionInfo GetFactionInfo(Identifier id)
     {
         FactionInfo factionInfo = null;
 
@@ -1721,7 +1911,7 @@ public class World : ISynchronizable
         return factionInfo;
     }
 
-    public Faction GetFaction(long id)
+    public Faction GetFaction(Identifier id)
     {
         FactionInfo factionInfo;
 
@@ -1733,20 +1923,9 @@ public class World : ISynchronizable
         return factionInfo.Faction;
     }
 
-    public bool ContainsFactionInfo(long id)
+    public bool ContainsFactionInfo(Identifier id)
     {
         return _factionInfos.ContainsKey(id);
-    }
-
-    [System.Obsolete]
-    public void AddFactionToSplit(Faction faction)
-    {
-        if (!faction.StillPresent)
-        {
-            Debug.LogWarning("Faction to split no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
-        }
-
-        _factionsToSplit.Add(faction);
     }
 
     public void AddFactionToUpdate(Faction faction)
@@ -1798,10 +1977,41 @@ public class World : ISynchronizable
 
         if (!faction.StillPresent)
         {
-            Debug.LogWarning("Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+            Debug.LogWarning(
+                "Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
         }
 
         _factionsToUpdate.Add(faction);
+    }
+
+    /// <summary>
+    /// Adds a new faction to cleanup during the cleanup phase
+    /// </summary>
+    /// <param name="faction">faction to cleanup</param>
+    public void AddFactionToCleanup(Faction faction)
+    {
+        if (!faction.StillPresent)
+        {
+            Debug.LogWarning(
+                "Faction to cleanup no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+        }
+
+        _factionsToCleanup.Add(faction);
+    }
+
+    /// <summary>
+    /// Adds a faction that had a status change
+    /// </summary>
+    /// <param name="faction">faction that had a status change</param>
+    public void AddFactionWithStatusChange(Faction faction)
+    {
+        if (!faction.StillPresent)
+        {
+            Debug.LogWarning(
+                "Faction with status change no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+        }
+
+        _factionsWithStatusChanges.Add(faction);
     }
 
     public void AddFactionToRemove(Faction faction)
@@ -1816,9 +2026,9 @@ public class World : ISynchronizable
         PolityCount++;
     }
 
-    public void AddPolityInfo(PolityInfo polityInfo)
+    public void AddPolityInfo(PolityInfo info)
     {
-        _polityInfos.Add(polityInfo.Id, polityInfo);
+        _polityInfos.Add(info.Id, info);
 
         PolityCount++;
     }
@@ -1828,7 +2038,7 @@ public class World : ISynchronizable
         return _polityInfos.Values;
     }
 
-    public PolityInfo GetPolityInfo(long id)
+    public PolityInfo GetPolityInfo(Identifier id)
     {
         if (!_polityInfos.TryGetValue(id, out PolityInfo polityInfo))
         {
@@ -1838,7 +2048,7 @@ public class World : ISynchronizable
         return polityInfo;
     }
 
-    public Polity GetPolity(long id)
+    public Polity GetPolity(Identifier id)
     {
         if (!_polityInfos.TryGetValue(id, out PolityInfo polityInfo))
         {
@@ -1883,31 +2093,18 @@ public class World : ISynchronizable
 
         if (PolitiesHaveBeenUpdated)
         {
-            Debug.LogWarning("Trying to add polity to update after polities have already been updated this iteration. Id: " + polity.Id);
+            throw new System.Exception("Trying to add polity to update after polities " +
+                "have already been updated this iteration. Id: " + polity.Id);
         }
 
         if (!polity.StillPresent)
         {
-            Debug.LogWarning("Polity to update no longer present. Id: " + polity.Id + ", Date: " + CurrentDate);
+            throw new System.Exception("Polity to update no longer present. " +
+                "Id: " + polity.Id + ", Date: " + CurrentDate);
         }
 
         _politiesToUpdate.Add(polity);
         polity.WillBeUpdated = true;
-    }
-
-    public void AddPolityThatNeedsClusterUpdate(Polity polity)
-    {
-        if (PolityClustersHaveBeenUpdated)
-        {
-            Debug.LogWarning("Trying to add polity with clusters to update after polity clusters have already been updated this iteration. Id: " + polity.Id);
-        }
-
-        if (!polity.StillPresent)
-        {
-            Debug.LogWarning("Polity with clusters to update no longer present. Id: " + polity.Id + ", Date: " + CurrentDate);
-        }
-
-        _politiesThatNeedClusterUpdate.Add(polity);
     }
 
     public void AddPolityToRemove(Polity polity)
@@ -1915,37 +2112,73 @@ public class World : ISynchronizable
         _politiesToRemove.Add(polity);
     }
 
-    [System.Obsolete]
-    public void AddDecisionToResolve(Decision decision)
+    public void AddTerritoryToUpdate(Territory territory)
     {
-        _decisionsToResolve.Enqueue(decision);
+        _territoriesToUpdate.Add(territory);
     }
 
-    public void AddDecisionToResolve(ModDecision decision)
+    public void AddDecisionToResolve(ModDecision decision, string triggerPrio)
     {
-        _modDecisionsToResolve.Enqueue(decision);
+        switch (triggerPrio)
+        {
+            case DecisionTriggerPriority.Decision:
+                _highPrioDecisionsToResolve.Enqueue(decision);
+                break;
+
+            case DecisionTriggerPriority.Action:
+                _lowPrioDecisionsToResolve.Enqueue(decision);
+                break;
+
+            case DecisionTriggerPriority.Event:
+                _lowPrioDecisionsToResolve.Enqueue(decision);
+                break;
+        }
     }
 
-    [System.Obsolete]
-    public bool HasDecisionsToResolve()
+    public void AddEffectToResolve(IEffectExpression effect)
     {
-        return _decisionsToResolve.Count > 0;
+        _effectsToResolve.Enqueue(effect);
+    }
+
+    public void SetActionToExecute(ModAction action)
+    {
+        _actionToExecute = action;
     }
 
     public bool HasModDecisionsToResolve()
     {
-        return _modDecisionsToResolve.Count > 0;
+        return
+            (_lowPrioDecisionsToResolve.Count > 0) ||
+            (_highPrioDecisionsToResolve.Count > 0);
     }
 
-    [System.Obsolete]
-    public Decision PullDecisionToResolve()
+    public bool HasEffectsToResolve()
     {
-        return _decisionsToResolve.Dequeue();
+        return _effectsToResolve.Count > 0;
     }
 
     public ModDecision PullModDecisionToResolve()
     {
-        return _modDecisionsToResolve.Dequeue();
+        if (_highPrioDecisionsToResolve.Count > 0)
+            return _highPrioDecisionsToResolve.Dequeue();
+
+        if (_lowPrioDecisionsToResolve.Count > 0)
+            return _lowPrioDecisionsToResolve.Dequeue();
+
+        return null;
+    }
+
+    public IEffectExpression PullEffectToResolve()
+    {
+        return _effectsToResolve.Dequeue();
+    }
+
+    public ModAction PullActionToExecute()
+    {
+        ModAction action = _actionToExecute;
+        _actionToExecute = null;
+
+        return action;
     }
 
     public void AddEventMessage(WorldEventMessage eventMessage)
@@ -1980,9 +2213,9 @@ public class World : ISynchronizable
 
     private void LoadRegionInfos()
     {
-        foreach (RegionInfo r in RegionInfos)
+        foreach (RegionInfo rInfo in RegionInfos)
         {
-            _regionInfos.Add(r.Id, r);
+            _regionInfos.Add(rInfo.Id, rInfo);
         }
 
 #if DEBUG
@@ -2016,9 +2249,9 @@ public class World : ISynchronizable
 
     private void LoadLanguages()
     {
-        foreach (Language l in Languages)
+        foreach (Language language in Languages)
         {
-            _languages.Add(l.Id, l);
+            _languages.Add(language.Id, language);
         }
 
 #if DEBUG
@@ -2078,12 +2311,12 @@ public class World : ISynchronizable
             }
         }
 
-        foreach (CellGroup g in CellGroups)
+        foreach (CellGroup group in CellGroups)
         {
-            g.World = this;
-            g.PrefinalizeLoad();
+            group.World = this;
+            group.PrefinalizeLoad();
 
-            _cellGroups.Add(g.Id, g);
+            _cellGroups.Add(group.Id, group);
         }
 
         // Segment 2
@@ -2195,7 +2428,7 @@ public class World : ISynchronizable
         FinalizeLoad(0, 1, null);
     }
 
-    public void MigrationTagGroup(HumanGroup group)
+    public void MigrationTagGroup(CellGroup group)
     {
         MigrationUntagGroup();
 
@@ -2645,7 +2878,7 @@ public class World : ISynchronizable
         }
 
         // Add neighboor cells that will need to be reinitialized
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             _cellsToInit.Add(nCell);
         }
@@ -2667,7 +2900,7 @@ public class World : ISynchronizable
 
                 float cellAltitude = Mathf.Max(0, cell.Altitude);
 
-                foreach (TerrainCell nCell in cell.Neighbors.Values)
+                foreach (TerrainCell nCell in cell.NeighborList)
                 {
                     float nCellAltitude = Mathf.Max(0, nCell.Altitude);
 
@@ -2747,7 +2980,7 @@ public class World : ISynchronizable
         {
             _cellsToInitAfterDrainageRegen.Add(cell);
             Manager.ActiveEditorBrushAction.AddCellBeforeModification(cell);
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 _cellsToInitAfterDrainageRegen.Add(nCell);
                 Manager.ActiveEditorBrushAction.AddCellBeforeModification(nCell);
@@ -2768,7 +3001,7 @@ public class World : ISynchronizable
 
         if ((justAdded || callByBrush) && resetDrainage)
         {
-            if (cell.Altitude > 0)
+            if (!cell.IsBelowSeaLevel)
             {
                 // Rainfall could have been altered after this cell had already been added to the drainageHeap,
                 // so we need to update the cell's water acc accordingly.
@@ -2795,7 +3028,7 @@ public class World : ISynchronizable
             GenerateTerrainBiomes(cell);
             CalculateTerrainArability(cell);
 
-            if (cell.Altitude > 0)
+            if (!cell.IsBelowSeaLevel)
             {
                 //AddToDrainageRegen(cell, callByBrush: true);
                 ResetDrainage(cell, false);
@@ -2836,7 +3069,7 @@ public class World : ISynchronizable
         GenerateTerrainBiomes(cell);
         CalculateTerrainArability(cell);
 
-        if (cell.Altitude > 0)
+        if (!cell.IsBelowSeaLevel)
         {
             //AddToDrainageRegen(cell, callByBrush: true);
             ResetDrainage(cell, false);
@@ -2867,7 +3100,7 @@ public class World : ISynchronizable
         GenerateTerrainBiomes(cell);
         CalculateTerrainArability(cell);
 
-        if (cell.Altitude > 0)
+        if (!cell.IsBelowSeaLevel)
         {
             //AddToDrainageRegen(cell, callByBrush: true);
             ResetDrainage(cell, false);
@@ -3518,7 +3751,7 @@ public class World : ISynchronizable
         exploredCells.Add(sourceCell);
 
         // Also skip cells that neighbor the source cell
-        foreach (TerrainCell cell in sourceCell.NeighborSet)
+        foreach (TerrainCell cell in sourceCell.NeighborList)
         {
             exploredCells.Add(cell);
         }
@@ -3561,7 +3794,7 @@ public class World : ISynchronizable
                 continue;
             }
 
-            foreach (TerrainCell nCell in cell.NeighborSet)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 if (exploredCells.Contains(nCell))
                 {
@@ -3605,15 +3838,15 @@ public class World : ISynchronizable
 
         Dictionary<TerrainCell, float> nAltitudes = new Dictionary<TerrainCell, float>();
 
-#if DEBUG
-        if ((cell.Longitude == 250) && (cell.Latitude == 125))
-        {
-            Debug.Log("Debugging drainage on cell " + cell.Position);
-        }
-#endif
+//#if DEBUG
+//        if ((cell.Longitude == 250) && (cell.Latitude == 125))
+//        {
+//            Debug.Log("Debugging drainage on cell " + cell.Position);
+//        }
+//#endif
 
         float totalAltDifference = 0;
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             float nCellAltitude = Mathf.Max(0, nCell.Altitude);
             nAltitudes[nCell] = nCellAltitude;
@@ -3630,7 +3863,7 @@ public class World : ISynchronizable
             TerrainCell bestCell = cell;
             float minAltitude = cell.Altitude;
             float minMinAltitude = cell.Altitude;
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 float nCellAltitude = Mathf.Max(0, nCell.Altitude);
                 float nCellMinAltitude = Mathf.Max(0, GetChannelledAltitude(nCell, cell, 5));
@@ -3708,13 +3941,6 @@ public class World : ISynchronizable
             if (!redoDrainageForAll && nCell.DrainageDone)
                 continue;
 
-            //#if DEBUG
-            //            if (nCell == _lowestEvaluatedCell)
-            //            {
-            //                Debug.Log("_lowestEvaluatedCell (" + nCell.Position + ") being drained on again, now from " + cell.Position);
-            //            }
-            //#endif
-
             float nCellAltitude = nAltitudes[nCell];
 
             float diff = Mathf.Max(0, cellAltitude - nCellAltitude);
@@ -3734,13 +3960,6 @@ public class World : ISynchronizable
             if (drainageTransferMinusLoss <= 0)
                 continue;
 
-#if DEBUG
-            if ((nCell.Longitude == 229) && (nCell.Latitude == 133))
-            {
-                Debug.Log("Debugging nCell " + nCell.Position);
-            }
-#endif
-
             if (nCell.Altitude > nCellAltitude)
             {
                 nCell.Altitude = nCellAltitude;
@@ -3754,6 +3973,19 @@ public class World : ISynchronizable
             };
 
             addToCellsToDrain(nCell, true, true, false);
+        }
+    }
+
+    public IEnumerable<TerrainCell> GetCellsInRectangle(int longitude, int latitude, int width, int height)
+    {
+        TerrainCell[] cells = new TerrainCell[width * height];
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                yield return GetCellWithSphericalWrap(longitude + i, latitude + j);
+            }
         }
     }
 
@@ -3802,7 +4034,8 @@ public class World : ISynchronizable
         float thirdPartLength = 0.1f;
 
         HashSet<TerrainCell> queuedDrainCells = new HashSet<TerrainCell>();
-        BinaryHeap<TerrainCell> cellsToDrain = new BinaryHeap<TerrainCell>(TerrainCell.CompareOriginalAltitude, 500000);
+        BinaryHeap<TerrainCell> cellsToDrain =
+            new BinaryHeap<TerrainCell>(TerrainCell.CompareOriginalAltitude, 500000);
 
         int i = 0;
         int evalCount = _cellsToDrain.Count;
@@ -3813,7 +4046,7 @@ public class World : ISynchronizable
         {
             cell.RiverId = cell.Latitude * Width + cell.Longitude;
 
-            if (cell.Altitude <= 0)
+            if (cell.IsBelowSeaLevel)
                 continue;
 
             cell.UpdateDrainage();
@@ -3825,7 +4058,7 @@ public class World : ISynchronizable
             }
 
             bool higherThanNeighborsWithWater = true;
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 if ((nCell.Altitude > cell.Altitude) && (nCell.WaterAccumulation > MinRiverFlow))
                 {
@@ -3907,7 +4140,7 @@ public class World : ISynchronizable
         if (rainfallTransfer <= 0)
             return 0;
 
-        if (cell.Altitude <= 0)
+        if (cell.IsBelowSeaLevel)
         {
             return Mathf.Max(rainfallTransfer * OceanDispersalFactor, MinOceanDispersal);
         }
@@ -3994,7 +4227,7 @@ public class World : ISynchronizable
         float altitudeDelta = 0;
         float cellAltitude = cell.Altitude;
 
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (TerrainCell nCell in cell.NeighborList)
         {
             altitudeDelta += Mathf.Abs(cellAltitude - nCell.Altitude);
         }
@@ -4190,13 +4423,6 @@ public class World : ISynchronizable
 
     private void GenerateTerrainBiomes(TerrainCell cell)
     {
-#if DEBUG
-        if ((cell.Longitude == 229) && (cell.Latitude == 133))
-        {
-            Debug.Log("Debugging cell " + cell.Position);
-        }
-#endif
-
         float totalBiomePresence = 0;
 
         Dictionary<string, float> biomePresences = new Dictionary<string, float>();

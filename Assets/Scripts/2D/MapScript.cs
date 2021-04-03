@@ -149,6 +149,11 @@ public class MapScript : MonoBehaviour
         PointerOverlayImage.texture = Manager.PointerOverlayTexture;
     }
 
+    public void PointerEntersMap()
+    {
+        Manager.PointerIsOverMap = true;
+    }
+
     public void PointerEntersMap(BaseEventData data)
     {
         Manager.PointerIsOverMap = true;

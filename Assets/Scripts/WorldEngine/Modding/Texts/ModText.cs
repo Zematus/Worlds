@@ -3,13 +3,30 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class ModText
+public class ModText : IInputRequester, IFormattedStringGenerator
 {
     private string _partsString;
 
-    private List<IModTextPart> textParts = new List<IModTextPart>();
+    private readonly List<IFormattedStringGenerator> _textParts =
+        new List<IFormattedStringGenerator>();
 
-    public ModText(Context context, string textStr)
+    public bool RequiresInput
+    {
+        get
+        {
+            foreach (IFormattedStringGenerator part in _textParts)
+            {
+                if ((part is IExpression exp) && exp.RequiresInput)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    public ModText(Context context, string textStr, bool allowInputRequesters = false)
     {
         _partsString = "";
 
@@ -21,34 +38,32 @@ public class ModText
             {
                 //Debug.Log("string: " + value);
 
-                textParts.Add(new StringTextPart(value));
+                _textParts.Add(new StringTextPart(value));
             }
-            else
+            else if (!string.IsNullOrEmpty(value = match.Groups["expression"].Value))
             {
-                value = match.Groups["expression"].Value;
+                //Debug.Log("expression: " + value);
 
-                if (!string.IsNullOrEmpty(value))
+                IBaseValueExpression exp =
+                    ValueExpressionBuilder.BuildValueExpression(
+                        context, value, allowInputRequesters);
+
+                if (exp is IFormattedStringGenerator)
                 {
-                    //Debug.Log("expression: " + value);
-
-                    IExpression exp =
-                        ExpressionBuilder.BuildExpression(context, value);
-
-                    if (exp is IModTextPart)
-                    {
-                        textParts.Add(exp as IModTextPart);
-                    }
-                    else
-                    {
-                        throw new System.Exception(
-                            "Error: Text part '" + value + "' is not an expression that can be evaluated into a text element");
-                    }
+                    _textParts.Add(exp);
                 }
                 else
                 {
                     throw new System.Exception(
-                        "Error: Text part '" + value + "' could not be matched to a string or expression");
+                        "Error: Text part '" + value +
+                        "' is not an expression that can generate a formatted string element");
                 }
+            }
+            else
+            {
+                throw new System.Exception(
+                    "Error: Text part '" + value +
+                    "' could not be matched to a string or expression");
             }
 
             _partsString += match.Value;
@@ -68,15 +83,49 @@ public class ModText
         return _partsString;
     }
 
-    public string EvaluateString()
+    public string GetFormattedString()
     {
         string output = "";
 
-        foreach (IModTextPart part in textParts)
+        foreach (IFormattedStringGenerator part in _textParts)
         {
             output += part.GetFormattedString();
         }
 
         return output;
+    }
+
+    public string ToPartiallyEvaluatedString(bool evaluate = true)
+    {
+        string output = "";
+
+        foreach (IFormattedStringGenerator part in _textParts)
+        {
+            if (part is IExpression exp)
+            {
+                output += exp.ToPartiallyEvaluatedString(evaluate);
+            }
+            else
+            {
+                output += part.GetFormattedString();
+            }
+        }
+
+        return output;
+    }
+
+    public bool TryGetRequest(out InputRequest request)
+    {
+        foreach (IFormattedStringGenerator part in _textParts)
+        {
+            if ((part is IExpression exp) && exp.TryGetRequest(out request))
+            {
+                return true;
+            }
+        }
+
+        request = null;
+
+        return false;
     }
 }

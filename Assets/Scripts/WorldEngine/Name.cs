@@ -100,7 +100,7 @@ public static class NameTools
 public class Name : ISynchronizable
 {
     [XmlAttribute("Lid")]
-    public long LanguageId;
+    public Identifier LanguageId;
 
     [XmlAttribute("Tm")]
     public string TaggedMeaning;

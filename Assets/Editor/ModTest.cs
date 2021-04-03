@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using System.IO;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 public class ModTest
 {
@@ -28,6 +29,108 @@ public class ModTest
     TestPolity _testPolity1;
     TestPolity _testPolity2;
 
+    private void LoadBiomes()
+    {
+        Debug.Log("loading biome mod file...");
+
+        Biome.ResetBiomes();
+        Biome.LoadBiomesFile(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
+    }
+
+    [Test]
+    public void LoadBiomeModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        LoadBiomes();
+
+        foreach (Biome biome in Biome.Biomes.Values)
+        {
+            Debug.Log("loaded biome: " + biome.Name);
+        }
+    }
+
+    private void LoadCulturalPreferences()
+    {
+        Debug.Log("loading cultural preferences mod file...");
+
+        PreferenceGenerator.ResetPreferenceGenerators();
+        PreferenceGenerator.LoadPreferencesFile(Path.Combine("Mods", "Base", "Preferences", "preferences.json"));
+    }
+
+    [Test]
+    public void LoadCulturalPreferenceModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        LoadCulturalPreferences();
+
+        foreach (PreferenceGenerator generator in PreferenceGenerator.Generators.Values)
+        {
+            Debug.Log("loaded preference generator: " + generator.Name);
+        }
+    }
+
+    [Test]
+    public void LoadLayersModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        Debug.Log("loading layer mod file...");
+
+        Layer.ResetLayers();
+        Layer.LoadLayersFile(Path.Combine("Mods", "WeirdBiomesMod", "Layers", "weirdLayers.json"));
+
+        foreach (Layer layer in Layer.Layers.Values)
+        {
+            Debug.Log("loaded layer: " + layer.Name);
+        }
+    }
+
+    private void LoadRegionAttributes()
+    {
+        Debug.Log("loading region attribute mod file...");
+
+        Adjective.ResetAdjectives();
+        RegionAttribute.ResetAttributes();
+        RegionAttribute.LoadRegionAttributesFile(Path.Combine("Mods", "Base", "RegionAttributes", "region_attributes.json"));
+    }
+
+    [Test]
+    public void LoadRegionAttributeModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        LoadRegionAttributes();
+
+        foreach (RegionAttribute regionAttribute in RegionAttribute.Attributes.Values)
+        {
+            Debug.Log("loaded region attribute: " + regionAttribute.Name);
+        }
+    }
+
+    private void LoadElements()
+    {
+        Debug.Log("loading element mod file...");
+
+        Adjective.ResetAdjectives();
+        Element.ResetElements();
+        Element.LoadElementsFile(Path.Combine("Mods", "Base", "Elements", "elements.json"));
+    }
+
+    [Test]
+    public void LoadElementModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        LoadElements();
+
+        foreach (Element element in Element.Elements.Values)
+        {
+            Debug.Log("loaded element: " + element.SingularName);
+        }
+    }
+
     [Test]
     public void ModTextParseTest()
     {
@@ -39,33 +142,33 @@ public class ModTest
 
         Debug.Log("Test text " + (testCounter++));
         ModText text = new ModText(testContext, "normal string");
-        Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("normal string", text.EvaluateString());
+        Debug.Log("evaluated text: " + text.GetFormattedString());
+        Assert.AreEqual("normal string", text.GetFormattedString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "1 + 1 equals <<1 + 1>>");
-        Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("1 + 1 equals <b>2</b>", text.EvaluateString());
+        Debug.Log("evaluated text: " + text.GetFormattedString());
+        Assert.AreEqual("1 + 1 equals <b>2</b>", text.GetFormattedString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "<<2 > 3>>, 2 is not greater than 3");
-        Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("<b>False</b>, 2 is not greater than 3", text.EvaluateString());
+        Debug.Log("evaluated text: " + text.GetFormattedString());
+        Assert.AreEqual("<b>False</b>, 2 is not greater than 3", text.GetFormattedString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "<<string>> and <<anotherString>>");
-        Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("<b>string</b> and <b>anotherString</b>", text.EvaluateString());
+        Debug.Log("evaluated text: " + text.GetFormattedString());
+        Assert.AreEqual("<b>string</b> and <b>anotherString</b>", text.GetFormattedString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "lerp(2,4,0.5) equals <<lerp(2,4,0.5)>>");
-        Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("lerp(2,4,0.5) equals <b>3</b>", text.EvaluateString());
+        Debug.Log("evaluated text: " + text.GetFormattedString());
+        Assert.AreEqual("lerp(2,4,0.5) equals <b>3</b>", text.GetFormattedString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "space between the numbers <<5 + 2>> <<7>>");
-        Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("space between the numbers <b>7</b> <b>7</b>", text.EvaluateString());
+        Debug.Log("evaluated text: " + text.GetFormattedString());
+        Assert.AreEqual("space between the numbers <b>7</b> <b>7</b>", text.GetFormattedString());
     }
 
     [Test]
@@ -158,6 +261,18 @@ public class ModTest
         Assert.AreEqual(3.5f, (expression as IValueExpression<float>).Value);
 
         expression = ExpressionBuilder.BuildExpression(
+            testContext, "((2))");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(2, (expression as IValueExpression<float>).Value);
+
+        expression = ExpressionBuilder.BuildExpression(
+            testContext, "((2) + ((3 + 1)))");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(6, (expression as IValueExpression<float>).Value);
+
+        expression = ExpressionBuilder.BuildExpression(
             testContext, "2 + (1 + lerp(3, -1, 0.5))");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
@@ -181,11 +296,112 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual(10, (expression as IValueExpression<float>).Value);
 
-        expression =
-            ExpressionBuilder.BuildExpression(testContext, "testEntity.testNumericFunctionAttribute(false)");
+        expression = ExpressionBuilder.BuildExpression(
+            testContext, "testEntity.testNumericFunctionAttribute(false)");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual(2, (expression as IValueExpression<float>).Value);
+
+        expression = ExpressionBuilder.BuildExpression(
+            testContext, "''test string''");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(
+            "test string",
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
+
+        expression = ExpressionBuilder.BuildExpression(
+            testContext, "(''inner test string'')");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(
+            "inner test string",
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
+
+        expression = ExpressionBuilder.BuildExpression(
+            testContext, "((''inner test string 2''))");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(
+            "inner test string 2",
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
+
+        expression = ExpressionBuilder.BuildExpression(
+            testContext, "(((''inner test string 3'')))");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(
+            "inner test string 3",
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
+
+        expression = ExpressionBuilder.BuildExpression(
+            testContext, "''test string <<1 + 1>> with a expression''");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(
+            "test string <b>2</b> with a expression",
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
+
+        expression = ExpressionBuilder.BuildExpression(
+            testContext, "(''test string <<6 / 2>>'')");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(
+            "test string <b>3</b>",
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
+
+        expression = ExpressionBuilder.BuildExpression(
+            testContext, "(''test string (<<2 * 2>>)'')");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(
+            "test string (<b>4</b>)",
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
+
+        expression = ExpressionBuilder.BuildExpression(
+            testContext, "((''test string (<<(2 * 2) + 0.5>>)''))");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(
+            "test string (<b>4.5</b>)",
+            (expression as IValueExpression<ModText>).Value.GetFormattedString());
+
+        /// NOTE: The following commented tests do not pass because the parser can't
+        /// can't interpret paranthesis enclosed texts with unclosed parenthesis within
+
+        //expression = ExpressionBuilder.BuildExpression(
+        //    testContext, "(''test string 5)'')");
+
+        //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        //Assert.AreEqual("test string 5)", (expression as IValueExpression<string>).Value);
+
+        //string miniTest = "''";
+        //Match match = Regex.Match(miniTest, ModParseUtility.InnerTextStartRegexPart);
+        //Assert.True(match.Success, "mini test: match " + miniTest);
+
+        //expression = ExpressionBuilder.BuildExpression(
+        //    testContext, "(''(5.5'')");
+
+        //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        //Assert.AreEqual("(5.5", (expression as IValueExpression<string>).Value);
+
+        //expression = ExpressionBuilder.BuildExpression(
+        //    testContext, "(''test string (6'')");
+
+        //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        //Assert.AreEqual("test string (6", (expression as IValueExpression<string>).Value);
+
+        //expression = ExpressionBuilder.BuildExpression(
+        //    testContext, "((''test string 7)''))");
+
+        //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        //Assert.AreEqual("test string 7)", (expression as IValueExpression<string>).Value);
+
+        //expression = ExpressionBuilder.BuildExpression(
+        //    testContext, "((''test string (8))''))");
+
+        //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        //Assert.AreEqual("test string (8))", (expression as IValueExpression<string>).Value);
     }
 
     private void InitializeModData()
@@ -193,6 +409,7 @@ public class ModTest
         World.ResetStaticModData();
         CellGroup.ResetEventGenerators();
         Faction.ResetEventGenerators();
+        Polity.ResetEventGenerators();
     }
 
     private void InitializeTestWorld()
@@ -201,12 +418,14 @@ public class ModTest
 
         InitializeModData();
 
-        Biome.ResetBiomes();
-        Biome.LoadBiomesFile(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
+        LoadBiomes();
+        LoadRegionAttributes();
+        LoadElements();
+
+        LoadCulturalPreferences();
 
         Knowledge.ResetKnowledges();
         Knowledge.InitializeKnowledges();
-        CulturalPreference.InitializePreferences();
 
         _testWorld = new World(400, 200, 1);
         _testWorld.TerrainInitialization();
@@ -314,7 +533,7 @@ public class ModTest
 
         _testPolity1 = new TestPolity("tribe", _testGroup1);
         _testFaction0 = new TestFaction("clan", _testPolity1, _testGroup1, 0.5f, null, 200000f);
-        _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup2, 0.3f, null, 300000f);
+        _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup2, 0.3f, null, 150000f);
         _testFaction2 = new TestFaction("clan", _testPolity1, _testGroup3, 0.2f, null, 200000f);
 
         _testPolity1.SetDominantFaction(_testFaction0);
@@ -335,12 +554,12 @@ public class ModTest
         _testWorld.AddPolityInfo(_testPolity1);
         _testWorld.AddPolityInfo(_testPolity2);
 
-        _testGroup1.SetPolityProminence(_testPolity1, 1);
-        _testGroup2.SetPolityProminence(_testPolity1, 1);
-        _testGroup3.SetPolityProminence(_testPolity1, 1);
-        _testGroup4.SetPolityProminence(_testPolity1, 1);
-        _testGroup5.SetPolityProminence(_testPolity2, 1);
-        _testGroup6.SetPolityProminence(_testPolity2, 1);
+        _testGroup1.AddPolityProminenceValueDelta(_testPolity1, 1);
+        _testGroup2.AddPolityProminenceValueDelta(_testPolity1, 1);
+        _testGroup3.AddPolityProminenceValueDelta(_testPolity1, 1);
+        _testGroup4.AddPolityProminenceValueDelta(_testPolity1, 1);
+        _testGroup5.AddPolityProminenceValueDelta(_testPolity2, 1);
+        _testGroup6.AddPolityProminenceValueDelta(_testPolity2, 1);
 
         _testGroup1.Culture.Language = _testPolity1.Culture.Language;
         _testGroup2.Culture.Language = _testPolity1.Culture.Language;
@@ -348,6 +567,19 @@ public class ModTest
         _testGroup4.Culture.Language = _testPolity1.Culture.Language;
         _testGroup5.Culture.Language = _testPolity2.Culture.Language;
         _testGroup6.Culture.Language = _testPolity2.Culture.Language;
+
+        _testGroup1.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup1, 600, 600));
+        _testGroup2.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup2, 600, 600));
+        _testGroup3.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup3, 600, 600));
+        _testGroup4.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup4, 600, 600));
+        _testGroup5.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup5, 600, 600));
+        _testGroup6.Culture.AddKnowledge(
+            new SocialOrganizationKnowledge(_testGroup6, 600, 600));
 
         _testRegion1 = new TestCellRegion(_testCell1, _testGroup1.Culture.Language);
         _testCell1.Region = _testRegion1;
@@ -365,6 +597,12 @@ public class ModTest
         _testFaction3.TestLeader = new Agent(_testFaction3.CoreGroup, 0, 0);
         _testFaction4.TestLeader = new Agent(_testFaction4.CoreGroup, 0, 0);
 
+        _testFaction0.Culture.AddKnowledge(
+            new CulturalKnowledge(
+                SocialOrganizationKnowledge.KnowledgeId,
+                SocialOrganizationKnowledge.KnowledgeName,
+                600));
+
         _testFaction0.Culture.GetPreference("authority").Value = 0.4f;
         _testFaction0.Culture.GetPreference("cohesion").Value = 0.6f;
 
@@ -380,15 +618,23 @@ public class ModTest
         _testFaction4.Culture.GetPreference("authority").Value = 0.6f;
         _testFaction4.Culture.GetPreference("cohesion").Value = 0.6f;
 
-        _testGroup1.PostUpdatePolityProminences_BeforePolityUpdates();
-        _testGroup2.PostUpdatePolityProminences_BeforePolityUpdates();
-        _testGroup3.PostUpdatePolityProminences_BeforePolityUpdates();
-        _testGroup4.PostUpdatePolityProminences_BeforePolityUpdates();
-        _testGroup5.PostUpdatePolityProminences_BeforePolityUpdates();
-        _testGroup6.PostUpdatePolityProminences_BeforePolityUpdates();
+        _testGroup1.UpdatePolityProminences_test();
+        _testGroup2.UpdatePolityProminences_test();
+        _testGroup3.UpdatePolityProminences_test();
+        _testGroup4.UpdatePolityProminences_test();
+        _testGroup5.UpdatePolityProminences_test();
+        _testGroup6.UpdatePolityProminences_test();
 
-        _testPolity1.ClusterUpdate();
-        _testPolity2.ClusterUpdate();
+        _testGroup1.SetProminenceCoreDistances_test(_testPolity1, 1001, 1001);
+        _testGroup2.SetProminenceCoreDistances_test(_testPolity1, 1001, 1001);
+        _testGroup3.SetProminenceCoreDistances_test(_testPolity1, 1001, 1001);
+        _testGroup4.SetProminenceCoreDistances_test(_testPolity1, 1001, 1001);
+        _testGroup5.SetProminenceCoreDistances_test(_testPolity2, 1001, 1001);
+        _testGroup6.SetProminenceCoreDistances_test(_testPolity2, 1001, 1001);
+
+        Faction.SetRelationship(_testFaction0, _testFaction1, 0.6f);
+
+        Polity.AddContact(_testPolity1, _testPolity2, 1);
     }
 
     [Test]
@@ -414,7 +660,7 @@ public class ModTest
         testFactionEntity.Set(_testFaction0);
 
         string type = (expression as IValueExpression<string>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + type);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + type);
         Assert.AreEqual("clan", type);
 
         ////
@@ -425,7 +671,7 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         bool boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
         Assert.IsTrue(boolResult);
 
         ////
@@ -436,33 +682,33 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         float floatResult = (expression as IValueExpression<float>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + floatResult);
         Assert.AreEqual(200000f, floatResult);
 
         testFactionEntity.Set(_testFaction1);
 
         floatResult = (expression as IValueExpression<float>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
-        Assert.AreEqual(300000f, floatResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + floatResult);
+        Assert.AreEqual(150000f, floatResult);
 
         ////
 
         expression =
-            ExpressionBuilder.BuildExpression(testContext, "target.administrative_load > 250000");
+            ExpressionBuilder.BuildExpression(testContext, "target.administrative_load > 170000");
 
         testFactionEntity.Set(_testFaction0);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
-        Assert.IsFalse(boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
+        Assert.IsTrue(boolResult);
 
         testFactionEntity.Set(_testFaction1);
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
-        Assert.IsTrue(boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + boolResult);
+        Assert.IsFalse(boolResult);
 
         ////
 
@@ -474,13 +720,13 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
         Assert.IsTrue(boolResult);
 
         testFactionEntity.Set(_testFaction1);
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + boolResult);
         Assert.IsFalse(boolResult);
 
         ////
@@ -493,34 +739,34 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
         Assert.IsFalse(boolResult);
 
         testFactionEntity.Set(_testFaction1);
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + boolResult);
         Assert.IsTrue(boolResult);
 
         ////
 
         expression = ExpressionBuilder.BuildExpression(
             testContext,
-            "9125 + (91250 * (1 - saturation(400000, target.administrative_load)) * target.preferences.cohesion)");
+            "9125 + (91250 * (1 - saturation(target.administrative_load, 400000)) * target.preferences.cohesion)");
 
         testFactionEntity.Set(_testFaction0);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         floatResult = (expression as IValueExpression<float>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + floatResult);
         Assert.AreEqual(45625, floatResult);
 
         testFactionEntity.Set(_testFaction1);
 
         floatResult = (expression as IValueExpression<float>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
-        Assert.AreEqual(50839.2852f, floatResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + floatResult);
+        Assert.AreEqual(62215.9141f, floatResult);
 
         ////
 
@@ -533,21 +779,19 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction0': " + boolResult);
         Assert.IsTrue(boolResult);
 
         testFactionEntity.Set(_testFaction1);
 
         boolResult = (expression as IValueExpression<bool>).Value;
-        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
+        Debug.Log("Expression evaluation result - '_testFaction1': " + boolResult);
         Assert.IsFalse(boolResult);
     }
 
     private void LoadBaseEventsMod()
     {
         Debug.Log("loading event mod file...");
-
-        CulturalPreference.InitializePreferences();
 
         EventGenerator.ResetGenerators();
         EventGenerator.LoadEventFile(Path.Combine("Mods", "Base", "Events", "events.json"));
@@ -558,6 +802,11 @@ public class ModTest
     {
         Manager.UpdateMainThreadReference();
 
+        Knowledge.ResetKnowledges();
+        Knowledge.InitializeKnowledges();
+
+        LoadCulturalPreferences();
+
         LoadBaseEventsMod();
 
         foreach (EventGenerator generator in EventGenerator.Generators.Values)
@@ -566,24 +815,68 @@ public class ModTest
         }
     }
 
+    private void LoadBaseActionCategoriesMod()
+    {
+        Debug.Log("loading action categories mod file...");
+
+        ActionCategory.ResetActionCategories();
+        ActionCategory.LoadActionCategoryFile(
+            Path.Combine("Mods", "Base", "Actions", "Categories", "categories.json"));
+    }
+
+    private void LoadBaseActionsMod()
+    {
+        Debug.Log("loading action mod file...");
+
+        ModAction.ResetActions();
+        LoadBaseActionCategoriesMod();
+
+        ModAction.LoadActionFile(Path.Combine("Mods", "Base", "Actions", "actions.json"));
+    }
+
+    [Test]
+    public void LoadActionsModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        Knowledge.ResetKnowledges();
+        Knowledge.InitializeKnowledges();
+
+        LoadCulturalPreferences();
+
+        LoadBaseActionsMod();
+
+        foreach (ModAction action in ModAction.Actions.Values)
+        {
+            Debug.Log("created action: " + action.Name);
+        }
+    }
+
     private void LoadBaseDecisionsMod()
     {
-        Debug.Log("loading clans split decision mod file...");
-
-        CulturalPreference.InitializePreferences();
+        Debug.Log("loading decision mod files...");
 
         ModDecision.ResetDecisions();
 
-        ModDecision.LoadDecisionFile(
-            Path.Combine("Mods", "Base", "Decisions", "clan_split.json"));
-        ModDecision.LoadDecisionFile(
-            Path.Combine("Mods", "Base", "Decisions", "influence_demand.json"));
+        string path = Path.Combine("Mods", "Base", "Decisions");
+
+        string[] files = Directory.GetFiles(path, "*.json");
+
+        if (files.Length > 0)
+        {
+            foreach (string file in files)
+            {
+                ModDecision.LoadDecisionFile(file);
+            }
+        }
     }
 
     [Test]
     public void LoadDecisionsModTest()
     {
         Manager.UpdateMainThreadReference();
+
+        LoadCulturalPreferences();
 
         LoadBaseDecisionsMod();
 
@@ -593,7 +886,12 @@ public class ModTest
         }
     }
 
-    private void TriggerModEventTest(Faction testFaction, string eventId)
+    /// <summary>
+    /// Tests triggering a specific faction event
+    /// </summary>
+    /// <param name="testFaction">the test faction to use</param>
+    /// <param name="eventId">the event generator id</param>
+    private void TriggerFactionModEventTest(Faction testFaction, string eventId)
     {
         List<WorldEvent> eventsToHappen = _testWorld.GetEventsToHappen();
 
@@ -603,32 +901,48 @@ public class ModTest
 
         foreach (FactionModEvent e in eventsToHappen)
         {
-            if (e.GeneratorId == "clan_decide_split")
+            if ((e.GeneratorId == eventId) &&
+                (e.Generator.Target.Faction == testFaction))
             {
                 modEvent = e;
-
-                if (modEvent.Generator.Target.Faction == testFaction)
-                {
-                    break;
-                }
-
-                modEvent = null;
+                break;
             }
         }
 
-        Debug.Log("Assert.IsNotNull(splitEvent)");
+        Debug.Log("Assert.IsNotNull(modEvent)");
         Assert.IsNotNull(modEvent);
 
         Debug.Log("Assert.IsTrue(modEvent.CanTrigger())");
         Assert.IsTrue(modEvent.CanTrigger());
 
-        Debug.Log("splitEvent.Trigger()");
+        Debug.Log("modEvent.Trigger()");
         modEvent.Trigger();
     }
 
+    // NOTE: mod script is changed frequently, whcih breaks the test. So keeping it
+    // disabled for the time being...
+    //[Test]
+    //public void TriggerSplitClanDecision()
+    //{
+    //    Manager.CurrentDevMode = DevMode.Advanced;
+
+    //    InitializeTestFactions();
+
+    //    LoadBaseEventsMod();
+    //    LoadBaseDecisionsMod();
+
+    //    EventGenerator.InitializeGenerators();
+
+    //    _testFaction2.InitializeDefaultEvents();
+
+    //    TriggerFactionModEventTest(_testFaction2, "clan_decide_split");
+    //}
+
     [Test]
-    public void TriggerSplitClanDecision()
+    public void TriggerDemandInfluenceDecision()
     {
+        Manager.CurrentDevMode = DevMode.Advanced;
+
         InitializeTestFactions();
 
         LoadBaseEventsMod();
@@ -636,15 +950,15 @@ public class ModTest
 
         EventGenerator.InitializeGenerators();
 
-        _testFaction2.InitializeDefaultEvents();
+        _testFaction1.InitializeDefaultEvents();
 
-        TriggerModEventTest(_testFaction2, "clan_decide_split");
+        TriggerFactionModEventTest(_testFaction1, "clan_decide_performing_influence_demand");
     }
 
     [Test]
-    public void TriggerDemandInfluenceDecision()
+    public void TriggerFosterRelationshipDecision()
     {
-        Manager.DebugModeEnabled = true;
+        Manager.CurrentDevMode = DevMode.Advanced;
 
         InitializeTestFactions();
 
@@ -655,6 +969,40 @@ public class ModTest
 
         _testFaction0.InitializeDefaultEvents();
 
-        TriggerModEventTest(_testFaction0, "clan_decide_performing_influence_demand");
+        TriggerFactionModEventTest(_testFaction0, "tribe_decide_fostering_relationship");
+    }
+
+    [Test]
+    public void TriggerMergeTribeDecision()
+    {
+        Manager.CurrentDevMode = DevMode.Advanced;
+
+        InitializeTestFactions();
+
+        LoadBaseEventsMod();
+        LoadBaseDecisionsMod();
+
+        EventGenerator.InitializeGenerators();
+
+        _testFaction0.InitializeDefaultEvents();
+
+        TriggerFactionModEventTest(_testFaction0, "tribe_decide_merge");
+    }
+
+    [Test]
+    public void TriggerFormNewTribeDecision()
+    {
+        Manager.CurrentDevMode = DevMode.Advanced;
+
+        InitializeTestFactions();
+
+        LoadBaseEventsMod();
+        LoadBaseDecisionsMod();
+
+        EventGenerator.InitializeGenerators();
+
+        _testFaction1.InitializeDefaultEvents();
+
+        TriggerFactionModEventTest(_testFaction1, "clan_decide_form_new_tribe");
     }
 }

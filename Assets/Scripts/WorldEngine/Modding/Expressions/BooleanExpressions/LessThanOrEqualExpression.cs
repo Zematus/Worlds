@@ -17,12 +17,18 @@ public class LessThanOrEqualExpression : BinaryOpExpressionWithOutput<bool>
         _numExpressionB = expressionB;
     }
 
-    public static IExpression Build(Context context, string expressionAStr, string expressionBStr)
+    public static IExpression Build(
+        Context context,
+        string expressionAStr,
+        string expressionBStr,
+        bool allowInputRequesters = false)
     {
         IValueExpression<float> expressionA =
-            ValueExpressionBuilder.BuildValueExpression<float>(context, expressionAStr);
+            ValueExpressionBuilder.BuildValueExpression<float>(
+                context, expressionAStr, allowInputRequesters);
         IValueExpression<float> expressionB =
-            ValueExpressionBuilder.BuildValueExpression<float>(context, expressionBStr);
+            ValueExpressionBuilder.BuildValueExpression<float>(
+                context, expressionBStr, allowInputRequesters);
 
         return new LessThanOrEqualExpression(expressionA, expressionB);
     }

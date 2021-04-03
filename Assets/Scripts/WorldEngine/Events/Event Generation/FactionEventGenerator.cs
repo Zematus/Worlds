@@ -1,8 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using UnityEngine.Profiling;
 
 public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 {
@@ -32,6 +28,26 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         Faction.OnStatusChangeEventGenerators.Add(this);
     }
 
+    public override void SetToAssignOnPolityContactChange()
+    {
+        Polity.OnPolityContactChangeEventGenerators.Add(this);
+    }
+
+    public override void SetToAssignOnCoreHighestProminenceChange()
+    {
+        CellGroup.OnCoreHighestProminenceChangeEventGenerators.Add(this);
+    }
+
+    public override void SetToAssignOnRegionAccessibilityUpdate()
+    {
+        Polity.OnRegionAccessibilityUpdateEventGenerators.Add(this);
+    }
+
+    public override void SetToAssignOnGuideSwitch()
+    {
+        Faction.OnGuideSwitchEventGenerators.Add(this);
+    }
+
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
         FactionModEvent modEvent = new FactionModEvent(this, Target.Faction, triggerDate);
@@ -41,9 +57,17 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 
     public void SetTarget(Faction faction)
     {
+        Profiler.BeginSample("FactionEventGenerator.SetTarget - Reset");
+
         Reset();
 
+        Profiler.EndSample(); // "FactionEventGenerator.SetTarget - Reset"
+
+        Profiler.BeginSample("FactionEventGenerator.SetTarget - Target.Set");
+
         Target.Set(faction);
+
+        Profiler.EndSample(); // "FactionEventGenerator.SetTarget - Target.Set"
     }
 
     public override int GetNextRandomInt(int iterOffset, int maxValue) =>
@@ -52,7 +76,7 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
     public override float GetNextRandomFloat(int iterOffset) =>
         Target.Faction.GetNextLocalRandomFloat(iterOffset);
 
-    public override int GetBaseOffset() => (int)Target.Faction.Id;
+    public override int GetBaseOffset() => Target.Faction.GetHashCode();
 
     public bool TryGenerateEventAndAssign(
         Faction faction,

@@ -1,16 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public static class ValueExpressionBuilder
 {
-    public static IValueExpression<T> BuildValueExpression<T>(Context context, string expressionStr)
+    public static IValueExpression<T> BuildValueExpression<T>(
+        Context context, string expressionStr, bool allowInputRequesters = false)
     {
-        return ValidateValueExpression<T>(ExpressionBuilder.BuildExpression(context, expressionStr));
+        return ValidateValueExpression<T>(
+            ExpressionBuilder.BuildExpression(context, expressionStr, allowInputRequesters));
     }
 
-    public static IBaseValueExpression BuildValueExpression(Context context, string expressionStr)
+    public static IBaseValueExpression BuildValueExpression(
+        Context context, string expressionStr, bool allowInputRequesters = false)
     {
-        return ValidateValueExpression(ExpressionBuilder.BuildExpression(context, expressionStr));
+        return ValidateValueExpression(
+            ExpressionBuilder.BuildExpression(context, expressionStr, allowInputRequesters));
     }
 
     public static IBaseValueExpression ValidateValueExpression(IExpression expression)
@@ -20,17 +25,22 @@ public static class ValueExpressionBuilder
             return vEntityExp.BaseValueEntity.BaseValueExpression;
         }
 
-        if (!(expression is IBaseValueExpression valExpression))
+        if (expression is IBaseValueExpression valExpression)
         {
-            throw new ArgumentException(
-                expression + " is not a valid value expression");
+            return valExpression;
         }
 
-        return valExpression;
+        throw new ArgumentException(
+            expression + " is not a valid value expression");
     }
 
     public static IValueExpression<T> ValidateValueExpression<T>(IExpression expression)
     {
+        if (expression is ValueEntityAttributeExpression<IValueEntity<T>> vEntityAttrExp)
+        {
+            return vEntityAttrExp.Value.ValueExpression;
+        }
+
         if (expression is ValueEntityExpression<T> vEntityExp)
         {
             return vEntityExp.ValueEntity.ValueExpression;
@@ -47,14 +57,16 @@ public static class ValueExpressionBuilder
     }
 
     public static IValueExpression<T>[] BuildValueExpressions<T>(
-        Context context, ICollection<string> expressionStrs)
+        Context context, ICollection<string> expressionStrs, bool allowInputRequesters = false)
     {
         IValueExpression<T>[] expressions = new IValueExpression<T>[expressionStrs.Count];
 
         int i = 0;
         foreach (string expStr in expressionStrs)
         {
-            expressions[i++] = BuildValueExpression<T>(context, expStr);
+            IValueExpression<T> expression = BuildValueExpression<T>(context, expStr);
+
+            expressions[i++] = expression;
         }
 
         return expressions;
@@ -77,7 +89,7 @@ public static class ValueExpressionBuilder
             return "number";
         }
 
-        if (type == typeof(Entity))
+        if (type == typeof(IEntity))
         {
             return "entity";
         }

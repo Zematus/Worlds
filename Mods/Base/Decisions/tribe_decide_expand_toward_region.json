@@ -1,0 +1,42 @@
+{
+  "decisions": [
+    {
+      "id": "tribe_decide_expand_toward_region",
+      "name": "tribe decide expand toward region",
+      "target": "faction",
+      "parameters": [
+        { "id": "selected_region", "type": "region" },
+        { "id": "chance_of_making_attempt", "type": "number" }
+      ],
+      "properties": [
+        { "id": "target_polity", "value": "target.polity" },
+        { "id": "cohesion_preference", "value": "target.preferences.cohesion" }
+      ],
+      "description": [
+        {
+          "id": "description_intro",
+          "text": "Should the <<target_polity>> expand into the <<selected_region>> region?"
+        }
+      ],
+      "options": [
+        {
+          "id": "option_allow_expansion",
+          "text": "Allow tribe to expand...",
+          "weight": "chance_of_making_attempt",
+          "effects": [
+            {
+              "id": "allow",
+              "text": "<<selected_region>> becomes one of the <<target_polity>> tribe's core regions",
+              "result": "target_polity.add_core_region(selected_region)"
+            }
+          ]
+        },
+        {
+          "id": "option_prevent_expansion",
+          "text": "Prevent tribe from expanding...",
+          "weight": "1 - chance_of_making_attempt"
+        }
+      ]
+    }
+  ]
+}

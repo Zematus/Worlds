@@ -5,20 +5,16 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class FactionInfo : ISynchronizable, IKeyedValue<long>
+public class FactionInfo : Identifiable
 {
-    [XmlAttribute("D")]
-    public long FormationDate = -1;
-
     [XmlAttribute("T")]
     public string Type;
-
-    [XmlAttribute]
-    public long Id;
 
     public Name Name = null;
 
     public Faction Faction;
+
+    public long FormationDate => InitDate;
 
     private string _nameFormat;
 
@@ -27,12 +23,10 @@ public class FactionInfo : ISynchronizable, IKeyedValue<long>
 
     }
 
-    public FactionInfo(string type, long id, Faction faction)
+    public FactionInfo(Faction faction, string type, long formationDate, long initId) :
+        base (formationDate, initId)
     {
         Type = type;
-        Id = id;
-
-        FormationDate = faction.World.CurrentDate;
 
         Faction = faction;
 
@@ -56,13 +50,10 @@ public class FactionInfo : ISynchronizable, IKeyedValue<long>
         return string.Format(_nameFormat, Name.BoldText);
     }
 
-    public long GetKey()
+    public override void FinalizeLoad()
     {
-        return Id;
-    }
+        base.FinalizeLoad();
 
-    public void FinalizeLoad()
-    {
         if (Faction != null)
             Faction.FinalizeLoad();
 
@@ -76,7 +67,7 @@ public class FactionInfo : ISynchronizable, IKeyedValue<long>
         }
     }
 
-    public void Synchronize()
+    public override void Synchronize()
     {
         if (Faction != null)
             Faction.Synchronize();

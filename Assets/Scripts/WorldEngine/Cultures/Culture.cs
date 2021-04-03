@@ -7,9 +7,8 @@ using UnityEngine.Profiling;
 
 public class Culture : ISynchronizable
 {
-    [XmlAttribute("LId")]
-    public long LanguageId = -1;
-    
+    public Identifier LanguageId;
+
     public List<CulturalPreference> Preferences = null;
     public List<CulturalActivity> Activities = null;
     public List<CulturalSkill> Skills = null;
@@ -80,7 +79,7 @@ public class Culture : ISynchronizable
             return;
 
         World.AddExistingCulturalPreferenceInfo(preference);
-        
+
         _preferences.Add(preference.Id, preference);
     }
 
@@ -92,7 +91,7 @@ public class Culture : ISynchronizable
     {
         if (!_preferences.ContainsKey(preference.Id))
             return;
-        
+
         _preferences.Remove(preference.Id);
     }
 
@@ -120,7 +119,7 @@ public class Culture : ISynchronizable
             return;
 
         World.AddExistingCulturalActivityInfo(activity);
-        
+
         _activities.Add(activity.Id, activity);
     }
 
@@ -128,7 +127,7 @@ public class Culture : ISynchronizable
     {
         if (!_activities.ContainsKey(activity.Id))
             return;
-        
+
         _activities.Remove(activity.Id);
     }
 
@@ -146,7 +145,7 @@ public class Culture : ISynchronizable
             return;
 
         World.AddExistingCulturalSkillInfo(skill);
-        
+
         _skills.Add(skill.Id, skill);
     }
 
@@ -154,7 +153,7 @@ public class Culture : ISynchronizable
     {
         if (!_skills.ContainsKey(skill.Id))
             return;
-        
+
         _skills.Remove(skill.Id);
     }
 
@@ -166,7 +165,7 @@ public class Culture : ISynchronizable
         }
     }
 
-    protected void AddKnowledge(CulturalKnowledge knowledge)
+    public void AddKnowledge(CulturalKnowledge knowledge)
     {
         if (_knowledges.ContainsKey(knowledge.Id))
             return;
@@ -228,17 +227,48 @@ public class Culture : ISynchronizable
         return preference;
     }
 
+    /// <summary>
+    /// Returns the current value for the specified reference or 0 if not present
+    /// </summary>
+    /// <param name="id">the id of the preference to query</param>
+    /// <returns>the value of the preference</returns>
+    public float GetPreferenceValue(string id)
+    {
+        if (!_preferences.TryGetValue(id, out CulturalPreference preference))
+            return 0;
+
+        return preference.Value;
+    }
+
     public ICollection<CulturalActivity> GetActivities()
     {
         return _activities.Values;
     }
 
+    /// <summary>
+    /// Gets the activity if present in the culture
+    /// </summary>
+    /// <param name="id">the id of the activity</param>
+    /// <returns>the activity, or null if not present</returns>
     public CulturalActivity GetActivity(string id)
     {
         if (!_activities.TryGetValue(id, out CulturalActivity activity))
             return null;
 
         return activity;
+    }
+
+    /// <summary>
+    /// Returns the activity contribution level, or 0 if activity not present
+    /// </summary>
+    /// <param name="id">the id of the activity</param>
+    /// <returns>the contribution level</returns>
+    public float GetActivityContribution(string id)
+    {
+        if (!_activities.TryGetValue(id, out CulturalActivity activity))
+            return 0;
+
+        return activity.Contribution;
     }
 
     public bool HasActivity(string id)
@@ -293,7 +323,7 @@ public class Culture : ISynchronizable
         value = 0;
 
         CulturalKnowledge knowledge = GetKnowledge(id);
-        
+
         if (knowledge != null)
         {
             value = knowledge.Value;
@@ -309,7 +339,7 @@ public class Culture : ISynchronizable
         scaledValue = 0;
 
         CulturalKnowledge knowledge = GetKnowledge(id);
-        
+
         if (knowledge != null)
         {
             scaledValue = knowledge.ScaledValue;
@@ -323,7 +353,7 @@ public class Culture : ISynchronizable
     public bool HasKnowledge(string id)
     {
         CulturalKnowledge knowledge = GetKnowledge(id);
-        
+
         if (knowledge != null)
             return true;
 
@@ -341,7 +371,7 @@ public class Culture : ISynchronizable
     public bool HasDiscovery(string id)
     {
         Discovery discovery = GetDiscovery(id);
-        
+
         if (discovery != null)
             return true;
 
@@ -383,7 +413,7 @@ public class Culture : ISynchronizable
 
     public virtual void FinalizeLoad()
     {
-        if (LanguageId != -1)
+        if (LanguageId != null)
         {
             Language = World.GetLanguage(LanguageId);
         }
@@ -460,16 +490,5 @@ public class Culture : ISynchronizable
 
             Discoveries.Add(discoveryId, discovery);
         }
-    }
-}
-
-public class BufferCulture : Culture
-{
-    public BufferCulture()
-    {
-    }
-
-    public BufferCulture(Culture sourceCulture) : base(sourceCulture)
-    {
     }
 }

@@ -12,9 +12,11 @@ public class NegateBooleanValueExpression : UnaryOpExpression<bool>
         _boolExpression = ValueExpressionBuilder.ValidateValueExpression<bool>(expression);
     }
 
-    public static IExpression Build(Context context, string expressionStr)
+    public static IExpression Build(
+        Context context, string expressionStr, bool allowInputRequesters = false)
     {
-        IExpression expression = ExpressionBuilder.BuildExpression(context, expressionStr);
+        IExpression expression =
+            ExpressionBuilder.BuildExpression(context, expressionStr, allowInputRequesters);
 
         return new NegateBooleanValueExpression(expression);
     }

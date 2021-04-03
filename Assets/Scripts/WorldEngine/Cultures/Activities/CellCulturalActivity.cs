@@ -65,10 +65,28 @@ public class CellCulturalActivity : CulturalActivity
         throw new System.ArgumentException("CellCulturalActivity: Unrecognized activity Id: " + id);
     }
 
+    /// <summary>
+    /// Unmerge the activity value from a different culture by a proportion
+    /// TODO: Instead of modifying the previous 'new' value, this should use deltas
+    /// like prominences do.
+    /// </summary>
+    /// <param name="activity">the activity from the source culture</param>
+    /// <param name="percentage">percentage amount to merge</param>
+    public void Unmerge(CulturalActivity activity, float percentage)
+    {
+        _newValue = MathUtility.ReverseLerp(_newValue, activity.Value, percentage);
+    }
+
+    /// <summary>
+    /// Merge the activity value from a different culture by a proportion
+    /// TODO: Instead of modifying the previous 'new' value, this should use deltas
+    /// like prominences do.
+    /// </summary>
+    /// <param name="activity">the activity from the source culture</param>
+    /// <param name="percentage">percentage amount to merge</param>
     public void Merge(CulturalActivity activity, float percentage)
     {
-        // _newvalue should have been set correctly either by the constructor or by the Update function
-        _newValue = _newValue * (1f - percentage) + activity.Value * percentage;
+        _newValue = Mathf.Lerp(_newValue, activity.Value, percentage);
     }
 
     // This method should be called only once after a Activity is copied from another source group
@@ -110,7 +128,10 @@ public class CellCulturalActivity : CulturalActivity
 
         TerrainCell groupCell = Group.Cell;
 
-        float randomEffect = groupCell.GetNextLocalRandomFloat(RngOffsets.ACTIVITY_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId));
+        int rngOffset = RngOffsets.ACTIVITY_POLITY_PROMINENCE + RngOffset +
+            unchecked(polityProminence.Polity.GetHashCode());
+
+        float randomEffect = groupCell.GetNextLocalRandomFloat(rngOffset);
 
         float timeEffect = timeSpan / (timeSpan + TimeEffectConstant);
 

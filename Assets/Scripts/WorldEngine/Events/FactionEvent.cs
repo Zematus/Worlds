@@ -6,11 +6,8 @@ using System.Xml.Serialization;
 
 public abstract class FactionEvent : WorldEvent
 {
-    [XmlAttribute("FactId")]
-    public long FactionId;
-
-    [XmlAttribute("OPolId")]
-    public long OriginalPolityId;
+    public Identifier FactionId;
+    public Identifier OriginalPolityId;
 
     [XmlIgnore]
     public Faction Faction;
@@ -23,7 +20,8 @@ public abstract class FactionEvent : WorldEvent
 
     }
 
-    public FactionEvent(Faction faction, FactionEventData data) : base(faction.World, data, GenerateUniqueIdentifier(faction, data.TriggerDate, data.TypeId))
+    public FactionEvent(Faction faction, FactionEventData data) :
+        base(faction.World, data, GenerateUniqueIdentifier(faction, data.TriggerDate, data.TypeId))
     {
         Faction = faction;
         FactionId = Faction.Id;
@@ -32,7 +30,8 @@ public abstract class FactionEvent : WorldEvent
         OriginalPolity = World.GetPolity(OriginalPolityId);
     }
 
-    public FactionEvent(Faction faction, long triggerDate, long eventTypeId) : base(faction.World, triggerDate, GenerateUniqueIdentifier(faction, triggerDate, eventTypeId), eventTypeId)
+    public FactionEvent(Faction faction, long triggerDate, long eventTypeId) :
+        base(faction.World, triggerDate, GenerateUniqueIdentifier(faction, triggerDate, eventTypeId), eventTypeId)
     {
         Faction = faction;
         FactionId = Faction.Id;
@@ -66,7 +65,7 @@ public abstract class FactionEvent : WorldEvent
             Debug.LogWarning("FactionEvent.GenerateUniqueIdentifier - 'triggerDate' is greater than " + World.MaxSupportedDate + " (triggerDate = " + triggerDate + ")");
         }
 
-        return (triggerDate * 1000000000L) + ((faction.Id % 1000000L) * 1000L) + eventTypeId;
+        return (triggerDate * 1000000000L) + ((faction.GetHashCode() % 1000000L) * 1000L) + eventTypeId;
     }
 
     public override bool IsStillValid()

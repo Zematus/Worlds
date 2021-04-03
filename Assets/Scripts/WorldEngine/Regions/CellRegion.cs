@@ -20,14 +20,22 @@ public class CellRegion : Region
 
     }
 
-    public CellRegion(TerrainCell originCell, Language language) : base(originCell, language)
+    public CellRegion(TerrainCell originCell, Language language) : base(originCell, 0, language)
     {
 
     }
 
     public void Update()
     {
-        Manager.AddUpdatedCells(_cells, CellUpdateType.Region, CellUpdateSubType.Membership, IsSelected);
+        Manager.AddUpdatedCells(this, CellUpdateType.Region, CellUpdateSubType.Membership);
+    }
+
+    public void AddCells(IEnumerable<TerrainCell> cells)
+    {
+        foreach (TerrainCell cell in cells)
+        {
+            AddCell(cell);
+        }
     }
 
     public bool AddCell(TerrainCell cell)
@@ -88,9 +96,9 @@ public class CellRegion : Region
 
             bool isInnerBorder = false;
 
-            bool isNotFullyWater = (cell.WaterBiomePresence < 1);
+            bool isNotAllWater = !cell.IsAllWater;
 
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 if (nCell.Region != this)
                 {
@@ -98,12 +106,17 @@ public class CellRegion : Region
 
                     if (_outerBorderCells.Add(nCell))
                     {
+                        if (nCell.Region != null)
+                        {
+                            SetAsNeighbors(this, nCell.Region);
+                        }
+
                         float nCellArea = nCell.Area;
 
                         outerBorderArea += nCellArea;
                         AverageOuterBorderAltitude += cell.Altitude * nCellArea;
 
-                        if (isNotFullyWater && (nCell.WaterBiomePresence >= 1))
+                        if (isNotAllWater && nCell.IsAllWater)
                         {
                             coastalOuterBorderArea += nCellArea;
                         }
@@ -151,7 +164,7 @@ public class CellRegion : Region
                     biomePresences.Add(biomeId, presenceArea);
                 }
             }
-            
+
             foreach (string biomeId in cell.PresentWaterBiomeIds)
             {
                 waterArea += cell.GetBiomePresence(biomeId) * cellArea;
@@ -242,14 +255,10 @@ public class CellRegion : Region
         {
             CellPositions.Add(cell.Position);
         }
-
-        base.Synchronize();
     }
 
     public override void FinalizeLoad()
     {
-        base.FinalizeLoad();
-
         foreach (WorldPosition position in CellPositions)
         {
             TerrainCell cell = World.GetCell(position);
@@ -356,5 +365,10 @@ public class CellRegion : Region
     public override TerrainCell GetMostCenteredCell()
     {
         return _mostCenteredCell;
+    }
+
+    public override bool IsWithinRegion(TerrainCell cell)
+    {
+        return cell.Region == this;
     }
 }

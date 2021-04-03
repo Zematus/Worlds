@@ -35,10 +35,12 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
 
         foreach (DecisionOption option in options)
         {
-            if (!option.CanShow())
-            {
+            // Skip options that can only be used by the simulation AI
+            if (option.AllowedGuide == GuideType.Simulation)
                 continue;
-            }
+
+            if (!option.CanShow())
+                continue;
 
             SetOptionButton(option, i);
 
@@ -50,7 +52,7 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
     {
         Button button;
 
-        string text = option.Text.EvaluateString();
+        string text = option.Text.GetFormattedString();
 
         string descriptionText = "Effects:";
 
@@ -58,7 +60,7 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
         {
             foreach (DecisionOptionEffect effect in option.Effects)
             {
-                descriptionText += "\n\t• " + effect.Text.EvaluateString();
+                descriptionText += "\n\t• " + effect.Text.GetFormattedString();
             }
         }
         else
@@ -86,9 +88,11 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
         {
             if (option.Effects != null)
             {
+                World world = _decision.Target.Faction.World;
+
                 foreach (DecisionOptionEffect effect in option.Effects)
                 {
-                    effect.Result.Apply();
+                    world.AddEffectToResolve(effect.Result);
                 }
             }
 
@@ -143,7 +147,14 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
     {
         ResumeSpeedLevelIndex = currentSpeedIndex;
 
-        SpeedButtonText.text = Speed.Levels[currentSpeedIndex];
+        if (currentSpeedIndex == -1)
+        {
+            SpeedButtonText.text = Speed.Zero;
+        }
+        else
+        {
+            SpeedButtonText.text = Speed.Levels[currentSpeedIndex];
+        }
 
         string dialogText = "";
 
@@ -158,7 +169,7 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
                     dialogText += "\n";
                 }
 
-                dialogText += description.Text.EvaluateString();
+                dialogText += description.Text.GetFormattedString();
                 notFirst = true;
             }
         }

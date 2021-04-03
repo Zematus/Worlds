@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine.Profiling;
 
 /// <summary>
 /// Object that generates events of a certain type during the simulation run
@@ -12,6 +13,10 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public const string AssignOnSpawn = "spawn";
     public const string AssignOnEvent = "event";
     public const string AssignOnStatusChange = "status_change";
+    public const string AssignOnPolityContactChange = "polity_contact_change";
+    public const string AssignOnCoreHighestProminenceChange = "core_highest_prominence_change";
+    public const string AssignOnRegionAccessibilityUpdate = "region_accessibility_update";
+    public const string AssignOnGuideSwitch = "guide_switch";
 
     public const string FactionTargetType = "faction";
     public const string GroupTargetType = "group";
@@ -104,6 +109,15 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public abstract void SetToAssignOnSpawn();
     public abstract void SetToAssignOnEvent();
     public abstract void SetToAssignOnStatusChange();
+    public abstract void SetToAssignOnPolityContactChange();
+    public abstract void SetToAssignOnCoreHighestProminenceChange();
+    public abstract void SetToAssignOnRegionAccessibilityUpdate();
+    public abstract void SetToAssignOnGuideSwitch();
+
+    protected EventGenerator()
+    {
+        DebugType = "Event";
+    }
 
     public virtual void Initialize()
     {
@@ -125,6 +139,22 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
                 case AssignOnStatusChange:
                     SetToAssignOnStatusChange();
+                    break;
+
+                case AssignOnPolityContactChange:
+                    SetToAssignOnPolityContactChange();
+                    break;
+
+                case AssignOnCoreHighestProminenceChange:
+                    SetToAssignOnCoreHighestProminenceChange();
+                    break;
+
+                case AssignOnRegionAccessibilityUpdate:
+                    SetToAssignOnRegionAccessibilityUpdate();
+                    break;
+
+                case AssignOnGuideSwitch:
+                    SetToAssignOnGuideSwitch();
                     break;
 
                 default:
@@ -154,7 +184,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     protected bool CanAssignEventToTarget()
     {
-        OpenDebugOutput("Evaluating Assigment Conditions:");
+        OpenDebugOutput("Evaluating Assignment Conditions:");
 
         if (AssignmentConditions != null)
         {
@@ -162,38 +192,41 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             {
                 bool value = exp.Value;
 
-                if (DebugEnabled)
-                {
-                    string expStr = exp.ToString();
-                    string expPartialStr = exp.ToPartiallyEvaluatedString(true);
-
-                    AddDebugOutput("  Condition: " + expStr +
-                     "\n   - Partial eval: " + expPartialStr +
-                     "\n   - Result: " + value);
-                }
+                AddExpDebugOutput("Condition", exp);
 
                 if (!value)
                 {
-                    CloseDebugOutput("Assigment Result: False");
+                    CloseDebugOutput("Assignment Result: False");
                     return false;
                 }
             }
         }
 
-        CloseDebugOutput("Assigment Result: True");
+        CloseDebugOutput("Assignment Result: True");
         return true;
     }
 
     public bool CanTriggerEvent()
     {
+        Profiler.BeginSample("EventGenerator - CanTriggerEvent - Id:" + Id);
+
         OpenDebugOutput("Evaluating Trigger Conditions:");
+
+        Profiler.BeginSample("EventGenerator - CanAssignEventToTarget");
 
         // Always validate that the target is still valid
         if (!CanAssignEventToTarget())
         {
+            Profiler.EndSample(); // "EventGenerator - CanAssignEventToTarget"
+            Profiler.EndSample(); // "EventGenerator - CanTriggerEvent"
+
             CloseDebugOutput("Trigger Result: False");
             return false;
         }
+
+        Profiler.EndSample(); // "EventGenerator - CanAssignEventToTarget"
+
+        Profiler.BeginSample("EventGenerator - TriggerConditions");
 
         if (TriggerConditions != null)
         {
@@ -201,23 +234,21 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             {
                 bool value = exp.Value;
 
-                if (DebugEnabled)
-                {
-                    string expStr = exp.ToString();
-                    string expPartialStr = exp.ToPartiallyEvaluatedString(true);
-
-                    AddDebugOutput("  Condition: " + expStr +
-                     "\n   - Partial eval: " + expPartialStr +
-                     "\n   - Result: " + value);
-                }
+                AddExpDebugOutput("Condition", exp);
 
                 if (!value)
                 {
+                    Profiler.EndSample(); // "EventGenerator - TriggerConditions"
+                    Profiler.EndSample(); // "EventGenerator - CanTriggerEvent"
+
                     CloseDebugOutput("Trigger Result: False");
                     return false;
                 }
             }
         }
+
+        Profiler.EndSample(); // "EventGenerator - TriggerConditions"
+        Profiler.EndSample(); // "EventGenerator - CanTriggerEvent"
 
         CloseDebugOutput("Trigger Result: True");
         return true;
@@ -225,7 +256,12 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     protected long CalculateEventTriggerDate(World world)
     {
+        OpenDebugOutput("Calculating Trigger Date:");
+        AddDebugOutput("  CurrentDate: " + world.CurrentDate);
+
         float timeToTrigger = TimeToTrigger.Value;
+
+        AddExpDebugOutput("TimeToTrigger", TimeToTrigger);
 
         if (timeToTrigger < 0)
         {
@@ -247,18 +283,26 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
                 "\n - timeToTrigger expression: " + TimeToTrigger.ToPartiallyEvaluatedString() +
                 "\n - time to trigger (days): " + timeToTrigger);
 
+            CloseDebugOutput("Unable to calculate trigger date...");
             return long.MinValue;
         }
 
+        CloseDebugOutput("Calculated trigger date: " + targetDate);
         return targetDate;
     }
 
     public void TriggerEvent()
     {
+        OpenDebugOutput("Applying Effects:");
+
         foreach (IEffectExpression exp in Effects)
         {
+            AddExpDebugOutput("Effect", exp);
+
             exp.Apply();
         }
+
+        CloseDebugOutput();
     }
 
     protected abstract WorldEvent GenerateEvent(long triggerDate);

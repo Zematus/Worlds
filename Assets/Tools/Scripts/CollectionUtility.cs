@@ -6,7 +6,9 @@ using System;
 using System.Linq;
 
 public delegate int GetRandomIntDelegate(int maxValue);
+public delegate int GetRandomIntWithOffsetDelegate(int offset, int maxValue);
 public delegate float GetRandomFloatDelegate();
+public delegate float GetRandomFloatWithOffsetDelegate(int offset);
 
 public static class CollectionUtility
 {
@@ -50,7 +52,7 @@ public static class CollectionUtility
         {
             if (selectionValue == 1) selectionValue = 0;
 
-            int index = (int)Mathf.Floor(selectionValue * count);
+            int index = (int)(selectionValue * count);
 
             int i = 0;
             foreach (ElementWeightPair<T> pair in elementWeightPairs)
@@ -117,5 +119,53 @@ public static class CollectionUtility
             return default(T);
 
         return collection.ElementAt(index);
+    }
+
+    public static T RandomSelect<T>(
+        this ICollection<T> collection,
+        GetRandomIntWithOffsetDelegate getRandomInt,
+        int offset,
+        int emptyInstances = 0)
+    {
+        int index = getRandomInt(offset, collection.Count + emptyInstances);
+
+        if (index >= collection.Count)
+            return default(T);
+
+        return collection.ElementAt(index);
+    }
+
+    public static T ReturnNBest<T>(this ICollection<T> collection, int n, Comparison<T> comp)
+    {
+        T[] tArray = new T[n];
+        int existing = 0;
+
+        if (collection.Count <= 0)
+        {
+            throw new System.ArgumentException("Collection has 0 or less elements");
+        }
+
+        foreach (T item in collection)
+        {
+            T current = item;
+
+            int i;
+            for (i = 0; i < existing; i++)
+            {
+                if (comp(current, tArray[i]) <= 0) continue;
+
+                T temp = current;
+                current = tArray[i];
+                tArray[i] = temp;
+            }
+
+            if (existing < n)
+            {
+                tArray[existing] = current;
+                existing++;
+            }
+        }
+
+        return tArray[existing];
     }
 }

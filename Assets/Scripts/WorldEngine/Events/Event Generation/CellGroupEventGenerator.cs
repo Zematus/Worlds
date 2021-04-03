@@ -29,7 +29,32 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
 
     public override void SetToAssignOnStatusChange()
     {
-        throw new System.InvalidOperationException("OnAssign does not support 'status_change' for Cell Groups");
+        throw new System.InvalidOperationException(
+            "OnAssign does not support 'status_change' for Cell Groups");
+    }
+
+    public override void SetToAssignOnPolityContactChange()
+    {
+        throw new System.InvalidOperationException(
+            "OnAssign does not support 'polity_contact_change' for Cell Groups");
+    }
+
+    public override void SetToAssignOnCoreHighestProminenceChange()
+    {
+        throw new System.InvalidOperationException(
+            "OnAssign does not support 'core_highest_prominence_change' for Cell Groups");
+    }
+
+    public override void SetToAssignOnRegionAccessibilityUpdate()
+    {
+        throw new System.InvalidOperationException(
+            "OnAssign does not support 'region_accessibility_update' for Cell Groups");
+    }
+
+    public override void SetToAssignOnGuideSwitch()
+    {
+        throw new System.InvalidOperationException(
+            "OnAssign does not support 'guide_switch' for Cell Groups");
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)
@@ -53,7 +78,7 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
     public override float GetNextRandomFloat(int iterOffset) =>
         _target.Group.GetNextLocalRandomFloat(iterOffset);
 
-    public override int GetBaseOffset() => (int)_target.Group.Id;
+    public override int GetBaseOffset() => (int)_target.Group.GetHashCode();
 
     public bool TryGenerateEventAndAssign(
         CellGroup group,

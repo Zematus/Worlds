@@ -7,10 +7,10 @@ using UnityEngine.Profiling;
 
 public abstract class CellCulturalKnowledge : CulturalKnowledge
 {
-#if DEBUG
-    [XmlIgnore]
-    public long AcquisitionDate = -1; // This property is used for debugging purposes
-#endif
+//#if DEBUG
+//    [XmlIgnore]
+//    public long AcquisitionDate = -1; // This property is used for debugging purposes
+//#endif
 
     public const float MinProgressLevel = 0.001f;
 
@@ -33,12 +33,12 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     }
 
     public CellCulturalKnowledge(
-        CellGroup group, 
-        string id, 
-        string name, 
-        int typeRngOffset, 
-        int value, 
-        int limit) : 
+        CellGroup group,
+        string id,
+        string name,
+        int typeRngOffset,
+        int value,
+        int limit) :
         base(id, name, value)
     {
         Group = group;
@@ -48,28 +48,28 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         _referenceKnowledge = Knowledge.GetKnowledge(id);
 
-#if DEBUG
-        AcquisitionDate = group.World.CurrentDate;
+//#if DEBUG
+//        AcquisitionDate = group.World.CurrentDate;
 
-        //if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //{
-        //    if (Group.Id == Manager.TracingData.GroupId)
-        //    {
-        //        string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//        {
+//            if (Group.Id == Manager.TracingData.GroupId)
+//            {
+//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-        //        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //            "CellCulturalKnowledge.CellCulturalKnowledge - Group:" + groupId,
-        //            "CurrentDate: " + Group.World.CurrentDate +
-        //            ", Id: " + Id +
-        //            ", IsPresent: " + IsPresent +
-        //            ", Value: " + Value +
-        //            ", _newValue: " + _newValue +
-        //            "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellCulturalKnowledge.CellCulturalKnowledge - Group:" + groupId,
+//                    "CurrentDate: " + Group.World.CurrentDate +
+//                    ", Id: " + Id +
+//                    ", IsPresent: " + IsPresent +
+//                    ", Value: " + Value +
+//                    ", _newValue: " + _newValue +
+//                    "");
 
-        //        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //    }
-        //}
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         SetLimit(limit);
     }
@@ -170,9 +170,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     public void Merge(int value, float percentage)
     {
-        float d;
         // _newvalue should have been set correctly either by the constructor or by the Update function
-        int mergedValue = MathUtility.LerpToIntAndGetDecimals(_newValue, value, percentage, out d);
+        int mergedValue = MathUtility.LerpToIntAndGetDecimals(_newValue, value, percentage, out float d);
 
         if (d > Group.GetNextLocalRandomFloat(RngOffsets.KNOWLEDGE_MERGE + InstanceRngOffset))
             mergedValue++;
@@ -182,34 +181,10 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         {
             if (Group.GetFactionCores().Count > 0)
             {
-                Debug.LogWarning("group with low social organization has faction cores - Id: " + Group.Id);
+                Debug.LogWarning("group with low social organization has faction cores - Id: " + Group);
             }
         }
 #endif
-
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (Group.Id == Manager.TracingData.GroupId)
-//            {
-//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "CellCulturalKnowledge.Merge - Group:" + groupId,
-//                    "CurrentDate: " + Group.World.CurrentDate +
-//                    ", Id: " + Id +
-//                    ", IsPresent: " + IsPresent +
-//                    ", Value: " + Value +
-//                    ", _newValue: " + _newValue +
-//                    ", mergedValue: " + mergedValue +
-//                    ", value (param): " + value +
-//                    ", percentage: " + percentage +
-//                    "");
-
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
 
         _newValue = mergedValue;
     }
@@ -271,12 +246,12 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         {
             if (Group.GetFactionCores().Count > 0)
             {
-                Debug.LogWarning("Group with low social organization has faction cores - Id: " + Group.Id + ", newValue:" + newValue);
+                Debug.LogWarning("Group with low social organization has faction cores - Id: " + Group + ", newValue:" + newValue);
             }
 
-            if (Group.WillBecomeFactionCore)
+            if (Group.WillBecomeCoreOfFaction != null)
             {
-                Debug.LogWarning("Group with low social organization will become a faction core - Id: " + Group.Id + ", newValue:" + newValue);
+                Debug.LogWarning("Group with low social organization will become a faction core - Id: " + Group + ", newValue:" + newValue);
             }
         }
 #endif
@@ -317,7 +292,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     protected void AddPolityProminenceEffectInternal(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan, float timeEffectFactor)
     {
-        int rngOffset = RngOffsets.KNOWLEDGE_POLITY_PROMINENCE + InstanceRngOffset + unchecked((int)polityProminence.PolityId);
+        int rngOffset = RngOffsets.KNOWLEDGE_POLITY_PROMINENCE + InstanceRngOffset +
+            unchecked(polityProminence.Polity.GetHashCode());
 
         int targetValue = polityKnowledge.Value;
         float prominenceEffect = polityProminence.Value;
@@ -337,47 +313,47 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         if (d > Group.GetNextLocalRandomFloat(rngOffset++))
             valueChange++;
 
-//#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
-//        {
-//            if (Manager.TracingData.Priority <= 0)
-//            {
-//                if (Group.Id == Manager.TracingData.GroupId)
-//                {
-//                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+        //#if DEBUG
+        //        if (Manager.RegisterDebugEvent != null)
+        //        {
+        //            if (Manager.TracingData.Priority <= 0)
+        //            {
+        //                if (Group.Id == Manager.TracingData.GroupId)
+        //                {
+        //                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                        "CellCulturalKnowledge.PolityCulturalProminenceInternal - Group:" + groupId,
-//                        "CurrentDate: " + Group.World.CurrentDate +
-//                        ", Name: " + Name +
-//                        ", timeSpan: " + timeSpan +
-//                        ", timeEffectFactor: " + timeEffectFactor +
-//                        ", randomEffect: " + randomEffect +
-//                        ", Group.PolityProminences.Count: " + Group.PolityProminences.Count +
-//                        ", polity Id: " + polityProminence.PolityId +
-//                        ", polityProminence.Value: " + prominenceEffect +
-//                        ", politySkill.Value: " + targetValue +
-//                        ", Value: " + Value +
-//                        ", _newValue: " + _newValue +
-//                        ", valueChange: " + valueChange +
-//                        "", Group.World.CurrentDate);
+        //                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                        "CellCulturalKnowledge.PolityCulturalProminenceInternal - Group:" + groupId,
+        //                        "CurrentDate: " + Group.World.CurrentDate +
+        //                        ", Name: " + Name +
+        //                        ", timeSpan: " + timeSpan +
+        //                        ", timeEffectFactor: " + timeEffectFactor +
+        //                        ", randomEffect: " + randomEffect +
+        //                        ", Group.PolityProminences.Count: " + Group.PolityProminences.Count +
+        //                        ", polity Id: " + polityProminence.PolityId +
+        //                        ", polityProminence.Value: " + prominenceEffect +
+        //                        ", politySkill.Value: " + targetValue +
+        //                        ", Value: " + Value +
+        //                        ", _newValue: " + _newValue +
+        //                        ", valueChange: " + valueChange +
+        //                        "", Group.World.CurrentDate);
 
-//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//                }
-//            }
-//            else if (Manager.TracingData.Priority <= 1)
-//            {
-//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+        //                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //                }
+        //            }
+        //            else if (Manager.TracingData.Priority <= 1)
+        //            {
+        //                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "CellCulturalKnowledge.PolityCulturalProminenceInternal - Group:" + groupId,
-//                    "CurrentDate: " + Group.World.CurrentDate +
-//                    "", Group.World.CurrentDate);
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "CellCulturalKnowledge.PolityCulturalProminenceInternal - Group:" + groupId,
+        //                    "CurrentDate: " + Group.World.CurrentDate +
+        //                    "", Group.World.CurrentDate);
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
         _newValue = _newValue + valueChange;
     }

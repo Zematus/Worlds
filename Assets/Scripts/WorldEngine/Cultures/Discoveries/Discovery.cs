@@ -327,4 +327,19 @@ public class Discovery : ICellGroupEventGenerator
 
         return true;
     }
+
+    public void OpenDebugOutput(string message)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void AddDebugOutput(string message)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void CloseDebugOutput(string message)
+    {
+        throw new System.NotImplementedException();
+    }
 }

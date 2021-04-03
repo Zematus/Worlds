@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public interface IWorldEventGenerator
+public interface IWorldEventGenerator : IDebugLogger
 {
     string GetEventGeneratorId();
 }

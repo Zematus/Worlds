@@ -65,54 +65,12 @@ public class Clan : Faction
 
             AddEvent(new ClanCoreMigrationEvent(this, triggerDate));
         }
-
-        //
-        //TODO: cleanup commented code
-        //
-
-        //triggerDate = ClanSplitDecisionEvent.CalculateTriggerDate(this);
-        //if (triggerDate > 0)
-        //{
-        //    if (triggerDate <= World.CurrentDate)
-        //    {
-        //        throw new System.Exception(
-        //            "ClanSplitDecisionEvent Trigger Date (" + triggerDate +
-        //            ") less or equal to current date: " + World.CurrentDate);
-        //    }
-
-        //    AddEvent(new ClanSplitDecisionEvent(this, triggerDate));
-        //}
-
-        //triggerDate = ClanDemandsInfluenceDecisionEvent.CalculateTriggerDate(this);
-        //if (triggerDate > 0)
-        //{
-        //    if (triggerDate <= World.CurrentDate)
-        //    {
-        //        throw new System.Exception(
-        //            "ClanDemandsInfluenceDecisionEvent Trigger Date (" + triggerDate +
-        //            ") less or equal to current date: " + World.CurrentDate);
-        //    }
-
-        //    AddEvent(new ClanDemandsInfluenceDecisionEvent(this, triggerDate));
-        //}
-
-        triggerDate = TribeSplitDecisionEvent.CalculateTriggerDate(this);
-        if (triggerDate > 0)
-        {
-            if (triggerDate <= World.CurrentDate)
-            {
-                throw new System.Exception(
-                    "TribeSplitDecisionEvent Trigger Date (" + triggerDate +
-                    ") less or equal to current date: " + World.CurrentDate);
-            }
-
-            AddEvent(new TribeSplitDecisionEvent(this, triggerDate));
-        }
     }
 
     public CellGroup GetCoreGroupMigrationTarget()
     {
-        Direction migrationDirection = CoreGroup.GenerateCoreMigrationDirection();
+        //TODO: generate a valid direction or rewrite core migration
+        Direction migrationDirection = Direction.Null;
 
         if (migrationDirection == Direction.Null)
         {
@@ -131,16 +89,6 @@ public class Clan : Faction
                 case WorldEvent.ClanCoreMigrationEventId:
                     AddEvent(new ClanCoreMigrationEvent(this, eData));
                     break;
-                case WorldEvent.TribeSplitDecisionEventId:
-                    AddEvent(new TribeSplitDecisionEvent(this, eData));
-                    break;
-                // TODO: cleanup
-                //case WorldEvent.ClanSplitDecisionEventId:
-                //    AddEvent(new ClanSplitDecisionEvent(this, eData));
-                //    break;
-                //case WorldEvent.ClanDemandsInfluenceDecisionEventId:
-                //    AddEvent(new ClanDemandsInfluenceDecisionEvent(this, eData));
-                //    break;
                 default:
                     throw new System.Exception("Unhandled faction event type id: " + eData.TypeId);
             }
@@ -164,10 +112,10 @@ public class Clan : Faction
 
     protected override void GenerateName(Faction parentFaction)
     {
-        int rngOffset = RngOffsets.CLAN_GENERATE_NAME + unchecked((int)Polity.Id);
+        int rngOffset = RngOffsets.CLAN_GENERATE_NAME + unchecked(Polity.GetHashCode());
 
         if (parentFaction != null)
-            rngOffset += unchecked((int)parentFaction.Id);
+            rngOffset += unchecked(parentFaction.GetHashCode());
 
         GetRandomIntDelegate getRandomInt = (int maxValue) => Polity.GetNextLocalRandomInt(rngOffset++, maxValue);
         GetRandomFloatDelegate getRandomFloat = () => Polity.GetNextLocalRandomFloat(rngOffset++);
@@ -292,6 +240,7 @@ public class Clan : Faction
         return RequestNewLeader(LeadershipAvgSpan, MinClanLeaderStartAge, MaxClanLeaderStartAge, RngOffsets.CLAN_LEADER_GEN_OFFSET);
     }
 
+    [Obsolete]
     public static bool CanBeClanCore(CellGroup group)
     {
         if (!group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
@@ -381,22 +330,22 @@ public class Clan : Faction
 
     public override bool ShouldMigrateFactionCore(CellGroup sourceGroup, TerrainCell targetCell, float targetProminence, int targetPopulation)
     {
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (sourceGroup.Id == Manager.TracingData.GroupId)
-//            {
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", targetPopulation: " + targetPopulation +
-//                    ", targetProminence: " + targetProminence +
-//                    "");
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (sourceGroup.Id == Manager.TracingData.GroupId)
+        //            {
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", targetPopulation: " + targetPopulation +
+        //                    ", targetProminence: " + targetProminence +
+        //                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
         float targetProminenceFactor = Mathf.Max(0, targetProminence - MinCorePolityProminence);
 
@@ -424,22 +373,22 @@ public class Clan : Faction
 
         float sourceFactor = sourceProminenceFactor * sourcePopulationFactor;
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (sourceGroup.Id == Manager.TracingData.GroupId)
-//            {
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", sourceProminence: " + sourceProminence +
-//                    ", sourcePopulation: " + sourcePopulation +
-//                    "");
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (sourceGroup.Id == Manager.TracingData.GroupId)
+        //            {
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", sourceProminence: " + sourceProminence +
+        //                    ", sourcePopulation: " + sourcePopulation +
+        //                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
         if (sourceFactor <= 0)
             return true;
@@ -448,110 +397,28 @@ public class Clan : Faction
 
         float migrateCoreFactor = sourceFactor / (sourceFactor + targetFactor);
 
-        float randomValue = sourceGroup.GetNextLocalRandomFloat(RngOffsets.MIGRATING_GROUP_MOVE_FACTION_CORE + unchecked((int)Id));
+        int offset = RngOffsets.MIGRATING_GROUP_MOVE_FACTION_CORE + unchecked(GetHashCode());
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (sourceGroup.Id == Manager.TracingData.GroupId)
-//            {
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", randomValue: " + randomValue +
-//                    ", migrateCoreFactor: " + migrateCoreFactor +
-//                    "");
+        float randomValue = sourceGroup.GetNextLocalRandomFloat(offset);
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (sourceGroup.Id == Manager.TracingData.GroupId)
+        //            {
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", randomValue: " + randomValue +
+        //                    ", migrateCoreFactor: " + migrateCoreFactor +
+        //                    "");
+
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
         return (randomValue > migrateCoreFactor);
-    }
-
-    [Obsolete]
-    public override void Split()
-    {
-        int randomOffset = unchecked((int)(RngOffsets.CLAN_SPLIT + Id));
-
-        float randomValue = GetNextLocalRandomFloat(randomOffset++);
-        float splitFactionInfluence = _splitFactionMinInfluence + (randomValue * (_splitFactionMaxInfluence - _splitFactionMinInfluence));
-
-        Influence -= splitFactionInfluence;
-
-        if (_splitFactionCoreGroup == null)
-        {
-            throw new System.Exception("_splitFactionCoreGroup is null - Clan Id: " + Id + ", Event Id: " + _splitFactionEventId);
-        }
-
-        float polityProminenceValue = _splitFactionCoreGroup.GetPolityProminenceValue(Polity);
-        PolityProminence highestPolityProminence = _splitFactionCoreGroup.HighestPolityProminence;
-
-        if (highestPolityProminence == null)
-        {
-            throw new System.Exception(
-                "highestPolityProminence is null - Clan Id: " + Id +
-                ", Group Id: " + _splitFactionCoreGroup.Id +
-                ", Event Id: " + _splitFactionEventId);
-        }
-
-        if (CurrentLeader == null)
-        {
-            throw new System.Exception("CurrentLeader is null - Clan Id: " + Id + ", Event Id: " + _splitFactionEventId);
-        }
-
-        Tribe parentTribe = Polity as Tribe;
-
-        if (parentTribe == null)
-        {
-            throw new System.Exception("parentTribe is null - Clan Id: " + Id + ", Event Id: " + _splitFactionEventId);
-        }
-
-        // If the polity with the highest prominence is different than the source clan's polity and it's value is twice greater switch the new clan's polity to this one.
-        // NOTE: This is sort of a hack to avoid issues with clan/tribe split coincidences (issue #8 github). Try finding a better solution...
-        if (highestPolityProminence.Value > (polityProminenceValue * 2))
-        {
-
-            if (highestPolityProminence.Polity is Tribe)
-            {
-                parentTribe = highestPolityProminence.Polity as Tribe;
-
-                //#if DEBUG
-                //                Debug.Log("parent tribe replaced from " + Polity.Id + " to " + parentTribe.Id + " due to low polity prominence value in new core: " + polityProminenceValue);
-                //#endif
-            }
-            else
-            {
-                throw new System.Exception("Failed to replace new parent polity as it is not a Tribe. Id: " + highestPolityProminence.Polity.Id + ", Event Id: " + _splitFactionEventId);
-            }
-        }
-
-        Clan newClan = new Clan(parentTribe, _splitFactionCoreGroup, splitFactionInfluence, this);
-
-        if (newClan == null)
-        {
-            throw new System.Exception("newClan is null - Clan Id: " + Id + ", Event Id: " + _splitFactionEventId);
-        }
-
-        newClan.Initialize(); // We can initialize right away since the containing polity is already initialized
-
-        // set relationship with parent clan
-
-        float parentClanRelationshipValue = AvgClanSplitRelationshipValue + (CurrentLeader.Charisma - 10) / ClanSplitRelationshipValueCharismaFactor;
-
-        randomValue = GetNextLocalRandomFloat(randomOffset++);
-        float relationshipValue = parentClanRelationshipValue + (ClanSplitRelationshipValueSpread * (2f * randomValue - 1f));
-
-        SetRelationship(this, newClan, relationshipValue);
-
-        parentTribe.AddFaction(newClan);
-
-        World.AddFactionToUpdate(this);
-        World.AddFactionToUpdate(newClan);
-        World.AddPolityToUpdate(Polity);
-
-        parentTribe.AddEventMessage(new ClanSplitEventMessage(this, newClan, World.CurrentDate));
     }
 
     protected override float CalculateAdministrativeLoad()
@@ -574,23 +441,23 @@ public class Clan : Faction
             return Mathf.Infinity;
         }
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (Manager.TracingData.FactionId == Id)
-//            {
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "Clan:CalculateAdministrativeLoad - ClanId:" + Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", socialOrganizationValue: " + socialOrganizationValue +
-//                    ", Influence: " + Influence +
-//                    ", Polity.TotalAdministrativeCost: " + Polity.TotalAdministrativeCost +
-//                    "");
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (Manager.TracingData.FactionId == Id)
+        //            {
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "Clan:CalculateAdministrativeLoad - ClanId:" + Id,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", socialOrganizationValue: " + socialOrganizationValue +
+        //                    ", Influence: " + Influence +
+        //                    ", Polity.TotalAdministrativeCost: " + Polity.TotalAdministrativeCost +
+        //                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
         return administrativeLoad;
     }

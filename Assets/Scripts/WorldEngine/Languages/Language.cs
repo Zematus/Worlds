@@ -6,7 +6,7 @@ using System.Linq;
 using System.Xml.Serialization;
 using System.ComponentModel;
 
-public class Language : ISynchronizable
+public class Language : Identifiable
 {
     private class ParsedWord
     {
@@ -144,9 +144,6 @@ public class Language : ISynchronizable
     public static Regex AgentNounSuffixRegex = new Regex(@"^(\w?er|r)$");
     public static Regex ConjugationSuffixRegex = new Regex(@"^(\w?ed|d|s)$");
 
-    [XmlAttribute]
-    public long Id;
-
     [XmlAttribute("AP")]
     public int ArticlePropertiesInt;
     [XmlAttribute("NIP")]
@@ -166,35 +163,35 @@ public class Language : ISynchronizable
     public int AdjectiveAdjunctionPropertiesInt;
     [XmlAttribute("NAP")]
     public int NounAdjunctionPropertiesInt;
-    
+
     public SyllableSet ArticleSyllables = new SyllableSet();
     public SyllableSet DerivativeArticleStartSyllables = new SyllableSet();
     public SyllableSet DerivativeArticleNextSyllables = new SyllableSet();
-    
+
     public SyllableSet NounIndicativeSyllables = new SyllableSet();
     public SyllableSet DerivativeNounIndicativeStartSyllables = new SyllableSet();
     public SyllableSet DerivativeNounIndicativeNextSyllables = new SyllableSet();
-    
+
     public SyllableSet VerbIndicativeSyllables = new SyllableSet();
     public SyllableSet DerivativeVerbIndicativeStartSyllables = new SyllableSet();
     public SyllableSet DerivativeVerbIndicativeNextSyllables = new SyllableSet();
-    
+
     public SyllableSet AdpositionStartSyllables = new SyllableSet();
     public SyllableSet AdpositionNextSyllables = new SyllableSet();
-    
+
     public SyllableSet AdjectiveStartSyllables = new SyllableSet();
     public SyllableSet AdjectiveNextSyllables = new SyllableSet();
-    
+
     public SyllableSet NounStartSyllables = new SyllableSet();
     public SyllableSet NounNextSyllables = new SyllableSet();
-    
+
     public SyllableSet VerbStartSyllables = new SyllableSet();
     public SyllableSet VerbNextSyllables = new SyllableSet();
-    
+
     public List<Morpheme> Articles;
     public List<Morpheme> NounIndicatives;
     public List<Morpheme> VerbIndicatives;
-    
+
     public List<Morpheme> Adpositions = new List<Morpheme>();
     public List<Morpheme> Adjectives = new List<Morpheme>();
     public List<Morpheme> Nouns = new List<Morpheme>();
@@ -244,10 +241,8 @@ public class Language : ISynchronizable
     {
     }
 
-    public Language(long id)
+    public Language(long date, long id) : base(date, id)
     {
-        Id = id;
-
         _getRandomFloat = GenerateGetRandomFloatDelegate("");
     }
 
@@ -273,7 +268,7 @@ public class Language : ISynchronizable
     {
         return GenerateMorpheme(syllables, syllables, 0, getRandomFloat);
     }
-    
+
     public static string GenerateMorpheme(
         SyllableSet startSyllables,
         SyllableSet nextSyllables,
@@ -1425,10 +1420,17 @@ public class Language : ISynchronizable
         AdpositionNextSyllables.CodaChance = 0.5f;
     }
 
+    private long GenerateSeed(string morpheme)
+    {
+        long hashCode = 1805739105;
+        hashCode = hashCode * -1521134295 + GetHashCode();
+        return hashCode * -1521134295 + morpheme.GetHashCode();
+    }
+
     private GetRandomIntDelegate GenerateGetRandomIntDelegate(string morpheme = "")
     {
         int offset = 0;
-        long seed = Id + morpheme.GetHashCode();
+        long seed = GenerateSeed(morpheme);
 
         return (int maxValue) =>
         {
@@ -1445,7 +1447,7 @@ public class Language : ISynchronizable
     private GetRandomFloatDelegate GenerateGetRandomFloatDelegate(string morpheme)
     {
         int offset = 0;
-        long seed = Id + morpheme.GetHashCode();
+        long seed = GenerateSeed(morpheme);
 
         return () =>
         {
@@ -2233,7 +2235,7 @@ public class Language : ISynchronizable
         {
             translatedPhrase = Agglutinate(translatedPhrase);
         }
-        
+
         return translatedPhrase;
     }
 
@@ -2762,7 +2764,7 @@ public class Language : ISynchronizable
         phrase.Meaning = newMeaning;
     }
 
-    public void Synchronize()
+    public override void Synchronize()
     {
         ArticlePropertiesInt = (int)_articleProperties;
         NounIndicativePropertiesInt = (int)_nounIndicativeProperties;
@@ -2811,8 +2813,10 @@ public class Language : ISynchronizable
         }
     }
 
-    public void FinalizeLoad()
+    public override void FinalizeLoad()
     {
+        base.FinalizeLoad();
+
         _getRandomFloat = GenerateGetRandomFloatDelegate("");
 
         _articleProperties = (GeneralArticleProperties)ArticlePropertiesInt;
