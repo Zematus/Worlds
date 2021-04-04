@@ -18,6 +18,8 @@ public class ValueAssignmentExpression<T> : BinaryOpExpression, IEffectExpressio
             ValueExpressionBuilder.ValidateValueExpression<T>(expressionB);
     }
 
+    public IEffectTrigger Trigger { get; set; }
+
     public void Apply()
     {
         _targetValueExp.Value = _sourceValueExp.Value;

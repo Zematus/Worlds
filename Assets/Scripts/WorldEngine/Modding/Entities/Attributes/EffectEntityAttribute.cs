@@ -16,7 +16,7 @@ public abstract class EffectEntityAttribute : EntityAttribute
         }
     }
 
-    public abstract void Apply();
+    public abstract void Apply(IEffectTrigger trigger);
 
     protected override IExpression BuildExpression()
     {

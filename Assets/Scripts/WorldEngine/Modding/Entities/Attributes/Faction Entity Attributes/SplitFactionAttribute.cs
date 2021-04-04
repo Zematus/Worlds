@@ -31,7 +31,7 @@ public class SplitFactionAttribute : EffectEntityAttribute
         }
     }
 
-    public override void Apply()
+    public override void Apply(IEffectTrigger trigger)
     {
         if (!(_coreGroupArg.Value is GroupEntity groupEntity))
         {

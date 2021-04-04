@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System;
 
-public abstract class WorldEvent : ISynchronizable
+public abstract class WorldEvent : ISynchronizable, IEffectTrigger
 {
     public const long UpdateCellGroupEventId = 0;
     public const long MigrateGroupEventId = 1;

@@ -4,7 +4,7 @@ using UnityEngine.Profiling;
 /// <summary>
 /// Player accessible scriptable action
 /// </summary>
-public class ModAction : Context, IDebugLogger
+public class ModAction : Context, IDebugLogger, IEffectTrigger
 {
     public static HashSet<string> CategoryIds;
 
@@ -157,6 +157,7 @@ public class ModAction : Context, IDebugLogger
 
         foreach (IEffectExpression exp in Effects)
         {
+            exp.Trigger = this;
             world.AddEffectToResolve(exp);
         }
     }

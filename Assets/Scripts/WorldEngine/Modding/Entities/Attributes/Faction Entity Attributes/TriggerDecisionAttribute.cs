@@ -47,7 +47,7 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
         }
     }
 
-    public override void Apply()
+    public override void Apply(IEffectTrigger trigger)
     {
         string decisionId = _decisionIdExp.Value;
 
@@ -67,6 +67,6 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
                 "Check the source mod for inconsistencies");
         }
 
-        _decisionToTrigger.Set(triggerPrio, _factionEntity.Faction, _parameterExps);
+        _decisionToTrigger.Set(trigger, Entity.Context, triggerPrio, _factionEntity.Faction, _parameterExps);
     }
 }

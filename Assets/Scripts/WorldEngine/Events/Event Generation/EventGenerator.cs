@@ -291,7 +291,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         return targetDate;
     }
 
-    public void TriggerEvent()
+    public void TriggerEvent(WorldEvent sourceEvent)
     {
         OpenDebugOutput("Applying Effects:");
 
@@ -299,6 +299,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         {
             AddExpDebugOutput("Effect", exp);
 
+            exp.Trigger = sourceEvent;
             exp.Apply();
         }
 

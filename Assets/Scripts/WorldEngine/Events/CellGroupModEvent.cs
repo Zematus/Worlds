@@ -51,7 +51,7 @@ public class CellGroupModEvent : CellGroupEvent
         // This operation assumes that CanTrigger() has been called beforehand,
         // and within, _generator.SetTarget(Group)...
 
-        _generator.TriggerEvent();
+        _generator.TriggerEvent(this);
     }
 
     protected override void DestroyInternal()

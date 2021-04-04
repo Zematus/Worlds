@@ -65,7 +65,7 @@ public class FactionModEvent : FactionEvent
         // This operation assumes that CanTrigger() has been called beforehand,
         // and within, _generator.SetTarget(Faction)...
 
-        Generator.TriggerEvent();
+        Generator.TriggerEvent(this);
     }
 
     protected override void DestroyInternal()

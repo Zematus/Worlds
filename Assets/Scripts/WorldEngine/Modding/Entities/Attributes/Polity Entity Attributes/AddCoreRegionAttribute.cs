@@ -17,7 +17,7 @@ public class AddCoreRegionAttribute : EffectEntityAttribute
         _targetRegionExp = ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
     }
 
-    public override void Apply()
+    public override void Apply(IEffectTrigger trigger)
     {
         RegionEntity regionEntity = _targetRegionExp.Value as RegionEntity;
 

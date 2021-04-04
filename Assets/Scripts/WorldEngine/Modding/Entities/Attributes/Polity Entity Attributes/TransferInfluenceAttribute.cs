@@ -21,7 +21,7 @@ public class TransferInfluenceAttribute : EffectEntityAttribute
         _percentExp = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[2]);
     }
 
-    public override void Apply()
+    public override void Apply(IEffectTrigger trigger)
     {
         FactionEntity sourceEntity = _sourceFactionExp.Value as FactionEntity;
 

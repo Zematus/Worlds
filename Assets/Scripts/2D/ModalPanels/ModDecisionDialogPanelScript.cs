@@ -92,6 +92,7 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
 
                 foreach (DecisionOptionEffect effect in option.Effects)
                 {
+                    effect.Result.Trigger = _decision.Trigger;
                     world.AddEffectToResolve(effect.Result);
                 }
             }

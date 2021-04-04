@@ -11,6 +11,8 @@ public interface IEntity : IComparable<object>, IInputRequester, IFormattedStrin
 
     string BuildAttributeId(string attrId);
 
+    Context Context { get; }
+
     IValueExpression<IEntity> Expression { get; }
 
     void Set(object o);

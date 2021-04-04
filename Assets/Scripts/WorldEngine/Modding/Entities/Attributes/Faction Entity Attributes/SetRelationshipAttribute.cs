@@ -19,7 +19,7 @@ public class SetRelationshipAttribute : EffectEntityAttribute
         _valueExp = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
     }
 
-    public override void Apply()
+    public override void Apply(IEffectTrigger trigger)
     {
         FactionEntity targetEntity = _factionExp.Value as FactionEntity;
 

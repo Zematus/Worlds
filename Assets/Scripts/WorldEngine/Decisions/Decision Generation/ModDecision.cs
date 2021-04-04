@@ -32,6 +32,10 @@ public class ModDecision : Context
     public OptionalDescription[] DescriptionSegments;
     public DecisionOption[] Options;
 
+    public Context SourceContext { get; private set; }
+
+    public IEffectTrigger Trigger { get; private set; }
+
     public ModDecision(string id, string targetStr)
     {
         DebugType = "Decision";
@@ -93,8 +97,11 @@ public class ModDecision : Context
 
     public override int GetBaseOffset() => Target.Faction.GetHashCode();
 
-    public void Set(string triggerPrio, Faction targetFaction, IBaseValueExpression[] parameterValues)
+    public void Set(IEffectTrigger trigger, Context sourceContext, string triggerPrio, Faction targetFaction, IBaseValueExpression[] parameterValues)
     {
+        Trigger = trigger;
+        SourceContext = sourceContext;
+
         _targetFaction = targetFaction;
         _parameterValues = parameterValues;
 
@@ -249,6 +256,7 @@ public class ModDecision : Context
             // Apply all option effects
             foreach (DecisionOptionEffect effect in effects)
             {
+                effect.Result.Trigger = Trigger;
                 effect.Result.Apply();
             }
         }

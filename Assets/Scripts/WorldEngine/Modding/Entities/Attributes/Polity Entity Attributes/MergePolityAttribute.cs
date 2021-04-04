@@ -17,7 +17,7 @@ public class MergePolityAttribute : EffectEntityAttribute
         _mergedPolityExp = ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
     }
 
-    public override void Apply()
+    public override void Apply(IEffectTrigger trigger)
     {
         PolityEntity mergedPolityEntity = _mergedPolityExp.Value as PolityEntity;
 

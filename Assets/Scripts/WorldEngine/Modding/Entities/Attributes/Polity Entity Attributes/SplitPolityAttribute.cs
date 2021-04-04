@@ -19,7 +19,7 @@ public class SplitPolityAttribute : EffectEntityAttribute
         _splittingFactionExp = ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[1]);
     }
 
-    public override void Apply()
+    public override void Apply(IEffectTrigger trigger)
     {
         FactionEntity factionEntity = _splittingFactionExp.Value as FactionEntity;
 
