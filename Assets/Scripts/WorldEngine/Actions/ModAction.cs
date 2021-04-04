@@ -55,6 +55,25 @@ public class ModAction : Context, IDebugLogger, IEffectTrigger
     /// </summary>
     public IEffectExpression[] Effects;
 
+#if DEBUG
+    private Dictionary<IEffectExpression, long> _lastUseDates = new Dictionary<IEffectExpression, long>();
+
+    public long GetLastUseDate(IEffectExpression expression)
+    {
+        if (_lastUseDates.ContainsKey(expression))
+        {
+            return _lastUseDates[expression];
+        }
+
+        return -1;
+    }
+
+    public void SetLastUseDate(IEffectExpression expression, long date)
+    {
+        _lastUseDates[expression] = date;
+    }
+#endif
+
     /// <summary>
     /// First UId to use for actions loaded from mods
     /// </summary>

@@ -52,6 +52,25 @@ public abstract class WorldEvent : ISynchronizable, IEffectTrigger
     [XmlAttribute]
     public long Id;
 
+#if DEBUG
+    private Dictionary<IEffectExpression, long> _lastUseDates = new Dictionary<IEffectExpression, long>();
+
+    public long GetLastUseDate(IEffectExpression expression)
+    {
+        if (_lastUseDates.ContainsKey(expression))
+        {
+            return _lastUseDates[expression];
+        }
+
+        return -1;
+    }
+
+    public void SetLastUseDate(IEffectExpression expression, long date)
+    {
+        _lastUseDates[expression] = date;
+    }
+#endif
+
     public WorldEvent()
     {
         Manager.UpdateWorldLoadTrackEventCount();
@@ -163,7 +182,7 @@ public abstract class WorldEvent : ISynchronizable, IEffectTrigger
 
     }
 
-    public virtual void Reset(long newTriggerDate, long newId)
+    protected virtual void Reset(long newTriggerDate, long newId)
     {
         TriggerDate = newTriggerDate;
         SpawnDate = World.CurrentDate;
@@ -172,9 +191,5 @@ public abstract class WorldEvent : ISynchronizable, IEffectTrigger
         FailedToTrigger = false;
     }
 
-    public virtual void Reset(long newTriggerDate)
-    {
-        throw new System.NotImplementedException(
-            "Needs to be implemented in children or call Reset(long newTriggerDate, long newId) instead...");
-    }
+    public abstract void Reset(long newTriggerDate);
 }

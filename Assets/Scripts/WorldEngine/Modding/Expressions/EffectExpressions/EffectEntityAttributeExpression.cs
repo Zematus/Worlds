@@ -24,7 +24,21 @@ public class EffectEntityAttributeExpression : EntityAttributeExpression, IEffec
                 "Effect expression trigger must be set before applying...");
         }
 
+#if DEBUG
+        if (Trigger.GetLastUseDate(this) == Manager.CurrentWorld.CurrentDate)
+        {
+            //Debug.LogWarning(
+            //    "Trigger has already been used by this expression in this date: " +
+            //    Manager.CurrentWorld.CurrentDate);
+        }
+#endif
+
         _effectAttribute.Apply(Trigger);
+
+#if DEBUG
+        // This will let us know if the trigger is being reused
+        Trigger.SetLastUseDate(this, Manager.CurrentWorld.CurrentDate);
+#endif
 
         // Reset the trigger after applying to force next caller to set it before the
         // next call to apply
