@@ -16,6 +16,13 @@ public class PolityProminence// : IKeyedValue<Identifier>
     [XmlAttribute("PD")]
     public float PolityCoreDistance = -1;
 
+#if DEBUG
+    [XmlIgnore]
+    public long LastCoreDistanceSet = -1;
+    [XmlIgnore]
+    public long LastCoreDistanceReset = -1;
+#endif
+
     public Identifier ClosestFactionId;
     public Identifier PolityId;
 
@@ -106,6 +113,10 @@ public class PolityProminence// : IKeyedValue<Identifier>
             PolityCoreDistance = newPolityCoreDistance;
             ClosestFaction = closestFaction;
             ClosestFactionId = closestFaction.Id;
+
+#if DEBUG
+            LastCoreDistanceSet = Manager.CurrentWorld.CurrentDate;
+#endif
 
             if (FactionCoreDistance == -1)
             {
@@ -324,6 +335,10 @@ public class PolityProminence// : IKeyedValue<Identifier>
             prom.PolityCoreDistance = MaxCoreDistance;
             prom.ClosestFaction = Polity.DominantFaction;
             prom.ClosestFactionId = Polity.DominantFactionId;
+
+#if DEBUG
+            prom.LastCoreDistanceReset = Manager.CurrentWorld.CurrentDate;
+#endif
 
             bool isExpansionLimit = false;
 

@@ -561,6 +561,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         NewCoreGroup = coreGroup;
     }
 
+    [System.Obsolete]
     public void MigrateToNewCoreGroup()
     {
         CoreGroup.RemoveFactionCore(this);
