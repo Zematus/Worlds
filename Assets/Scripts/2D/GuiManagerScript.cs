@@ -22,6 +22,73 @@ public class GuiManagerScript : MonoBehaviour
 
     public const float MaxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
 
+    //AutoSave variable and function
+    public enum AutoSaveMode {desactivate, OnRealWorldTime, OnGameTime, OnRealWorldOrGameTime, OnRealWorldAndGameTime};
+    public AutoSaveMode autoSaveMode = AutoSaveMode.OnRealWorldOrGameTime;
+    float LastRealTime = -1;
+    long LastDaySave = -1;
+    public float RealWorldAutoSaveInterval = 600f; //600f = every 10 minutes
+    public long AutoSaveInterval = 365000000; //365000000 = every one millon year
+    bool MustSave
+    {
+        get
+        {
+            //Quick exit
+            if (autoSaveMode == AutoSaveMode.desactivate) {
+                return false;
+            }
+            //Initialise var
+            if (LastDaySave == -1)
+            {
+                LastDaySave = Manager.CurrentWorld.CurrentDate;
+            }
+            if (LastRealTime == -1) {
+                LastRealTime = Time.realtimeSinceStartup;
+            }
+            //return answer
+            bool RealTimeCondition = true;
+            if (autoSaveMode != AutoSaveMode.OnGameTime) {
+                if (Time.realtimeSinceStartup < LastRealTime + RealWorldAutoSaveInterval) {
+                    RealTimeCondition = false;
+                }
+            }
+            bool GameTimeCondition = true;
+            if(autoSaveMode != AutoSaveMode.OnRealWorldTime) {
+                if (Manager.CurrentWorld.CurrentDate < LastDaySave + AutoSaveInterval)
+                {
+                    RealTimeCondition = false;
+                }
+            }
+            bool FinalTest = false;
+            if (RealTimeCondition == true && GameTimeCondition == true)
+            {
+                FinalTest = true;
+            }
+            else if(RealTimeCondition == true || GameTimeCondition == true) {
+                if (autoSaveMode == AutoSaveMode.OnRealWorldOrGameTime) {
+                    FinalTest = true;
+                }
+            }
+
+            if (FinalTest == true)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+    public void OnAutoSave()
+    {
+        LastDaySave = Manager.CurrentWorld.CurrentDate;
+        LastRealTime = Time.realtimeSinceStartup;
+        SaveFileDialogPanelScript.SetText("AutoSave");
+        Debug.LogError("Autosave is unactive because of bugs");
+        //SaveAction();
+    }
+
     public CanvasScaler CanvasScaler;
 
     public Button LoadButton;
@@ -658,6 +725,11 @@ public class GuiManagerScript : MonoBehaviour
             }
 
             Profiler.EndSample();
+
+            if (MustSave)
+            {
+                OnAutoSave();
+            }
         }
 
         ExecuteMapHoverOps();
