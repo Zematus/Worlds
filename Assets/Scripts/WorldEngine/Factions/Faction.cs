@@ -417,7 +417,13 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         if (newFactionCoreGroup == null)
         {
-            throw new Exception("_splitFactionCoreGroup is null - Faction Id: " + Id);
+            throw new Exception("newFactionCoreGroup is null - Faction Id: " + Id);
+        }
+
+        if (newFactionCoreGroup.FactionCores.Count > 0)
+        {
+            throw new Exception(
+                "newFactionCoreGroup has cores already - Group: " + newFactionCoreGroup.Id + ", Faction: " + Id);
         }
 
         float polityProminenceValue = newFactionCoreGroup.GetPolityProminenceValue(Polity);

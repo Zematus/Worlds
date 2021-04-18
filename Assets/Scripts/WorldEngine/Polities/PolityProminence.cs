@@ -309,7 +309,8 @@ public class PolityProminence// : IKeyedValue<Identifier>
     /// <param name="minFactionDistance">the min distance at which to stop reseting distances</param>
     public void ResetCoreDistances(
         Identifier idFactionBeingReset = null,
-        float minFactionDistance = float.MaxValue)
+        float minFactionDistance = float.MaxValue,
+        bool addToRecalcs = false)
     {
         if (idFactionBeingReset == null)
         {
@@ -369,6 +370,11 @@ public class PolityProminence// : IKeyedValue<Identifier>
             {
                 Polity.World.AddPromToCalculateCoreDistFor(prom);
             }
+        }
+
+        if (addToRecalcs)
+        {
+            Polity.World.AddPromToCalculateCoreDistFor(this);
         }
     }
 

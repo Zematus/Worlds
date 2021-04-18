@@ -2599,11 +2599,6 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <param name="delta">value delta to apply</param>
     public void AddPolityProminenceValueDelta(Polity polity, float delta)
     {
-        //if (Id == "0000000000164772058:1142429918914917756")
-        //{
-        //    Debug.LogWarning("Debugging Group " + Id);
-        //}
-
         if (delta == 0)
         {
             Debug.LogWarning("Trying to add a prominence delta of 0. Will ignore...");
@@ -2800,7 +2795,6 @@ public class CellGroup : Identifiable, IFlagHolder
                 throw new System.Exception("Prominence value is Nan. Group: " + Id +
                     ", Polity: " + prom.PolityId);
             }
-
         }
 
         ResetProminenceValueDeltas();

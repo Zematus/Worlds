@@ -491,7 +491,7 @@ public abstract class Polity : ISynchronizable
                     throw new System.Exception("Unable to find prominence with Id " + Id + " in group " + CoreGroup.Id);
                 }
 
-                prom.ResetCoreDistances();
+                prom.ResetCoreDistances(addToRecalcs: true);
             }
         }
 
@@ -509,7 +509,7 @@ public abstract class Polity : ISynchronizable
                 throw new System.Exception("Unable to find prominence with Id " + Id + " in group " + CoreGroup.Id);
             }
 
-            prom.ResetCoreDistances();
+            prom.ResetCoreDistances(addToRecalcs: true);
         }
     }
 
