@@ -5,6 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
+[System.Obsolete]
 public class ClanCoreMigrationEvent : FactionEvent
 {
     public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 500;

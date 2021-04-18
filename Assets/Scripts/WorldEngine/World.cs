@@ -1067,7 +1067,8 @@ public class World : ISynchronizable, IWorldDateGetter
             if (!polityProminence.CalculateNewCoreDistances())
                 continue;
 
-            float currentCoreFactionDist = polityProminence.FactionCoreDistance;
+            float currentFactionCoreDist = polityProminence.FactionCoreDistance;
+            float currentPolityCoreDist = polityProminence.PolityCoreDistance;
 
             foreach (KeyValuePair<Direction, PolityProminence> pair in
                 polityProminence.NeighborProminences)
@@ -1075,7 +1076,8 @@ public class World : ISynchronizable, IWorldDateGetter
                 if (promsToCalculateSet.Contains(pair.Value))
                     continue;
 
-                if (pair.Value.FactionCoreDistance <= currentCoreFactionDist)
+                if ((pair.Value.FactionCoreDistance <= currentFactionCoreDist) &&
+                    (pair.Value.PolityCoreDistance <= currentPolityCoreDist))
                     continue;
 
                 promsToCalculate.Enqueue(pair.Value);
