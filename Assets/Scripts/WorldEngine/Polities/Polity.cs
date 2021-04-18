@@ -473,8 +473,11 @@ public abstract class Polity : ISynchronizable
         return _eventMessageIds.Contains(id);
     }
 
-    public void SetCoreGroup(CellGroup coreGroup, bool resetCoreDistances = true)
+    public void SetCoreGroup(CellGroup newCoreGroup, bool resetCoreDistances = true)
     {
+        if (CoreGroup == newCoreGroup)
+            return;
+
         if (CoreGroup != null)
         {
             Manager.AddUpdatedCell(CoreGroup.Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
@@ -482,14 +485,32 @@ public abstract class Polity : ISynchronizable
             if (resetCoreDistances)
             {
                 PolityProminence prom = CoreGroup.GetPolityProminence(Id);
-                prom.ResetCoreDistances();
+
+                if (prom == null)
+                {
+                    throw new System.Exception("Unable to find prominence with Id " + Id + " in group " + CoreGroup.Id);
+                }
+
+                prom.ResetCoreDistances(addToRecalcs: true);
             }
         }
 
-        CoreGroup = coreGroup;
-        CoreGroupId = coreGroup.Id;
+        CoreGroup = newCoreGroup;
+        CoreGroupId = newCoreGroup.Id;
 
-        Manager.AddUpdatedCell(coreGroup.Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
+        Manager.AddUpdatedCell(newCoreGroup.Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
+
+        if (resetCoreDistances)
+        {
+            PolityProminence prom = CoreGroup.GetPolityProminence(Id);
+
+            if (prom == null)
+            {
+                throw new System.Exception("Unable to find prominence with Id " + Id + " in group " + CoreGroup.Id);
+            }
+
+            prom.ResetCoreDistances(addToRecalcs: true);
+        }
     }
 
     public long GenerateInitId(long idOffset = 0L)

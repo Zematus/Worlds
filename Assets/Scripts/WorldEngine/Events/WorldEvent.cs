@@ -53,6 +53,11 @@ public abstract class WorldEvent : ISynchronizable, IEffectTrigger
     public long Id;
 
 #if DEBUG
+    [XmlIgnore]
+    public long PrevId = -1;
+#endif
+
+#if DEBUG
     private Dictionary<IEffectExpression, long> _lastUseDates = new Dictionary<IEffectExpression, long>();
 
     public long GetLastUseDate(IEffectExpression expression)
@@ -186,6 +191,8 @@ public abstract class WorldEvent : ISynchronizable, IEffectTrigger
     {
         TriggerDate = newTriggerDate;
         SpawnDate = World.CurrentDate;
+
+        PrevId = Id;
         Id = newId;
 
         FailedToTrigger = false;

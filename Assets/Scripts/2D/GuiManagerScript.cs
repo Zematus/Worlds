@@ -426,7 +426,10 @@ public class GuiManagerScript : MonoBehaviour
             //GenerateWorld(false, 403265427);
             //GenerateWorld(false, 70275341);
             //GenerateWorld(false, 1788979703);
-            GenerateWorld(false, 405241319);
+            //GenerateWorld(false, 405241319);
+            //GenerateWorld(false, 2139853335);
+            //GenerateWorld(false, 1119291416);
+            GenerateWorld(false, 2028655149);
         }
         else
         {
@@ -2365,11 +2368,13 @@ public class GuiManagerScript : MonoBehaviour
     {
         while (Manager.CurrentWorld.HasModDecisionsToResolve())
         {
-            ModDecision decisionToResolve = Manager.CurrentWorld.PullModDecisionToResolve();
+            var initializer = Manager.CurrentWorld.PullModDecisionToResolve();
 
-            decisionToResolve.InitEvaluation();
+            var decisionToResolve = initializer.Decision;
 
-            Faction targetFaction = decisionToResolve.Target.Faction;
+            decisionToResolve.InitEvaluation(initializer);
+
+            Faction targetFaction = initializer.TargetFaction;
 
             if (targetFaction.IsUnderPlayerGuidance)
             {
