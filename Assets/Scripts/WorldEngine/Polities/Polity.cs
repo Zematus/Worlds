@@ -113,22 +113,22 @@ public abstract class Polity : ISynchronizable
     [XmlIgnore]
     public bool WillBeUpdated;
 
+    [XmlIgnore]
     public Identifier Id => Info.Id;
 
+    [XmlIgnore]
     public string Type => Info.Type;
 
+    [XmlIgnore]
     public Name Name => Info.Name;
 
+    [XmlIgnore]
     public long FormationDate => Info.FormationDate;
 
-    public Agent CurrentLeader
-    {
-        get
-        {
-            return DominantFaction.CurrentLeader;
-        }
-    }
+    [XmlIgnore]
+    public Agent CurrentLeader => DominantFaction.CurrentLeader;
 
+    [XmlIgnore]
     public float TotalAdministrativeCost
     {
         get
@@ -142,6 +142,7 @@ public abstract class Polity : ISynchronizable
         }
     }
 
+    [XmlIgnore]
     public float CoreRegionSaturation
     {
         get
@@ -155,6 +156,7 @@ public abstract class Polity : ISynchronizable
         }
     }
 
+    [XmlIgnore]
     public HashSet<Region> AccessibleNeighborRegions
     {
         get
@@ -171,6 +173,9 @@ public abstract class Polity : ISynchronizable
     private void FindAccessibleNeighborRegions()
     {
         _accessibleNeighborRegions = new HashSet<Region>();
+
+        if (Territory == null)
+            throw new System.Exception("Territory is null. Polity: " + Id);
 
         foreach (Region region in Territory.GetAccessibleRegions())
         {

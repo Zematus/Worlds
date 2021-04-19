@@ -5,9 +5,7 @@ using System.Linq;
 
 public class SuperRegion : Region
 {
-    public List<Identifier> SubRegionIds;
-
-    private HashSet<Region> _subRegions = new HashSet<Region>();
+    public List<RegionInfo> SubRegionInfos = new List<RegionInfo>();
 
     private HashSet<TerrainCell> _cells = null;
 
@@ -25,7 +23,7 @@ public class SuperRegion : Region
 
     public void Add(Region subRegion)
     {
-        _subRegions.Add(subRegion);
+        SubRegionInfos.Add(subRegion.Info);
 
         _cells = null;
         _mostCenteredCell = null;
@@ -38,9 +36,9 @@ public class SuperRegion : Region
 
         _cells = new HashSet<TerrainCell>();
 
-        foreach (Region region in _subRegions)
+        foreach (RegionInfo info in SubRegionInfos)
         {
-            _cells.UnionWith(region.GetCells());
+            _cells.UnionWith(info.Region.GetCells());
         }
     }
 
@@ -88,23 +86,16 @@ public class SuperRegion : Region
 
     public override void Synchronize()
     {
-        SubRegionIds = new List<Identifier>(_subRegions.Count);
-
-        foreach (Region region in _subRegions)
-        {
-            SubRegionIds.Add(region.Id);
-        }
     }
 
     public override void FinalizeLoad()
     {
-        foreach (Identifier id in SubRegionIds)
+        foreach (RegionInfo info in SubRegionInfos)
         {
-            RegionInfo info = World.GetRegionInfo(id);
-
-            _subRegions.Add(info.Region);
-
+            info.World = World;
             info.Region.Parent = this;
+
+            info.FinalizeLoad();
         }
     }
 

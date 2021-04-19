@@ -92,8 +92,10 @@ public class Agent : Identifiable, ISynchronizable
         }
     }
 
+    [XmlIgnore]
     public long Age => World.CurrentDate - BirthDate;
 
+    [XmlIgnore]
     public int Charisma => BaseCharisma;
 
     [XmlIgnore]
