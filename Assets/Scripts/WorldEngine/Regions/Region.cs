@@ -77,14 +77,19 @@ public abstract class Region : ISynchronizable, ICellCollectionGetter
     [XmlIgnore]
     public HashSet<Region> NeighborRegions = new HashSet<Region>();
 
+    [XmlIgnore]
     public Identifier Id => Info.Id;
 
+    [XmlIgnore]
     public Name Name => Info.Name;
 
+    [XmlIgnore]
     public Dictionary<string, RegionAttribute.Instance> Attributes => Info.Attributes;
 
+    [XmlIgnore]
     public virtual List<Element.Instance> Elements => Info.Elements;
 
+    [XmlIgnore]
     public World World => Info.World;
 
     protected Dictionary<string, float> _biomePresences;
