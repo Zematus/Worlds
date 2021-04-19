@@ -24,11 +24,11 @@ public class GuiManagerScript : MonoBehaviour
 
     //AutoSave variable and function
     public enum AutoSaveMode {desactivate, OnRealWorldTime, OnGameTime, OnRealWorldOrGameTime, OnRealWorldAndGameTime};
-    public AutoSaveMode autoSaveMode = AutoSaveMode.OnRealWorldOrGameTime;
+    public static AutoSaveMode autoSaveMode = AutoSaveMode.desactivate;
     float LastRealTime = -1;
     long LastDaySave = -1;
-    public float RealWorldAutoSaveInterval = 600f; //600f = every 10 minutes
-    public long AutoSaveInterval = 365000000; //365000000 = every one millon year
+    public static float RealWorldAutoSaveInterval = 600f; //600f = every 10 minutes
+    public static long AutoSaveInterval = 365000000; //365000000 = every one millon year
     bool MustSave
     {
         get
@@ -86,7 +86,7 @@ public class GuiManagerScript : MonoBehaviour
         LastRealTime = Time.realtimeSinceStartup;
         SaveFileDialogPanelScript.SetText("AutoSave");
         Debug.LogError("Autosave is unactive because of bugs");
-        //SaveAction();
+        SaveAction();
     }
 
     public CanvasScaler CanvasScaler;
