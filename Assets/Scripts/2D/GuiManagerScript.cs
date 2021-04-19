@@ -54,9 +54,9 @@ public class GuiManagerScript : MonoBehaviour
             }
             bool GameTimeCondition = true;
             if(autoSaveMode != AutoSaveMode.OnRealWorldTime) {
-                if (Manager.CurrentWorld.CurrentDate < LastDaySave + AutoSaveInterval)
+                if (Manager.CurrentWorld.CurrentDate < (LastDaySave + AutoSaveInterval))
                 {
-                    RealTimeCondition = false;
+                    GameTimeCondition = false;
                 }
             }
             bool FinalTest = false;
