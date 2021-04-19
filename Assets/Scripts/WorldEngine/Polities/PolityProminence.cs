@@ -16,17 +16,36 @@ public class PolityProminence// : IKeyedValue<Identifier>
     [XmlAttribute("PD")]
     public float PolityCoreDistance = -1;
 
+    #region ClosestFactionId
+    [XmlAttribute("CFId")]
+    public string ClosestFactionIdStr
+    {
+        get { return ClosestFactionId; }
+        set { ClosestFactionId = value; }
+    }
+    [XmlIgnore]
+    public Identifier ClosestFactionId;
+    #endregion
+
+    #region PolityId
+    [XmlAttribute("PId")]
+    public string PolityIdStr
+    {
+        get { return PolityId; }
+        set { PolityId = value; }
+    }
+    [XmlIgnore]
+    public Identifier PolityId;
+    #endregion
+
+    public Identifier Id => Group.Id;
+
 #if DEBUG
     [XmlIgnore]
     public long LastCoreDistanceSet = -1;
     [XmlIgnore]
     public long LastCoreDistanceReset = -1;
 #endif
-
-    public Identifier ClosestFactionId;
-    public Identifier PolityId;
-
-    public Identifier Id => Group.Id;
 
     [XmlIgnore]
     public PolityProminenceCluster Cluster = null;

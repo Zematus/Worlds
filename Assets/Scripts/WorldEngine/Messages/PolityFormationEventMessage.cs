@@ -9,7 +9,16 @@ public class PolityFormationEventMessage : CellEventMessage
     [XmlAttribute]
     public bool First = false;
 
+    #region PolityId
+    [XmlAttribute("PId")]
+    public string PolityIdStr
+    {
+        get { return PolityId; }
+        set { PolityId = value; }
+    }
+    [XmlIgnore]
     public Identifier PolityId;
+    #endregion
 
     public PolityFormationEventMessage()
     {

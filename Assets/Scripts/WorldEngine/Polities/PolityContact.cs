@@ -5,11 +5,9 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class PolityContact
+public class PolityContact : Identifiable
 {
-    public Identifier Id;
-
-    [XmlAttribute("GCount")]
+    [XmlAttribute("GC")]
     public int GroupCount;
 
     [XmlIgnore]
@@ -30,12 +28,11 @@ public class PolityContact
     public PolityContact(
         Polity thisPolity,
         Polity neighborPolity,
-        int initialGroupCount = 0)
+        int initialGroupCount = 0) :
+        base(neighborPolity.Info)
     {
         ThisPolity = thisPolity;
         NeighborPolity = neighborPolity;
-
-        Id = neighborPolity.Id;
 
         _strength =
             new DatedValue<float>(ThisPolity.World, CalculateStrength);

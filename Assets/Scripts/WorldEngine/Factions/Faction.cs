@@ -54,8 +54,27 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlAttribute("IsCon")]
     public bool IsUnderPlayerGuidance = false;
 
+    #region PolityId
+    [XmlAttribute("PId")]
+    public string PolityIdStr
+    {
+        get { return PolityId; }
+        set { PolityId = value; }
+    }
+    [XmlIgnore]
     public Identifier PolityId;
+    #endregion
+
+    #region CoreGroupId
+    [XmlAttribute("CGId")]
+    public string CoreGroupIdStr
+    {
+        get { return CoreGroupId; }
+        set { CoreGroupId = value; }
+    }
+    [XmlIgnore]
     public Identifier CoreGroupId;
+    #endregion
 
     [XmlIgnore]
     public bool HasBeenUpdated = false;
@@ -99,24 +118,20 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlIgnore]
     public bool BeingRemoved = false;
 
+    [XmlIgnore]
     public string Type => Info.Type;
 
+    [XmlIgnore]
     public Identifier Id => Info.Id;
 
+    [XmlIgnore]
     public long FormationDate => Info.FormationDate;
 
+    [XmlIgnore]
     public Name Name => Info.Name;
 
+    [XmlIgnore]
     public long CurrentDate => World.CurrentDate;
-
-    [Obsolete]
-    protected long _splitFactionEventId;
-    [Obsolete]
-    protected CellGroup _splitFactionCoreGroup;
-    [Obsolete]
-    protected float _splitFactionMinInfluence;
-    [Obsolete]
-    protected float _splitFactionMaxInfluence;
 
     protected Dictionary<Identifier, FactionRelationship> _relationships =
         new Dictionary<Identifier, FactionRelationship>();

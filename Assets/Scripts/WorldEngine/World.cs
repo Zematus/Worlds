@@ -81,9 +81,6 @@ public class World : ISynchronizable, IWorldDateGetter
         public int TriggerCount = 0;
     }
 
-    public Dictionary<string, EventEvalStats> EventEvalStatsPerType =
-        new Dictionary<string, EventEvalStats>();
-
     [XmlAttribute]
     public int Width { get; set; }
     [XmlAttribute]
@@ -175,6 +172,10 @@ public class World : ISynchronizable, IWorldDateGetter
     // End wonky segment
 
     public List<long> EventMessageIds;
+
+    [XmlIgnore]
+    public Dictionary<string, EventEvalStats> EventEvalStatsPerType =
+        new Dictionary<string, EventEvalStats>();
 
     [XmlIgnore]
     public int EventsToHappenCount { get; private set; }
@@ -995,26 +996,10 @@ public class World : ISynchronizable, IWorldDateGetter
         _groupsToUpdate.Clear();
     }
 
-//#if DEBUG
-    //private struct PromDistDebugInfo
-    //{
-    //    public PolityProminence Prominence;
-    //    public float InitialDistance;
-    //    public int RecalcCount;
-    //}
-//#endif
-
     private void CalculateProminenceDistancesToCores()
     {
         Queue<PolityProminence> promsToCalculate = new Queue<PolityProminence>();
         HashSet<PolityProminence> promsToCalculateSet = new HashSet<PolityProminence>();
-
-//#if DEBUG
-        //Dictionary<Identifier, PromDistDebugInfo> calculatedProms =
-        //    new Dictionary<Identifier, PromDistDebugInfo>();
-
-        //bool debugPrint = false;
-//#endif
 
         foreach (PolityProminence polityProminence in _promsWithCoreDistToCalculate)
         {
@@ -1023,46 +1008,12 @@ public class World : ISynchronizable, IWorldDateGetter
 
             promsToCalculate.Enqueue(polityProminence);
             promsToCalculateSet.Add(polityProminence);
-
-            //#if DEBUG
-            //if (polityProminence.Group.Position.Equals(6, 144) ||
-            //    polityProminence.Group.Position.Equals(7, 143) ||
-            //    polityProminence.Group.Position.Equals(7, 144))
-            //    debugPrint = true;
-            //#endif
         }
 
         while (promsToCalculate.Count > 0)
         {
             PolityProminence polityProminence = promsToCalculate.Dequeue();
             promsToCalculateSet.Remove(polityProminence);
-
-            //#if DEBUG
-            //if (calculatedProms.ContainsKey(polityProminence.Id))
-            //{
-            //    PromDistDebugInfo debugInfo = calculatedProms[polityProminence.Id];
-
-            //    debugInfo.RecalcCount++;
-
-            //    if (debugInfo.RecalcCount > 50)
-            //    {
-            //        throw new System.Exception(
-            //            "Prominence core distance has been recualculated too many times"
-            //            + ", possibly on a infinite loop. Group: " + polityProminence.Id
-            //            + ", initial faction core distance: " + debugInfo.InitialDistance
-            //            + ", recalculations: " + debugInfo.RecalcCount);
-            //    }
-            //}
-            //else
-            //{
-            //    calculatedProms.Add(polityProminence.Id, new PromDistDebugInfo()
-            //    {
-            //        Prominence = polityProminence,
-            //        InitialDistance = polityProminence.FactionCoreDistance,
-            //        RecalcCount = 0
-            //    });
-            //}
-            //#endif
 
             if (!polityProminence.CalculateNewCoreDistances())
                 continue;
@@ -1084,12 +1035,6 @@ public class World : ISynchronizable, IWorldDateGetter
                 promsToCalculateSet.Add(pair.Value);
             }
         }
-
-        //#if DEBUG
-        //if (debugPrint)
-        //{
-        //}
-        //#endif
 
         _promsWithCoreDistToCalculate.Clear();
     }

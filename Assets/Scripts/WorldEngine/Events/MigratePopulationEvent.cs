@@ -29,7 +29,16 @@ public class MigratePopulationEvent : CellGroupEvent
     [XmlAttribute("PPer")]
     public float ProminencePercent;
 
-    public Identifier PolityId = null;
+    #region PolityId
+    [XmlAttribute("PId")]
+    public string PolityIdStr
+    {
+        get { return PolityId; }
+        set { PolityId = value; }
+    }
+    [XmlIgnore]
+    public Identifier PolityId;
+    #endregion
 
     [XmlIgnore]
     public TerrainCell TargetCell;

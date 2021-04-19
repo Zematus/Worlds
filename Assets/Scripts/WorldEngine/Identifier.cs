@@ -1,4 +1,6 @@
-﻿using System.Xml.Serialization;
+﻿using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 
 public class Identifier : Identifiable, System.IComparable
 {
@@ -6,50 +8,34 @@ public class Identifier : Identifiable, System.IComparable
     {
     }
 
-    public Identifier(long date, long id) : base(date, id)
+    public Identifier(long date, long idSuffix) : base(date, idSuffix)
     {
     }
 
-    public Identifier(Identifiable identifiable) : base(identifiable.InitDate, identifiable.InitId)
+    public Identifier(Identifiable identifiable) : base(identifiable)
     {
     }
 
-    public Identifier(string idString)
+    public Identifier(string idString) : base(idString)
     {
-        string[] parts = idString.Split(':');
-
-        if (!long.TryParse(parts[0], out long date))
-            throw new System.ArgumentException("Not a valid date part: " + parts[0]);
-
-        if (!long.TryParse(parts[1], out long id))
-            throw new System.ArgumentException("Not a valid id part: " + parts[1]);
-
-        Init(date, id);
     }
 
     public static implicit operator Identifier(string idString)
     {
-        return new Identifier(idString);
+        return string.IsNullOrEmpty(idString) ? null : new Identifier(idString);
     }
 
-    public override void Synchronize()
+    public static implicit operator string(Identifier id)
     {
+        return id?.ToString() ?? string.Empty;
     }
 
-    public override void FinalizeLoad()
-    {
-        _id = this;
-    }
-
-    public override int GetHashCode()
-    {
-        return base.GetHashCode();
-    }
+    public override int GetHashCode() => base.GetHashCode();
 
     protected override void Init(long date, long id)
     {
         InitDate = date;
-        InitId = id;
+        _idSuffix = id;
 
         _id = this;
     }
@@ -60,7 +46,7 @@ public class Identifier : Identifiable, System.IComparable
 
         return obj is Identifier ident &&
                InitDate == ident.InitDate &&
-               InitId == ident.InitId;
+               _idSuffix == ident._idSuffix;
     }
 
     public int CompareTo(object obj)
@@ -74,7 +60,7 @@ public class Identifier : Identifiable, System.IComparable
 
         if (dateCompare != 0) return dateCompare;
 
-        return InitId.CompareTo(ident.InitId);
+        return _idSuffix.CompareTo(ident._idSuffix);
     }
 
     public static bool operator ==(Identifier left, Identifier right)

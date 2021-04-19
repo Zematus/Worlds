@@ -4,7 +4,7 @@ using System.Xml.Serialization;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-public class PolityProminenceCluster : Identifiable
+public class PolityProminenceCluster : Identifiable, ISynchronizable
 {
     public const int MaxSize = 50;
     public const int MinSplitSize = 25;
@@ -308,10 +308,8 @@ public class PolityProminenceCluster : Identifiable
         }
     }
 
-    public override void FinalizeLoad()
+    public void FinalizeLoad()
     {
-        base.FinalizeLoad();
-
         LoadProminences();
 
         foreach (KeyValuePair<Identifier, PolityProminence> pair in _prominences)
@@ -332,7 +330,7 @@ public class PolityProminenceCluster : Identifiable
         }
     }
 
-    public override void Synchronize()
+    public void Synchronize()
     {
         ProminenceIds = new List<Identifier>(_prominences.Keys);
 

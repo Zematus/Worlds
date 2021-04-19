@@ -46,9 +46,27 @@ public abstract class Polity : ISynchronizable
     [XmlAttribute("IF")]
     public bool IsUnderPlayerFocus = false;
 
+    #region DominantFactionId
+    [XmlAttribute("DFId")]
+    public string DominantFactionIdStr
+    {
+        get { return DominantFactionId; }
+        set { DominantFactionId = value; }
+    }
+    [XmlIgnore]
     public Identifier DominantFactionId;
+    #endregion
 
+    #region CoreGroupId
+    [XmlAttribute("CGId")]
+    public string CoreGroupIdStr
+    {
+        get { return CoreGroupId; }
+        set { CoreGroupId = value; }
+    }
+    [XmlIgnore]
     public Identifier CoreGroupId;
+    #endregion
 
     public List<Identifier> CoreRegionIds = new List<Identifier>();
 

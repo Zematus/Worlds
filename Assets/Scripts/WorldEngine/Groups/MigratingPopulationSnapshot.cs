@@ -9,13 +9,32 @@ public class MigratingPopulationSnapshot : ISynchronizable
 
     [XmlAttribute("P")]
     public int Population = 0;
-    public Identifier SourceGroupId = null;
-    public Identifier PolityId = null;
-
     [XmlAttribute("SD")]
     public long StartDate = 0;
     [XmlAttribute("ED")]
     public long EndDate = 0;
+
+    #region SourceGroupId
+    [XmlAttribute("SGId")]
+    public string SourceGroupIdStr
+    {
+        get { return SourceGroupId; }
+        set { SourceGroupId = value; }
+    }
+    [XmlIgnore]
+    public Identifier SourceGroupId;
+    #endregion
+
+    #region PolityId
+    [XmlAttribute("PId")]
+    public string PolityIdStr
+    {
+        get { return PolityId; }
+        set { PolityId = value; }
+    }
+    [XmlIgnore]
+    public Identifier PolityId;
+    #endregion
 
     [XmlIgnore]
     public World World;

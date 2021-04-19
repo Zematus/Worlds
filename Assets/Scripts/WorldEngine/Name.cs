@@ -99,8 +99,16 @@ public static class NameTools
 
 public class Name : ISynchronizable
 {
-    [XmlAttribute("Lid")]
+    #region LanguageId
+    [XmlAttribute("LId")]
+    public string LanguageIdStr
+    {
+        get { return LanguageId; }
+        set { LanguageId = value; }
+    }
+    [XmlIgnore]
     public Identifier LanguageId;
+    #endregion
 
     [XmlAttribute("Tm")]
     public string TaggedMeaning;

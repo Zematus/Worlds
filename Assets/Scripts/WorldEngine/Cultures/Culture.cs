@@ -7,7 +7,16 @@ using UnityEngine.Profiling;
 
 public class Culture : ISynchronizable
 {
+    #region LanguageId
+    [XmlAttribute("LId")]
+    public string LanguageIdStr
+    {
+        get { return LanguageId; }
+        set { LanguageId = value; }
+    }
+    [XmlIgnore]
     public Identifier LanguageId;
+    #endregion
 
     public List<CulturalPreference> Preferences = null;
     public List<CulturalActivity> Activities = null;

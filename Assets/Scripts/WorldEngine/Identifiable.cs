@@ -1,16 +1,20 @@
 ﻿using System.Xml.Serialization;
 
-public abstract class Identifiable : ISynchronizable
+public abstract class Identifiable
 {
     // This property is to be used exclusively for XML serialization.
-    // It needs to be public. But consider it 'read-only protected' and don't access directly
-    [XmlAttribute("ID")]
+    // It needs to be public. But consider it private and don't access it ever
+    [XmlAttribute("Id")]
+    public string IdStr
+    {
+        get { return ToString(); }
+        set { Init(value); }
+    }
+
+    [XmlIgnore]
     public long InitDate;
 
-    // This property is to be used exclusively for XML serialization.
-    // It needs to be public. But consider it private and don't access it ever
-    [XmlAttribute("IId")]
-    public long InitId;
+    protected long _idSuffix;
 
     protected Identifier _id = null;
 
@@ -20,47 +24,56 @@ public abstract class Identifiable : ISynchronizable
     {
     }
 
-    public Identifiable(long date, long id)
+    public Identifiable(long date, long idSuffix)
     {
-        Init(date, id);
+        Init(date, idSuffix);
+    }
+
+    public Identifiable(string idString)
+    {
+        Init(idString);
     }
 
     public Identifiable(Identifiable identifiable)
     {
-        Init(identifiable);
+        Init(identifiable.InitDate, identifiable._idSuffix);
     }
 
-    protected void Init(Identifiable identifiable)
+    private void Init(string idString)
     {
-        Init(identifiable.InitDate, identifiable.InitId);
+        string[] parts = idString.Split(':');
+
+        if (parts.Length != 2)
+            throw new System.ArgumentException("Not a valid indentifier: " + idString);
+
+        if (!long.TryParse(parts[0], out long date))
+            throw new System.ArgumentException("Not a valid date part: " + parts[0]);
+
+        if (!long.TryParse(parts[1], out long id))
+            throw new System.ArgumentException("Not a valid id part: " + parts[1]);
+
+        Init(date, id);
     }
 
-    protected virtual void Init(long date, long id)
+    protected virtual void Init(long date, long idSuffix)
     {
         InitDate = date;
-        InitId = id;
+        _idSuffix = idSuffix;
 
-        _id = new Identifier(InitDate, InitId);
+        _id = new Identifier(InitDate, _idSuffix);
     }
 
     public override string ToString()
     {
-        return InitDate.ToString("D19") + ":" + InitId.ToString("D19");
+        return InitDate.ToString("D1") + ":" + _idSuffix.ToString("D19");
     }
 
     public override int GetHashCode()
     {
         int hashCode = 1805739105;
         hashCode = hashCode * -1521134295 + InitDate.GetHashCode();
-        hashCode = hashCode * -1521134295 + InitId.GetHashCode();
+        hashCode = hashCode * -1521134295 + _idSuffix.GetHashCode();
         return hashCode;
-    }
-
-    public abstract void Synchronize();
-
-    public virtual void FinalizeLoad()
-    {
-        _id = new Identifier(InitDate, InitId);
     }
 
     public Identifier Id => _id;

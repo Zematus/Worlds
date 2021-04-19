@@ -4,7 +4,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class CellGroup : Identifiable, IFlagHolder
+public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 {
     [XmlIgnore]
     public World World;
@@ -93,7 +93,16 @@ public class CellGroup : Identifiable, IFlagHolder
     [XmlAttribute("NvM")]
     public int NavigationRangeModifier = 0;
 
-    public Identifier MigratingPopPolId = null;
+    #region MigratingPopPolId
+    [XmlAttribute("MPPId")]
+    public string MigratingPopPolIdStr
+    {
+        get { return MigratingPopPolId; }
+        set { MigratingPopPolId = value; }
+    }
+    [XmlIgnore]
+    public Identifier MigratingPopPolId;
+    #endregion
 
     public Route SeaMigrationRoute = null;
 
@@ -3068,7 +3077,7 @@ public class CellGroup : Identifiable, IFlagHolder
         _propertiesToLose.Add(property);
     }
 
-    public override void Synchronize()
+    public void Synchronize()
     {
         PolityProminences = new List<PolityProminence>(_polityProminences.Values);
 
@@ -3113,10 +3122,8 @@ public class CellGroup : Identifiable, IFlagHolder
         LoadPolityProminences();
     }
 
-    public override void FinalizeLoad()
+    public void FinalizeLoad()
     {
-        base.FinalizeLoad();
-
         if (LastPopulationMigration != null)
         {
             LastPopulationMigration.World = World;

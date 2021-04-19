@@ -3,9 +3,18 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.Linq;
 
-public class RegionInfo : Identifiable
+public class RegionInfo : Identifiable, ISynchronizable
 {
+    #region LanguageId
+    [XmlAttribute("LId")]
+    public string LanguageIdStr
+    {
+        get { return LanguageId; }
+        set { LanguageId = value; }
+    }
+    [XmlIgnore]
     public Identifier LanguageId;
+    #endregion
 
     public Region Region;
 
@@ -95,16 +104,14 @@ public class RegionInfo : Identifiable
         Elements.Add(element);
     }
 
-    public override void Synchronize()
+    public void Synchronize()
     {
         if (Region != null)
             Region.Synchronize();
     }
 
-    public override void FinalizeLoad()
+    public void FinalizeLoad()
     {
-        base.FinalizeLoad();
-
         OriginCell = World.GetCell(OriginCellPosition);
 
         Language = World.GetLanguage(LanguageId);

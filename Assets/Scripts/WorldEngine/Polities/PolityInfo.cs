@@ -1,11 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
+﻿using System.Xml;
 using System.Xml.Serialization;
-using UnityEngine.Profiling;
-using System.Linq;
-using System.Xml.Schema;
 
 public enum PolityType
 {
@@ -13,7 +7,7 @@ public enum PolityType
     Tribe
 }
 
-public class PolityInfo : Identifiable
+public class PolityInfo : Identifiable, ISynchronizable
 {
     [XmlAttribute("T")]
 	public string Type;
@@ -79,17 +73,15 @@ public class PolityInfo : Identifiable
         return string.Format(_nameFormat, Name.BoldText);
     }
 
-    public override void FinalizeLoad()
+    public void FinalizeLoad()
     {
-        base.FinalizeLoad();
-
         if (Polity != null)
             Polity.FinalizeLoad();
         
         SetType(Type);
     }
 
-    public override void Synchronize()
+    public void Synchronize()
     {
         if (Polity != null)
             Polity.Synchronize();
