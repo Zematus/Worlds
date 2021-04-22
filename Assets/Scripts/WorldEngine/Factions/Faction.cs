@@ -39,7 +39,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         }
     }
 
-    [XmlAttribute("StilPres")]
+    [XmlAttribute("SP")]
     public bool StillPresent = true;
 
     [XmlAttribute("IsDom")]

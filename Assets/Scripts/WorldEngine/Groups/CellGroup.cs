@@ -251,6 +251,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     private Dictionary<Polity, float> _polityPromDeltas =
         new Dictionary<Polity, float>();
 
+    [XmlIgnore]
     public int PreviousPopulation
     {
         get
@@ -259,6 +260,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         }
     }
 
+    [XmlIgnore]
     public int Population
     {
         get
