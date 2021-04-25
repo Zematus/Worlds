@@ -580,18 +580,10 @@ public class TerrainCell
     {
         if (Region == null)
         {
-            Region region = Region.TryGenerateRegion(this, initLanguage);
-
-            if (region != null)
-            {
-                if (World.GetRegionInfo(region.Id) != null)
-                {
-                    throw new System.Exception(
-                        "RegionInfo with Id " + region.Id + " already present");
-                }
-
-                World.AddRegionInfo(region.Info);
-            }
+            // Note that this method will return the super region that directly or indirectly
+            // contains the cell region this cell will be assigned to, or the cell region
+            // itself if no super region contains it
+            Region superRegion = Region.TryGenerateRegion(this, initLanguage);
         }
 
         return Region;

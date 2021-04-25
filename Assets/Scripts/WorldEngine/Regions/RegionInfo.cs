@@ -16,6 +16,9 @@ public class RegionInfo : Identifiable, ISynchronizable
     public Identifier LanguageId;
     #endregion
 
+    [XmlAttribute("R")]
+    public int Rank;
+
     public Region Region;
 
     public WorldPosition OriginCellPosition;
@@ -69,12 +72,14 @@ public class RegionInfo : Identifiable, ISynchronizable
     public RegionInfo(
         Region region,
         TerrainCell originCell,
-        long idOffset,
+        int rank,
         Language language)
     {
         World = originCell.World;
 
-        Init(World.CurrentDate, originCell.GenerateInitId(idOffset));
+        Rank = rank;
+
+        Init(World.CurrentDate, originCell.GenerateInitId(rank));
 
         Region = region;
 
@@ -83,6 +88,14 @@ public class RegionInfo : Identifiable, ISynchronizable
 
         Language = language;
         LanguageId = language.Id;
+
+        if (World.GetRegionInfo(Id) != null)
+        {
+            throw new System.Exception(
+                "RegionInfo with Id " + Id + " already present");
+        }
+
+        World.AddRegionInfo(this);
     }
 
     public void AddAttribute(RegionAttribute.Instance attribute)

@@ -92,6 +92,9 @@ public abstract class Region : ISynchronizable, ICellCollectionGetter
     [XmlIgnore]
     public World World => Info.World;
 
+    [XmlIgnore]
+    public int Rank => Info.Rank;
+
     protected Dictionary<string, float> _biomePresences;
 
     protected event System.Action<Region> UpdateEvent;
@@ -101,9 +104,9 @@ public abstract class Region : ISynchronizable, ICellCollectionGetter
 
     }
 
-    public Region(TerrainCell originCell, long idOffset, Language language)
+    public Region(TerrainCell originCell, int rank, Language language)
     {
-        Info = new RegionInfo(this, originCell, idOffset, language);
+        Info = new RegionInfo(this, originCell, rank, language);
     }
 
     public static void SetAsNeighbors(Region r1, Region r2)

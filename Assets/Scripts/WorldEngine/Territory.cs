@@ -551,6 +551,11 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         }
 
         EnclosedAreas = new List<CellArea>(_enclosedAreas);
+
+        foreach (CellArea area in EnclosedAreas)
+        {
+            area.Synchronize();
+        }
     }
 
     public void FinalizeLoad()

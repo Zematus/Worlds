@@ -21,6 +21,17 @@ public class PolityProminenceCluster : Identifiable, ISynchronizable
     [XmlAttribute("NC")]
     public bool NeedsNewCensus = true;
 
+    #region RegionId
+    [XmlAttribute("RId")]
+    public string RegionIdStr
+    {
+        get { return RegionId; }
+        set { RegionId = value; }
+    }
+    [XmlIgnore]
+    public Identifier RegionId;
+    #endregion
+
     public List<Identifier> ProminenceIds = null;
 
     [XmlIgnore]
@@ -91,6 +102,7 @@ public class PolityProminenceCluster : Identifiable, ISynchronizable
         if (Region == null)
         {
             Region = prominence.Group.Cell.Region;
+            RegionId = Region.Id;
         }
 
         _prominences.Add(prominence.Id, prominence);
@@ -312,22 +324,17 @@ public class PolityProminenceCluster : Identifiable, ISynchronizable
     {
         LoadProminences();
 
-        foreach (KeyValuePair<Identifier, PolityProminence> pair in _prominences)
+        foreach (var pair in _prominences)
         {
-            if (Region == null)
-            {
-                Region = pair.Value.Group.Cell.Region;
-            }
-
             PolityProminence p = pair.Value;
 
-            World world = Polity.World;
-
-            p.Group = world.GetGroup(pair.Key);
+            p.Group = Polity.World.GetGroup(pair.Key);
             p.Polity = Polity;
             p.ClosestFaction = Polity.GetFaction(p.ClosestFactionId);
             p.Cluster = this;
         }
+
+        Region = Polity.World.GetRegionInfo(RegionId).Region;
     }
 
     public void Synchronize()
