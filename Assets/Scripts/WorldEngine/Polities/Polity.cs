@@ -399,7 +399,7 @@ public abstract class Polity : ISynchronizable
 
         foreach (PolityContact contact in contacts)
         {
-            Polity.RemoveContact(this, contact.NeighborPolity);
+            RemoveContact(this, contact.NeighborPolity);
         }
 
         List<Faction> factions = new List<Faction>(_factions.Values);
@@ -680,7 +680,7 @@ public abstract class Polity : ISynchronizable
     {
         if (!_contacts.ContainsKey(polity.Id))
         {
-            PolityContact contact = new PolityContact(this, polity, initialGroupCount);
+            PolityContact contact = new PolityContact(World, this, polity, initialGroupCount);
 
             _contacts.Add(polity.Id, contact);
 
@@ -753,7 +753,7 @@ public abstract class Polity : ISynchronizable
     {
         if (!_contacts.ContainsKey(polity.Id))
         {
-            PolityContact contact = new PolityContact(this, polity);
+            PolityContact contact = new PolityContact(World, this, polity);
 
             _contacts.Add(polity.Id, contact);
 
@@ -1269,6 +1269,12 @@ public abstract class Polity : ISynchronizable
     public virtual void FinalizeLoad()
     {
         LoadContacts();
+
+        foreach (var contact in Contacts)
+        {
+            contact.World = World;
+            contact.FinalizeLoad();
+        }
 
         foreach (long messageId in EventMessageIds)
         {

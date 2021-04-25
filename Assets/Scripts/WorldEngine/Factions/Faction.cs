@@ -618,6 +618,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public virtual void FinalizeLoad()
     {
+        _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
+        _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
+
         Name.World = World;
         Name.FinalizeLoad();
 
