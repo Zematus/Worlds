@@ -589,9 +589,7 @@ public abstract class Polity : ISynchronizable
 
     public Faction GetFaction(Identifier id)
     {
-        Faction faction;
-
-        _factions.TryGetValue(id, out faction);
+        _factions.TryGetValue(id, out Faction faction);
 
         return faction;
     }
@@ -1268,6 +1266,7 @@ public abstract class Polity : ISynchronizable
 
     public virtual void FinalizeLoad()
     {
+        LoadFactions();
         LoadContacts();
 
         foreach (var contact in Contacts)
@@ -1319,8 +1318,6 @@ public abstract class Polity : ISynchronizable
         }
 
         //Groups.FinalizeLoad(GetGroupOrThrow);
-
-        LoadFactions();
 
         DominantFaction = GetFaction(DominantFactionId);
 

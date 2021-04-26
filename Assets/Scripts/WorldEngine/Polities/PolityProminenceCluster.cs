@@ -332,6 +332,11 @@ public class PolityProminenceCluster : Identifiable, ISynchronizable
             p.Polity = Polity;
             p.ClosestFaction = Polity.GetFaction(p.ClosestFactionId);
             p.Cluster = this;
+
+            if (p.ClosestFaction == null)
+            {
+                throw new System.Exception("Unable to find faction with id: " + p.ClosestFactionId);
+            }
         }
 
         Region = Polity.World.GetRegionInfo(RegionId).Region;

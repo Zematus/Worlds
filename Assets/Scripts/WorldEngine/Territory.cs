@@ -9,6 +9,8 @@ public class Territory : ISynchronizable, ICellCollectionGetter
     public List<WorldPosition> CellPositions;
     public List<CellArea> EnclosedAreas;
 
+    public List<RegionAccess> RegionAccesses;
+
     [XmlIgnore]
     public bool IsSelected = false;
 
@@ -35,14 +37,16 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     private HashSet<TerrainCell> _enclosedCells = new HashSet<TerrainCell>();
 
-    private HashSet<TerrainCell> _outerBorderCellsToValidate = new HashSet<TerrainCell>();
-    private HashSet<TerrainCell> _validatedOuterBorderCells = new HashSet<TerrainCell>();
+    private HashSet<TerrainCell> _outerBorderCellsToValidate =
+        new HashSet<TerrainCell>();
+    private HashSet<TerrainCell> _validatedOuterBorderCells =
+        new HashSet<TerrainCell>();
 
-    private Dictionary<Region, int> _regionAccessCounts = new Dictionary<Region, int>();
+    private Dictionary<Region, RegionAccess> _regionAccesses =
+        new Dictionary<Region, RegionAccess>();
 
     public Territory()
     {
-
     }
 
     public Territory(Polity polity)
@@ -53,7 +57,7 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     public ICollection<Region> GetAccessibleRegions()
     {
-        return _regionAccessCounts.Keys;
+        return _regionAccesses.Keys;
     }
 
     public ICollection<TerrainCell> GetCells()
@@ -556,10 +560,19 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         {
             area.Synchronize();
         }
+
+        RegionAccesses = new List<RegionAccess>(_regionAccesses.Values);
     }
 
     public void FinalizeLoad()
     {
+        foreach (RegionAccess access in RegionAccesses)
+        {
+            access.Region = World.GetRegionInfo(access.RegionId).Region;
+
+            _regionAccesses.Add(access.Region, access);
+        }
+
         foreach (CellArea area in EnclosedAreas)
         {
             area.World = World;
@@ -602,13 +615,18 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     private void IncreaseAccessToRegion(Region region)
     {
-        if (_regionAccessCounts.ContainsKey(region))
+        if (_regionAccesses.ContainsKey(region))
         {
-            _regionAccessCounts[region]++;
+            _regionAccesses[region].Count++;
         }
         else
         {
-            _regionAccessCounts[region] = 1;
+            _regionAccesses[region] = new RegionAccess()
+            {
+                Region = region,
+                RegionId = region.Id,
+                Count = 1
+            };
 
             Polity.AccessibleRegionsUpdate();
         }
@@ -616,21 +634,21 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     private void DecreaseAccessToRegion(Region region)
     {
-        if (!_regionAccessCounts.TryGetValue(region, out int count))
+        if (!_regionAccesses.TryGetValue(region, out var regionAccess))
         {
             throw new System.Exception(
                 "Region was not accessible. Polity: " +
                 Polity.Id + ", Region: " + region.Id);
         }
 
-        if (count == 1)
+        if (regionAccess.Count == 1)
         {
-            _regionAccessCounts.Remove(region);
+            _regionAccesses.Remove(region);
 
             Polity.AccessibleRegionsUpdate();
             return;
         }
 
-        _regionAccessCounts[region]--;
+        _regionAccesses[region].Count--;
     }
 }

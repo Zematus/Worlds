@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class PolityProminence// : IKeyedValue<Identifier>
+public class PolityProminence // : IKeyedValue<Identifier>
 {
     public const float MaxCoreDistance = 1000000000000f;
 
@@ -57,6 +57,8 @@ public class PolityProminence// : IKeyedValue<Identifier>
 
     [XmlIgnore]
     public CellGroup Group;
+    [XmlIgnore]
+    public World World;
 
     [XmlIgnore]
     public float AdministrativeCost
@@ -104,10 +106,12 @@ public class PolityProminence// : IKeyedValue<Identifier>
     {
         get
         {
-            foreach (KeyValuePair<Direction, CellGroup> pair in Group.Neighbors)
+            foreach (var pair in Group.Neighbors)
             {
                 if (pair.Value.TryGetPolityProminence(Polity, out PolityProminence p))
+                {
                     yield return new KeyValuePair<Direction, PolityProminence>(pair.Key, p);
+                }
             }
         }
     }

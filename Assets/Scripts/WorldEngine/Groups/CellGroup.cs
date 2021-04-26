@@ -3206,6 +3206,11 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         foreach (PolityProminence p in _polityProminences.Values)
         {
+            if (p.ClosestFaction == null)
+            {
+                throw new System.Exception("Missing closest faction with id: " + p.ClosestFactionId);
+            }
+
             if (p.Polity == null)
             {
                 throw new System.Exception("Missing polity with id:" + p.PolityId);
