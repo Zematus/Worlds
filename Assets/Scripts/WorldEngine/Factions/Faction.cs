@@ -729,16 +729,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         targetPolity.AddFaction(this);
     }
 
-    public virtual bool ShouldMigrateFactionCore(CellGroup sourceGroup, CellGroup targetGroup)
-    {
-        return false;
-    }
-
-    public virtual bool ShouldMigrateFactionCore(CellGroup sourceGroup, TerrainCell targetCell, float targetProminence, int targetPopulation)
-    {
-        return false;
-    }
-
     public void IncreasePreferenceValue(string id, float percentage)
     {
         CulturalPreference preference = Culture.GetPreference(id);
@@ -771,13 +761,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
             return preference.Value;
 
         return 0;
-    }
-
-    public abstract float GetGroupWeight(CellGroup group);
-
-    public bool GroupCanBeCore(CellGroup group)
-    {
-        return GetGroupWeight(group) > 0;
     }
 
     public void SetFlag(string flag)
