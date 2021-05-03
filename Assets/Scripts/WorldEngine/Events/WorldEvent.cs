@@ -20,7 +20,6 @@ public abstract class WorldEvent : ISynchronizable, IEffectTrigger
     public const long PreventTribeSplitEventId = 12;
 
     public const long PolityFormationEventId = 13;
-    public const long ClanCoreMigrationEventId = 14;
 
     public const long MergeTribesDecisionEventId = 25;
     public const long AvoidMergeTribesAttemptDecisionEventId = 26;

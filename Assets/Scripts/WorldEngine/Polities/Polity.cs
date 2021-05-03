@@ -1343,7 +1343,7 @@ public abstract class Polity : ISynchronizable
     public void AddEvent(PolityEvent polityEvent)
     {
         if (_events.ContainsKey(polityEvent.TypeId))
-            throw new System.Exception("Event of type " + polityEvent.TypeId + " already present");
+            throw new System.Exception("Polity event of type " + polityEvent.TypeId + " already present");
 
         _events.Add(polityEvent.TypeId, polityEvent);
         World.InsertEventToHappen(polityEvent);

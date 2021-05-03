@@ -49,24 +49,6 @@ public class Clan : Faction
 
     }
 
-    protected override void InitializeInternal()
-    {
-        base.InitializeInternal();
-
-        long triggerDate = ClanCoreMigrationEvent.CalculateTriggerDate(this);
-        if (triggerDate > 0)
-        {
-            if (triggerDate <= World.CurrentDate)
-            {
-                throw new System.Exception(
-                    "ClanCoreMigrationEvent Trigger Date (" + triggerDate +
-                    ") less or equal to current date: " + World.CurrentDate);
-            }
-
-            AddEvent(new ClanCoreMigrationEvent(this, triggerDate));
-        }
-    }
-
     public CellGroup GetCoreGroupMigrationTarget()
     {
         //TODO: generate a valid direction or rewrite core migration
@@ -86,27 +68,9 @@ public class Clan : Faction
         {
             switch (eData.TypeId)
             {
-                case WorldEvent.ClanCoreMigrationEventId:
-                    AddEvent(new ClanCoreMigrationEvent(this, eData));
-                    break;
                 default:
                     throw new System.Exception("Unhandled faction event type id: " + eData.TypeId);
             }
-        }
-    }
-
-    protected override void UpdateInternal()
-    {
-        if (NewCoreGroup != null)
-        {
-            if (GroupCanBeCore(NewCoreGroup) && (NewCoreGroup != CoreGroup))
-            {
-                MigrateToNewCoreGroup();
-            }
-
-            NewCoreGroup = null;
-
-            ResetEvent(WorldEvent.ClanCoreMigrationEventId, ClanCoreMigrationEvent.CalculateTriggerDate(this));
         }
     }
 

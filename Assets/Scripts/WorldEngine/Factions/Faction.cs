@@ -198,16 +198,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
         _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
 
-        InitializeInternal();
-
         InitializeDefaultEvents();
 
         IsInitialized = true;
-    }
-
-    protected virtual void InitializeInternal()
-    {
-
     }
 
     protected abstract float CalculateAdministrativeLoad();
@@ -561,8 +554,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         PreUpdate();
 
-        UpdateInternal();
-
         LastUpdateDate = World.CurrentDate;
 
         World.AddPolityToUpdate(Polity);
@@ -598,8 +589,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         }
     }
 
-    protected abstract void UpdateInternal();
-
     public virtual void Synchronize()
     {
         Flags = new List<string>(_flags);
@@ -620,6 +609,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     {
         _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
         _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
+
+        IsInitialized = true;
 
         Name.World = World;
         Name.FinalizeLoad();
@@ -661,7 +652,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public void AddEvent(FactionEvent factionEvent)
     {
         if (_events.ContainsKey(factionEvent.TypeId))
-            throw new System.Exception("Event of type " + factionEvent.TypeId + " already present");
+            throw new System.Exception("Faction event of type " + factionEvent.TypeId + " already present");
 
         _events.Add(factionEvent.TypeId, factionEvent);
         World.InsertEventToHappen(factionEvent);

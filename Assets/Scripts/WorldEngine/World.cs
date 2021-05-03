@@ -143,7 +143,6 @@ public class World : ISynchronizable, IWorldDateGetter
     [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
         XmlArrayItem(Type = typeof(MigratePopulationEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
-        XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
         XmlArrayItem(Type = typeof(Discovery.DiscoveryEvent)),
         XmlArrayItem(Type = typeof(FactionModEvent)),
         XmlArrayItem(Type = typeof(CellGroupModEvent))]
