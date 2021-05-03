@@ -328,6 +328,7 @@ public class PolityProminenceCluster : Identifiable, ISynchronizable
         {
             PolityProminence p = pair.Value;
 
+            p.World = Polity.World;
             p.Group = Polity.World.GetGroup(pair.Key);
             p.Polity = Polity;
             p.ClosestFaction = Polity.GetFaction(p.ClosestFactionId);
@@ -335,7 +336,9 @@ public class PolityProminenceCluster : Identifiable, ISynchronizable
 
             if (p.ClosestFaction == null)
             {
-                throw new System.Exception("Unable to find faction with id: " + p.ClosestFactionId);
+                throw new System.Exception("Unable to find faction with id: " +
+                    p.ClosestFactionId + " in polity " + p.PolityId + ", group: " +
+                    p.Id);
             }
         }
 

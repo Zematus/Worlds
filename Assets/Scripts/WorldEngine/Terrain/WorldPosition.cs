@@ -59,4 +59,12 @@ public struct WorldPosition
     {
         return !p1.Equals(p2);
     }
+
+    public static int ManhanttanDist(WorldPosition p1, WorldPosition p2)
+    {
+        int result = Mathf.Abs(p1.Longitude - p2.Longitude);
+        result += Mathf.Abs(p1.Latitude - p2.Latitude);
+
+        return result;
+    }
 }

@@ -248,6 +248,9 @@ public class Manager
     public static Identifier Debug_IdentifierOfInterest2;
     public static Identifier Debug_IdentifierOfInterest3;
     public static Identifier Debug_IdentifierOfInterest4;
+
+    public static bool Debug_Flag1 = false;
+    public static bool Debug_Flag2 = false;
 #endif
 
     public static bool PerformingAsyncTask { get; private set; }

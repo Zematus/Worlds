@@ -444,6 +444,7 @@ public class InfoPanelScript : MonoBehaviour
             Polity polity = polityProminence.Polity;
             float prominenceValue = polityProminence.Value;
             float factionCoreDistance = polityProminence.FactionCoreDistance;
+            Identifier closestFactionCoreId = polityProminence.ClosestFactionId;
             float polityCoreDistance = polityProminence.PolityCoreDistance;
             float administrativeCost = polityProminence.AdministrativeCost;
 
@@ -459,6 +460,7 @@ public class InfoPanelScript : MonoBehaviour
                 InfoText.text += "\n\tPolity: " + polity.Name.Text +
                     "\n\t\tProminence: " + prominenceValue.ToString("P") +
                     "\n\t\tDistance to Polity Core: " + polityCoreDistance.ToString("0.000") +
+                    "\n\t\tClosest Faction Core: " + closestFactionCoreId +
                     "\n\t\tDistance to Faction Core: " + factionCoreDistance.ToString("0.000") +
                     "\n\t\tAdministrative Cost: " + administrativeCost.ToString("0.000");
             }
@@ -705,6 +707,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\n\tProminenced population: " + prominencedPopulation;
         InfoText.text += "\n\tPercentage of polity population: " + percentageOfPolity.ToString("P");
         InfoText.text += "\n\tDistance to polity core: " + pi.PolityCoreDistance.ToString("0.000");
+        InfoText.text += "\n\tClosest Faction Core: " + pi.ClosestFactionId;
         InfoText.text += "\n\tDistance to faction core: " + pi.FactionCoreDistance.ToString("0.000");
     }
 

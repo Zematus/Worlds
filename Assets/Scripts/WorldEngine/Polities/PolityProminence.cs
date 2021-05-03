@@ -44,6 +44,8 @@ public class PolityProminence // : IKeyedValue<Identifier>
     [XmlIgnore]
     public long LastCoreDistanceSet = -1;
     [XmlIgnore]
+    public long PrevCoreDistanceSet = -1;
+    [XmlIgnore]
     public long LastCoreDistanceReset = -1;
 #endif
 
@@ -94,6 +96,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
     public PolityProminence(CellGroup group, Polity polity, float initialValue = 0)
     {
         Group = group;
+        World = group.World;
         Polity = polity;
         PolityId = polity.Id;
         Value = initialValue;
@@ -138,6 +141,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
             ClosestFactionId = closestFaction.Id;
 
 #if DEBUG
+            PrevCoreDistanceSet = LastCoreDistanceSet;
             LastCoreDistanceSet = Manager.CurrentWorld.CurrentDate;
 #endif
 
@@ -366,7 +370,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
             bool isExpansionLimit = false;
 
-            foreach (KeyValuePair<Direction, PolityProminence> pair in NeighborProminences)
+            foreach (var pair in prom.NeighborProminences)
             {
                 PolityProminence nProm = pair.Value;
 

@@ -727,6 +727,10 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         Polity.RemoveFaction(this);
 
+        var prom = CoreGroup.GetPolityProminence(Polity);
+
+        prom.ResetCoreDistances(addToRecalcs: true);
+
         Polity = targetPolity;
         PolityId = Polity.Id;
         Influence = targetInfluence;
