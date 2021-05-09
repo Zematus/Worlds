@@ -104,6 +104,15 @@ public enum HighlightMode
     OnHovered = 0xC
 }
 
+public enum AutoSaveMode
+{
+    Deactivate,
+    OnRealWorldTime,
+    OnGameTime,
+    OnRealWorldOrGameTime,
+    OnRealWorldAndGameTime
+};
+
 public class Manager
 {
 #if DEBUG
@@ -112,6 +121,11 @@ public class Manager
     public static bool Debug_IsLoadedWorld = false;
 
     public static RegisterDebugEventDelegate RegisterDebugEvent = null;
+
+    //AutoSave variable and function
+    public static AutoSaveMode AutoSaveMode = AutoSaveMode.Deactivate;
+    public static float RealWorldAutoSaveInterval = 600f; //600f = every 10 minutes
+    public static long AutoSaveInterval = 365000000; //365000000 = every one millon year
 
     public class Debug_TracingData
     {
