@@ -10,12 +10,15 @@ public class AutoSaveMenu : MonoBehaviour
     public Text RealTimeText;
     public GameObject GameTimeObj;
     public Text GameTimeText;
+
     // Start is called before the first frame update
     void Start()
     {
         RealTimeText.text = "every " + (GuiManagerScript.RealWorldAutoSaveInterval / 60f).ToString("0") + " minutes";
         GameTimeText.text = "every " + (GuiManagerScript.AutoSaveInterval / 365).ToString("0,0.#") + " years";
-        if (GuiManagerScript.autoSaveMode == GuiManagerScript.AutoSaveMode.desactivate) {
+
+        if (GuiManagerScript.autoSaveMode == GuiManagerScript.AutoSaveMode.desactivate)
+        {
             Mode.value = 0;
         }
         if (GuiManagerScript.autoSaveMode == GuiManagerScript.AutoSaveMode.OnRealWorldTime)
@@ -34,6 +37,8 @@ public class AutoSaveMenu : MonoBehaviour
         {
             Mode.value = 4;
         }
+
+        ModeChange(Mode.value);
     }
 
     // Update is called once per frame
@@ -42,8 +47,10 @@ public class AutoSaveMenu : MonoBehaviour
 
     }
 
-    public void ModeChange(int Index) {
-        if (Index == 0) {
+    public void ModeChange(int Index)
+    {
+        if (Index == 0)
+        {
             GuiManagerScript.autoSaveMode = GuiManagerScript.AutoSaveMode.desactivate;
             RealTimeObj.SetActive(false);
             GameTimeObj.SetActive(false);
@@ -74,20 +81,24 @@ public class AutoSaveMenu : MonoBehaviour
         }
     }
 
-    public void RealTimeChange(bool IsMinus) {
+    public void RealTimeChange(bool IsMinus)
+    {
         float RealTimeInterval = GuiManagerScript.RealWorldAutoSaveInterval;
         // 1 min
-        if (RealTimeInterval <= 60f) {
+        if (RealTimeInterval <= 60f)
+        {
             if (IsMinus)
             {
-                
+
             }
-            else {
+            else
+            {
                 GuiManagerScript.RealWorldAutoSaveInterval = 300f;
             }
         }
         //5 min
-        else if (RealTimeInterval <= 300f) {
+        else if (RealTimeInterval <= 300f)
+        {
             if (IsMinus)
             {
                 GuiManagerScript.RealWorldAutoSaveInterval = 60f;
@@ -98,7 +109,8 @@ public class AutoSaveMenu : MonoBehaviour
             }
         }
         //10 min
-        else if (RealTimeInterval <= 600f) {
+        else if (RealTimeInterval <= 600f)
+        {
             if (IsMinus)
             {
                 GuiManagerScript.RealWorldAutoSaveInterval = 300f;
@@ -109,7 +121,8 @@ public class AutoSaveMenu : MonoBehaviour
             }
         }
         //15 min
-        else if (RealTimeInterval <= 900f) {
+        else if (RealTimeInterval <= 900f)
+        {
             if (IsMinus)
             {
                 GuiManagerScript.RealWorldAutoSaveInterval = 600f;
@@ -120,7 +133,8 @@ public class AutoSaveMenu : MonoBehaviour
             }
         }
         //30 min
-        else if (RealTimeInterval <= 1800f) {
+        else if (RealTimeInterval <= 1800f)
+        {
             if (IsMinus)
             {
                 GuiManagerScript.RealWorldAutoSaveInterval = 900f;
@@ -131,7 +145,8 @@ public class AutoSaveMenu : MonoBehaviour
             }
         }
         //45 min
-        else if (RealTimeInterval <= 2700f) {
+        else if (RealTimeInterval <= 2700f)
+        {
             if (IsMinus)
             {
                 GuiManagerScript.RealWorldAutoSaveInterval = 1800f;
@@ -142,7 +157,8 @@ public class AutoSaveMenu : MonoBehaviour
             }
         }
         //60 min - 1 hour
-        else if (RealTimeInterval <= 3600f) {
+        else if (RealTimeInterval <= 3600f)
+        {
             if (IsMinus)
             {
                 GuiManagerScript.RealWorldAutoSaveInterval = 2700f;
@@ -150,23 +166,25 @@ public class AutoSaveMenu : MonoBehaviour
             else
             {
             }
-        } 
+        }
         //more
-        else {
+        else
+        {
             if (IsMinus)
             {
                 GuiManagerScript.RealWorldAutoSaveInterval = 3600f;
             }
             else
             {
-                
+
             }
         }
 
         Start();
     }
 
-    public void GameTimeChange(bool IsMinus) {
+    public void GameTimeChange(bool IsMinus)
+    {
         long GameTimeInterval = GuiManagerScript.AutoSaveInterval;
         //1 year
         if (GameTimeInterval <= 365)
@@ -253,7 +271,8 @@ public class AutoSaveMenu : MonoBehaviour
             }
         }
         //more
-        else {
+        else
+        {
             if (IsMinus)
             {
                 GuiManagerScript.AutoSaveInterval = 365000000;

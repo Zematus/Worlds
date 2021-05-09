@@ -114,7 +114,6 @@ public class GuiManagerScript : MonoBehaviour
     public DialogPanelScript MainMenuDialogPanelScript;
     public DialogPanelScript OptionsDialogPanelScript;
     public DialogPanelScript ExceptionDialogPanelScript;
-    public SettingsDialogPanelScript SettingsDialogPanelScript;
     public ProgressDialogPanelScript ProgressDialogPanelScript;
     public ImageDialogPanelScript ActivityDialogPanelScript;
     public DialogPanelScript ErrorMessageDialogPanelScript;
@@ -1351,7 +1350,7 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    private void MenuUninterruptSimulationInternal()
+    public void UninterruptSimAndShowHiddenInterPanels()
     {
         MenuUninterruptSimulation();
 
@@ -1362,48 +1361,26 @@ public class GuiManagerScript : MonoBehaviour
     {
         MainMenuDialogPanelScript.SetVisible(false);
 
-        MenuUninterruptSimulationInternal();
-    }
-
-    public void CloseSettingsDialog()
-    {
-        SettingsDialogPanelScript.SetVisible(false);
-
-        MenuUninterruptSimulationInternal();
+        UninterruptSimAndShowHiddenInterPanels();
     }
 
     public void CloseCreditsDialog()
     {
         CreditsDialogPanelScript.SetVisible(false);
 
-        MenuUninterruptSimulationInternal();
+        UninterruptSimAndShowHiddenInterPanels();
     }
 
     public void CloseOptionsMenu()
     {
         OptionsDialogPanelScript.SetVisible(false);
 
-        MenuUninterruptSimulationInternal();
+        UninterruptSimAndShowHiddenInterPanels();
     }
 
     public void Exit()
     {
         Application.Quit();
-    }
-
-    public void OpenSettingsDialog()
-    {
-        MainMenuDialogPanelScript.SetVisible(false);
-
-        SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
-        SettingsDialogPanelScript.UIScalingToggle.isOn = Manager.UIScalingEnabled;
-        SettingsDialogPanelScript.AnimationShadersToggle.isOn = Manager.AnimationShadersEnabled;
-
-        SettingsDialogPanelScript.RefreshDevButtonText();
-
-        SettingsDialogPanelScript.SetVisible(true);
-
-        InterruptSimulation(true);
     }
 
     public void OpenCreditsDialog()
@@ -1454,8 +1431,6 @@ public class GuiManagerScript : MonoBehaviour
         }
 
         Manager.CurrentDevMode = nextDevMode;
-
-        SettingsDialogPanelScript.RefreshDevButtonText();
 
         if (nextDevMode != DevMode.None)
         {
@@ -1739,7 +1714,7 @@ public class GuiManagerScript : MonoBehaviour
 
         Manager.GenerateRandomHumanGroup(population);
 
-        MenuUninterruptSimulationInternal();
+        UninterruptSimAndShowHiddenInterPanels();
 
         DisplayTip_MapScroll();
     }
@@ -1798,7 +1773,7 @@ public class GuiManagerScript : MonoBehaviour
 
         if (AddPopulationGroupAtPosition(mapPosition, population))
         {
-            MenuUninterruptSimulationInternal();
+            UninterruptSimAndShowHiddenInterPanels();
 
             DisplayTip_MapScroll();
 
@@ -2314,7 +2289,7 @@ public class GuiManagerScript : MonoBehaviour
         }
         else
         {
-            MenuUninterruptSimulationInternal();
+            UninterruptSimAndShowHiddenInterPanels();
 
             SetSimulatorMode();
 
@@ -2418,7 +2393,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void CancelLoadAction()
     {
-        MenuUninterruptSimulationInternal();
+        UninterruptSimAndShowHiddenInterPanels();
     }
 
     public void LoadWorld()
@@ -3391,7 +3366,7 @@ public class GuiManagerScript : MonoBehaviour
             Manager.SetGuidedFaction(faction);
         }
 
-        MenuUninterruptSimulationInternal();
+        UninterruptSimAndShowHiddenInterPanels();
     }
 
     public void StopGuidingFaction()
@@ -3403,7 +3378,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         SelectFactionDialogPanelScript.SetVisible(false);
 
-        MenuUninterruptSimulationInternal();
+        UninterruptSimAndShowHiddenInterPanels();
     }
 
     public void SetPlayerFocusOnPolity()
