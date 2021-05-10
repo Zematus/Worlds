@@ -15,7 +15,6 @@ public class StartGuiManagerScript : MonoBehaviour
     public ProgressDialogPanelScript ProgressDialogPanelScript;
     public DialogPanelScript MessageDialogPanelScript;
     public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
-    public ModalPanelScript CreditsDialogPanelScript;
 
     public Text VersionText;
 
@@ -338,22 +337,6 @@ public class StartGuiManagerScript : MonoBehaviour
         {
             CanvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
         }
-    }
-
-    /// <summary>Opens the credits dialog.</summary>
-    public void OpenCreditsDialog()
-    {
-        MainMenuDialogPanelScript.SetVisible(false);
-
-        CreditsDialogPanelScript.SetVisible(true);
-    }
-
-    /// <summary>Closes the credits dialog.</summary>
-    public void CloseCreditsDialog()
-    {
-        CreditsDialogPanelScript.SetVisible(false);
-
-        MainMenuDialogPanelScript.SetVisible(true);
     }
 
     /// <summary>Closes the seed error message action.</summary>

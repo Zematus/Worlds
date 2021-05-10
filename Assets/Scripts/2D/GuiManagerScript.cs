@@ -124,7 +124,6 @@ public class GuiManagerScript : MonoBehaviour
     public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
     public AddPopulationDialogScript AddPopulationDialogScript;
     public FocusPanelScript FocusPanelScript;
-    public ModalPanelScript CreditsDialogPanelScript;
 
     public PaletteScript BiomePaletteScript;
     public PaletteScript MapPaletteScript;
@@ -994,7 +993,7 @@ public class GuiManagerScript : MonoBehaviour
             return;
         }
 
-        Manager.HandleKeyUp(KeyCode.Escape, false, false, HandleEscapeOp);
+        Manager.HandleKeyUp(KeyCode.Escape, false, false, HandleEscapeOp, false);
     }
 
     public void ToogleFullscreen()
@@ -1368,13 +1367,6 @@ public class GuiManagerScript : MonoBehaviour
         UninterruptSimAndShowHiddenInterPanels();
     }
 
-    public void CloseCreditsDialog()
-    {
-        CreditsDialogPanelScript.SetVisible(false);
-
-        UninterruptSimAndShowHiddenInterPanels();
-    }
-
     public void CloseOptionsMenu()
     {
         OptionsDialogPanelScript.SetVisible(false);
@@ -1385,15 +1377,6 @@ public class GuiManagerScript : MonoBehaviour
     public void Exit()
     {
         Application.Quit();
-    }
-
-    public void OpenCreditsDialog()
-    {
-        MainMenuDialogPanelScript.SetVisible(false);
-
-        CreditsDialogPanelScript.SetVisible(true);
-
-        InterruptSimulation(true);
     }
 
     public void SetFullscreen(bool state)

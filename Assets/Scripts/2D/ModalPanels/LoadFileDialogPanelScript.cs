@@ -38,7 +38,7 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
     private void ReadKeyboardInput()
     {
-        Manager.HandleKeyUp(KeyCode.Escape, false, false, CancelButton.onClick.Invoke);
+        Manager.HandleKeyUp(KeyCode.Escape, false, false, CancelButton.onClick.Invoke, false);
     }
 
     public string GetPathToLoad()

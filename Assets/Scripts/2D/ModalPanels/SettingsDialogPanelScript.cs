@@ -3,7 +3,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 
-public class SettingsDialogPanelScript : DialogPanelScript
+public class SettingsDialogPanelScript : MenuPanelScript
 {
     public Toggle FullscreenToggle;
     public Toggle UIScalingToggle;

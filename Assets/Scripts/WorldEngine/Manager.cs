@@ -402,7 +402,7 @@ public class Manager
         Tribe.GenerateTribeNounVariations();
     }
 
-    private static bool CanHandleKeyInput(bool requireCtrl, bool requireShift)
+    private static bool CanHandleKeyInput(bool requireCtrl, bool requireShift, bool canDisable)
     {
         if (requireCtrl != (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
             return false;
@@ -410,7 +410,7 @@ public class Manager
         if (requireShift != (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
             return false;
 
-        if (DisableShortcuts)
+        if (canDisable && DisableShortcuts)
             return false;
 
         return true;
@@ -421,34 +421,37 @@ public class Manager
         _simulationStep = state;
     }
 
-    public static void HandleKeyUp(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)
+    public static void HandleKeyUp(
+        KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action, bool canDisable = true)
     {
         if (!Input.GetKeyUp(keyCode))
             return;
 
-        if (!CanHandleKeyInput(requireCtrl, requireShift))
+        if (!CanHandleKeyInput(requireCtrl, requireShift, canDisable))
             return;
 
         action.Invoke();
     }
 
-    public static void HandleKey(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)
+    public static void HandleKey(
+        KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action, bool canDisable = true)
     {
         if (!Input.GetKey(keyCode))
             return;
 
-        if (!CanHandleKeyInput(requireCtrl, requireShift))
+        if (!CanHandleKeyInput(requireCtrl, requireShift, canDisable))
             return;
 
         action.Invoke();
     }
 
-    public static void HandleKeyDown(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)
+    public static void HandleKeyDown(
+        KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action, bool canDisable = true)
     {
         if (!Input.GetKeyDown(keyCode))
             return;
 
-        if (!CanHandleKeyInput(requireCtrl, requireShift))
+        if (!CanHandleKeyInput(requireCtrl, requireShift, canDisable))
             return;
 
         action.Invoke();

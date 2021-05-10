@@ -67,7 +67,7 @@ public class AddPopulationDialogScript : ModalPanelScript
     /// <summary>Handles keyboard shortcuts for this dialog.</summary>
     private void ReadKeyboardInput()
     {
-        Manager.HandleKeyUp(KeyCode.Escape, false, false, CancelOperation);
+        Manager.HandleKeyUp(KeyCode.Escape, false, false, CancelOperation, false);
     }
 
     /// <summary>
