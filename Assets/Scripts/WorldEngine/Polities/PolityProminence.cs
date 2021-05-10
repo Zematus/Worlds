@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class PolityProminence// : IKeyedValue<Identifier>
+public class PolityProminence // : IKeyedValue<Identifier>
 {
     public const float MaxCoreDistance = 1000000000000f;
 
@@ -16,10 +16,38 @@ public class PolityProminence// : IKeyedValue<Identifier>
     [XmlAttribute("PD")]
     public float PolityCoreDistance = -1;
 
+    #region ClosestFactionId
+    [XmlAttribute("CFId")]
+    public string ClosestFactionIdStr
+    {
+        get { return ClosestFactionId; }
+        set { ClosestFactionId = value; }
+    }
+    [XmlIgnore]
     public Identifier ClosestFactionId;
+    #endregion
+
+    #region PolityId
+    [XmlAttribute("PId")]
+    public string PolityIdStr
+    {
+        get { return PolityId; }
+        set { PolityId = value; }
+    }
+    [XmlIgnore]
     public Identifier PolityId;
+    #endregion
 
     public Identifier Id => Group.Id;
+
+#if DEBUG
+    [XmlIgnore]
+    public long LastCoreDistanceSet = -1;
+    [XmlIgnore]
+    public long PrevCoreDistanceSet = -1;
+    [XmlIgnore]
+    public long LastCoreDistanceReset = -1;
+#endif
 
     [XmlIgnore]
     public PolityProminenceCluster Cluster = null;
@@ -31,6 +59,8 @@ public class PolityProminence// : IKeyedValue<Identifier>
 
     [XmlIgnore]
     public CellGroup Group;
+    [XmlIgnore]
+    public World World;
 
     [XmlIgnore]
     public float AdministrativeCost
@@ -66,6 +96,7 @@ public class PolityProminence// : IKeyedValue<Identifier>
     public PolityProminence(CellGroup group, Polity polity, float initialValue = 0)
     {
         Group = group;
+        World = group.World;
         Polity = polity;
         PolityId = polity.Id;
         Value = initialValue;
@@ -78,10 +109,12 @@ public class PolityProminence// : IKeyedValue<Identifier>
     {
         get
         {
-            foreach (KeyValuePair<Direction, CellGroup> pair in Group.Neighbors)
+            foreach (var pair in Group.Neighbors)
             {
                 if (pair.Value.TryGetPolityProminence(Polity, out PolityProminence p))
+                {
                     yield return new KeyValuePair<Direction, PolityProminence>(pair.Key, p);
+                }
             }
         }
     }
@@ -106,6 +139,11 @@ public class PolityProminence// : IKeyedValue<Identifier>
             PolityCoreDistance = newPolityCoreDistance;
             ClosestFaction = closestFaction;
             ClosestFactionId = closestFaction.Id;
+
+#if DEBUG
+            PrevCoreDistanceSet = LastCoreDistanceSet;
+            LastCoreDistanceSet = Manager.CurrentWorld.CurrentDate;
+#endif
 
             if (FactionCoreDistance == -1)
             {
@@ -298,7 +336,8 @@ public class PolityProminence// : IKeyedValue<Identifier>
     /// <param name="minFactionDistance">the min distance at which to stop reseting distances</param>
     public void ResetCoreDistances(
         Identifier idFactionBeingReset = null,
-        float minFactionDistance = float.MaxValue)
+        float minFactionDistance = float.MaxValue,
+        bool addToRecalcs = false)
     {
         if (idFactionBeingReset == null)
         {
@@ -325,9 +364,13 @@ public class PolityProminence// : IKeyedValue<Identifier>
             prom.ClosestFaction = Polity.DominantFaction;
             prom.ClosestFactionId = Polity.DominantFactionId;
 
+#if DEBUG
+            prom.LastCoreDistanceReset = Manager.CurrentWorld.CurrentDate;
+#endif
+
             bool isExpansionLimit = false;
 
-            foreach (KeyValuePair<Direction, PolityProminence> pair in NeighborProminences)
+            foreach (var pair in prom.NeighborProminences)
             {
                 PolityProminence nProm = pair.Value;
 
@@ -354,6 +397,11 @@ public class PolityProminence// : IKeyedValue<Identifier>
             {
                 Polity.World.AddPromToCalculateCoreDistFor(prom);
             }
+        }
+
+        if (addToRecalcs)
+        {
+            Polity.World.AddPromToCalculateCoreDistFor(this);
         }
     }
 

@@ -258,16 +258,6 @@ public class TestFaction : Faction
     {
         throw new NotImplementedException();
     }
-
-    protected override void UpdateInternal()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override float GetGroupWeight(CellGroup group)
-    {
-        return 1;
-    }
 }
 
 public class TestCellRegion : CellRegion

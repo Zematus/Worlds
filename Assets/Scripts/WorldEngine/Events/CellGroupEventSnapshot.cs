@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 public class CellGroupEventSnapshot : WorldEventSnapshot
 {
     public Identifier GroupId;
+
     public CellGroupSnapshot GroupSnapshot;
 
     public CellGroupEventSnapshot(CellGroupEvent e) : base(e)

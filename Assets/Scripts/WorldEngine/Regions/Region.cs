@@ -77,15 +77,23 @@ public abstract class Region : ISynchronizable, ICellCollectionGetter
     [XmlIgnore]
     public HashSet<Region> NeighborRegions = new HashSet<Region>();
 
+    [XmlIgnore]
     public Identifier Id => Info.Id;
 
+    [XmlIgnore]
     public Name Name => Info.Name;
 
+    [XmlIgnore]
     public Dictionary<string, RegionAttribute.Instance> Attributes => Info.Attributes;
 
+    [XmlIgnore]
     public virtual List<Element.Instance> Elements => Info.Elements;
 
+    [XmlIgnore]
     public World World => Info.World;
+
+    [XmlIgnore]
+    public int Rank => Info.Rank;
 
     protected Dictionary<string, float> _biomePresences;
 
@@ -96,9 +104,9 @@ public abstract class Region : ISynchronizable, ICellCollectionGetter
 
     }
 
-    public Region(TerrainCell originCell, long idOffset, Language language)
+    public Region(TerrainCell originCell, int rank, Language language)
     {
-        Info = new RegionInfo(this, originCell, idOffset, language);
+        Info = new RegionInfo(this, originCell, rank, language);
     }
 
     public static void SetAsNeighbors(Region r1, Region r2)

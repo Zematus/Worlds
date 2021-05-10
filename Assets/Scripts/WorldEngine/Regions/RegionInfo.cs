@@ -3,9 +3,21 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.Linq;
 
-public class RegionInfo : Identifiable
+public class RegionInfo : Identifiable, ISynchronizable
 {
+    #region LanguageId
+    [XmlAttribute("LId")]
+    public string LanguageIdStr
+    {
+        get { return LanguageId; }
+        set { LanguageId = value; }
+    }
+    [XmlIgnore]
     public Identifier LanguageId;
+    #endregion
+
+    [XmlAttribute("R")]
+    public int Rank;
 
     public Region Region;
 
@@ -60,12 +72,14 @@ public class RegionInfo : Identifiable
     public RegionInfo(
         Region region,
         TerrainCell originCell,
-        long idOffset,
+        int rank,
         Language language)
     {
         World = originCell.World;
 
-        Init(World.CurrentDate, originCell.GenerateInitId(idOffset));
+        Rank = rank;
+
+        Init(World.CurrentDate, originCell.GenerateInitId(rank));
 
         Region = region;
 
@@ -74,6 +88,14 @@ public class RegionInfo : Identifiable
 
         Language = language;
         LanguageId = language.Id;
+
+        if (World.GetRegionInfo(Id) != null)
+        {
+            throw new System.Exception(
+                "RegionInfo with Id " + Id + " already present");
+        }
+
+        World.AddRegionInfo(this);
     }
 
     public void AddAttribute(RegionAttribute.Instance attribute)
@@ -95,16 +117,14 @@ public class RegionInfo : Identifiable
         Elements.Add(element);
     }
 
-    public override void Synchronize()
+    public void Synchronize()
     {
         if (Region != null)
             Region.Synchronize();
     }
 
-    public override void FinalizeLoad()
+    public void FinalizeLoad()
     {
-        base.FinalizeLoad();
-
         OriginCell = World.GetCell(OriginCellPosition);
 
         Language = World.GetLanguage(LanguageId);

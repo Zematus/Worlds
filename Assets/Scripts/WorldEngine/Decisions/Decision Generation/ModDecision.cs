@@ -11,11 +11,7 @@ public class ModDecision : Context
 
     public readonly FactionEntity Target;
 
-    private Faction _targetFaction;
-
     private Entity[] _parameterEntities;
-
-    private IBaseValueExpression[] _parameterValues;
 
     public static Dictionary<string, ModDecision> Decisions;
 
@@ -97,19 +93,18 @@ public class ModDecision : Context
 
     public override int GetBaseOffset() => Target.Faction.GetHashCode();
 
-    public void Set(IEffectTrigger trigger, Context sourceContext, string triggerPrio, Faction targetFaction, IBaseValueExpression[] parameterValues)
+    public void Set(
+        IEffectTrigger trigger,
+        Context sourceContext,
+        string triggerPrio,
+        Faction targetFaction,
+        IBaseValueExpression[] parameterValues)
     {
-        Trigger = trigger;
-        SourceContext = sourceContext;
+        var initializer =
+            new ModDecisionData(
+                this, trigger, sourceContext, targetFaction, parameterValues);
 
-        _targetFaction = targetFaction;
-        _parameterValues = parameterValues;
-
-        // Uncomment this line to test the decision dialog
-        //Manager.SetGuidedFaction(targetFaction);
-
-        targetFaction.CoreGroup.SetToUpdate();
-        targetFaction.World.AddDecisionToResolve(this, triggerPrio);
+        targetFaction.World.AddDecisionToResolve(initializer, triggerPrio);
     }
 
     public override void Reset()
@@ -127,39 +122,55 @@ public class ModDecision : Context
         }
     }
 
-    public void InitEvaluation()
+    public void InitEvaluation(ModDecisionData initializer)
     {
+//#if DEBUG
+//        if (Id == "clan_decide_split")
+//        {
+//            // This line will force the decision dialog to be displayed and
+//            // evaluated by the player when debugging
+//            Manager.SetGuidedFaction(initializer.TargetFaction);
+//        }
+//#endif
+
         Reset();
 
-        Target.Set(_targetFaction);
+        Trigger = initializer.Trigger;
+        SourceContext = initializer.SourceContext;
+
+        initializer.TargetFaction.CoreGroup.SetToUpdate();
+
+        Target.Set(initializer.TargetFaction);
 
         if (_parameterEntities == null) // we are expecting no parameters
         {
             return;
         }
 
-        if (_parameterValues == null)
+        var parameterValues = initializer.ParameterValues;
+
+        if (parameterValues == null)
         {
             throw new System.Exception(
                 "No parameters given to decision '" + Id + "' when expected " + _parameterEntities.Length);
         }
 
-        if (_parameterValues.Length < _parameterEntities.Length)
+        if (parameterValues.Length < _parameterEntities.Length)
         {
             throw new System.Exception(
                 "Number of parameters given to decision '" + Id +
-                "', " + _parameterValues.Length + ", below minimum expected " + _parameterEntities.Length);
+                "', " + parameterValues.Length + ", below minimum expected " + _parameterEntities.Length);
         }
 
         OpenDebugOutput("Setting Decision Parameters:");
 
         for (int i = 0; i < _parameterEntities.Length; i++)
         {
-            AddExpDebugOutput("Parameter '" + _parameterEntities[i].Id + "'", _parameterValues[i]);
+            AddExpDebugOutput("Parameter '" + _parameterEntities[i].Id + "'", parameterValues[i]);
 
             _parameterEntities[i].Set(
-                _parameterValues[i].ValueObject,
-                _parameterValues[i].ToPartiallyEvaluatedString);
+                parameterValues[i].ValueObject,
+                parameterValues[i].ToPartiallyEvaluatedString);
         }
 
         CloseDebugOutput();

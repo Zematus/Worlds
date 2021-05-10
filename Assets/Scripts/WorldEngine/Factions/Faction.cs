@@ -39,7 +39,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         }
     }
 
-    [XmlAttribute("StilPres")]
+    [XmlAttribute("SP")]
     public bool StillPresent = true;
 
     [XmlAttribute("IsDom")]
@@ -54,8 +54,27 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlAttribute("IsCon")]
     public bool IsUnderPlayerGuidance = false;
 
+    #region PolityId
+    [XmlAttribute("PId")]
+    public string PolityIdStr
+    {
+        get { return PolityId; }
+        set { PolityId = value; }
+    }
+    [XmlIgnore]
     public Identifier PolityId;
+    #endregion
+
+    #region CoreGroupId
+    [XmlAttribute("CGId")]
+    public string CoreGroupIdStr
+    {
+        get { return CoreGroupId; }
+        set { CoreGroupId = value; }
+    }
+    [XmlIgnore]
     public Identifier CoreGroupId;
+    #endregion
 
     [XmlIgnore]
     public bool HasBeenUpdated = false;
@@ -99,24 +118,20 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlIgnore]
     public bool BeingRemoved = false;
 
+    [XmlIgnore]
     public string Type => Info.Type;
 
+    [XmlIgnore]
     public Identifier Id => Info.Id;
 
+    [XmlIgnore]
     public long FormationDate => Info.FormationDate;
 
+    [XmlIgnore]
     public Name Name => Info.Name;
 
+    [XmlIgnore]
     public long CurrentDate => World.CurrentDate;
-
-    [Obsolete]
-    protected long _splitFactionEventId;
-    [Obsolete]
-    protected CellGroup _splitFactionCoreGroup;
-    [Obsolete]
-    protected float _splitFactionMinInfluence;
-    [Obsolete]
-    protected float _splitFactionMaxInfluence;
 
     protected Dictionary<Identifier, FactionRelationship> _relationships =
         new Dictionary<Identifier, FactionRelationship>();
@@ -183,16 +198,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
         _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
 
-        InitializeInternal();
-
         InitializeDefaultEvents();
 
         IsInitialized = true;
-    }
-
-    protected virtual void InitializeInternal()
-    {
-
     }
 
     protected abstract float CalculateAdministrativeLoad();
@@ -417,7 +425,13 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         if (newFactionCoreGroup == null)
         {
-            throw new Exception("_splitFactionCoreGroup is null - Faction Id: " + Id);
+            throw new Exception("newFactionCoreGroup is null - Faction Id: " + Id);
+        }
+
+        if (newFactionCoreGroup.FactionCores.Count > 0)
+        {
+            throw new Exception(
+                "newFactionCoreGroup has cores already - Group: " + newFactionCoreGroup.Id + ", Faction: " + Id);
         }
 
         float polityProminenceValue = newFactionCoreGroup.GetPolityProminenceValue(Polity);
@@ -540,8 +554,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         PreUpdate();
 
-        UpdateInternal();
-
         LastUpdateDate = World.CurrentDate;
 
         World.AddPolityToUpdate(Polity);
@@ -561,6 +573,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         NewCoreGroup = coreGroup;
     }
 
+    [System.Obsolete]
     public void MigrateToNewCoreGroup()
     {
         CoreGroup.RemoveFactionCore(this);
@@ -575,8 +588,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
             Polity.SetCoreGroup(CoreGroup);
         }
     }
-
-    protected abstract void UpdateInternal();
 
     public virtual void Synchronize()
     {
@@ -596,6 +607,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public virtual void FinalizeLoad()
     {
+        _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
+        _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
+
+        IsInitialized = true;
+
         Name.World = World;
         Name.FinalizeLoad();
 
@@ -636,7 +652,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public void AddEvent(FactionEvent factionEvent)
     {
         if (_events.ContainsKey(factionEvent.TypeId))
-            throw new System.Exception("Event of type " + factionEvent.TypeId + " already present");
+            throw new System.Exception("Faction event of type " + factionEvent.TypeId + " already present");
 
         _events.Add(factionEvent.TypeId, factionEvent);
         World.InsertEventToHappen(factionEvent);
@@ -702,21 +718,15 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         Polity.RemoveFaction(this);
 
+        var prom = CoreGroup.GetPolityProminence(Polity);
+
+        prom.ResetCoreDistances(addToRecalcs: true);
+
         Polity = targetPolity;
         PolityId = Polity.Id;
         Influence = targetInfluence;
 
         targetPolity.AddFaction(this);
-    }
-
-    public virtual bool ShouldMigrateFactionCore(CellGroup sourceGroup, CellGroup targetGroup)
-    {
-        return false;
-    }
-
-    public virtual bool ShouldMigrateFactionCore(CellGroup sourceGroup, TerrainCell targetCell, float targetProminence, int targetPopulation)
-    {
-        return false;
     }
 
     public void IncreasePreferenceValue(string id, float percentage)
@@ -751,13 +761,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
             return preference.Value;
 
         return 0;
-    }
-
-    public abstract float GetGroupWeight(CellGroup group);
-
-    public bool GroupCanBeCore(CellGroup group)
-    {
-        return GetGroupWeight(group) > 0;
     }
 
     public void SetFlag(string flag)

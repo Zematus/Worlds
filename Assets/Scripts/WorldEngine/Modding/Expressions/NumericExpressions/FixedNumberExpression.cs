@@ -9,7 +9,7 @@ public class FixedNumberExpression : FixedValueExpression<float>
 
     public static float ParseExpression(string numberStr)
     {
-        if (!float.TryParse(numberStr.Trim(), out float value))
+        if (!MathUtility.TryParseCultureInvariant(numberStr.Trim(), out float value))
         {
             throw new System.ArgumentException("Not a valid number: " + numberStr);
         }

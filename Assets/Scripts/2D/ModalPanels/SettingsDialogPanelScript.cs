@@ -3,7 +3,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 
-public class SettingsDialogPanelScript : DialogPanelScript
+public class SettingsDialogPanelScript : MenuPanelScript
 {
     public Toggle FullscreenToggle;
     public Toggle UIScalingToggle;
@@ -27,5 +27,19 @@ public class SettingsDialogPanelScript : DialogPanelScript
             default:
                 throw new System.Exception("Unhandled Dev Mode: " + Manager.CurrentDevMode);
         }
+    }
+
+    public override void SetVisible(bool state)
+    {
+        if (state)
+        {
+            FullscreenToggle.isOn = Manager.FullScreenEnabled;
+            UIScalingToggle.isOn = Manager.UIScalingEnabled;
+            AnimationShadersToggle.isOn = Manager.AnimationShadersEnabled;
+
+            RefreshDevButtonText();
+        }
+
+        base.SetVisible(state);
     }
 }

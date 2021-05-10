@@ -6,7 +6,16 @@ using System.Xml.Serialization;
 
 public class PolityEventData : WorldEventData
 {
+    #region OriginalDominantFactionId
+    [XmlAttribute("ODFId")]
+    public string OriginalDominantFactionIdStr
+    {
+        get { return OriginalDominantFactionId; }
+        set { OriginalDominantFactionId = value; }
+    }
+    [XmlIgnore]
     public Identifier OriginalDominantFactionId;
+    #endregion
 
     public PolityEventData()
     {

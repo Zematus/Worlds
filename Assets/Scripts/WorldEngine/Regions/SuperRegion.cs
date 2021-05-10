@@ -19,8 +19,8 @@ public class SuperRegion : Region
     }
 
     public SuperRegion(TerrainCell originCell, Region startSubRegion, Language language)
+        : base(originCell, startSubRegion.Rank + 1, language)
     {
-        Info = new RegionInfo(this, originCell, startSubRegion.GetHashCode(), language);
     }
 
     public void Add(Region subRegion)

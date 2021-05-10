@@ -9,7 +9,7 @@ public class CellArea : ISynchronizable
     public World World;
 
     [XmlIgnore]
-    public HashSet<TerrainCell> Cells;
+    public HashSet<TerrainCell> Cells = new HashSet<TerrainCell>();
 
     public void FinalizeLoad()
     {

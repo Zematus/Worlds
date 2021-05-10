@@ -4,7 +4,7 @@ using System.Xml.Serialization;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-public class PolityProminenceCluster : Identifiable
+public class PolityProminenceCluster : Identifiable, ISynchronizable
 {
     public const int MaxSize = 50;
     public const int MinSplitSize = 25;
@@ -20,6 +20,17 @@ public class PolityProminenceCluster : Identifiable
 
     [XmlAttribute("NC")]
     public bool NeedsNewCensus = true;
+
+    #region RegionId
+    [XmlAttribute("RId")]
+    public string RegionIdStr
+    {
+        get { return RegionId; }
+        set { RegionId = value; }
+    }
+    [XmlIgnore]
+    public Identifier RegionId;
+    #endregion
 
     public List<Identifier> ProminenceIds = null;
 
@@ -91,6 +102,7 @@ public class PolityProminenceCluster : Identifiable
         if (Region == null)
         {
             Region = prominence.Group.Cell.Region;
+            RegionId = Region.Id;
         }
 
         _prominences.Add(prominence.Id, prominence);
@@ -308,31 +320,32 @@ public class PolityProminenceCluster : Identifiable
         }
     }
 
-    public override void FinalizeLoad()
+    public void FinalizeLoad()
     {
-        base.FinalizeLoad();
-
         LoadProminences();
 
-        foreach (KeyValuePair<Identifier, PolityProminence> pair in _prominences)
+        foreach (var pair in _prominences)
         {
-            if (Region == null)
-            {
-                Region = pair.Value.Group.Cell.Region;
-            }
-
             PolityProminence p = pair.Value;
 
-            World world = Polity.World;
-
-            p.Group = world.GetGroup(pair.Key);
+            p.World = Polity.World;
+            p.Group = Polity.World.GetGroup(pair.Key);
             p.Polity = Polity;
             p.ClosestFaction = Polity.GetFaction(p.ClosestFactionId);
             p.Cluster = this;
+
+            if (p.ClosestFaction == null)
+            {
+                throw new System.Exception("Unable to find faction with id: " +
+                    p.ClosestFactionId + " in polity " + p.PolityId + ", group: " +
+                    p.Id);
+            }
         }
+
+        Region = Polity.World.GetRegionInfo(RegionId).Region;
     }
 
-    public override void Synchronize()
+    public void Synchronize()
     {
         ProminenceIds = new List<Identifier>(_prominences.Keys);
 

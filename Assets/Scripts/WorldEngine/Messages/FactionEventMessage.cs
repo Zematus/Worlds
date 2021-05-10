@@ -6,7 +6,16 @@ using System.Xml.Serialization;
 
 public abstract class FactionEventMessage : CellEventMessage
 {
+    #region FactionId
+    [XmlAttribute("FId")]
+    public string FactionIdStr
+    {
+        get { return FactionId; }
+        set { FactionId = value; }
+    }
+    [XmlIgnore]
     public Identifier FactionId;
+    #endregion
 
     [XmlIgnore]
     public FactionInfo FactionInfo

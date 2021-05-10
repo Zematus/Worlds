@@ -22,6 +22,76 @@ public class GuiManagerScript : MonoBehaviour
 
     public const float MaxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
 
+    private float LastRealTime = -1;
+    private long LastDaySave = -1;
+
+    bool MustSave
+    {
+        get
+        {
+            //Quick exit
+            if (Manager.AutoSaveMode == AutoSaveMode.Deactivate)
+            {
+                return false;
+            }
+            //Initialise var
+            if (LastDaySave == -1)
+            {
+                LastDaySave = Manager.CurrentWorld.CurrentDate;
+            }
+            if (LastRealTime == -1)
+            {
+                LastRealTime = Time.realtimeSinceStartup;
+            }
+            //return answer
+            bool RealTimeCondition = true;
+            if (Manager.AutoSaveMode != AutoSaveMode.OnGameTime)
+            {
+                if (Time.realtimeSinceStartup < LastRealTime + Manager.RealWorldAutoSaveInterval)
+                {
+                    RealTimeCondition = false;
+                }
+            }
+            bool GameTimeCondition = true;
+            if (Manager.AutoSaveMode != AutoSaveMode.OnRealWorldTime)
+            {
+                if (Manager.CurrentWorld.CurrentDate < (LastDaySave + Manager.AutoSaveInterval))
+                {
+                    GameTimeCondition = false;
+                }
+            }
+            bool FinalTest = false;
+            if (RealTimeCondition == true && GameTimeCondition == true)
+            {
+                FinalTest = true;
+            }
+            else if (RealTimeCondition == true || GameTimeCondition == true)
+            {
+                if (Manager.AutoSaveMode == AutoSaveMode.OnRealWorldOrGameTime)
+                {
+                    FinalTest = true;
+                }
+            }
+
+            if (FinalTest == true)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+    public void OnAutoSave()
+    {
+        LastDaySave = Manager.CurrentWorld.CurrentDate;
+        LastRealTime = Time.realtimeSinceStartup;
+        SaveFileDialogPanelScript.SetText("AutoSave");
+        SaveAction();
+    }
+
     public CanvasScaler CanvasScaler;
 
     public Button LoadButton;
@@ -47,14 +117,12 @@ public class GuiManagerScript : MonoBehaviour
     public DialogPanelScript MainMenuDialogPanelScript;
     public DialogPanelScript OptionsDialogPanelScript;
     public DialogPanelScript ExceptionDialogPanelScript;
-    public SettingsDialogPanelScript SettingsDialogPanelScript;
     public ProgressDialogPanelScript ProgressDialogPanelScript;
     public ImageDialogPanelScript ActivityDialogPanelScript;
     public DialogPanelScript ErrorMessageDialogPanelScript;
     public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
     public AddPopulationDialogScript AddPopulationDialogScript;
     public FocusPanelScript FocusPanelScript;
-    public ModalPanelScript CreditsDialogPanelScript;
 
     public PaletteScript BiomePaletteScript;
     public PaletteScript MapPaletteScript;
@@ -425,7 +493,13 @@ public class GuiManagerScript : MonoBehaviour
             //GenerateWorld(false, 1253572363);
             //GenerateWorld(false, 403265427);
             //GenerateWorld(false, 70275341);
-            GenerateWorld(false, 1788979703);
+            //GenerateWorld(false, 1788979703);
+            //GenerateWorld(false, 405241319);
+            //GenerateWorld(false, 2139853335);
+            //GenerateWorld(false, 1119291416);
+            //GenerateWorld(false, 2028655149);
+            //GenerateWorld(false, 1963172103);
+            GenerateWorld(false, 283647159);
         }
         else
         {
@@ -652,6 +726,11 @@ public class GuiManagerScript : MonoBehaviour
             }
 
             Profiler.EndSample();
+
+            if (MustSave)
+            {
+                OnAutoSave();
+            }
         }
 
         ExecuteMapHoverOps();
@@ -913,7 +992,7 @@ public class GuiManagerScript : MonoBehaviour
             return;
         }
 
-        Manager.HandleKeyUp(KeyCode.Escape, false, false, HandleEscapeOp);
+        Manager.HandleKeyUp(KeyCode.Escape, false, false, HandleEscapeOp, false);
     }
 
     public void ToogleFullscreen()
@@ -1273,7 +1352,7 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    private void MenuUninterruptSimulationInternal()
+    public void UninterruptSimAndShowHiddenInterPanels()
     {
         MenuUninterruptSimulation();
 
@@ -1284,57 +1363,19 @@ public class GuiManagerScript : MonoBehaviour
     {
         MainMenuDialogPanelScript.SetVisible(false);
 
-        MenuUninterruptSimulationInternal();
-    }
-
-    public void CloseSettingsDialog()
-    {
-        SettingsDialogPanelScript.SetVisible(false);
-
-        MenuUninterruptSimulationInternal();
-    }
-
-    public void CloseCreditsDialog()
-    {
-        CreditsDialogPanelScript.SetVisible(false);
-
-        MenuUninterruptSimulationInternal();
+        UninterruptSimAndShowHiddenInterPanels();
     }
 
     public void CloseOptionsMenu()
     {
         OptionsDialogPanelScript.SetVisible(false);
 
-        MenuUninterruptSimulationInternal();
+        UninterruptSimAndShowHiddenInterPanels();
     }
 
     public void Exit()
     {
         Application.Quit();
-    }
-
-    public void OpenSettingsDialog()
-    {
-        MainMenuDialogPanelScript.SetVisible(false);
-
-        SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
-        SettingsDialogPanelScript.UIScalingToggle.isOn = Manager.UIScalingEnabled;
-        SettingsDialogPanelScript.AnimationShadersToggle.isOn = Manager.AnimationShadersEnabled;
-
-        SettingsDialogPanelScript.RefreshDevButtonText();
-
-        SettingsDialogPanelScript.SetVisible(true);
-
-        InterruptSimulation(true);
-    }
-
-    public void OpenCreditsDialog()
-    {
-        MainMenuDialogPanelScript.SetVisible(false);
-
-        CreditsDialogPanelScript.SetVisible(true);
-
-        InterruptSimulation(true);
     }
 
     public void SetFullscreen(bool state)
@@ -1376,8 +1417,6 @@ public class GuiManagerScript : MonoBehaviour
         }
 
         Manager.CurrentDevMode = nextDevMode;
-
-        SettingsDialogPanelScript.RefreshDevButtonText();
 
         if (nextDevMode != DevMode.None)
         {
@@ -1661,7 +1700,7 @@ public class GuiManagerScript : MonoBehaviour
 
         Manager.GenerateRandomHumanGroup(population);
 
-        MenuUninterruptSimulationInternal();
+        UninterruptSimAndShowHiddenInterPanels();
 
         DisplayTip_MapScroll();
     }
@@ -1720,7 +1759,7 @@ public class GuiManagerScript : MonoBehaviour
 
         if (AddPopulationGroupAtPosition(mapPosition, population))
         {
-            MenuUninterruptSimulationInternal();
+            UninterruptSimAndShowHiddenInterPanels();
 
             DisplayTip_MapScroll();
 
@@ -2236,7 +2275,7 @@ public class GuiManagerScript : MonoBehaviour
         }
         else
         {
-            MenuUninterruptSimulationInternal();
+            UninterruptSimAndShowHiddenInterPanels();
 
             SetSimulatorMode();
 
@@ -2340,7 +2379,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void CancelLoadAction()
     {
-        MenuUninterruptSimulationInternal();
+        UninterruptSimAndShowHiddenInterPanels();
     }
 
     public void LoadWorld()
@@ -2364,11 +2403,13 @@ public class GuiManagerScript : MonoBehaviour
     {
         while (Manager.CurrentWorld.HasModDecisionsToResolve())
         {
-            ModDecision decisionToResolve = Manager.CurrentWorld.PullModDecisionToResolve();
+            var initializer = Manager.CurrentWorld.PullModDecisionToResolve();
 
-            decisionToResolve.InitEvaluation();
+            var decisionToResolve = initializer.Decision;
 
-            Faction targetFaction = decisionToResolve.Target.Faction;
+            decisionToResolve.InitEvaluation(initializer);
+
+            Faction targetFaction = initializer.TargetFaction;
 
             if (targetFaction.IsUnderPlayerGuidance)
             {
@@ -3311,7 +3352,7 @@ public class GuiManagerScript : MonoBehaviour
             Manager.SetGuidedFaction(faction);
         }
 
-        MenuUninterruptSimulationInternal();
+        UninterruptSimAndShowHiddenInterPanels();
     }
 
     public void StopGuidingFaction()
@@ -3323,7 +3364,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         SelectFactionDialogPanelScript.SetVisible(false);
 
-        MenuUninterruptSimulationInternal();
+        UninterruptSimAndShowHiddenInterPanels();
     }
 
     public void SetPlayerFocusOnPolity()

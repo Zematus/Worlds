@@ -6,8 +6,27 @@ using System.Xml.Serialization;
 
 public abstract class FactionEvent : WorldEvent
 {
+    #region FactionId
+    [XmlAttribute("FId")]
+    public string FactionIdStr
+    {
+        get { return FactionId; }
+        set { FactionId = value; }
+    }
+    [XmlIgnore]
     public Identifier FactionId;
+    #endregion
+
+    #region OriginalPolityId
+    [XmlAttribute("OPId")]
+    public string OriginalPolityIdStr
+    {
+        get { return OriginalPolityId; }
+        set { OriginalPolityId = value; }
+    }
+    [XmlIgnore]
     public Identifier OriginalPolityId;
+    #endregion
 
     [XmlIgnore]
     public Faction Faction;

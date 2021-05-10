@@ -5,12 +5,32 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class PolityContact
+public class PolityContact : Identifiable, ISynchronizable
 {
-    public Identifier Id;
-
-    [XmlAttribute("GCount")]
+    [XmlAttribute("GC")]
     public int GroupCount;
+
+    #region NeighborPolityId
+    [XmlAttribute("NPId")]
+    public string NeighborPolityIdStr
+    {
+        get { return NeighborPolityId; }
+        set { NeighborPolityId = value; }
+    }
+    [XmlIgnore]
+    public Identifier NeighborPolityId;
+    #endregion
+
+    #region ThisPolityId
+    [XmlAttribute("TPId")]
+    public string ThisPolityIdStr
+    {
+        get { return ThisPolityId; }
+        set { ThisPolityId = value; }
+    }
+    [XmlIgnore]
+    public Identifier ThisPolityId;
+    #endregion
 
     [XmlIgnore]
     public Polity NeighborPolity;
@@ -19,26 +39,34 @@ public class PolityContact
     public Polity ThisPolity;
 
     [XmlIgnore]
+    public World World;
+
+    [XmlIgnore]
     public float Strength => _strength.Value;
 
-    private readonly DatedValue<float> _strength;
+    private DatedValue<float> _strength;
 
     public PolityContact()
     {
     }
 
     public PolityContact(
+        World world,
         Polity thisPolity,
         Polity neighborPolity,
-        int initialGroupCount = 0)
+        int initialGroupCount = 0) :
+        base(neighborPolity.Info)
     {
-        ThisPolity = thisPolity;
-        NeighborPolity = neighborPolity;
+        World = world;
 
-        Id = neighborPolity.Id;
+        ThisPolity = thisPolity;
+        ThisPolityId = ThisPolity.Id;
+
+        NeighborPolity = neighborPolity;
+        NeighborPolityId = neighborPolity.Id;
 
         _strength =
-            new DatedValue<float>(ThisPolity.World, CalculateStrength);
+            new DatedValue<float>(World, CalculateStrength);
 
         GroupCount = initialGroupCount;
     }
@@ -56,5 +84,18 @@ public class PolityContact
         }
 
         return GroupCount / minPolityGroupCount;
+    }
+
+    public void Synchronize()
+    {
+    }
+
+    public void FinalizeLoad()
+    {
+        ThisPolity = World.GetPolity(ThisPolityId);
+        NeighborPolity = World.GetPolity(NeighborPolityId);
+
+        _strength =
+            new DatedValue<float>(World, CalculateStrength);
     }
 }

@@ -81,9 +81,6 @@ public class World : ISynchronizable, IWorldDateGetter
         public int TriggerCount = 0;
     }
 
-    public Dictionary<string, EventEvalStats> EventEvalStatsPerType =
-        new Dictionary<string, EventEvalStats>();
-
     [XmlAttribute]
     public int Width { get; set; }
     [XmlAttribute]
@@ -146,7 +143,6 @@ public class World : ISynchronizable, IWorldDateGetter
     [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
         XmlArrayItem(Type = typeof(MigratePopulationEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
-        XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
         XmlArrayItem(Type = typeof(Discovery.DiscoveryEvent)),
         XmlArrayItem(Type = typeof(FactionModEvent)),
         XmlArrayItem(Type = typeof(CellGroupModEvent))]
@@ -175,6 +171,10 @@ public class World : ISynchronizable, IWorldDateGetter
     // End wonky segment
 
     public List<long> EventMessageIds;
+
+    [XmlIgnore]
+    public Dictionary<string, EventEvalStats> EventEvalStatsPerType =
+        new Dictionary<string, EventEvalStats>();
 
     [XmlIgnore]
     public int EventsToHappenCount { get; private set; }
@@ -332,11 +332,11 @@ public class World : ISynchronizable, IWorldDateGetter
     private Queue<WorldEventMessage> _eventMessagesToShow =
         new Queue<WorldEventMessage>();
 
-    private readonly Queue<ModDecision> _highPrioDecisionsToResolve =
-        new Queue<ModDecision>();
+    private readonly Queue<ModDecisionData> _highPrioDecisionsToResolve =
+        new Queue<ModDecisionData>();
 
-    private readonly Queue<ModDecision> _lowPrioDecisionsToResolve =
-        new Queue<ModDecision>();
+    private readonly Queue<ModDecisionData> _lowPrioDecisionsToResolve =
+        new Queue<ModDecisionData>();
 
     private ModAction _actionToExecute = null;
 
@@ -995,26 +995,10 @@ public class World : ISynchronizable, IWorldDateGetter
         _groupsToUpdate.Clear();
     }
 
-//#if DEBUG
-    //private struct PromDistDebugInfo
-    //{
-    //    public PolityProminence Prominence;
-    //    public float InitialDistance;
-    //    public int RecalcCount;
-    //}
-//#endif
-
     private void CalculateProminenceDistancesToCores()
     {
         Queue<PolityProminence> promsToCalculate = new Queue<PolityProminence>();
         HashSet<PolityProminence> promsToCalculateSet = new HashSet<PolityProminence>();
-
-//#if DEBUG
-        //Dictionary<Identifier, PromDistDebugInfo> calculatedProms =
-        //    new Dictionary<Identifier, PromDistDebugInfo>();
-
-        //bool debugPrint = false;
-//#endif
 
         foreach (PolityProminence polityProminence in _promsWithCoreDistToCalculate)
         {
@@ -1023,13 +1007,6 @@ public class World : ISynchronizable, IWorldDateGetter
 
             promsToCalculate.Enqueue(polityProminence);
             promsToCalculateSet.Add(polityProminence);
-
-            //#if DEBUG
-            //if (polityProminence.Group.Position.Equals(6, 144) ||
-            //    polityProminence.Group.Position.Equals(7, 143) ||
-            //    polityProminence.Group.Position.Equals(7, 144))
-            //    debugPrint = true;
-            //#endif
         }
 
         while (promsToCalculate.Count > 0)
@@ -1037,37 +1014,11 @@ public class World : ISynchronizable, IWorldDateGetter
             PolityProminence polityProminence = promsToCalculate.Dequeue();
             promsToCalculateSet.Remove(polityProminence);
 
-            //#if DEBUG
-            //if (calculatedProms.ContainsKey(polityProminence.Id))
-            //{
-            //    PromDistDebugInfo debugInfo = calculatedProms[polityProminence.Id];
-
-            //    debugInfo.RecalcCount++;
-
-            //    if (debugInfo.RecalcCount > 50)
-            //    {
-            //        throw new System.Exception(
-            //            "Prominence core distance has been recualculated too many times"
-            //            + ", possibly on a infinite loop. Group: " + polityProminence.Id
-            //            + ", initial faction core distance: " + debugInfo.InitialDistance
-            //            + ", recalculations: " + debugInfo.RecalcCount);
-            //    }
-            //}
-            //else
-            //{
-            //    calculatedProms.Add(polityProminence.Id, new PromDistDebugInfo()
-            //    {
-            //        Prominence = polityProminence,
-            //        InitialDistance = polityProminence.FactionCoreDistance,
-            //        RecalcCount = 0
-            //    });
-            //}
-            //#endif
-
             if (!polityProminence.CalculateNewCoreDistances())
                 continue;
 
-            float currentCoreFactionDist = polityProminence.FactionCoreDistance;
+            float currentFactionCoreDist = polityProminence.FactionCoreDistance;
+            float currentPolityCoreDist = polityProminence.PolityCoreDistance;
 
             foreach (KeyValuePair<Direction, PolityProminence> pair in
                 polityProminence.NeighborProminences)
@@ -1075,19 +1026,14 @@ public class World : ISynchronizable, IWorldDateGetter
                 if (promsToCalculateSet.Contains(pair.Value))
                     continue;
 
-                if (pair.Value.FactionCoreDistance <= currentCoreFactionDist)
+                if ((pair.Value.FactionCoreDistance <= currentFactionCoreDist) &&
+                    (pair.Value.PolityCoreDistance <= currentPolityCoreDist))
                     continue;
 
                 promsToCalculate.Enqueue(pair.Value);
                 promsToCalculateSet.Add(pair.Value);
             }
         }
-
-        //#if DEBUG
-        //if (debugPrint)
-        //{
-        //}
-        //#endif
 
         _promsWithCoreDistToCalculate.Clear();
     }
@@ -2117,20 +2063,20 @@ public class World : ISynchronizable, IWorldDateGetter
         _territoriesToUpdate.Add(territory);
     }
 
-    public void AddDecisionToResolve(ModDecision decision, string triggerPrio)
+    public void AddDecisionToResolve(ModDecisionData initializer, string triggerPrio)
     {
         switch (triggerPrio)
         {
             case DecisionTriggerPriority.Decision:
-                _highPrioDecisionsToResolve.Enqueue(decision);
+                _highPrioDecisionsToResolve.Enqueue(initializer);
                 break;
 
             case DecisionTriggerPriority.Action:
-                _lowPrioDecisionsToResolve.Enqueue(decision);
+                _lowPrioDecisionsToResolve.Enqueue(initializer);
                 break;
 
             case DecisionTriggerPriority.Event:
-                _lowPrioDecisionsToResolve.Enqueue(decision);
+                _lowPrioDecisionsToResolve.Enqueue(initializer);
                 break;
         }
     }
@@ -2157,7 +2103,7 @@ public class World : ISynchronizable, IWorldDateGetter
         return _effectsToResolve.Count > 0;
     }
 
-    public ModDecision PullModDecisionToResolve()
+    public ModDecisionData PullModDecisionToResolve()
     {
         if (_highPrioDecisionsToResolve.Count > 0)
             return _highPrioDecisionsToResolve.Dequeue();

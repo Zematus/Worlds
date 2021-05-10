@@ -6,8 +6,27 @@ using System.Xml.Serialization;
 
 public class TribeSplitEventMessage : FactionEventMessage
 {
+    #region TribeId
+    [XmlAttribute("TId")]
+    public string TribeIdStr
+    {
+        get { return TribeId; }
+        set { TribeId = value; }
+    }
+    [XmlIgnore]
     public Identifier TribeId;
+    #endregion
+
+    #region NewTribeId
+    [XmlAttribute("NTId")]
+    public string NewTribeIdStr
+    {
+        get { return NewTribeId; }
+        set { NewTribeId = value; }
+    }
+    [XmlIgnore]
     public Identifier NewTribeId;
+    #endregion
 
     public TribeSplitEventMessage()
     {

@@ -12,7 +12,7 @@ using System.Xml.Serialization;
 // -- Strength
 using UnityEngine.Profiling;
 
-public class Agent : Identifiable
+public class Agent : Identifiable, ISynchronizable
 {
     [System.Obsolete] //TODO: attributes now should be values between 0 and 1 instead of max 30
     public const int MaxAttributeValue = 30;
@@ -37,14 +37,30 @@ public class Agent : Identifiable
     [XmlAttribute("Wis")]
     public int BaseWisdom;
 
-    [XmlAttribute("StilPres")]
+    [XmlAttribute("SP")]
     public bool StillPresent = true;
 
-    [XmlAttribute("LanId")]
+    #region LanguageId
+    [XmlAttribute("LId")]
+    public string LanguageIdStr
+    {
+        get { return LanguageId; }
+        set { LanguageId = value; }
+    }
+    [XmlIgnore]
     public Identifier LanguageId;
+    #endregion
 
-    [XmlAttribute("RenId")]
+    #region BirthRegionInfoId
+    [XmlAttribute("RId")]
+    public string BirthRegionInfoIdStr
+    {
+        get { return BirthRegionInfoId; }
+        set { BirthRegionInfoId = value; }
+    }
+    [XmlIgnore]
     public Identifier BirthRegionInfoId;
+    #endregion
 
     public WorldPosition BirthCellPosition;
 
@@ -76,8 +92,10 @@ public class Agent : Identifiable
         }
     }
 
+    [XmlIgnore]
     public long Age => World.CurrentDate - BirthDate;
 
+    [XmlIgnore]
     public int Charisma => BaseCharisma;
 
     [XmlIgnore]
@@ -270,10 +288,8 @@ public class Agent : Identifiable
         }
     }
 
-    public override void FinalizeLoad()
+    public void FinalizeLoad()
     {
-        base.FinalizeLoad();
-
         BirthRegionInfo = World.GetRegionInfo(BirthRegionInfoId);
 
         if (BirthRegionInfo == null)
@@ -296,7 +312,7 @@ public class Agent : Identifiable
         }
     }
 
-    public override void Synchronize()
+    public void Synchronize()
     {
     }
 

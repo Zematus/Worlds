@@ -104,6 +104,15 @@ public enum HighlightMode
     OnHovered = 0xC
 }
 
+public enum AutoSaveMode
+{
+    Deactivate,
+    OnRealWorldTime,
+    OnGameTime,
+    OnRealWorldOrGameTime,
+    OnRealWorldAndGameTime
+};
+
 public class Manager
 {
 #if DEBUG
@@ -112,6 +121,11 @@ public class Manager
     public static bool Debug_IsLoadedWorld = false;
 
     public static RegisterDebugEventDelegate RegisterDebugEvent = null;
+
+    //AutoSave variable and function
+    public static AutoSaveMode AutoSaveMode = AutoSaveMode.Deactivate;
+    public static float RealWorldAutoSaveInterval = 600f; //600f = every 10 minutes
+    public static long AutoSaveInterval = 365000000; //365000000 = every one millon year
 
     public class Debug_TracingData
     {
@@ -248,6 +262,9 @@ public class Manager
     public static Identifier Debug_IdentifierOfInterest2;
     public static Identifier Debug_IdentifierOfInterest3;
     public static Identifier Debug_IdentifierOfInterest4;
+
+    public static bool Debug_Flag1 = false;
+    public static bool Debug_Flag2 = false;
 #endif
 
     public static bool PerformingAsyncTask { get; private set; }
@@ -385,7 +402,7 @@ public class Manager
         Tribe.GenerateTribeNounVariations();
     }
 
-    private static bool CanHandleKeyInput(bool requireCtrl, bool requireShift)
+    private static bool CanHandleKeyInput(bool requireCtrl, bool requireShift, bool canDisable)
     {
         if (requireCtrl != (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
             return false;
@@ -393,7 +410,7 @@ public class Manager
         if (requireShift != (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
             return false;
 
-        if (DisableShortcuts)
+        if (canDisable && DisableShortcuts)
             return false;
 
         return true;
@@ -404,34 +421,37 @@ public class Manager
         _simulationStep = state;
     }
 
-    public static void HandleKeyUp(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)
+    public static void HandleKeyUp(
+        KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action, bool canDisable = true)
     {
         if (!Input.GetKeyUp(keyCode))
             return;
 
-        if (!CanHandleKeyInput(requireCtrl, requireShift))
+        if (!CanHandleKeyInput(requireCtrl, requireShift, canDisable))
             return;
 
         action.Invoke();
     }
 
-    public static void HandleKey(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)
+    public static void HandleKey(
+        KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action, bool canDisable = true)
     {
         if (!Input.GetKey(keyCode))
             return;
 
-        if (!CanHandleKeyInput(requireCtrl, requireShift))
+        if (!CanHandleKeyInput(requireCtrl, requireShift, canDisable))
             return;
 
         action.Invoke();
     }
 
-    public static void HandleKeyDown(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)
+    public static void HandleKeyDown(
+        KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action, bool canDisable = true)
     {
         if (!Input.GetKeyDown(keyCode))
             return;
 
-        if (!CanHandleKeyInput(requireCtrl, requireShift))
+        if (!CanHandleKeyInput(requireCtrl, requireShift, canDisable))
             return;
 
         action.Invoke();

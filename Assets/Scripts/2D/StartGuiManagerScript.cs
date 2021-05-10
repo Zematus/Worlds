@@ -12,11 +12,9 @@ public class StartGuiManagerScript : MonoBehaviour
     public LoadFileDialogPanelScript LoadFileDialogPanelScript;
     public DialogPanelScript MainMenuDialogPanelScript;
     public DialogPanelScript ExceptionDialogPanelScript;
-    public SettingsDialogPanelScript SettingsDialogPanelScript;
     public ProgressDialogPanelScript ProgressDialogPanelScript;
     public DialogPanelScript MessageDialogPanelScript;
     public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
-    public ModalPanelScript CreditsDialogPanelScript;
 
     public Text VersionText;
 
@@ -318,28 +316,6 @@ public class StartGuiManagerScript : MonoBehaviour
         SetSeedDialogPanelScript.SetVisible(true);
     }
 
-    /// <summary>Opens the settings dialog.</summary>
-    public void OpenSettingsDialog()
-    {
-        MainMenuDialogPanelScript.SetVisible(false);
-
-        SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
-        SettingsDialogPanelScript.UIScalingToggle.isOn = Manager.UIScalingEnabled;
-        SettingsDialogPanelScript.AnimationShadersToggle.isOn = Manager.AnimationShadersEnabled;
-
-        SettingsDialogPanelScript.RefreshDevButtonText();
-
-        SettingsDialogPanelScript.SetVisible(true);
-    }
-
-    /// <summary>Opens the credits dialog.</summary>
-    public void OpenCreditsDialog()
-    {
-        MainMenuDialogPanelScript.SetVisible(false);
-
-        CreditsDialogPanelScript.SetVisible(true);
-    }
-
     /// <summary>Sets the game's fullscreen option.</summary>
     /// <param name="state">If set to <c>true</c>, the game goes fullscreen.</param>
     public void SetFullscreen(bool state)
@@ -361,22 +337,6 @@ public class StartGuiManagerScript : MonoBehaviour
         {
             CanvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
         }
-    }
-
-    /// <summary>Closes the settings dialog.</summary>
-    public void CloseSettingsDialog()
-    {
-        SettingsDialogPanelScript.SetVisible(false);
-
-        MainMenuDialogPanelScript.SetVisible(true);
-    }
-
-    /// <summary>Closes the credits dialog.</summary>
-    public void CloseCreditsDialog()
-    {
-        CreditsDialogPanelScript.SetVisible(false);
-
-        MainMenuDialogPanelScript.SetVisible(true);
     }
 
     /// <summary>Closes the seed error message action.</summary>

@@ -20,7 +20,6 @@ public abstract class WorldEvent : ISynchronizable, IEffectTrigger
     public const long PreventTribeSplitEventId = 12;
 
     public const long PolityFormationEventId = 13;
-    public const long ClanCoreMigrationEventId = 14;
 
     public const long MergeTribesDecisionEventId = 25;
     public const long AvoidMergeTribesAttemptDecisionEventId = 26;
@@ -51,6 +50,11 @@ public abstract class WorldEvent : ISynchronizable, IEffectTrigger
     // This Id doesn't need to be unique. but it helps if it is.
     [XmlAttribute]
     public long Id;
+
+#if DEBUG
+    [XmlIgnore]
+    public long PrevId = -1;
+#endif
 
 #if DEBUG
     private Dictionary<IEffectExpression, long> _lastUseDates = new Dictionary<IEffectExpression, long>();
@@ -186,6 +190,8 @@ public abstract class WorldEvent : ISynchronizable, IEffectTrigger
     {
         TriggerDate = newTriggerDate;
         SpawnDate = World.CurrentDate;
+
+        PrevId = Id;
         Id = newId;
 
         FailedToTrigger = false;

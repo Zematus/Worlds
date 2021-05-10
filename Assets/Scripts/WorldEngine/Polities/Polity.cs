@@ -46,9 +46,27 @@ public abstract class Polity : ISynchronizable
     [XmlAttribute("IF")]
     public bool IsUnderPlayerFocus = false;
 
+    #region DominantFactionId
+    [XmlAttribute("DFId")]
+    public string DominantFactionIdStr
+    {
+        get { return DominantFactionId; }
+        set { DominantFactionId = value; }
+    }
+    [XmlIgnore]
     public Identifier DominantFactionId;
+    #endregion
 
+    #region CoreGroupId
+    [XmlAttribute("CGId")]
+    public string CoreGroupIdStr
+    {
+        get { return CoreGroupId; }
+        set { CoreGroupId = value; }
+    }
+    [XmlIgnore]
     public Identifier CoreGroupId;
+    #endregion
 
     public List<Identifier> CoreRegionIds = new List<Identifier>();
 
@@ -95,22 +113,22 @@ public abstract class Polity : ISynchronizable
     [XmlIgnore]
     public bool WillBeUpdated;
 
+    [XmlIgnore]
     public Identifier Id => Info.Id;
 
+    [XmlIgnore]
     public string Type => Info.Type;
 
+    [XmlIgnore]
     public Name Name => Info.Name;
 
+    [XmlIgnore]
     public long FormationDate => Info.FormationDate;
 
-    public Agent CurrentLeader
-    {
-        get
-        {
-            return DominantFaction.CurrentLeader;
-        }
-    }
+    [XmlIgnore]
+    public Agent CurrentLeader => DominantFaction.CurrentLeader;
 
+    [XmlIgnore]
     public float TotalAdministrativeCost
     {
         get
@@ -124,6 +142,7 @@ public abstract class Polity : ISynchronizable
         }
     }
 
+    [XmlIgnore]
     public float CoreRegionSaturation
     {
         get
@@ -137,6 +156,7 @@ public abstract class Polity : ISynchronizable
         }
     }
 
+    [XmlIgnore]
     public HashSet<Region> AccessibleNeighborRegions
     {
         get
@@ -153,6 +173,9 @@ public abstract class Polity : ISynchronizable
     private void FindAccessibleNeighborRegions()
     {
         _accessibleNeighborRegions = new HashSet<Region>();
+
+        if (Territory == null)
+            throw new System.Exception("Territory is null. Polity: " + Id);
 
         foreach (Region region in Territory.GetAccessibleRegions())
         {
@@ -376,7 +399,7 @@ public abstract class Polity : ISynchronizable
 
         foreach (PolityContact contact in contacts)
         {
-            Polity.RemoveContact(this, contact.NeighborPolity);
+            RemoveContact(this, contact.NeighborPolity);
         }
 
         List<Faction> factions = new List<Faction>(_factions.Values);
@@ -473,8 +496,11 @@ public abstract class Polity : ISynchronizable
         return _eventMessageIds.Contains(id);
     }
 
-    public void SetCoreGroup(CellGroup coreGroup, bool resetCoreDistances = true)
+    public void SetCoreGroup(CellGroup newCoreGroup, bool resetCoreDistances = true)
     {
+        if (CoreGroup == newCoreGroup)
+            return;
+
         if (CoreGroup != null)
         {
             Manager.AddUpdatedCell(CoreGroup.Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
@@ -482,14 +508,32 @@ public abstract class Polity : ISynchronizable
             if (resetCoreDistances)
             {
                 PolityProminence prom = CoreGroup.GetPolityProminence(Id);
-                prom.ResetCoreDistances();
+
+                if (prom == null)
+                {
+                    throw new System.Exception("Unable to find prominence with Id " + Id + " in group " + CoreGroup.Id);
+                }
+
+                prom.ResetCoreDistances(addToRecalcs: true);
             }
         }
 
-        CoreGroup = coreGroup;
-        CoreGroupId = coreGroup.Id;
+        CoreGroup = newCoreGroup;
+        CoreGroupId = newCoreGroup.Id;
 
-        Manager.AddUpdatedCell(coreGroup.Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
+        Manager.AddUpdatedCell(newCoreGroup.Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
+
+        if (resetCoreDistances)
+        {
+            PolityProminence prom = CoreGroup.GetPolityProminence(Id);
+
+            if (prom == null)
+            {
+                throw new System.Exception("Unable to find prominence with Id " + Id + " in group " + CoreGroup.Id);
+            }
+
+            prom.ResetCoreDistances(addToRecalcs: true);
+        }
     }
 
     public long GenerateInitId(long idOffset = 0L)
@@ -545,9 +589,7 @@ public abstract class Polity : ISynchronizable
 
     public Faction GetFaction(Identifier id)
     {
-        Faction faction;
-
-        _factions.TryGetValue(id, out faction);
+        _factions.TryGetValue(id, out Faction faction);
 
         return faction;
     }
@@ -636,7 +678,7 @@ public abstract class Polity : ISynchronizable
     {
         if (!_contacts.ContainsKey(polity.Id))
         {
-            PolityContact contact = new PolityContact(this, polity, initialGroupCount);
+            PolityContact contact = new PolityContact(World, this, polity, initialGroupCount);
 
             _contacts.Add(polity.Id, contact);
 
@@ -709,7 +751,7 @@ public abstract class Polity : ISynchronizable
     {
         if (!_contacts.ContainsKey(polity.Id))
         {
-            PolityContact contact = new PolityContact(this, polity);
+            PolityContact contact = new PolityContact(World, this, polity);
 
             _contacts.Add(polity.Id, contact);
 
@@ -1224,7 +1266,14 @@ public abstract class Polity : ISynchronizable
 
     public virtual void FinalizeLoad()
     {
+        LoadFactions();
         LoadContacts();
+
+        foreach (var contact in Contacts)
+        {
+            contact.World = World;
+            contact.FinalizeLoad();
+        }
 
         foreach (long messageId in EventMessageIds)
         {
@@ -1270,8 +1319,6 @@ public abstract class Polity : ISynchronizable
 
         //Groups.FinalizeLoad(GetGroupOrThrow);
 
-        LoadFactions();
-
         DominantFaction = GetFaction(DominantFactionId);
 
         Territory.World = World;
@@ -1296,7 +1343,7 @@ public abstract class Polity : ISynchronizable
     public void AddEvent(PolityEvent polityEvent)
     {
         if (_events.ContainsKey(polityEvent.TypeId))
-            throw new System.Exception("Event of type " + polityEvent.TypeId + " already present");
+            throw new System.Exception("Polity event of type " + polityEvent.TypeId + " already present");
 
         _events.Add(polityEvent.TypeId, polityEvent);
         World.InsertEventToHappen(polityEvent);

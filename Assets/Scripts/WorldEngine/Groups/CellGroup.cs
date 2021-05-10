@@ -4,7 +4,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class CellGroup : Identifiable, IFlagHolder
+public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 {
     [XmlIgnore]
     public World World;
@@ -93,7 +93,16 @@ public class CellGroup : Identifiable, IFlagHolder
     [XmlAttribute("NvM")]
     public int NavigationRangeModifier = 0;
 
-    public Identifier MigratingPopPolId = null;
+    #region MigratingPopPolId
+    [XmlAttribute("MPPId")]
+    public string MigratingPopPolIdStr
+    {
+        get { return MigratingPopPolId; }
+        set { MigratingPopPolId = value; }
+    }
+    [XmlIgnore]
+    public Identifier MigratingPopPolId;
+    #endregion
 
     public Route SeaMigrationRoute = null;
 
@@ -242,6 +251,7 @@ public class CellGroup : Identifiable, IFlagHolder
     private Dictionary<Polity, float> _polityPromDeltas =
         new Dictionary<Polity, float>();
 
+    [XmlIgnore]
     public int PreviousPopulation
     {
         get
@@ -250,6 +260,7 @@ public class CellGroup : Identifiable, IFlagHolder
         }
     }
 
+    [XmlIgnore]
     public int Population
     {
         get
@@ -2599,11 +2610,6 @@ public class CellGroup : Identifiable, IFlagHolder
     /// <param name="delta">value delta to apply</param>
     public void AddPolityProminenceValueDelta(Polity polity, float delta)
     {
-        //if (Id == "0000000000164772058:1142429918914917756")
-        //{
-        //    Debug.LogWarning("Debugging Group " + Id);
-        //}
-
         if (delta == 0)
         {
             Debug.LogWarning("Trying to add a prominence delta of 0. Will ignore...");
@@ -2800,7 +2806,6 @@ public class CellGroup : Identifiable, IFlagHolder
                 throw new System.Exception("Prominence value is Nan. Group: " + Id +
                     ", Polity: " + prom.PolityId);
             }
-
         }
 
         ResetProminenceValueDeltas();
@@ -3074,7 +3079,7 @@ public class CellGroup : Identifiable, IFlagHolder
         _propertiesToLose.Add(property);
     }
 
-    public override void Synchronize()
+    public void Synchronize()
     {
         PolityProminences = new List<PolityProminence>(_polityProminences.Values);
 
@@ -3119,10 +3124,8 @@ public class CellGroup : Identifiable, IFlagHolder
         LoadPolityProminences();
     }
 
-    public override void FinalizeLoad()
+    public void FinalizeLoad()
     {
-        base.FinalizeLoad();
-
         if (LastPopulationMigration != null)
         {
             LastPopulationMigration.World = World;
@@ -3203,6 +3206,11 @@ public class CellGroup : Identifiable, IFlagHolder
 
         foreach (PolityProminence p in _polityProminences.Values)
         {
+            if (p.ClosestFaction == null)
+            {
+                throw new System.Exception("Missing closest faction with id: " + p.ClosestFactionId);
+            }
+
             if (p.Polity == null)
             {
                 throw new System.Exception("Missing polity with id:" + p.PolityId);

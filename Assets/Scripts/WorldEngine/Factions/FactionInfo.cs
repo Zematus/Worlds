@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class FactionInfo : Identifiable
+public class FactionInfo : Identifiable, ISynchronizable
 {
     [XmlAttribute("T")]
     public string Type;
@@ -50,10 +50,8 @@ public class FactionInfo : Identifiable
         return string.Format(_nameFormat, Name.BoldText);
     }
 
-    public override void FinalizeLoad()
+    public void FinalizeLoad()
     {
-        base.FinalizeLoad();
-
         if (Faction != null)
             Faction.FinalizeLoad();
 
@@ -67,7 +65,7 @@ public class FactionInfo : Identifiable
         }
     }
 
-    public override void Synchronize()
+    public void Synchronize()
     {
         if (Faction != null)
             Faction.Synchronize();

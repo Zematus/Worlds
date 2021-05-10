@@ -17,7 +17,7 @@ public class MenuPanelScript : ModalPanelScript
 
     protected virtual void ReadKeyboardInput()
     {
-        Manager.HandleKeyUp(KeyCode.Escape, false, false, EscapeDialog);
+        Manager.HandleKeyUp(KeyCode.Escape, false, false, EscapeDialog, false);
     }
 
     public void EscapeDialog()
