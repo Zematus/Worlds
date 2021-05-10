@@ -89,7 +89,6 @@ public class GuiManagerScript : MonoBehaviour
         LastDaySave = Manager.CurrentWorld.CurrentDate;
         LastRealTime = Time.realtimeSinceStartup;
         SaveFileDialogPanelScript.SetText("AutoSave");
-        Debug.LogError("Autosave is unactive because of bugs");
         SaveAction();
     }
 
