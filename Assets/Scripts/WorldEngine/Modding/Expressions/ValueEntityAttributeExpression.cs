@@ -24,5 +24,13 @@ public class ValueEntityAttributeExpression<T>
 
     public object ValueObject => Value;
 
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
+    public string GetFormattedString()
+    {
+        if (Value is IEntity e)
+        {
+            return e.GetFormattedString();
+        }
+
+        return Value.ToString().ToBoldFormat();
+    } 
 }

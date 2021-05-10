@@ -125,8 +125,12 @@ public class ModDecision : Context
     public void InitEvaluation(ModDecisionData initializer)
     {
 //#if DEBUG
-//        // Uncomment this line to test the decision dialog
-//        Manager.SetGuidedFaction(initData.TargetFaction);
+//        if (Id == "clan_decide_split")
+//        {
+//            // This line will force the decision dialog to be displayed and
+//            // evaluated by the player when debugging
+//            Manager.SetGuidedFaction(initializer.TargetFaction);
+//        }
 //#endif
 
         Reset();
