@@ -79,20 +79,17 @@ public class Route : ISynchronizable
 
     public void Destroy()
     {
-        if (!Consolidated)
-            return;
-
-        foreach (TerrainCell cell in Cells)
-        {
-            cell.RemoveCrossingRoute(this);
-            Manager.AddUpdatedCell(cell, CellUpdateType.Route, CellUpdateSubType.All);
-        }
+        Erase();
     }
 
     public void Reset()
     {
-        if (!Consolidated)
-            return;
+        Consolidated = false;
+    }
+
+    public void Erase()
+    {
+        Reset();
 
         foreach (TerrainCell cell in Cells)
         {
@@ -100,7 +97,7 @@ public class Route : ISynchronizable
             Manager.AddUpdatedCell(cell, CellUpdateType.Route, CellUpdateSubType.All);
         }
 
-        Consolidated = false;
+        Used = false;
     }
 
     private void BuildInternal()
@@ -115,7 +112,6 @@ public class Route : ISynchronizable
         _currentCoastPreference = CoastPreferenceIncrement;
         Length = 0;
 
-        //CellPositions.Clear();
         Cells.Clear();
 
         AddCell(FirstCell);
@@ -163,10 +159,7 @@ public class Route : ISynchronizable
             //#endif
 
             if (nextCell == null)
-            {
-                LastCell = nextCell;
                 break;
-            }
 
             Length += LastCell.NeighborDistances[nextDirection];
 
@@ -478,33 +471,6 @@ public class Route : ISynchronizable
             throw new System.Exception("Can't finalize unconsolidated route");
         }
 
-        //TerrainCell currentCell = null;
-
-        //bool first = true;
-
-        //if (CellPositions.Count == 0)
-        //{
-        //    throw new System.Exception("CellPositions is empty");
-        //}
-
-        //foreach (WorldPosition p in CellPositions)
-        //{
-        //    currentCell = World.GetCell(p);
-
-        //    if (currentCell == null)
-        //    {
-        //        Debug.LogError("Unable to find terrain cell at [" + currentCell.Longitude + "," + currentCell.Latitude + "]");
-        //    }
-
-        //    if (first)
-        //    {
-        //        FirstCell = currentCell;
-        //        first = false;
-        //    }
-
-        //    Cells.Add(currentCell);
-        //}
-
         FirstCell = World.GetCell(StartLongitude, StartLatitude);
 
         BuildInternal();
@@ -513,7 +479,5 @@ public class Route : ISynchronizable
         {
             cell.AddCrossingRoute(this);
         }
-
-        //LastCell = currentCell;
     }
 }

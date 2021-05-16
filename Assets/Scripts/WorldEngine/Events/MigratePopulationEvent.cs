@@ -1,5 +1,6 @@
 ﻿using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine;
 
 /// <summary>
 /// Identifies if the migration is over land or water
@@ -126,6 +127,16 @@ public class MigratePopulationEvent : CellGroupEvent
 
     public override void Trigger()
     {
+        if (MigrationType == MigrationType.Sea)
+        {
+            if (Group.SeaMigrationRoute == null)
+            {
+                throw new System.Exception("Sea Migration Route is Null. Group: " + Group.Id);
+            }
+
+            Group.SeaMigrationRoute.Used = true;
+        }
+
         Group.SetMigratingPopulation(
             TargetCell,
             MigrationDirection,

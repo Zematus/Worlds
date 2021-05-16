@@ -1188,28 +1188,21 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 throw new System.Exception("SeaMigrationRoute.FirstCell is null at " + Cell.Position);
             }
 
-            SeaMigrationRoute.Reset();
+            SeaMigrationRoute.Erase();
             SeaMigrationRoute.Build();
         }
 
-        bool invalidRoute = false;
-
         if (SeaMigrationRoute.LastCell == null)
-            invalidRoute = true;
+            return;
 
         if (SeaMigrationRoute.LastCell == SeaMigrationRoute.FirstCell)
-            invalidRoute = true;
+            return;
 
         if (SeaMigrationRoute.MigrationDirection == Direction.Null)
-            invalidRoute = true;
+            return;
 
         if (SeaMigrationRoute.FirstCell.Neighbors.ContainsValue(SeaMigrationRoute.LastCell))
-            invalidRoute = true;
-
-        if (invalidRoute)
-        {
             return;
-        }
 
         SeaMigrationRoute.Consolidate();
 
@@ -1487,10 +1480,14 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         Direction migrationDirection = SeaMigrationRoute.MigrationDirection;
 
         if (targetCell == Cell)
-            return;
+        {
+            throw new System.Exception("target cell is equal to origin cell. Group: " + Id);
+        }
 
         if (targetCell == null)
-            return;
+        {
+            throw new System.Exception("target cell is null. Group: " + Id);
+        }
 
         float cellChance = CalculateMigrationChance(targetCell, out float migrationValue, polity);
 
@@ -1536,8 +1533,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             // Do not generate event
             return;
         }
-
-        SeaMigrationRoute.Used = true;
 
         float maxProminencePercent = Mathf.Clamp01(migrationValue);
 
@@ -1585,18 +1580,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float maxProminencePercent = CalculateMaxProminencePercentToMigrate(cellValue, polityId);
 
         float prominencePercent = maxProminencePercent * randomFactor * overflowFactor;
-
-//#if DEBUG
-//        if (polityId != null)
-//        {
-//            Debug.LogWarning("Debugging polity migration");
-//        }
-
-//        if (Cell.IsSelected)
-//        {
-//            Debug.LogWarning("Debugging polity migration");
-//        }
-//#endif
 
         prominencePercent = Mathf.Clamp01(prominencePercent);
 

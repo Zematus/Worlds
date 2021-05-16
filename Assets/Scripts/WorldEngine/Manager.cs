@@ -278,7 +278,7 @@ public class Manager
     private static StreamWriter _debugLogStream = null;
     private static bool _backupDebugLog = false;
 
-    private static HashSet<TerrainCell> _lastUpdatedCells;
+    private static HashSet<TerrainCell> _lastUpdatedCells = new HashSet<TerrainCell>();
 
     private static int _resolutionWidthWindowed = 1600;
     private static int _resolutionHeightWindowed = 900;
@@ -394,8 +394,6 @@ public class Manager
         HighlightedCells = new HashSet<TerrainCell>();
         UpdatedCells = new HashSet<TerrainCell>();
         TerrainUpdatedCells = new HashSet<TerrainCell>();
-
-        _lastUpdatedCells = new HashSet<TerrainCell>();
 
         /// static initalizations
 
@@ -3206,34 +3204,41 @@ public class Manager
     {
         if (_displayRoutes && cell.HasCrossingRoutes)
         {
-            float maxRouteChance = float.MinValue;
+            float maxRouteChance = 0;
+
+            bool hasUsedRoute = false;
 
             foreach (Route route in cell.CrossingRoutes)
             {
-                if (route.Used)
+                CellGroup travelGroup = route.FirstCell.Group;
+
+                if (travelGroup != null)
                 {
-                    CellGroup travelGroup = route.FirstCell.Group;
+                    float travelFactor = travelGroup.SeaTravelFactor;
 
-                    if (travelGroup != null)
-                    {
-                        float travelFactor = travelGroup.SeaTravelFactor;
+                    float routeLength = route.Length;
+                    float routeLengthFactor = Mathf.Pow(routeLength, 2);
 
-                        float routeLength = route.Length;
-                        float routeLengthFactor = Mathf.Pow(routeLength, 2);
+                    float successChance = travelFactor / (travelFactor + routeLengthFactor);
 
-                        float successChance = travelFactor / (travelFactor + routeLengthFactor);
-
-                        maxRouteChance = Mathf.Max(maxRouteChance, successChance);
-                    }
+                    maxRouteChance = Mathf.Max(maxRouteChance, successChance);
                 }
+
+                hasUsedRoute |= route.Used;
             }
 
             if (maxRouteChance > 0)
             {
                 float alpha = MathUtility.ToPseudoLogaritmicScale01(maxRouteChance, 1f);
 
-                Color color = GetOverlayColor(OverlayColorId.ActiveRoute);
-                color.a = alpha;
+                Color color = GetOverlayColor(OverlayColorId.InactiveRoute);
+                color.a = alpha * 0.5f;
+
+                if (hasUsedRoute)
+                {
+                    color = GetOverlayColor(OverlayColorId.ActiveRoute);
+                    color.a = alpha;
+                }
 
                 return color;
             }
