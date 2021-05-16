@@ -1318,16 +1318,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <returns>Migration value</returns>
     public float CalculateMigrationValue(TerrainCell cell, Polity migratingPolity = null)
     {
-//#if DEBUG
-//        if (Cell.IsSelected)
-//        {
-//            if ((cell.Group != null) && (cell.Group.TotalPolityProminenceValue <= 0))
-//            {
-//                Debug.LogWarning("Debugging migration value");
-//            }
-//        }
-//#endif
-
         return cell.CalculateMigrationValue(this, migratingPolity);
     }
 
@@ -1343,13 +1333,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         out float migrationValue,
         Polity migratingPolity = null)
     {
-//#if DEBUG
-//        if (cell.IsSelected)
-//        {
-//            Debug.LogWarning("Debugging selected cell migration chance");
-//        }
-//#endif
-
         float offset = -0.1f;
         migrationValue = CalculateMigrationValue(cell, migratingPolity);
 

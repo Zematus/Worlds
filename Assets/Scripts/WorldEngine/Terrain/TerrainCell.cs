@@ -408,27 +408,6 @@ public class TerrainCell
     }
 
     /// <summary>
-    /// Estimates the encroachment factor on the cell given the input culture
-    /// </summary>
-    /// <param name="culture">the culture to use as reference</param>
-    /// <returns>the estimated encroachment factor</returns>
-    public float EstimateAggressionFactor(Culture culture)
-    {
-        float aggresionPrefValue =
-            culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
-
-        if (!aggresionPrefValue.IsInsideRange(0, 1))
-        {
-            Debug.LogWarning(
-                "The aggression preference value is outside the [0,1] range: " + aggresionPrefValue);
-
-            aggresionPrefValue = Mathf.Clamp01(aggresionPrefValue);
-        }
-
-        return aggresionPrefValue;
-    }
-
-    /// <summary>
     /// Estimates the optimal population that this cell could potentially hold
     /// given the input culture
     /// </summary>
@@ -437,15 +416,6 @@ public class TerrainCell
     public int EstimateOptimalPopulation(Culture culture)
     {
         return (int)EstimatePopulationCapacity(culture);
-
-        //float populationCapacity = EstimatePopulationCapacity(culture);
-
-        //float aggressionFactor = EstimateAggressionFactor(culture);
-        //aggressionFactor = 1 - (0.3f * aggressionFactor);
-
-        //float estimatedOptimalPopulation = populationCapacity * aggressionFactor;
-
-        //return (int)estimatedOptimalPopulation;
     }
 
     /// <summary>
