@@ -1483,7 +1483,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             return;
 
         float routeLength = SeaMigrationRoute.Length;
-        float routeLengthFactor = Mathf.Pow(routeLength / 100, 2) * routeLength;
+        float routeLengthFactor = Mathf.Pow(routeLength / 1000, 2) * routeLength;
 
         float migrationChance = cellChance * SeaTravelFactor / (SeaTravelFactor + routeLengthFactor);
 
