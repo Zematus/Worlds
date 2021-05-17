@@ -191,7 +191,9 @@ public abstract class WorldEvent : ISynchronizable, IEffectTrigger
         TriggerDate = newTriggerDate;
         SpawnDate = World.CurrentDate;
 
+#if DEBUG
         PrevId = Id;
+#endif
         Id = newId;
 
         FailedToTrigger = false;

@@ -122,11 +122,6 @@ public class Manager
 
     public static RegisterDebugEventDelegate RegisterDebugEvent = null;
 
-    //AutoSave variable and function
-    public static AutoSaveMode AutoSaveMode = AutoSaveMode.Deactivate;
-    public static float RealWorldAutoSaveInterval = 600f; //600f = every 10 minutes
-    public static long AutoSaveInterval = 365000000; //365000000 = every one millon year
-
     public class Debug_TracingData
     {
         public Identifier GroupId;
@@ -169,6 +164,11 @@ public class Manager
 
     public const int MaxEditorBrushRadius = 25;
     public const int MinEditorBrushRadius = 1;
+
+    //AutoSave variable and function
+    public static AutoSaveMode AutoSaveMode = AutoSaveMode.Deactivate;
+    public static float RealWorldAutoSaveInterval = 600f; //600f = every 10 minutes
+    public static long AutoSaveInterval = 365000000; //365000000 = every one millon year
 
     public static bool LayersPresent = false;
 
