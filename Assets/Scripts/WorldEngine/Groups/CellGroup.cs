@@ -1230,84 +1230,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         //#endif
     }
 
-    private class PolityProminenceWeight : CollectionUtility.ElementWeightPair<PolityProminence>
-    {
-        public PolityProminenceWeight(PolityProminence polityProminence, float weight) : base(polityProminence, weight)
-        {
-
-        }
-    }
-
-    /// <summary>
-    /// Returns the respective unorganized bands and prominences values on a group for
-    /// a given preference
-    /// </summary>
-    /// <param name="preferenceId">the id of the preference</param>
-    /// <param name="ubValue">(out) the unorganized bands value</param>
-    /// <param name="promValue">the prominences value (average)</param>
-    public void CalculateGroupPrefValueSplit(
-        string preferenceId, out float ubValue, out float promValue)
-    {
-        if (TotalPolityProminenceValue >= 1f)
-        {
-            ubValue = 0;
-            promValue = Culture.GetPreferenceValue(preferenceId);
-
-            return;
-        }
-
-        if (TotalPolityProminenceValue <= 0f)
-        {
-            ubValue = Culture.GetPreferenceValue(preferenceId);
-            promValue = 0;
-
-            return;
-        }
-
-        float accPolPrefValue = 0;
-
-        foreach (PolityProminence p in _polityProminences.Values)
-        {
-            accPolPrefValue +=
-                p.Value * p.Polity.Culture.GetPreferenceValue(preferenceId);
-        }
-
-        float groupPrefValue = Culture.GetPreferenceValue(preferenceId);
-
-        if (groupPrefValue > accPolPrefValue)
-        {
-            float maxPrefValueDelta = Mathf.Min(1 - groupPrefValue, groupPrefValue - accPolPrefValue);
-
-            ubValue = groupPrefValue + (maxPrefValueDelta * TotalPolityProminenceValue);
-            promValue = ubValue - maxPrefValueDelta;
-        }
-        else
-        {
-            float maxPrefValueDelta = Mathf.Min(groupPrefValue, accPolPrefValue - groupPrefValue);
-
-            ubValue = groupPrefValue - (maxPrefValueDelta * TotalPolityProminenceValue);
-            promValue = ubValue + maxPrefValueDelta;
-        }
-    }
-
-    /// <summary>
-    /// Estimates how encroached are unorganized bands on this cell
-    /// </summary>
-    /// <returns>the encroachment value on unorganized bands</returns>
-    public float CalculateEncroachmentUnorganizedBands()
-    {
-        CalculateGroupPrefValueSplit(
-            CulturalPreference.AggressionPreferenceId,
-            out float ubAggrValue,
-            out float prominenceAggrValue);
-
-        float aggrIntensityConstant = 2;
-
-        float encroachment = (prominenceAggrValue - ubAggrValue) * aggrIntensityConstant;
-
-        return Mathf.Clamp(encroachment, -1, 1);
-    }
-
     /// <summary>
     /// Calculates the current value of a cell considered as a migration target
     /// The value returned will be a value between 0 and 1.
@@ -1887,9 +1809,20 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <param name="timeSpan">the time span since the last cell update</param>
     private void UpdatePolityProminence(PolityProminence polityProminence, long timeSpan)
     {
-        // Perform acculturation
+        EvaluateAcculturation(polityProminence, timeSpan);
+    }
 
-        Culture polityCulture = polityProminence.Polity.Culture;
+    /// <summary>
+    /// Evaluate the acculturation effect
+    /// </summary>
+    /// <param name="prominence">the prominence to evaluate acculturation for</param>
+    /// <param name="timeSpan">the time span since the last cell update</param>
+    private void EvaluateAcculturation(PolityProminence prominence, long timeSpan)
+    {
+        float expectedSpanConstant = GenerationSpan;
+        float timeFactor = timeSpan / (timeSpan + expectedSpanConstant);
+
+        Culture polityCulture = prominence.Polity.Culture;
 
         float polityIsolationPrefValue =
             polityCulture.GetPreferenceValue(CulturalPreference.IsolationPreferenceId);
@@ -1897,25 +1830,41 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float groupIsolationPrefValue =
             Culture.GetPreferenceValue(CulturalPreference.IsolationPreferenceId);
 
+        // acculturation on unorganized bands
+
         float maxIsolationPrefValue = Mathf.Max(polityIsolationPrefValue, groupIsolationPrefValue);
 
-        float opennessFactor = 1 - maxIsolationPrefValue;
+        float ubOpennessFactor = 1 - maxIsolationPrefValue;
 
-        //float prominenceFactor = polityProminence.Value / TotalPolityProminenceValue;
-        float prominenceFactor = polityProminence.Value * (1 - TotalPolityProminenceValue) * 4f;
+        float prominenceOnUBFactor = prominence.Value * (1 - TotalPolityProminenceValue);
 
-        float randomFactor = Cell.GetNextLocalRandomFloat(
-            RngOffsets.CELL_GROUP_UB_ACCULTURATION + polityProminence.PolityId.GetHashCode());
+        int polityIdHash = prominence.PolityId.GetHashCode();
 
-        float expectedSpanConstant = GenerationSpan;
-        float timeFactor = timeSpan / (timeSpan + expectedSpanConstant);
+        float ubRandomFactor = Cell.GetNextLocalRandomFloat(
+            RngOffsets.CELL_GROUP_UB_ACCULTURATION + polityIdHash);
 
-        float transferConstant = 0.75f;
+        float ubTransferConstant = 3;
 
-        float acculturation =
-            opennessFactor * prominenceFactor * randomFactor * timeFactor * transferConstant;
+        float ubAcculturation =
+            ubOpennessFactor * prominenceOnUBFactor * ubRandomFactor * timeFactor * ubTransferConstant;
 
-        AddUBandsProminenceValueDelta(-acculturation);
+        AddUBandsProminenceValueDelta(-ubAcculturation);
+
+        // acculturation on prominence
+
+        float othersOnPromFactor = TotalPolityProminenceValue - prominence.Value;
+
+        float promRandomFactor = Cell.GetNextLocalRandomFloat(
+            RngOffsets.CELL_GROUP_PROM_ACCULTURATION + polityIdHash);
+
+        float promOpennessFactor = 1 - polityIsolationPrefValue;
+
+        float promTransferConstant = 0.5f;
+
+        float promAcculturation =
+            promOpennessFactor * othersOnPromFactor * promRandomFactor * timeFactor * promTransferConstant;
+
+        AddPolityProminenceValueDelta(prominence.Polity, -promAcculturation);
     }
 
     /// <summary>
@@ -2072,7 +2021,46 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         float rangeFactor = 1 + (NavigationRangeModifier * MathUtility.IntToFloatScalingFactor);
 
-        SeaTravelFactor = SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor * rangeFactor;
+        SeaTravelFactor =
+            SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor * rangeFactor;
+    }
+
+    public float AggressionOnUB()
+    {
+        if (_polityProminences.Count == 0)
+            return 0;
+
+        float promPrefValue = 0;
+
+        foreach (PolityProminence p in _polityProminences.Values)
+        {
+            promPrefValue +=
+                p.Polity.GetPreferenceValue(CulturalPreference.AggressionPreferenceId) *
+                p.Value;
+        }
+
+        // normalize
+        promPrefValue /= TotalPolityProminenceValue;
+
+        float aggrValue =
+            Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+
+        float aggrDiff = aggrValue - promPrefValue;
+
+        return aggrDiff * 2;
+    }
+
+    public float AggressionOnPolity(Polity polity)
+    {
+        float polityAggrValue =
+            polity.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+
+        float aggrValue =
+            Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+
+        float aggrDiff = polityAggrValue - aggrValue;
+
+        return aggrDiff * 2;
     }
 
     /// <summary>
@@ -2085,19 +2073,32 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         float populationFactor;
 
-        if (OptimalPopulation > 0)
+        float aggrFactor = 0;
+
+        if (migratingPolity == null)
         {
-            populationFactor = Population / (float)OptimalPopulation;
+            aggrFactor = 1 + AggressionOnUB();
+        }
+        else
+        {
+            aggrFactor = 1 + AggressionOnPolity(migratingPolity);
+        }
+
+        float modOptimalPop = OptimalPopulation * aggrFactor;
+
+        if (modOptimalPop > 0)
+        {
+            populationFactor = Population / modOptimalPop;
         }
         else
         {
             return 1;
         }
 
-        float minPopulationFactor = 0.90f;
+        float minPopulationConstant = 0.90f;
 
         // if the population is not near its optimum then don't add pressure
-        if (populationFactor < minPopulationFactor)
+        if (populationFactor < minPopulationConstant)
             return 0;
 
         float neighborhoodValue = 0;
@@ -2129,13 +2130,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         // Get the pressure from unorganized bands
         float pressure = CalculateMigrationPressure(null);
 
-//#if DEBUG
-//        if (pressure > 0)
-//        {
-//            Debug.LogWarning("Debugging migration pressure");
-//        }
-//#endif
-
         // Get the pressure from polity populations
         foreach (PolityProminence prominence in _polityProminences.Values)
         {
@@ -2147,13 +2141,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
             pressure = Mathf.Max(pressure, prominencePressure);
         }
-
-//#if DEBUG
-//        if ((pressure > 0) && (_polityProminences.Count > 0))
-//        {
-//            Debug.LogWarning("Debugging migration pressure");
-//        }
-//#endif
 
         return Mathf.Clamp01(pressure);
     }
@@ -2578,7 +2565,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         if (delta == 0)
         {
-            Debug.LogWarning("Trying to add a prominence delta of 0. Will ignore...");
+//#if DEBUG
+//            Debug.LogWarning("Trying to add a prominence delta of 0. Will ignore...");
+//#endif
             return;
         }
 
