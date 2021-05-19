@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 58a62ea86c873d54ea95d0cf44fc9dff
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - GenDataText: {instanceID: 0}
+  - WaterPresence: {instanceID: 0}
+  - LayerDataText: {instanceID: 0}
+  - Shader: {fileID: 4800000, guid: 27742a249aa7afe4a8fab85531b11d00, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
