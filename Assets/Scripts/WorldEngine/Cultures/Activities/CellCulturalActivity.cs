@@ -74,7 +74,7 @@ public class CellCulturalActivity : CulturalActivity
     /// <param name="percentage">percentage amount to merge</param>
     public void Unmerge(CulturalActivity activity, float percentage)
     {
-        _newValue = MathUtility.ReverseLerp(_newValue, activity.Value, percentage);
+        _newValue = MathUtility.UnLerp(_newValue, activity.Value, percentage);
     }
 
     /// <summary>

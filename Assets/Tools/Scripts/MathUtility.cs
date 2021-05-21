@@ -219,6 +219,57 @@ public static class MathUtility
 
         float a = ((b * f) - c) / (f - 1);
 
+#if DEBUG
+        if ((a >= 1) && (c < 1))
+        {
+            Debug.LogWarning("Debugging ReverseLerp");
+        }
+#endif
+
+        return a;
+    }
+
+    /// <summary>
+    /// Given b, c and f, return a value for 'a' that approximates c = lerp(a,b,f)
+    /// but doesn't leave the range between 0 and 1.
+    /// </summary>
+    /// <param name="c">The output of lerp(a,b,f)</param>
+    /// <param name="b">The second input from lerp(a,b,f)</param>
+    /// <param name="f">the lerp percentage</param>
+    /// <returns>The first input from lerp(a,b,f)</returns>
+    public static float UnLerp(float c, float b, float f)
+    {
+        if (!f.IsInsideRange(0, 1))
+        {
+            throw new System.ArgumentException("'f' must be a value between 0 and 1 (inclusive)");
+        }
+
+        if (f == 1)
+        {
+            return float.NaN;
+        }
+
+        float a = ((b * f) - c) / (f - 1);
+        float ca = c - a;
+
+        if (b > c)
+        {
+            a = c * (1 - (ca / (ca + 1)));
+        }
+        else
+        {
+            ca = -ca;
+
+            a = c + (1 - c) * (ca / (ca + 1));
+        }
+
+#if DEBUG
+        if ((a >= 1) && (c < 1))
+        {
+            Debug.LogWarning("Debugging UnLerp");
+        }
+#endif
+
         return a;
     }
 

@@ -71,7 +71,7 @@ public abstract class CellCulturalSkill : CulturalSkill
     /// <param name="percentage">percentage amount to merge</param>
     public void Unmerge(CulturalSkill skill, float percentage)
     {
-        _newValue = MathUtility.ReverseLerp(_newValue, skill.Value, percentage);
+        _newValue = MathUtility.UnLerp(_newValue, skill.Value, percentage);
     }
 
     /// <summary>
