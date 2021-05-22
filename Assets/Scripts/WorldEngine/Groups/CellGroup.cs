@@ -2073,16 +2073,16 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         float populationFactor;
 
-        float aggrFactor = 0;
+        float aggrFactor = 1;
 
-        if (migratingPolity == null)
-        {
-            aggrFactor = 1 + AggressionOnUB();
-        }
-        else
-        {
-            aggrFactor = 1 + AggressionOnPolity(migratingPolity);
-        }
+        //if (migratingPolity == null)
+        //{
+        //    aggrFactor += AggressionOnUB();
+        //}
+        //else
+        //{
+        //    aggrFactor += AggressionOnPolity(migratingPolity);
+        //}
 
         float modOptimalPop = OptimalPopulation * aggrFactor;
 

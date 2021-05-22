@@ -64,17 +64,16 @@
       "target": "faction",
       "assignOn": ["spawn", "status_change", "polity_contact_change"],
       "properties": [
-        { "id": "target_polity", "value": "target.polity" },
         { "id": "target_isolation", "value": "target.preferences.isolation" },
-        { "id": "contact", "value": "target_polity.get_random_contact()" },
+        { "id": "contact", "value": "target.polity.get_random_contact()" },
         { "id": "contact_dominant_faction", "value": "contact.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.get_relationship(contact_dominant_faction)" },
         { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * (contact.strength * 3) * (1 - target_isolation)" }
       ],
       "assignmentConditions": [
-        "target == target_polity.dominant_faction",
-        "target_polity.type == tribe",
-        "target_polity.contact_count >= 1"
+        "target == target.polity.dominant_faction",
+        "target.polity.type == tribe",
+        "target.polity.contact_count >= 1"
       ],
       "triggerConditions": [
         "chance_of_making_attempt > 0"
@@ -120,18 +119,17 @@
       "target": "faction",
       "assignOn": ["spawn", "status_change", "polity_contact_change"],
       "properties": [
-        { "id": "target_polity", "value": "target.polity" },
         { "id": "target_isolation", "value": "target.preferences.isolation" },
-        { "id": "contact", "value": "target_polity.get_random_contact()" },
+        { "id": "contact", "value": "target.polity.get_random_contact()" },
         { "id": "contact_dominant_faction", "value": "contact.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.get_relationship(contact_dominant_faction)" },
         { "id": "relationship_factor", "value": "max(0, (relationship_value * 2) - 1)" },
         { "id": "chance_of_making_attempt", "value": "relationship_factor * (contact.strength * 3) * (1 - target_isolation)" }
       ],
       "assignmentConditions": [
-        "target == target_polity.dominant_faction",
-        "target_polity.type == tribe",
-        "target_polity.contact_count >= 1"
+        "target == target.polity.dominant_faction",
+        "target.polity.type == tribe",
+        "target.polity.contact_count >= 1"
       ],
       "triggerConditions": [
         "contact.polity.type == tribe",
@@ -149,17 +147,16 @@
       "target": "faction",
       "assignOn": ["spawn", "status_change", "region_accessibility_update", "guide_switch"],
       "properties": [
-        { "id": "target_polity", "value": "target.polity" },
-        { "id": "neighbor_regions", "value": "target_polity.accessible_neighbor_regions" },
+        { "id": "neighbor_regions", "value": "target.polity.accessible_neighbor_regions" },
         { "id": "selected_region", "value": "neighbor_regions.select_random()" },
         { "id": "cohesion_preference", "value": "target.preferences.cohesion" },
-        { "id": "core_saturation", "value": "target_polity.core_region_saturation" },
+        { "id": "core_saturation", "value": "target.polity.core_region_saturation" },
         { "id": "chance_of_making_attempt", "value": "(1.5 * core_saturation * (1 - cohesion_preference)) - 0.5" }
       ],
       "assignmentConditions": [
         "target.guide == simulation",
-        "target == target_polity.dominant_faction",
-        "target_polity.type == tribe",
+        "target == target.polity.dominant_faction",
+        "target.polity.type == tribe",
         "neighbor_regions.count > 0"
       ],
       "triggerConditions": [

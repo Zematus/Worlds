@@ -6,14 +6,13 @@
       "target": "faction",
       "category": "territory",
       "properties": [
-        { "id": "target_polity", "value": "target.polity" },
-        { "id": "neighbor_regions", "value": "target_polity.accessible_neighbor_regions" },
-        { "id": "rs_description", "value": "''Select region the <<target_polity>> tribe should expand to...''" },
+        { "id": "neighbor_regions", "value": "target.polity.accessible_neighbor_regions" },
+        { "id": "rs_description", "value": "''Select region the <<target.polity>> tribe should expand to...''" },
         { "id": "selected_region", "value": "neighbor_regions.request_selection(rs_description)" }
       ],
       "accessConditions": [
-        "target == target_polity.dominant_faction",
-        "target_polity.type == tribe"
+        "target == target.polity.dominant_faction",
+        "target.polity.type == tribe"
       ],
       "executeConditions": [
         "neighbor_regions.count > 0"

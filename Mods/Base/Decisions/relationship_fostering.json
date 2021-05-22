@@ -9,13 +9,12 @@
         { "id": "chance_of_making_attempt", "type": "number" }
       ],
       "properties": [
-        { "id": "target_polity", "value": "target.polity" },
         { "id": "target_isolation", "value": "target.preferences.isolation" }
       ],
       "description": [
         {
           "id": "description_intro",
-          "text": "The clan's tribal elders suggest that the relationship between the dominant factions of <<contact_polity>> and <<target_polity>> could be improved.\n\nShould <<target.leader>> make an attempt to improve the relationship with <<contact_polity>>?"
+          "text": "The clan's tribal elders suggest that the relationship between the dominant factions of <<contact_polity>> and <<target.polity>> could be improved.\n\nShould <<target.leader>> make an attempt to improve the relationship with <<contact_polity>>?"
         }
       ],
       "options": [
@@ -36,8 +35,8 @@
             },
             {
               "id": "attempt",
-              "text": "The current leader of <<contact_polity>> will receive an offer from tribe <<target_polity>>",
-              "result": "contact_polity.dominant_faction.trigger_decision(decision_prio, tribe_decide_offer_relationship_foster, target_polity)"
+              "text": "The current leader of <<contact_polity>> will receive an offer from tribe <<target.polity>>",
+              "result": "contact_polity.dominant_faction.trigger_decision(decision_prio, tribe_decide_offer_relationship_foster, target.polity)"
             }
           ]
         },
@@ -68,11 +67,10 @@
         { "id": "attempting_polity", "type": "polity" }
       ],
       "properties": [
-        { "id": "target_polity", "value": "target.polity" },
         { "id": "attempting_faction", "value": "attempting_polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.get_relationship(attempting_faction)" },
         { "id": "target_isolation", "value": "target.preferences.isolation" },
-        { "id": "contact_strength", "value": "target_polity.get_contact(attempting_polity).strength" },
+        { "id": "contact_strength", "value": "target.polity.get_contact(attempting_polity).strength" },
         { "id": "chance_of_rejecting_attempt", "value": "relationship_value * (1 - (contact_strength * 3)) * target_isolation" }
       ],
       "description": [

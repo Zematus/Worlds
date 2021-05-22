@@ -9,13 +9,12 @@
         { "id": "chance_of_making_attempt", "type": "number" }
       ],
       "properties": [
-        { "id": "target_polity", "value": "target.polity" },
         { "id": "cohesion_preference", "value": "target.preferences.cohesion" }
       ],
       "description": [
         {
           "id": "description_intro",
-          "text": "Should the <<target_polity>> expand into the <<selected_region>> region?"
+          "text": "Should the <<target.polity>> expand into the <<selected_region>> region?"
         }
       ],
       "options": [
@@ -26,8 +25,8 @@
           "effects": [
             {
               "id": "allow",
-              "text": "<<selected_region>> becomes one of the <<target_polity>> tribe's core regions",
-              "result": "target_polity.add_core_region(selected_region)"
+              "text": "<<selected_region>> becomes one of the <<target.polity>> tribe's core regions",
+              "result": "target.polity.add_core_region(selected_region)"
             }
           ]
         },

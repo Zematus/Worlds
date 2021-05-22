@@ -9,13 +9,12 @@
         { "id": "chance_of_making_attempt", "type": "number" }
       ],
       "properties": [
-        { "id": "target_polity", "value": "target.polity" },
         { "id": "target_isolation", "value": "target.preferences.isolation" }
       ],
       "description": [
         {
           "id": "description_intro",
-          "text": "The people of the <<target.polity>> tribe and the <<contact_polity>> tribe have grown very close over many generations to the point some members can barely distingish between both. Elders of clan <<target>> suggest we should try convincing the leaders of <<target_polity>> into becoming part of our tribe.\n\nShould <<target.leader>> make an attempt to convince <<contact_polity>> to merge into <<target.polity>>?"
+          "text": "The people of the <<target.polity>> tribe and the <<contact_polity>> tribe have grown very close over many generations to the point some members can barely distingish between both. Elders of clan <<target>> suggest we should try convincing the leaders of <<target.polity>> into becoming part of our tribe.\n\nShould <<target.leader>> make an attempt to convince <<contact_polity>> to merge into <<target.polity>>?"
         }
       ],
       "options": [
@@ -26,8 +25,8 @@
           "effects": [
             {
               "id": "attempt",
-              "text": "The current leader of <<contact_polity>> will receive an offer from tribe <<target_polity>>",
-              "result": "contact_polity.dominant_faction.trigger_decision(decision_prio, tribe_decide_merge_offer, target_polity)"
+              "text": "The current leader of <<contact_polity>> will receive an offer from tribe <<target.polity>>",
+              "result": "contact_polity.dominant_faction.trigger_decision(decision_prio, tribe_decide_merge_offer, target.polity)"
             }
           ]
         },
@@ -58,11 +57,10 @@
         { "id": "attempting_polity", "type": "polity" }
       ],
       "properties": [
-        { "id": "target_polity", "value": "target.polity" },
         { "id": "attempting_faction", "value": "attempting_polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.get_relationship(attempting_faction)" },
         { "id": "target_isolation", "value": "target.preferences.isolation" },
-        { "id": "contact_strength", "value": "target_polity.get_contact(attempting_polity).strength" },
+        { "id": "contact_strength", "value": "target.polity.get_contact(attempting_polity).strength" },
         { "id": "chance_of_rejecting_offer", "value": "(1 - relationship_value) * (1 - (contact_strength * 3)) * target_isolation" }
       ],
       "description": [
