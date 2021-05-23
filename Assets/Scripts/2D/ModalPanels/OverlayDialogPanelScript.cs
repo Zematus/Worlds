@@ -22,6 +22,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
     public Toggle TerritoriesToggle;
     public Toggle ProminenceToggle;
     public Toggle ContactsToggle;
+    public Toggle CoreRegionsToggle;
     public Toggle PolityCulturalPreferenceToggle;
     public Toggle PolityCulturalActivityToggle;
     public Toggle PolityCulturalSkillToggle;
@@ -99,6 +100,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
             DistancesToCoresToggle.isOn = false;
             ProminenceToggle.isOn = false;
             ContactsToggle.isOn = false;
+            CoreRegionsToggle.isOn = false;
             PolityCulturalPreferenceToggle.isOn = false;
             PolityCulturalActivityToggle.isOn = false;
             PolityCulturalSkillToggle.isOn = false;
@@ -161,6 +163,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
             (Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance) ||
             (Manager.PlanetOverlay == PlanetOverlay.PolityProminence) ||
             (Manager.PlanetOverlay == PlanetOverlay.PolityContacts) ||
+            (Manager.PlanetOverlay == PlanetOverlay.PolityCoreRegions) ||
             (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalPreference) ||
             (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity) ||
             (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill) ||
@@ -197,6 +200,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
         TerritoriesToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityTerritory);
         ProminenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityProminence);
         ContactsToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityContacts);
+        CoreRegionsToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCoreRegions);
         PolityCulturalPreferenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalPreference);
         PolityCulturalActivityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity);
         PolityCulturalSkillToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill);

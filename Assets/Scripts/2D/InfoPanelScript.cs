@@ -1268,7 +1268,9 @@ public class InfoPanelScript : MonoBehaviour
             AddCellDataToInfoPanel_PolityContacts(cell);
         }
 
-        if (Manager.PlanetOverlay == PlanetOverlay.PolityTerritory)
+        if ((Manager.PlanetOverlay == PlanetOverlay.PolityCoreRegions) ||
+            (Manager.PlanetOverlay == PlanetOverlay.PolityTerritory) ||
+            (Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance))
         {
             AddCellDataToInfoPanel_PolityTerritory(cell);
         }
@@ -1276,11 +1278,6 @@ public class InfoPanelScript : MonoBehaviour
         if (Manager.PlanetOverlay == PlanetOverlay.PolityCluster)
         {
             AddCellDataToInfoPanel_PolityClusters(cell);
-        }
-
-        if (Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance)
-        {
-            AddCellDataToInfoPanel_PolityTerritory(cell);
         }
 
         if (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalPreference)
@@ -1332,13 +1329,5 @@ public class InfoPanelScript : MonoBehaviour
         {
             AddCellDataToInfoPanel_PopCulturalDiscovery(cell);
         }
-    }
-
-    private void AddCellDataToInfoPanel(Vector2 mapPosition)
-    {
-        int longitude = (int)mapPosition.x;
-        int latitude = (int)mapPosition.y;
-
-        AddCellDataToInfoPanel(longitude, latitude);
     }
 }

@@ -236,6 +236,7 @@ public class GuiManagerScript : MonoBehaviour
         PlanetOverlay.PolityTerritory,
         PlanetOverlay.PolityProminence,
         PlanetOverlay.PolityContacts,
+        PlanetOverlay.PolityCoreRegions,
         PlanetOverlay.PolityCulturalPreference,
         PlanetOverlay.PolityCulturalActivity,
         PlanetOverlay.PolityCulturalSkill,
@@ -1216,6 +1217,7 @@ public class GuiManagerScript : MonoBehaviour
             (overlay == PlanetOverlay.PolityCulturalDiscovery) ||
             (overlay == PlanetOverlay.PolityTerritory) ||
             (overlay == PlanetOverlay.PolityContacts) ||
+            (overlay == PlanetOverlay.PolityCoreRegions) ||
             (overlay == PlanetOverlay.General);
     }
 
@@ -1979,6 +1981,9 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.PolityContacts:
                 planetOverlayStr = "_polity_contacts";
                 break;
+            case PlanetOverlay.PolityCoreRegions:
+                planetOverlayStr = "_polity_core_regions";
+                break;
             case PlanetOverlay.PolityCulturalPreference:
                 planetOverlayStr = "_polity_cultural_preference_" + _planetOverlaySubtype;
                 break;
@@ -2700,6 +2705,10 @@ public class GuiManagerScript : MonoBehaviour
         else if (OverlayDialogPanelScript.ContactsToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.PolityContacts, false);
+        }
+        else if (OverlayDialogPanelScript.CoreRegionsToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PolityCoreRegions, false);
         }
         else if (OverlayDialogPanelScript.PolityCulturalPreferenceToggle.isOn)
         {
