@@ -209,6 +209,8 @@ public abstract class Polity : ISynchronizable
         _needsToFindAccessibleRegions = true;
 
         NeedsNewCensus = true;
+
+        Manager.AddedCoreRegion(this, region);
     }
 
     public void RemoveCoreRegion(Region region)
@@ -224,6 +226,8 @@ public abstract class Polity : ISynchronizable
         _needsToFindAccessibleRegions = true;
 
         NeedsNewCensus = true;
+
+        Manager.RemovedCoreRegion(this, region);
     }
 
     /// <summary>

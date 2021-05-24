@@ -630,8 +630,6 @@ public class InfoPanelScript : MonoBehaviour
 
         Polity polity = territory.Polity;
 
-        PolityProminence pi = cell.Group.GetPolityProminence(polity);
-
         InfoText.text += "\nTerritory of the " + polity.Name.Text + " " + polity.Type.ToLower();
         InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
         InfoText.text += "\nFormation Date: " + Manager.GetDateString(polity.FormationDate);
@@ -706,9 +704,20 @@ public class InfoPanelScript : MonoBehaviour
 
         InfoText.text += "\n\tProminenced population: " + prominencedPopulation;
         InfoText.text += "\n\tPercentage of polity population: " + percentageOfPolity.ToString("P");
-        InfoText.text += "\n\tDistance to polity core: " + pi.PolityCoreDistance.ToString("0.000");
-        InfoText.text += "\n\tClosest Faction Core: " + pi.ClosestFactionId;
-        InfoText.text += "\n\tDistance to faction core: " + pi.FactionCoreDistance.ToString("0.000");
+        InfoText.text += "\n";
+
+        PolityProminence pi = cell.Group.GetPolityProminence(polity);
+
+        if (pi != null)
+        {
+            InfoText.text += "\n\tDistance to polity core: " + pi.PolityCoreDistance.ToString("0.000");
+            InfoText.text += "\n\tClosest Faction Core: " + pi.ClosestFactionId;
+            InfoText.text += "\n\tDistance to faction core: " + pi.FactionCoreDistance.ToString("0.000");
+        }
+        else
+        {
+            InfoText.text += "\n\tNo group present at location";
+        }
     }
 
     private void AddCellDataToInfoPanel_PolityClusters(TerrainCell cell)
