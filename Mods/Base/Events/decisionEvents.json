@@ -150,8 +150,9 @@
         { "id": "neighbor_regions", "value": "target.polity.accessible_neighbor_regions" },
         { "id": "selected_region", "value": "neighbor_regions.select_random()" },
         { "id": "cohesion_preference", "value": "target.preferences.cohesion" },
+        { "id": "cohesion_pref_factor", "value": "cohesion_preference * 0.75" },
         { "id": "core_saturation", "value": "target.polity.core_region_saturation" },
-        { "id": "chance_of_making_attempt", "value": "(1.5 * core_saturation * (1 - cohesion_preference)) - 0.5" }
+        { "id": "chance_of_making_attempt", "value": "(core_saturation * (1 + cohesion_pref_factor)) - cohesion_pref_factor" }
       ],
       "assignmentConditions": [
         "target.guide == simulation",
