@@ -1,8 +1,5 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
 using System;
 
 public enum Direction
@@ -442,10 +439,11 @@ public class TerrainCell
     /// <summary>
     /// Estimates the effective "occupancy" on a cell as a population quantity
     /// </summary>
-    /// <param name="polity">the polity the value is calculated for.
-    /// "null" if estimating the value for unorganized bands</param>
+    /// <param name="targetCulture">the culture the value is calculated for</param>
+    /// <param name="isPolity">'true' is the target culture is associated to a polity.
+    /// 'false' if its associated to unorganized bands</param>
     /// <returns>the estimated occupancy</returns>
-    public float EstimateEffectiveOccupancy(Polity polity)
+    public float EstimateEffectiveOccupancy(Culture targetCulture, bool isPolity)
     {
         if (Group == null)
             return 0;
@@ -458,22 +456,49 @@ public class TerrainCell
         float polityEffectivenessFactor = effectivenessConstant;
         float ubEffectivenessFactor = 1f;
 
-        if (polity != null)
+        if (isPolity)
         {
             polityEffectivenessFactor /= effectivenessConstant;
             ubEffectivenessFactor /= effectivenessConstant;
         }
 
-        ////////
+        //////// Effective population from polities
 
-        float promPopulation = Group.Population * Group.TotalPolityProminenceValue;
+        float promPopulation = 0;
+
+        foreach (PolityProminence p in Group.GetPolityProminences())
+        {
+            float promAggrFactor = 1;
+
+            Culture sourceCulture = p.Polity.Culture;
+
+            if (targetCulture != sourceCulture)
+            {
+                promAggrFactor = Culture.CalculateAggressionTowards(targetCulture, sourceCulture);
+
+                if (promAggrFactor <= 0)
+                {
+                    promAggrFactor = 1 + (promAggrFactor * 0.99f);
+                }
+                else
+                {
+                    promAggrFactor = 1 / (1 - (promAggrFactor * 0.99f));
+                }
+            }
+
+            promPopulation += Group.Population * p.Value * promAggrFactor;
+        }
+
         float promEffectivePopulation = promPopulation * polityEffectivenessFactor;
 
         effectivePopulation += Mathf.Max(0, promEffectivePopulation);
 
-        ////////
+        //////// Effective population from unorganized bands
 
-        float ubPopulation = Group.Population * (1 - Group.TotalPolityProminenceValue);
+        float ubAggrFactor = Culture.CalculateAggressionTowards(targetCulture, Group.Culture);
+
+        float ubPopulation =
+            Group.Population * (1 - Group.TotalPolityProminenceValue) * ubAggrFactor;
         float ubEffectivePopulation = ubPopulation * ubEffectivenessFactor;
 
         effectivePopulation += Mathf.Max(0, ubEffectivePopulation);
@@ -494,17 +519,29 @@ public class TerrainCell
     {
         float freeSpaceOffset = 0;
 
+        bool isPolity = polity != null;
+
+        Culture targetCulture;
+        if (isPolity)
+        {
+            targetCulture = polity.Culture;
+        }
+        else
+        {
+            targetCulture = sourceGroup.Culture;
+        }
+
         float targetOptimalPop =
             EstimateOptimalPopulation(sourceGroup.Culture);
 
         float targetFreeSpace =
-            targetOptimalPop - EstimateEffectiveOccupancy(polity);
+            targetOptimalPop - EstimateEffectiveOccupancy(targetCulture, isPolity);
 
         float sourceOptimalPop =
             sourceGroup.Cell.EstimateOptimalPopulation(sourceGroup.Culture);
 
         float sourceFreeSpace =
-            sourceOptimalPop - sourceGroup.Cell.EstimateEffectiveOccupancy(polity);
+            sourceOptimalPop - sourceGroup.Cell.EstimateEffectiveOccupancy(targetCulture, isPolity);
 
         if (targetFreeSpace < freeSpaceOffset)
         {
@@ -535,7 +572,7 @@ public class TerrainCell
 
         if (float.IsNaN(cellValue))
         {
-            throw new System.Exception("float.IsNaN(cellValue)");
+            throw new Exception("float.IsNaN(cellValue)");
         }
 
         return cellValue;

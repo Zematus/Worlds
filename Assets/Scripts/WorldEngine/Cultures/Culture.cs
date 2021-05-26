@@ -500,4 +500,12 @@ public class Culture : ISynchronizable
             Discoveries.Add(discoveryId, discovery);
         }
     }
+
+    public static float CalculateAggressionTowards(Culture targetCulture, Culture sourceCulture)
+    {
+        float sourceAggrPref = sourceCulture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+        float targetAggrPref = targetCulture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+
+        return sourceAggrPref - targetAggrPref;
+    }
 }
