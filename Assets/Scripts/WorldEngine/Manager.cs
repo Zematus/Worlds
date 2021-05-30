@@ -3700,7 +3700,7 @@ public class Manager
             float totalProminenceValueFactor = 0;
 
             Color mixedPolityColor = Color.black;
-            foreach (PolityProminence p in cell.Group.GetPolityProminences())
+            foreach (PolityProminence p in cell.PolityProminences)
             {
                 polityCount++;
 

@@ -430,14 +430,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstPolity = true;
 
-        List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.GetPolityProminences());
-
-        polityProminences.Sort((a, b) =>
-        {
-            if (a.Value > b.Value) return -1;
-            if (a.Value < b.Value) return 1;
-            return 0;
-        });
+        List<PolityProminence> polityProminences = GetCellSortedListOfProminences(cell);
 
         foreach (PolityProminence polityProminence in polityProminences)
         {
@@ -720,6 +713,20 @@ public class InfoPanelScript : MonoBehaviour
         }
     }
 
+    private List<PolityProminence> GetCellSortedListOfProminences(TerrainCell cell)
+    {
+        List<PolityProminence> polityProminences = new List<PolityProminence>(cell.PolityProminences);
+
+        polityProminences.Sort((a, b) =>
+        {
+            if (a.Value > b.Value) return -1;
+            if (a.Value < b.Value) return 1;
+            return 0;
+        });
+
+        return polityProminences;
+    }
+
     private void AddCellDataToInfoPanel_PolityClusters(TerrainCell cell)
     {
         InfoText.text += "\n";
@@ -744,14 +751,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstPolity = true;
 
-        List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.GetPolityProminences());
-
-        polityProminences.Sort((a, b) =>
-        {
-            if (a.Value > b.Value) return -1;
-            if (a.Value < b.Value) return 1;
-            return 0;
-        });
+        List<PolityProminence> polityProminences = GetCellSortedListOfProminences(cell);
 
         foreach (PolityProminence polityProminence in polityProminences)
         {

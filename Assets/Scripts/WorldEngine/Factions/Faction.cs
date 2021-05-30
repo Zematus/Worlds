@@ -753,16 +753,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         preference.Value = MathUtility.DecreaseByPercent(value, percentage);
     }
 
-    public float GetPreferenceValue(string id)
-    {
-        CulturalPreference preference = Culture.GetPreference(id);
-
-        if (preference != null)
-            return preference.Value;
-
-        return 0;
-    }
-
     public void SetFlag(string flag)
     {
         _flags.Add(flag);

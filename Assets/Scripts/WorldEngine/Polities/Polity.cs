@@ -1645,16 +1645,6 @@ public abstract class Polity : ISynchronizable
 
     protected abstract void GenerateName();
 
-    public float GetPreferenceValue(string id)
-    {
-        CulturalPreference preference = Culture.GetPreference(id);
-
-        if (preference != null)
-            return preference.Value;
-
-        return 0;
-    }
-
     [System.Obsolete]
     public float CalculateContactStrength(Polity polity)
     {

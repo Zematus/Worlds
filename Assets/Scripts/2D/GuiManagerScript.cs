@@ -3557,7 +3557,7 @@ public class GuiManagerScript : MonoBehaviour
 
             foreach (Faction faction in polity.GetFactions())
             {
-                float value = faction.GetPreferenceValue(_planetOverlaySubtype);
+                float value = faction.Culture.GetPreferenceValue(_planetOverlaySubtype);
 
                 text += "\n " + faction.Name.Text + ": " + value.ToString("0.00");
             }

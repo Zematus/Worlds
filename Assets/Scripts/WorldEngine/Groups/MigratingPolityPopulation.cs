@@ -91,7 +91,7 @@ public class MigratingPolityPopulation : MigratingPopulation
     protected override BufferCulture CreateMigratingCulture()
     {
         float isolationPreference =
-            Polity.GetPreferenceValue(CulturalPreference.IsolationPreferenceId);
+            Polity.Culture.GetIsolationPreferenceValue();
 
         BufferCulture culture = new BufferCulture(SourceGroup.Culture);
 

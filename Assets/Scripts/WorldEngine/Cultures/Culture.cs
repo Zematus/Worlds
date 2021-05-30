@@ -39,6 +39,10 @@ public class Culture : ISynchronizable
     protected Dictionary<string, CulturalSkill> _skills = new Dictionary<string, CulturalSkill>();
     protected Dictionary<string, CulturalKnowledge> _knowledges = new Dictionary<string, CulturalKnowledge>();
 
+    // preference references hardcoded for performance reasons
+    private CulturalPreference _aggressionPreference;
+    private CulturalPreference _isolationPreference;
+
     public Culture()
     {
     }
@@ -90,10 +94,24 @@ public class Culture : ISynchronizable
         World.AddExistingCulturalPreferenceInfo(preference);
 
         _preferences.Add(preference.Id, preference);
+
+        switch (preference.Id)
+        {
+            case CulturalPreference.AggressionPreferenceId:
+
+                _aggressionPreference = preference;
+                break;
+
+            case CulturalPreference.IsolationPreferenceId:
+
+                _isolationPreference = preference;
+                break;
+        }
     }
 
     /// <summary>
-    /// Removes a preference from the culture
+    /// Removes a preference from the culture.
+    /// Note: Some preferences can't be removed
     /// </summary>
     /// <param name="preference">The preference to remove</param>
     public void RemovePreference(CulturalPreference preference)
@@ -101,17 +119,14 @@ public class Culture : ISynchronizable
         if (!_preferences.ContainsKey(preference.Id))
             return;
 
+        if ((preference.Id == CulturalPreference.AggressionPreferenceId) ||
+            (preference.Id == CulturalPreference.IsolationPreferenceId))
+        {
+            throw new System.Exception(
+                "Illegal Op: Preference with id:" + preference.Id + " can't be removed");
+        }
+
         _preferences.Remove(preference.Id);
-    }
-
-    public void RemovePreference(string preferenceId)
-    {
-        CulturalPreference preference = GetPreference(preferenceId);
-
-        if (preference == null)
-            return;
-
-        RemovePreference(preference);
     }
 
     public void ResetPreferences()
@@ -234,6 +249,28 @@ public class Culture : ISynchronizable
             return null;
 
         return preference;
+    }
+
+    /// <summary>
+    /// Returns the current value for the preference for aggression.
+    /// Note: This function exists for performance reasons and assumes the
+    /// preference is always present (which should be)
+    /// </summary>
+    /// <returns>the aggression preference value</returns>
+    public float GetAggressionPreferenceValue()
+    {
+        return _aggressionPreference.Value;
+    }
+
+    /// <summary>
+    /// Returns the current value for the preference for isolation.
+    /// Note: This function exists for performance reasons and assumes the
+    /// preference is always present (which should be)
+    /// </summary>
+    /// <returns>the isolation preference value</returns>
+    public float GetIsolationPreferenceValue()
+    {
+        return _isolationPreference.Value;
     }
 
     /// <summary>
@@ -503,8 +540,19 @@ public class Culture : ISynchronizable
 
     public static float CalculateAggressionTowards(Culture targetCulture, Culture sourceCulture)
     {
-        float sourceAggrPref = sourceCulture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
-        float targetAggrPref = targetCulture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+        Profiler.BeginSample("CalculateAggressionTowards");
+
+        float sourceAggrPref = sourceCulture.GetAggressionPreferenceValue();
+        float targetAggrPref = targetCulture.GetAggressionPreferenceValue();
+
+        Profiler.EndSample(); // ("CalculateAggressionTowards");
+
+        Profiler.BeginSample("CalculateAggressionTowards 2");
+
+        float sourceAggrPref2 = sourceCulture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+        float targetAggrPref2 = targetCulture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+
+        Profiler.EndSample(); // ("CalculateAggressionTowards 2");
 
         return sourceAggrPref - targetAggrPref;
     }

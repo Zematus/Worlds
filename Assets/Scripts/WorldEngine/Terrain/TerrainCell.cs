@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using UnityEngine.Profiling;
 
 public enum Direction
 {
@@ -216,6 +217,10 @@ public class TerrainCell
     public List<TerrainCell> NeighborList { get; private set; }
     public List<Direction> DirectionList { get; private set; }
     public Dictionary<Direction, float> NeighborDistances { get; private set; }
+
+    public List<PolityProminence> PolityProminences =
+        new List<PolityProminence>();
+    private bool _shoulResetPolityProminenceList = false;
 
     private float _waterAccumulation = 0;
 
@@ -436,6 +441,31 @@ public class TerrainCell
         return altitudeDeltaFactor;
     }
 
+    public void AddGroupPolityProminence(PolityProminence p)
+    {
+        PolityProminences.Add(p);
+    }
+
+    public void SetGroupPolityProminenceListToReset()
+    {
+        _shoulResetPolityProminenceList = true;
+    }
+
+    public void TryResetGroupPolityProminenceList(bool force = false, bool refill = true)
+    {
+        if (!force && !_shoulResetPolityProminenceList)
+            return;
+
+        _shoulResetPolityProminenceList = false;
+
+        PolityProminences.Clear();
+
+        if (refill && (Group != null) && Group.StillPresent)
+        {
+            PolityProminences.AddRange(Group.GetPolityProminences());
+        }
+    }
+
     /// <summary>
     /// Estimates the effective "occupancy" on a cell as a population quantity
     /// </summary>
@@ -447,6 +477,8 @@ public class TerrainCell
     {
         if (Group == null)
             return 0;
+
+        Profiler.BeginSample("EstimateEffectiveOccupancy");
 
         float effectivePopulation = 0;
 
@@ -466,8 +498,14 @@ public class TerrainCell
 
         float promPopulation = 0;
 
-        foreach (PolityProminence p in Group.GetPolityProminences())
+        Profiler.BeginSample("EstimateEffectiveOccupancy foreach");
+
+        // NOTE: doing a for loop is slightly faster than doing a foreach, and this
+        // function is called very frequently. So it's worth implementing this way
+        for (int i = 0; i < PolityProminences.Count; i++)
         {
+            PolityProminence p = PolityProminences[i];
+
             float promAggrFactor = 1;
 
             Culture sourceCulture = p.Polity.Culture;
@@ -489,6 +527,8 @@ public class TerrainCell
             promPopulation += Group.Population * p.Value * promAggrFactor;
         }
 
+        Profiler.EndSample(); // ("EstimateEffectiveOccupancy foreach");
+
         float promEffectivePopulation = promPopulation * polityEffectivenessFactor;
 
         effectivePopulation += Mathf.Max(0, promEffectivePopulation);
@@ -504,6 +544,57 @@ public class TerrainCell
         effectivePopulation += Mathf.Max(0, ubEffectivePopulation);
 
         ////////
+
+        Profiler.EndSample(); // ("EstimateEffectiveOccupancy");
+
+        return effectivePopulation;
+    }
+
+    /// <summary>
+    /// Estimates the effective "occupancy" on a cell as a population quantity
+    /// </summary>
+    /// <param name="targetCulture">the culture the value is calculated for</param>
+    /// <param name="isPolity">'true' is the target culture is associated to a polity.
+    /// 'false' if its associated to unorganized bands</param>
+    /// <returns>the estimated occupancy</returns>
+    public float EstimateEffectiveOccupancyOrig(Culture targetCulture, bool isPolity)
+    {
+        if (Group == null)
+            return 0;
+
+        Profiler.BeginSample("EstimateEffectiveOccupancyOrig");
+
+        float effectivePopulation = 0;
+
+        // This allows polities to expand into free, populated territories
+        float effectivenessConstant = 100f;
+
+        float polityEffectivenessFactor = effectivenessConstant;
+        float ubEffectivenessFactor = 1f;
+
+        if (isPolity)
+        {
+            polityEffectivenessFactor /= effectivenessConstant;
+            ubEffectivenessFactor /= effectivenessConstant;
+        }
+
+        //////// Effective population from polities
+
+        float promPopulation = Group.Population * Group.TotalPolityProminenceValue;
+        float promEffectivePopulation = promPopulation * polityEffectivenessFactor;
+
+        effectivePopulation += Mathf.Max(0, promEffectivePopulation);
+
+        //////// Effective population from unorganized bands
+        
+        float ubPopulation = Group.Population * (1 - Group.TotalPolityProminenceValue);
+        float ubEffectivePopulation = ubPopulation * ubEffectivenessFactor;
+
+        effectivePopulation += Mathf.Max(0, ubEffectivePopulation);
+
+        ////////
+
+        Profiler.EndSample(); // "EstimateEffectiveOccupancyOrig"
 
         return effectivePopulation;
     }

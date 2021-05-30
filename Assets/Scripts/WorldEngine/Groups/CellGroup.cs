@@ -1231,19 +1231,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     }
 
     /// <summary>
-    /// Calculates the current value of a cell considered as a migration target
-    /// The value returned will be a value between 0 and 1.
-    /// </summary>
-    /// <param name="cell">the target cell</param>
-    /// <param name="migratingPolity">the polity that intend to migrate
-    /// (null if migrating unorganized bands)</param>
-    /// <returns>Migration value</returns>
-    public float CalculateMigrationValue(TerrainCell cell, Polity migratingPolity = null)
-    {
-        return cell.CalculateMigrationValue(this, migratingPolity);
-    }
-
-    /// <summary>
     /// Calculates the chance of a successful migration to the target cell.
     /// </summary>
     /// <param name="cell">the target cell</param>
@@ -1256,7 +1243,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         Polity migratingPolity = null)
     {
         float offset = -0.1f;
-        migrationValue = CalculateMigrationValue(cell, migratingPolity);
+        migrationValue = cell.CalculateMigrationValue(this, migratingPolity);
 
         float unbiasedChance = Mathf.Clamp01(migrationValue + offset);
 
@@ -1592,6 +1579,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
             Cell.EncompassingTerritory.SetCellToRemove(Cell);
         }
+
+        Cell.TryResetGroupPolityProminenceList(true, false);
     }
 
 #if DEBUG
@@ -1825,10 +1814,10 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         Culture polityCulture = prominence.Polity.Culture;
 
         float polityIsolationPrefValue =
-            polityCulture.GetPreferenceValue(CulturalPreference.IsolationPreferenceId);
+            polityCulture.GetIsolationPreferenceValue();
 
         float groupIsolationPrefValue =
-            Culture.GetPreferenceValue(CulturalPreference.IsolationPreferenceId);
+            Culture.GetIsolationPreferenceValue();
 
         // acculturation on unorganized bands
 
@@ -2025,43 +2014,43 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor * rangeFactor;
     }
 
-    public float AggressionOnUB()
-    {
-        if (_polityProminences.Count == 0)
-            return 0;
+    //public float AggressionOnUB()
+    //{
+    //    if (_polityProminences.Count == 0)
+    //        return 0;
 
-        float promPrefValue = 0;
+    //    float promPrefValue = 0;
 
-        foreach (PolityProminence p in _polityProminences.Values)
-        {
-            promPrefValue +=
-                p.Polity.GetPreferenceValue(CulturalPreference.AggressionPreferenceId) *
-                p.Value;
-        }
+    //    foreach (PolityProminence p in _polityProminences.Values)
+    //    {
+    //        promPrefValue +=
+    //            p.Polity.GetPreferenceValue(CulturalPreference.AggressionPreferenceId) *
+    //            p.Value;
+    //    }
 
-        // normalize
-        promPrefValue /= TotalPolityProminenceValue;
+    //    // normalize
+    //    promPrefValue /= TotalPolityProminenceValue;
 
-        float aggrValue =
-            Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+    //    float aggrValue =
+    //        Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
 
-        float aggrDiff = aggrValue - promPrefValue;
+    //    float aggrDiff = aggrValue - promPrefValue;
 
-        return aggrDiff * 2;
-    }
+    //    return aggrDiff * 2;
+    //}
 
-    public float AggressionOnPolity(Polity polity)
-    {
-        float polityAggrValue =
-            polity.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+    //public float AggressionOnPolity(Polity polity)
+    //{
+    //    float polityAggrValue =
+    //        polity.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
 
-        float aggrValue =
-            Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
+    //    float aggrValue =
+    //        Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
 
-        float aggrDiff = polityAggrValue - aggrValue;
+    //    float aggrDiff = polityAggrValue - aggrValue;
 
-        return aggrDiff * 2;
-    }
+    //    return aggrDiff * 2;
+    //}
 
     /// <summary>
     /// Calculates how much pressure there is to migrate
@@ -2071,6 +2060,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <returns>the pressure value</returns>
     public float CalculateMigrationPressure(Polity migratingPolity)
     {
+        Profiler.BeginSample("CalculateMigrationPressure");
+
         float populationFactor;
 
         float aggrFactor = 1;
@@ -2101,6 +2092,77 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         if (populationFactor < minPopulationConstant)
             return 0;
 
+        int randomNeighborIndex = GetNextLocalRandomInt(
+            RngOffsets.CELL_GROUP_PICK_MIGRATION_PRESSURE_NEIGHBOR, Cell.NeighborList.Count);
+
+        TerrainCell randomCell = Cell.NeighborList[randomNeighborIndex];
+        float neighborhoodValue = randomCell.CalculateMigrationValue(this, migratingPolity);
+
+        //float neighborhoodValue = 0;
+        //foreach (TerrainCell nCell in Cell.NeighborList)
+        //{
+        //    neighborhoodValue =
+        //        Mathf.Max(neighborhoodValue, nCell.CalculateMigrationValue(this, migratingPolity));
+        //}
+
+        // This will reduce the effect that low value cells have
+        neighborhoodValue = Mathf.Clamp01(neighborhoodValue - 0.1f);
+
+        neighborhoodValue = 100000 * Mathf.Pow(neighborhoodValue, 4);
+
+        Profiler.EndSample(); // ("CalculateMigrationPressure");
+
+        return CalculateMigrationPressure2(migratingPolity);
+
+        //return neighborhoodValue / (1 + neighborhoodValue);
+    }
+
+    /// <summary>
+    /// Calculates how much pressure there is to migrate
+    /// out of this cell
+    /// </summary>
+    /// <param name="migratingPolity">the polity the pressure will be calculated for</param>
+    /// <returns>the pressure value</returns>
+    public float CalculateMigrationPressure2(Polity migratingPolity)
+    {
+        Profiler.BeginSample("CalculateMigrationPressure2");
+
+        float populationFactor;
+
+        float aggrFactor = 1;
+
+        //if (migratingPolity == null)
+        //{
+        //    aggrFactor += AggressionOnUB();
+        //}
+        //else
+        //{
+        //    aggrFactor += AggressionOnPolity(migratingPolity);
+        //}
+
+        float modOptimalPop = OptimalPopulation * aggrFactor;
+
+        if (modOptimalPop > 0)
+        {
+            populationFactor = Population / modOptimalPop;
+        }
+        else
+        {
+            return 1;
+        }
+
+        float minPopulationConstant = 0.90f;
+
+        // if the population is not near its optimum then don't add pressure
+        if (populationFactor < minPopulationConstant)
+            return 0;
+
+        //int randomNeighborIndex = GetNextLocalRandomInt(
+        //    RngOffsets.CELL_GROUP_PICK_MIGRATION_PRESSURE_NEIGHBOR, Cell.NeighborList.Count);
+
+        //TerrainCell randomCell = Cell.NeighborList[randomNeighborIndex];
+        //float neighborhoodValue = randomCell.CalculateMigrationValue(this, migratingPolity);
+
         float neighborhoodValue = 0;
         foreach (TerrainCell nCell in Cell.NeighborList)
         {
@@ -2113,6 +2175,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         neighborhoodValue = 100000 * Mathf.Pow(neighborhoodValue, 4);
 
+        Profiler.EndSample(); // ("CalculateMigrationPressure2");
+
         return neighborhoodValue / (1 + neighborhoodValue);
     }
 
@@ -2121,7 +2185,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// out of this cell
     /// </summary>
     /// <returns>the migration presure value</returns>
-    public float CalculateMigrationPressure()
+    public float CalculateOverallMigrationPressure()
     {
         // There's low pressure if there's already a migration event occurring
         if (HasMigrationEvent)
@@ -2165,7 +2229,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float randomFactor = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CALCULATE_NEXT_UPDATE);
         randomFactor = 1f - Mathf.Pow(randomFactor, 4);
 
-        float migrationFactor = 1 - CalculateMigrationPressure();
+        float migrationFactor = 1 - CalculateOverallMigrationPressure();
 
         float skillLevelFactor = Culture.MinimumSkillAdaptationLevel();
         float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel();
@@ -2854,6 +2918,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         }
 
         _polityProminences.Add(polity.Id, polityProminence);
+        Cell.AddGroupPolityProminence(polityProminence);
 
         // We want to update the polity if a group is added.
         SetPolityUpdate(polityProminence, true);
@@ -2897,6 +2962,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             }
 
             _polityProminences.Remove(polityProminence.PolityId);
+            Cell.SetGroupPolityProminenceListToReset();
 
             if (HighestPolityProminence == polityProminence)
             {
@@ -2927,6 +2993,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         }
 
         _polityProminencesToRemove.Clear();
+
+        Cell.TryResetGroupPolityProminenceList();
 
         // CAUTION: We should make sure we find the new highest polity prominence
         // afterwards. We don't do it right away because normally we would add prominences
@@ -3071,6 +3139,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         foreach (PolityProminence p in PolityProminences)
         {
             _polityProminences.Add(p.PolityId, p);
+            Cell.AddGroupPolityProminence(p);
         }
     }
 
