@@ -557,12 +557,12 @@ public class TerrainCell
     /// <param name="isPolity">'true' is the target culture is associated to a polity.
     /// 'false' if its associated to unorganized bands</param>
     /// <returns>the estimated occupancy</returns>
-    public float EstimateEffectiveOccupancyOrig(Culture targetCulture, bool isPolity)
+    public float EstimateEffectiveOccupancy2(Culture targetCulture, bool isPolity)
     {
         if (Group == null)
             return 0;
 
-        Profiler.BeginSample("EstimateEffectiveOccupancyOrig");
+        Profiler.BeginSample("EstimateEffectiveOccupancy2");
 
         float effectivePopulation = 0;
 
@@ -586,7 +586,7 @@ public class TerrainCell
         effectivePopulation += Mathf.Max(0, promEffectivePopulation);
 
         //////// Effective population from unorganized bands
-        
+
         float ubPopulation = Group.Population * (1 - Group.TotalPolityProminenceValue);
         float ubEffectivePopulation = ubPopulation * ubEffectivenessFactor;
 
@@ -594,7 +594,7 @@ public class TerrainCell
 
         ////////
 
-        Profiler.EndSample(); // "EstimateEffectiveOccupancyOrig"
+        Profiler.EndSample(); // ("EstimateEffectiveOccupancy2");
 
         return effectivePopulation;
     }
@@ -632,6 +632,80 @@ public class TerrainCell
             sourceGroup.Cell.EstimateOptimalPopulation(sourceGroup.Culture);
 
         float sourceFreeSpace =
+            sourceOptimalPop - sourceGroup.Cell.EstimateEffectiveOccupancy(targetCulture, isPolity);
+
+        if (targetFreeSpace < freeSpaceOffset)
+        {
+            freeSpaceOffset = targetFreeSpace;
+        }
+
+        if (sourceFreeSpace < freeSpaceOffset)
+        {
+            freeSpaceOffset = sourceFreeSpace;
+        }
+
+        float modTargetFreeSpace = targetFreeSpace - freeSpaceOffset + 1;
+        float modSourceFreeSpace = sourceFreeSpace - freeSpaceOffset;
+
+        float freeSpaceFactor =
+            modTargetFreeSpace / (modTargetFreeSpace + modSourceFreeSpace);
+
+        freeSpaceFactor *= targetFreeSpace / (sourceOptimalPop + 1);
+
+        float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceGroup.Cell);
+
+        float cellValue = freeSpaceFactor * altitudeFactor;
+
+        if ((polity != null) && (!polity.CoreRegions.Contains(Region)))
+        {
+            cellValue *= 0.05f;
+        }
+
+        if (float.IsNaN(cellValue))
+        {
+            throw new Exception("float.IsNaN(cellValue)");
+        }
+
+        return cellValue;
+    }
+
+    /// <summary>
+    /// Estimates how valuable this cell might be as a migration target for unorganized
+    /// bands
+    /// </summary>
+    /// <param name="sourceGroup">the group from which the migration will arrive</param>
+    /// <param name="polity">the polity to which the migrating population belongs, if any</param>
+    /// <returns></returns>
+    public float CalculateMigrationValue2(CellGroup sourceGroup, Polity polity)
+    {
+        float freeSpaceOffset = 0;
+
+        bool isPolity = polity != null;
+
+        Culture targetCulture;
+        if (isPolity)
+        {
+            targetCulture = polity.Culture;
+        }
+        else
+        {
+            targetCulture = sourceGroup.Culture;
+        }
+
+        float targetOptimalPop =
+            EstimateOptimalPopulation(sourceGroup.Culture);
+
+        float targetFreeSpace =
+            targetOptimalPop - EstimateEffectiveOccupancy2(targetCulture, isPolity);
+        targetFreeSpace =
+            targetOptimalPop - EstimateEffectiveOccupancy(targetCulture, isPolity);
+
+        float sourceOptimalPop =
+            sourceGroup.Cell.EstimateOptimalPopulation(sourceGroup.Culture);
+
+        float sourceFreeSpace =
+            sourceOptimalPop - sourceGroup.Cell.EstimateEffectiveOccupancy2(targetCulture, isPolity);
+        sourceFreeSpace =
             sourceOptimalPop - sourceGroup.Cell.EstimateEffectiveOccupancy(targetCulture, isPolity);
 
         if (targetFreeSpace < freeSpaceOffset)

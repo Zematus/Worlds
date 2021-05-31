@@ -1243,7 +1243,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         Polity migratingPolity = null)
     {
         float offset = -0.1f;
-        migrationValue = cell.CalculateMigrationValue(this, migratingPolity);
+        migrationValue = cell.CalculateMigrationValue2(this, migratingPolity);
 
         float unbiasedChance = Mathf.Clamp01(migrationValue + offset);
 
@@ -2083,6 +2083,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         }
         else
         {
+            Profiler.EndSample(); // ("CalculateMigrationPressure");
             return 1;
         }
 
@@ -2090,7 +2091,10 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         // if the population is not near its optimum then don't add pressure
         if (populationFactor < minPopulationConstant)
+        {
+            Profiler.EndSample(); // ("CalculateMigrationPressure");
             return 0;
+        }
 
         int randomNeighborIndex = GetNextLocalRandomInt(
             RngOffsets.CELL_GROUP_PICK_MIGRATION_PRESSURE_NEIGHBOR, Cell.NeighborList.Count);
@@ -2098,84 +2102,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         TerrainCell randomCell = Cell.NeighborList[randomNeighborIndex];
         float neighborhoodValue = randomCell.CalculateMigrationValue(this, migratingPolity);
 
-        //float neighborhoodValue = 0;
-        //foreach (TerrainCell nCell in Cell.NeighborList)
-        //{
-        //    neighborhoodValue =
-        //        Mathf.Max(neighborhoodValue, nCell.CalculateMigrationValue(this, migratingPolity));
-        //}
-
         // This will reduce the effect that low value cells have
         neighborhoodValue = Mathf.Clamp01(neighborhoodValue - 0.1f);
 
         neighborhoodValue = 100000 * Mathf.Pow(neighborhoodValue, 4);
 
         Profiler.EndSample(); // ("CalculateMigrationPressure");
-
-        return CalculateMigrationPressure2(migratingPolity);
-
-        //return neighborhoodValue / (1 + neighborhoodValue);
-    }
-
-    /// <summary>
-    /// Calculates how much pressure there is to migrate
-    /// out of this cell
-    /// </summary>
-    /// <param name="migratingPolity">the polity the pressure will be calculated for</param>
-    /// <returns>the pressure value</returns>
-    public float CalculateMigrationPressure2(Polity migratingPolity)
-    {
-        Profiler.BeginSample("CalculateMigrationPressure2");
-
-        float populationFactor;
-
-        float aggrFactor = 1;
-
-        //if (migratingPolity == null)
-        //{
-        //    aggrFactor += AggressionOnUB();
-        //}
-        //else
-        //{
-        //    aggrFactor += AggressionOnPolity(migratingPolity);
-        //}
-
-        float modOptimalPop = OptimalPopulation * aggrFactor;
-
-        if (modOptimalPop > 0)
-        {
-            populationFactor = Population / modOptimalPop;
-        }
-        else
-        {
-            return 1;
-        }
-
-        float minPopulationConstant = 0.90f;
-
-        // if the population is not near its optimum then don't add pressure
-        if (populationFactor < minPopulationConstant)
-            return 0;
-
-        //int randomNeighborIndex = GetNextLocalRandomInt(
-        //    RngOffsets.CELL_GROUP_PICK_MIGRATION_PRESSURE_NEIGHBOR, Cell.NeighborList.Count);
-
-        //TerrainCell randomCell = Cell.NeighborList[randomNeighborIndex];
-        //float neighborhoodValue = randomCell.CalculateMigrationValue(this, migratingPolity);
-
-        float neighborhoodValue = 0;
-        foreach (TerrainCell nCell in Cell.NeighborList)
-        {
-            neighborhoodValue =
-                Mathf.Max(neighborhoodValue, nCell.CalculateMigrationValue(this, migratingPolity));
-        }
-
-        // This will reduce the effect that low value cells have
-        neighborhoodValue = Mathf.Clamp01(neighborhoodValue - 0.1f);
-
-        neighborhoodValue = 100000 * Mathf.Pow(neighborhoodValue, 4);
-
-        Profiler.EndSample(); // ("CalculateMigrationPressure2");
 
         return neighborhoodValue / (1 + neighborhoodValue);
     }

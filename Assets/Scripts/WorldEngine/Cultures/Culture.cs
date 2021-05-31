@@ -547,13 +547,6 @@ public class Culture : ISynchronizable
 
         Profiler.EndSample(); // ("CalculateAggressionTowards");
 
-        Profiler.BeginSample("CalculateAggressionTowards 2");
-
-        float sourceAggrPref2 = sourceCulture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
-        float targetAggrPref2 = targetCulture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
-
-        Profiler.EndSample(); // ("CalculateAggressionTowards 2");
-
         return sourceAggrPref - targetAggrPref;
     }
 }
