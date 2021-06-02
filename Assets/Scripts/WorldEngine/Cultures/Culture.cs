@@ -538,15 +538,15 @@ public class Culture : ISynchronizable
         }
     }
 
-    public static float CalculateAggressionTowards(Culture targetCulture, Culture sourceCulture)
+    public static float CalculateAggressionDiff(Culture cultureA, Culture cultureB)
     {
         Profiler.BeginSample("CalculateAggressionTowards");
 
-        float sourceAggrPref = sourceCulture.GetAggressionPreferenceValue();
-        float targetAggrPref = targetCulture.GetAggressionPreferenceValue();
+        float aggrPrefB = cultureB.GetAggressionPreferenceValue();
+        float aggrPrefA = cultureA.GetAggressionPreferenceValue();
 
         Profiler.EndSample(); // ("CalculateAggressionTowards");
 
-        return sourceAggrPref - targetAggrPref;
+        return aggrPrefB - aggrPrefA;
     }
 }

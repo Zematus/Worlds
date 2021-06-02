@@ -1243,7 +1243,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         Polity migratingPolity = null)
     {
         float offset = -0.1f;
-        migrationValue = cell.CalculateMigrationValue2(this, migratingPolity);
+        migrationValue = cell.CalculateMigrationValue(this, migratingPolity);
 
         float unbiasedChance = Mathf.Clamp01(migrationValue + offset);
 
@@ -2111,6 +2111,67 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         return neighborhoodValue / (1 + neighborhoodValue);
     }
+
+    ///// <summary>
+    ///// Calculates how much pressure there is to migrate
+    ///// out of this cell
+    ///// </summary>
+    ///// <param name="migratingPolity">the polity the pressure will be calculated for</param>
+    ///// <returns>the pressure value</returns>
+    //public float CalculateMigrationPressureOriginal(Polity migratingPolity)
+    //{
+    //    Profiler.BeginSample("CalculateMigrationPressure2");
+
+    //    float populationFactor;
+
+    //    float aggrFactor = 1;
+
+    //    //if (migratingPolity == null)
+    //    //{
+    //    //    aggrFactor += AggressionOnUB();
+    //    //}
+    //    //else
+    //    //{
+    //    //    aggrFactor += AggressionOnPolity(migratingPolity);
+    //    //}
+
+    //    float modOptimalPop = OptimalPopulation * aggrFactor;
+
+    //    if (modOptimalPop > 0)
+    //    {
+    //        populationFactor = Population / modOptimalPop;
+    //    }
+    //    else
+    //    {
+    //        Profiler.EndSample(); // ("CalculateMigrationPressure2");
+    //        return 1;
+    //    }
+
+    //    float minPopulationConstant = 0.90f;
+
+    //    // if the population is not near its optimum then don't add pressure
+    //    if (populationFactor < minPopulationConstant)
+    //    {
+    //        Profiler.EndSample(); // ("CalculateMigrationPressure2");
+    //        return 0;
+    //    }
+
+    //    float neighborhoodValue = 0;
+    //    foreach (TerrainCell nCell in Cell.NeighborList)
+    //    {
+    //        neighborhoodValue =
+    //            Mathf.Max(neighborhoodValue, nCell.CalculateMigrationValue(this, migratingPolity));
+    //    }
+
+    //    // This will reduce the effect that low value cells have
+    //    neighborhoodValue = Mathf.Clamp01(neighborhoodValue - 0.1f);
+
+    //    neighborhoodValue = 100000 * Mathf.Pow(neighborhoodValue, 4);
+
+    //    Profiler.EndSample(); // ("CalculateMigrationPressure2");
+
+    //    return neighborhoodValue / (1 + neighborhoodValue);
+    //}
 
     /// <summary>
     /// Calculates how much pressure there is for population sets to migrate

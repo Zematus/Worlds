@@ -466,14 +466,30 @@ public class TerrainCell
         }
     }
 
+    public float CalculateOccupancyAggressionFactor(Culture cultureA, Culture cultureB)
+    {
+        float aggrFactor = Culture.CalculateAggressionDiff(cultureA, cultureB);
+
+        if (aggrFactor <= 0)
+        {
+            aggrFactor = 1 + (aggrFactor * 0.99f);
+        }
+        else
+        {
+            aggrFactor = 1 / (1 - (aggrFactor * 0.99f));
+        }
+
+        return aggrFactor;
+    }
+
     /// <summary>
     /// Estimates the effective "occupancy" on a cell as a population quantity
     /// </summary>
-    /// <param name="targetCulture">the culture the value is calculated for</param>
+    /// <param name="sourceCulture">the culture the value is calculated for</param>
     /// <param name="isPolity">'true' is the target culture is associated to a polity.
     /// 'false' if its associated to unorganized bands</param>
     /// <returns>the estimated occupancy</returns>
-    public float EstimateEffectiveOccupancy(Culture targetCulture, bool isPolity)
+    public float EstimateEffectiveOccupancy(Culture sourceCulture, bool isPolity)
     {
         if (Group == null)
             return 0;
@@ -508,20 +524,12 @@ public class TerrainCell
 
             float promAggrFactor = 1;
 
-            Culture sourceCulture = p.Polity.Culture;
+            Culture promCulture = p.Polity.Culture;
 
-            if (targetCulture != sourceCulture)
+            if (sourceCulture != promCulture)
             {
-                promAggrFactor = Culture.CalculateAggressionTowards(targetCulture, sourceCulture);
-
-                if (promAggrFactor <= 0)
-                {
-                    promAggrFactor = 1 + (promAggrFactor * 0.99f);
-                }
-                else
-                {
-                    promAggrFactor = 1 / (1 - (promAggrFactor * 0.99f));
-                }
+                promAggrFactor =
+                    CalculateOccupancyAggressionFactor(sourceCulture, promCulture);
             }
 
             promPopulation += Group.Population * p.Value * promAggrFactor;
@@ -535,7 +543,8 @@ public class TerrainCell
 
         //////// Effective population from unorganized bands
 
-        float ubAggrFactor = Culture.CalculateAggressionTowards(targetCulture, Group.Culture);
+        float ubAggrFactor =
+            CalculateOccupancyAggressionFactor(sourceCulture, Group.Culture);
 
         float ubPopulation =
             Group.Population * (1 - Group.TotalPolityProminenceValue) * ubAggrFactor;
@@ -550,54 +559,54 @@ public class TerrainCell
         return effectivePopulation;
     }
 
-    /// <summary>
-    /// Estimates the effective "occupancy" on a cell as a population quantity
-    /// </summary>
-    /// <param name="targetCulture">the culture the value is calculated for</param>
-    /// <param name="isPolity">'true' is the target culture is associated to a polity.
-    /// 'false' if its associated to unorganized bands</param>
-    /// <returns>the estimated occupancy</returns>
-    public float EstimateEffectiveOccupancy2(Culture targetCulture, bool isPolity)
-    {
-        if (Group == null)
-            return 0;
+    ///// <summary>
+    ///// Estimates the effective "occupancy" on a cell as a population quantity
+    ///// </summary>
+    ///// <param name="targetCulture">the culture the value is calculated for</param>
+    ///// <param name="isPolity">'true' is the target culture is associated to a polity.
+    ///// 'false' if its associated to unorganized bands</param>
+    ///// <returns>the estimated occupancy</returns>
+    //public float EstimateEffectiveOccupancyOriginal(Culture targetCulture, bool isPolity)
+    //{
+    //    if (Group == null)
+    //        return 0;
 
-        Profiler.BeginSample("EstimateEffectiveOccupancy2");
+    //    Profiler.BeginSample("EstimateEffectiveOccupancy2");
 
-        float effectivePopulation = 0;
+    //    float effectivePopulation = 0;
 
-        // This allows polities to expand into free, populated territories
-        float effectivenessConstant = 100f;
+    //    // This allows polities to expand into free, populated territories
+    //    float effectivenessConstant = 100f;
 
-        float polityEffectivenessFactor = effectivenessConstant;
-        float ubEffectivenessFactor = 1f;
+    //    float polityEffectivenessFactor = effectivenessConstant;
+    //    float ubEffectivenessFactor = 1f;
 
-        if (isPolity)
-        {
-            polityEffectivenessFactor /= effectivenessConstant;
-            ubEffectivenessFactor /= effectivenessConstant;
-        }
+    //    if (isPolity)
+    //    {
+    //        polityEffectivenessFactor /= effectivenessConstant;
+    //        ubEffectivenessFactor /= effectivenessConstant;
+    //    }
 
-        //////// Effective population from polities
+    //    //////// Effective population from polities
 
-        float promPopulation = Group.Population * Group.TotalPolityProminenceValue;
-        float promEffectivePopulation = promPopulation * polityEffectivenessFactor;
+    //    float promPopulation = Group.Population * Group.TotalPolityProminenceValue;
+    //    float promEffectivePopulation = promPopulation * polityEffectivenessFactor;
 
-        effectivePopulation += Mathf.Max(0, promEffectivePopulation);
+    //    effectivePopulation += Mathf.Max(0, promEffectivePopulation);
 
-        //////// Effective population from unorganized bands
+    //    //////// Effective population from unorganized bands
 
-        float ubPopulation = Group.Population * (1 - Group.TotalPolityProminenceValue);
-        float ubEffectivePopulation = ubPopulation * ubEffectivenessFactor;
+    //    float ubPopulation = Group.Population * (1 - Group.TotalPolityProminenceValue);
+    //    float ubEffectivePopulation = ubPopulation * ubEffectivenessFactor;
 
-        effectivePopulation += Mathf.Max(0, ubEffectivePopulation);
+    //    effectivePopulation += Mathf.Max(0, ubEffectivePopulation);
 
-        ////////
+    //    ////////
 
-        Profiler.EndSample(); // ("EstimateEffectiveOccupancy2");
+    //    Profiler.EndSample(); // ("EstimateEffectiveOccupancy2");
 
-        return effectivePopulation;
-    }
+    //    return effectivePopulation;
+    //}
 
     /// <summary>
     /// Estimates how valuable this cell might be as a migration target for unorganized
@@ -612,101 +621,27 @@ public class TerrainCell
 
         bool isPolity = polity != null;
 
-        Culture targetCulture;
+        Culture sourceCulture;
         if (isPolity)
         {
-            targetCulture = polity.Culture;
+            sourceCulture = polity.Culture;
         }
         else
         {
-            targetCulture = sourceGroup.Culture;
+            sourceCulture = sourceGroup.Culture;
         }
 
         float targetOptimalPop =
             EstimateOptimalPopulation(sourceGroup.Culture);
 
         float targetFreeSpace =
-            targetOptimalPop - EstimateEffectiveOccupancy(targetCulture, isPolity);
+            targetOptimalPop - EstimateEffectiveOccupancy(sourceCulture, isPolity);
 
         float sourceOptimalPop =
             sourceGroup.Cell.EstimateOptimalPopulation(sourceGroup.Culture);
 
         float sourceFreeSpace =
-            sourceOptimalPop - sourceGroup.Cell.EstimateEffectiveOccupancy(targetCulture, isPolity);
-
-        if (targetFreeSpace < freeSpaceOffset)
-        {
-            freeSpaceOffset = targetFreeSpace;
-        }
-
-        if (sourceFreeSpace < freeSpaceOffset)
-        {
-            freeSpaceOffset = sourceFreeSpace;
-        }
-
-        float modTargetFreeSpace = targetFreeSpace - freeSpaceOffset + 1;
-        float modSourceFreeSpace = sourceFreeSpace - freeSpaceOffset;
-
-        float freeSpaceFactor =
-            modTargetFreeSpace / (modTargetFreeSpace + modSourceFreeSpace);
-
-        freeSpaceFactor *= targetFreeSpace / (sourceOptimalPop + 1);
-
-        float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceGroup.Cell);
-
-        float cellValue = freeSpaceFactor * altitudeFactor;
-
-        if ((polity != null) && (!polity.CoreRegions.Contains(Region)))
-        {
-            cellValue *= 0.05f;
-        }
-
-        if (float.IsNaN(cellValue))
-        {
-            throw new Exception("float.IsNaN(cellValue)");
-        }
-
-        return cellValue;
-    }
-
-    /// <summary>
-    /// Estimates how valuable this cell might be as a migration target for unorganized
-    /// bands
-    /// </summary>
-    /// <param name="sourceGroup">the group from which the migration will arrive</param>
-    /// <param name="polity">the polity to which the migrating population belongs, if any</param>
-    /// <returns></returns>
-    public float CalculateMigrationValue2(CellGroup sourceGroup, Polity polity)
-    {
-        float freeSpaceOffset = 0;
-
-        bool isPolity = polity != null;
-
-        Culture targetCulture;
-        if (isPolity)
-        {
-            targetCulture = polity.Culture;
-        }
-        else
-        {
-            targetCulture = sourceGroup.Culture;
-        }
-
-        float targetOptimalPop =
-            EstimateOptimalPopulation(sourceGroup.Culture);
-
-        float targetFreeSpace =
-            targetOptimalPop - EstimateEffectiveOccupancy2(targetCulture, isPolity);
-        targetFreeSpace =
-            targetOptimalPop - EstimateEffectiveOccupancy(targetCulture, isPolity);
-
-        float sourceOptimalPop =
-            sourceGroup.Cell.EstimateOptimalPopulation(sourceGroup.Culture);
-
-        float sourceFreeSpace =
-            sourceOptimalPop - sourceGroup.Cell.EstimateEffectiveOccupancy2(targetCulture, isPolity);
-        sourceFreeSpace =
-            sourceOptimalPop - sourceGroup.Cell.EstimateEffectiveOccupancy(targetCulture, isPolity);
+            sourceOptimalPop - sourceGroup.Cell.EstimateEffectiveOccupancy(sourceCulture, isPolity);
 
         if (targetFreeSpace < freeSpaceOffset)
         {
