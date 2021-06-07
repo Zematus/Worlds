@@ -219,13 +219,6 @@ public static class MathUtility
 
         float a = ((b * f) - c) / (f - 1);
 
-#if DEBUG
-        if ((a >= 1) && (c < 1))
-        {
-            Debug.LogWarning("Debugging ReverseLerp");
-        }
-#endif
-
         return a;
     }
 
@@ -262,13 +255,6 @@ public static class MathUtility
 
             a = c + (1 - c) * (ca / (ca + 1));
         }
-
-#if DEBUG
-        if ((a >= 1) && (c < 1))
-        {
-            Debug.LogWarning("Debugging UnLerp");
-        }
-#endif
 
         return a;
     }
