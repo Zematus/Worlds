@@ -2065,22 +2065,28 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// </summary>
     /// <param name="migratingPolity">the polity the pressure will be calculated for</param>
     /// <returns>the pressure value</returns>
-    public float CalculateMigrationPressure(Polity migratingPolity)
+    public float CalculateNeighborMigrationPressure(Polity migratingPolity)
     {
         Profiler.BeginSample("CalculateMigrationPressure");
+
+        float factor = 3;
 
         float neighborhoodValue = 0;
         foreach (TerrainCell cell in Cell.NeighborList)
         {
-            neighborhoodValue =
-                Mathf.Max(neighborhoodValue, cell.CalculateMigrationValue(this, migratingPolity));
-        }
+            // 1 is the top value possible. No need to evaluate further
+            if (neighborhoodValue >= 1)
+                break;
 
-        float neighborhoodValue2 = Mathf.Clamp01(neighborhoodValue * 3);
+            neighborhoodValue =
+                Mathf.Max(
+                    neighborhoodValue,
+                    cell.CalculateMigrationValue(this, migratingPolity) * factor);
+        }
 
         Profiler.EndSample(); // ("CalculateMigrationPressure");
 
-        return neighborhoodValue2;
+        return Mathf.Clamp01(neighborhoodValue);
     }
 
     /// <summary>
@@ -2126,7 +2132,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         }
 
         // Get the pressure from unorganized bands
-        float pressure = CalculateMigrationPressure(null);
+        float pressure = CalculateNeighborMigrationPressure(null);
 
         // Get the pressure from polity populations
         foreach (PolityProminence prominence in _polityProminences.Values)
@@ -2135,7 +2141,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             if (pressure >= 1)
                 return 1;
 
-            float prominencePressure = CalculateMigrationPressure(prominence.Polity);
+            float prominencePressure = CalculateNeighborMigrationPressure(prominence.Polity);
 
             pressure = Mathf.Max(pressure, prominencePressure);
         }

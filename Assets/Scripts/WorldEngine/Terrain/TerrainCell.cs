@@ -582,17 +582,19 @@ public class TerrainCell
             sourceCulture = sourceGroup.Culture;
         }
 
+        TerrainCell sourceCell = sourceGroup.Cell;
+
         float targetOptimalPop =
-            EstimateOptimalPopulation(sourceGroup.Culture);
+            EstimateOptimalPopulation(sourceCulture);
 
         float targetFreeSpace =
             targetOptimalPop - EstimateEffectiveOccupancy(sourceCulture, isPolity);
 
         float sourceOptimalPop =
-            sourceGroup.Cell.EstimateOptimalPopulation(sourceGroup.Culture);
+            sourceCell.EstimateOptimalPopulation(sourceCulture);
 
         float sourceFreeSpace =
-            sourceOptimalPop - sourceGroup.Cell.EstimateEffectiveOccupancy(sourceCulture, isPolity);
+            sourceOptimalPop - sourceCell.EstimateEffectiveOccupancy(sourceCulture, isPolity);
 
         if (targetFreeSpace < freeSpaceOffset)
         {
@@ -607,19 +609,23 @@ public class TerrainCell
         float modTargetFreeSpace = targetFreeSpace - freeSpaceOffset + 1;
         float modSourceFreeSpace = sourceFreeSpace - freeSpaceOffset;
 
+        if (polity != null)
+        {
+            if (!polity.CoreRegions.Contains(sourceCell.Region))
+                modSourceFreeSpace *= 0.05f;
+
+            if (!polity.CoreRegions.Contains(Region))
+                modTargetFreeSpace *= 0.05f;
+        }
+
         float freeSpaceFactor =
             modTargetFreeSpace / (modTargetFreeSpace + modSourceFreeSpace);
 
         freeSpaceFactor *= targetFreeSpace / (sourceOptimalPop + 1);
 
-        float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceGroup.Cell);
+        float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceCell);
 
         float cellValue = freeSpaceFactor * altitudeFactor;
-
-        if ((polity != null) && (!polity.CoreRegions.Contains(Region)))
-        {
-            cellValue *= 0.05f;
-        }
 
         if (float.IsNaN(cellValue))
         {
