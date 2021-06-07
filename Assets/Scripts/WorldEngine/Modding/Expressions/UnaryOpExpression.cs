@@ -23,15 +23,10 @@ public abstract class UnaryOpExpression<T> : IValueExpression<T>
         _expression = expression;
     }
 
-    public override string ToString()
-    {
-        return "(" + _opStr + _expression + ")";
-    }
+    public override string ToString() => $"({_opStr}{_expression})";
 
-    public virtual string ToPartiallyEvaluatedString(bool evaluate)
-    {
-        return "(" + _opStr + _expression.ToPartiallyEvaluatedString(evaluate) + ")";
-    }
+    public virtual string ToPartiallyEvaluatedString(bool evaluate) =>
+        $"({_opStr}{_expression.ToPartiallyEvaluatedString(evaluate)})";
 
     public string GetFormattedString() => Value.ToString().ToBoldFormat();
 
