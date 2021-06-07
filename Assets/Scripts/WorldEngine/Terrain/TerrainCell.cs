@@ -559,55 +559,6 @@ public class TerrainCell
         return effectivePopulation;
     }
 
-    ///// <summary>
-    ///// Estimates the effective "occupancy" on a cell as a population quantity
-    ///// </summary>
-    ///// <param name="targetCulture">the culture the value is calculated for</param>
-    ///// <param name="isPolity">'true' is the target culture is associated to a polity.
-    ///// 'false' if its associated to unorganized bands</param>
-    ///// <returns>the estimated occupancy</returns>
-    //public float EstimateEffectiveOccupancyOriginal(Culture targetCulture, bool isPolity)
-    //{
-    //    if (Group == null)
-    //        return 0;
-
-    //    Profiler.BeginSample("EstimateEffectiveOccupancy2");
-
-    //    float effectivePopulation = 0;
-
-    //    // This allows polities to expand into free, populated territories
-    //    float effectivenessConstant = 100f;
-
-    //    float polityEffectivenessFactor = effectivenessConstant;
-    //    float ubEffectivenessFactor = 1f;
-
-    //    if (isPolity)
-    //    {
-    //        polityEffectivenessFactor /= effectivenessConstant;
-    //        ubEffectivenessFactor /= effectivenessConstant;
-    //    }
-
-    //    //////// Effective population from polities
-
-    //    float promPopulation = Group.Population * Group.TotalPolityProminenceValue;
-    //    float promEffectivePopulation = promPopulation * polityEffectivenessFactor;
-
-    //    effectivePopulation += Mathf.Max(0, promEffectivePopulation);
-
-    //    //////// Effective population from unorganized bands
-
-    //    float ubPopulation = Group.Population * (1 - Group.TotalPolityProminenceValue);
-    //    float ubEffectivePopulation = ubPopulation * ubEffectivenessFactor;
-
-    //    effectivePopulation += Mathf.Max(0, ubEffectivePopulation);
-
-    //    ////////
-
-    //    Profiler.EndSample(); // ("EstimateEffectiveOccupancy2");
-
-    //    return effectivePopulation;
-    //}
-
     /// <summary>
     /// Estimates how valuable this cell might be as a migration target for unorganized
     /// bands
