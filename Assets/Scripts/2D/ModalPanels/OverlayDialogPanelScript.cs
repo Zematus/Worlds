@@ -45,6 +45,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
     public Toggle PopChangeToggle;
     public Toggle UpdateSpanToggle;
     public Toggle MigrationToggle;
+    public Toggle MigrationPressureToggle;
 
     public Toggle DisplayRoutesToggle;
     public Toggle DisplayGroupActivityToggle;
@@ -127,6 +128,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
             PopChangeToggle.isOn = false;
             UpdateSpanToggle.isOn = false;
             MigrationToggle.isOn = false;
+            MigrationPressureToggle.isOn = false;
         }
     }
 
@@ -186,7 +188,8 @@ public class OverlayDialogPanelScript : MenuPanelScript
         DevDataToggle.isOn = (
             (Manager.PlanetOverlay == PlanetOverlay.PopChange) ||
             (Manager.PlanetOverlay == PlanetOverlay.UpdateSpan) ||
-            (Manager.PlanetOverlay == PlanetOverlay.Migration)
+            (Manager.PlanetOverlay == PlanetOverlay.Migration) ||
+            (Manager.PlanetOverlay == PlanetOverlay.MigrationPressure)
         );
 
         PopDensityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopDensity);
@@ -223,6 +226,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
         PopChangeToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopChange);
         UpdateSpanToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.UpdateSpan);
         MigrationToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Migration);
+        MigrationPressureToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Migration);
 
         DisplayRoutesToggle.isOn = Manager.DisplayRoutes;
         DisplayGroupActivityToggle.isOn = Manager.DisplayGroupActivity;

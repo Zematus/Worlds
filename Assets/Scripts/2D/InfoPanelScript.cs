@@ -1262,7 +1262,8 @@ public class InfoPanelScript : MonoBehaviour
         }
 
         if ((Manager.PlanetOverlay == PlanetOverlay.UpdateSpan) ||
-            (Manager.PlanetOverlay == PlanetOverlay.Migration))
+            (Manager.PlanetOverlay == PlanetOverlay.Migration) ||
+            (Manager.PlanetOverlay == PlanetOverlay.MigrationPressure))
         {
             AddCellDataToInfoPanel_UpdateSpan(cell);
         }

@@ -187,6 +187,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 #endif
 
     [XmlIgnore]
+    public float MigrationPressure = 0;
+
+    [XmlIgnore]
     public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill>();
 
     // Not necessarily ordered, do not use during serialization or algorithms that
@@ -2021,51 +2024,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor * rangeFactor;
     }
 
-    //public float AggressionOnUB()
-    //{
-    //    if (_polityProminences.Count == 0)
-    //        return 0;
-
-    //    float promPrefValue = 0;
-
-    //    foreach (PolityProminence p in _polityProminences.Values)
-    //    {
-    //        promPrefValue +=
-    //            p.Polity.GetPreferenceValue(CulturalPreference.AggressionPreferenceId) *
-    //            p.Value;
-    //    }
-
-    //    // normalize
-    //    promPrefValue /= TotalPolityProminenceValue;
-
-    //    float aggrValue =
-    //        Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
-
-    //    float aggrDiff = aggrValue - promPrefValue;
-
-    //    return aggrDiff * 2;
-    //}
-
-    //public float AggressionOnPolity(Polity polity)
-    //{
-    //    float polityAggrValue =
-    //        polity.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
-
-    //    float aggrValue =
-    //        Culture.GetPreferenceValue(CulturalPreference.AggressionPreferenceId);
-
-    //    float aggrDiff = polityAggrValue - aggrValue;
-
-    //    return aggrDiff * 2;
-    //}
-
     /// <summary>
     /// Calculates how much pressure there is to migrate
     /// out of this cell
     /// </summary>
     /// <param name="migratingPolity">the polity the pressure will be calculated for</param>
     /// <returns>the pressure value</returns>
-    public float CalculateNeighborMigrationPressure(Polity migratingPolity)
+    public float CalculateNeighborhoodMigrationPressure(Polity migratingPolity)
     {
         Profiler.BeginSample("CalculateMigrationPressure");
 
@@ -2100,23 +2065,10 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         if (HasMigrationEvent)
             return 0;
 
-        float aggrFactor = 1;
-
-        //if (migratingPolity == null)
-        //{
-        //    aggrFactor += AggressionOnUB();
-        //}
-        //else
-        //{
-        //    aggrFactor += AggressionOnPolity(migratingPolity);
-        //}
-
-        float modOptimalPop = OptimalPopulation * aggrFactor;
-
         float populationFactor;
-        if (modOptimalPop > 0)
+        if (OptimalPopulation > 0)
         {
-            populationFactor = Population / modOptimalPop;
+            populationFactor = Population / OptimalPopulation;
         }
         else
         {
@@ -2132,7 +2084,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         }
 
         // Get the pressure from unorganized bands
-        float pressure = CalculateNeighborMigrationPressure(null);
+        float pressure = CalculateNeighborhoodMigrationPressure(null);
 
         // Get the pressure from polity populations
         foreach (PolityProminence prominence in _polityProminences.Values)
@@ -2141,12 +2093,15 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             if (pressure >= 1)
                 return 1;
 
-            float prominencePressure = CalculateNeighborMigrationPressure(prominence.Polity);
+            float pPressure = CalculateNeighborhoodMigrationPressure(prominence.Polity);
+            prominence.MigrationPressure = pPressure;
 
-            pressure = Mathf.Max(pressure, prominencePressure);
+            pressure = Mathf.Max(pressure, pPressure);
         }
 
-        return Mathf.Clamp01(pressure);
+        MigrationPressure = pressure;
+
+        return pressure;
     }
 
     public long CalculateNextUpdateDate()

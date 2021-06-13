@@ -63,6 +63,9 @@ public class PolityProminence // : IKeyedValue<Identifier>
     public World World;
 
     [XmlIgnore]
+    public float MigrationPressure = 0;
+
+    [XmlIgnore]
     public float AdministrativeCost
     {
         get
