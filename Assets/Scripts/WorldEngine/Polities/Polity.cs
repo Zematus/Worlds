@@ -105,6 +105,9 @@ public abstract class Polity : ISynchronizable
     public CellGroup CoreGroup;
 
     [XmlIgnore]
+    public bool CoreGroupIsValid = false;
+
+    [XmlIgnore]
     public HashSet<Region> CoreRegions = new HashSet<Region>();
 
     [XmlIgnore]
@@ -505,7 +508,7 @@ public abstract class Polity : ISynchronizable
         if (CoreGroup == newCoreGroup)
             return;
 
-        if (CoreGroup != null)
+        if ((CoreGroup != null) && CoreGroupIsValid)
         {
             Manager.AddUpdatedCell(CoreGroup.Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
 
@@ -515,7 +518,8 @@ public abstract class Polity : ISynchronizable
 
                 if (prom == null)
                 {
-                    throw new System.Exception("Unable to find prominence with Id " + Id + " in group " + CoreGroup.Id);
+                    throw new System.Exception(
+                        $"Unable to find prominence with Id {Id} in group {CoreGroup.Id}");
                 }
 
                 prom.ResetCoreDistances(addToRecalcs: true);
@@ -524,6 +528,7 @@ public abstract class Polity : ISynchronizable
 
         CoreGroup = newCoreGroup;
         CoreGroupId = newCoreGroup.Id;
+        CoreGroupIsValid = true;
 
         Manager.AddUpdatedCell(newCoreGroup.Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
 
@@ -631,7 +636,7 @@ public abstract class Polity : ISynchronizable
         if (DominantFaction == faction)
             return;
 
-        if (DominantFaction != null)
+        if ((DominantFaction != null) && DominantFaction.StillPresent)
         {
             DominantFaction.SetDominant(false);
         }

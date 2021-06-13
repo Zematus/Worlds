@@ -252,6 +252,13 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if (!polityBeingDestroyed)
         {
             Polity.RemoveFaction(this);
+
+            World.AddPolityToUpdate(Polity);
+
+            if (IsDominant)
+            {
+                Polity.CoreGroupIsValid = false;
+            }
         }
 
         List<FactionRelationship> relationshipsToRemove =
