@@ -2792,9 +2792,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// </summary>
     /// <param name="polity">polity to associate the new prominence with</param>
     /// <param name="initialValue">starting prominence value</param>
-    /// <param name="originator">'true' if a new cell group is being initialized using
+    /// <param name="modifyTotalValue">'true' if a new cell group is being initialized using
     /// this prominence</param>
-    private void AddPolityProminence(Polity polity, float initialValue = 0, bool originator = false)
+    public void AddPolityProminence(Polity polity, float initialValue = 0, bool modifyTotalValue = false)
     {
         PolityProminence polityProminence = new PolityProminence(this, polity, initialValue);
 
@@ -2808,8 +2808,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             (polity.Id == HighestPolityProminence.PolityId))
         {
             throw new System.Exception(
-                "Trying to add a prominence already set as highest polity prominence. " +
-                "group id: " + Id + ", polity id: " + polity.Id);
+                $"Trying to add a prominence already set as highest polity prominence. " +
+                $"Group id: {Id}, polity id: {polity.Id}");
         }
 
         _polityProminences.Add(polity.Id, polityProminence);
@@ -2820,10 +2820,11 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         polity.AddGroup(polityProminence);
 
-        if (originator)
+        if (modifyTotalValue)
         {
-            SetHighestPolityProminence(polityProminence);
-            TotalPolityProminenceValue = initialValue;
+            TotalPolityProminenceValue += initialValue;
+
+            FindHighestPolityProminence();
         }
 
         World.AddPromToCalculateCoreDistFor(polityProminence);

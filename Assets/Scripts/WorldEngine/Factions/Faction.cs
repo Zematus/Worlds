@@ -432,13 +432,13 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         if (newFactionCoreGroup == null)
         {
-            throw new Exception("newFactionCoreGroup is null - Faction Id: " + Id);
+            throw new Exception($"newFactionCoreGroup is null - Faction Id: {Id}");
         }
 
         if (newFactionCoreGroup.FactionCores.Count > 0)
         {
             throw new Exception(
-                "newFactionCoreGroup has cores already - Group: " + newFactionCoreGroup.Id + ", Faction: " + Id);
+                $"newFactionCoreGroup has cores already - Group: {newFactionCoreGroup.Id}, Faction: {Id}");
         }
 
         float polityProminenceValue = newFactionCoreGroup.GetPolityProminenceValue(Polity);
@@ -447,20 +447,20 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if (highestPolityProminence == null)
         {
             throw new Exception(
-                "highestPolityProminence is null - Faction Id: " + Id +
-                ", Group Id: " + newFactionCoreGroup);
+                $"highestPolityProminence is null - Faction Id: {Id}" +
+                $", Group Id: {newFactionCoreGroup}");
         }
 
         if (CurrentLeader == null)
         {
-            throw new Exception("CurrentLeader is null - Faction Id: " + Id);
+            throw new Exception($"CurrentLeader is null - Faction Id: {Id}");
         }
 
         Polity newPolity = Polity;
 
         if (newPolity == null)
         {
-            throw new Exception("newPolity is null - Faction Id: " + Id);
+            throw new Exception($"newPolity is null - Faction Id: {Id}");
         }
 
         // If the polity with the highest prominence is different than the source faction's polity and it's value is twice greater switch the new clan's polity to this one.
@@ -475,7 +475,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         if (newFaction == null)
         {
-            throw new Exception("newFaction is null - Faction Id: " + Id);
+            throw new Exception($"newFaction is null - Faction Id: {Id}");
         }
 
 #if DEBUG
@@ -483,7 +483,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         if (existingFaction != null)
         {
-            throw new Exception("faction Id already exists - new faction Id: " + newFaction.Id);
+            throw new Exception($"faction Id already exists - new faction Id: {newFaction.Id}");
         }
 #endif
 
