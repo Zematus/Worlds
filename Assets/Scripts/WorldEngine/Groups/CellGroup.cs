@@ -2524,15 +2524,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         if (delta == 0)
         {
-//#if DEBUG
-//            Debug.LogWarning("Trying to add a prominence delta of 0. Will ignore...");
-//#endif
             return;
         }
 
-        if (float.IsNaN(delta))
+        if (float.IsNaN(delta) || float.IsInfinity(delta))
         {
-            throw new System.Exception("prominence delta is Nan. Group: " + Id);
+            throw new System.Exception("prominence delta is Nan or Infinity. Group: " + Id);
         }
 
         if (_polityPromDeltas.ContainsKey(polity))
