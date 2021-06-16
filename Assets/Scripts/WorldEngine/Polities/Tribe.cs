@@ -47,22 +47,19 @@ public class Tribe : Polity
                 "Unable to assign a core prominence bigger than zero. Group: " + coreGroup);
         }
 
-        coreGroup.AddPolityProminenceValueDelta(this, coreProminenceFactor);
+        Clan clan = new Clan(this, coreGroup, 1);
+        // Clan should be initialized when the Tribe gets initialized
+
+        AddFaction(clan);
+
+        SetDominantFaction(clan, false);
+
+        coreGroup.AddPolityProminence(this, coreProminenceFactor, modifyTotalValue: true);
 
         // substract the new tribe prominence from the unorganized bands prominence
         coreGroup.AddUBandsProminenceValueDelta(-coreProminenceFactor);
 
         GenerateName();
-
-        //		Debug.Log ("New tribe '" + Name + "' spawned at " + coreGroup.Cell.Position);
-
-        //// Add starting clan
-
-        Clan clan = new Clan(this, coreGroup, 1); // Clan should be initialized when the Tribe gets initialized
-
-        AddFaction(clan);
-
-        SetDominantFaction(clan, false);
     }
 
     public Tribe(Clan triggerClan, Polity parentPolity) :
@@ -108,6 +105,7 @@ public class Tribe : Polity
         int switchedCells = 0;
 
         HashSet<Faction> factionsToTransfer = new HashSet<Faction>();
+        Dictionary<CellGroup, float> groupsToTransfer = new Dictionary<CellGroup, float>();
 
         while (sourceGroups.Count > 0)
         {
@@ -174,12 +172,6 @@ public class Tribe : Polity
                         new System.Exception("Dominant Faction getting switched...");
                     }
 
-                    //					#if DEBUG
-                    //					if (sourcePolity.FactionCount == 1) {
-                    //						throw new System.Exception ("Number of factions in Polity " + Id + " will be equal or less than zero. Current Date: " + World.CurrentDate);
-                    //					}
-                    //					#endif
-
                     factionsToTransfer.Add(faction);
                 }
             }
@@ -188,10 +180,7 @@ public class Tribe : Polity
 
             float sourceProminenceValueDelta = prominenceValue * percentProminence;
 
-            group.AddPolityProminenceValueDelta(sourcePolity, -sourceProminenceValueDelta);
-            group.AddPolityProminenceValueDelta(this, sourceProminenceValueDelta);
-
-            World.AddGroupToUpdate(group);
+            groupsToTransfer.Add(group, sourceProminenceValueDelta);
 
             foreach (CellGroup neighborGroup in group.NeighborGroups)
             {
@@ -220,6 +209,17 @@ public class Tribe : Polity
         }
 
         SetDominantFaction(dominantClan, false);
+
+        foreach (var pair in groupsToTransfer)
+        {
+            CellGroup group = pair.Key;
+            float value = pair.Value;
+
+            group.AddPolityProminenceValueDelta(sourcePolity, -value);
+            group.AddPolityProminence(this, value, modifyTotalValue: true);
+
+            World.AddGroupToUpdate(group);
+        }
     }
 
     private float CalculateShortestCoreDistance(

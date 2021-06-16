@@ -666,13 +666,16 @@ public class GuiManagerScript : MonoBehaviour
 
             if (_accDeltaTime > _maxAccTime)
             {
-                _accDeltaTime -= _maxAccTime;
+                int d = (int)(_accDeltaTime / _maxAccTime);
+                _accDeltaTime -= _maxAccTime * d;
+
                 _simulationDateSpan = 0;
             }
 
             int maxSimulationDateSpan = (int)Mathf.Ceil(selectedSpeed * _accDeltaTime);
 
-            // Simulate additional iterations if we haven't reached the max amount of iterations allowed per the percentage of transpired real time during this cycle
+            // Simulate additional iterations if we haven't reached the max amount of iterations
+            // allowed per the percentage of transpired real time during this cycle
             if (_simulationDateSpan < maxSimulationDateSpan)
             {
                 long maxDateSpanBetweenUpdates = (int)Mathf.Ceil(selectedSpeed * MaxDeltaTimeIterations);
@@ -685,15 +688,7 @@ public class GuiManagerScript : MonoBehaviour
                 // Simulate up to the max amout of iterations allowed per frame
                 while ((lastUpdateDate + maxDateSpanBetweenUpdates) > world.CurrentDate)
                 {
-                    // If we just resolved a decision then skip event evaluation
-                    if (_resolvedDecision)
-                    {
-                        _resolvedDecision = false;
-                    }
-                    else
-                    {
-                        world.EvaluateEventsToHappen();
-                    }
+                    world.EvaluateEventsToHappen();
 
                     if (!TryResolvePendingDecisions())
                     {

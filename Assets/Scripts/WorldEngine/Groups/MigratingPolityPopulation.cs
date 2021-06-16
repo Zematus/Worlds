@@ -105,8 +105,6 @@ public class MigratingPolityPopulation : MigratingPopulation
 
     protected override void MergeIntoGroup(CellGroup targetGroup)
     {
-        float prominenceDelta = Population / (float)targetGroup.Population;
-
         float percentageOfPopulation = Population / (float)(targetGroup.Population + Population);
 
         if (!percentageOfPopulation.IsInsideRange(0, 1))
@@ -120,7 +118,7 @@ public class MigratingPolityPopulation : MigratingPopulation
 
         targetGroup.Culture.MergeCulture(Culture, percentageOfPopulation);
 
-        targetGroup.AddPolityProminenceValueDelta(Polity, prominenceDelta);
+        targetGroup.AddPolityProminenceValueDelta(Polity, percentageOfPopulation);
 
         targetGroup.TriggerInterference();
     }
