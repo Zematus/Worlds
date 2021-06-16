@@ -267,7 +267,8 @@ public class GuiManagerScript : MonoBehaviour
         PlanetOverlay.PopChange,
         PlanetOverlay.UpdateSpan,
         PlanetOverlay.Migration,
-        PlanetOverlay.MigrationPressure
+        PlanetOverlay.MigrationPressure,
+        PlanetOverlay.PolityMigrationPressure
     };
     private int _currentDebugOverlay = 0;
 
@@ -2031,6 +2032,9 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.MigrationPressure:
                 planetOverlayStr = "_migration_pressure";
                 break;
+            case PlanetOverlay.PolityMigrationPressure:
+                planetOverlayStr = "_polity_migration_pressure";
+                break;
             case PlanetOverlay.UpdateSpan:
                 planetOverlayStr = "_update_span";
                 break;
@@ -2784,6 +2788,10 @@ public class GuiManagerScript : MonoBehaviour
         else if (OverlayDialogPanelScript.MigrationPressureToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.MigrationPressure, false);
+        }
+        else if (OverlayDialogPanelScript.PolityMigrationPressureToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PolityMigrationPressure, false);
         }
         else
         {

@@ -63,6 +63,7 @@ public enum PlanetOverlay
     Language,
     PopChange,
     MigrationPressure,
+    PolityMigrationPressure,
     UpdateSpan,
     Migration,
     PolityCluster
@@ -3256,6 +3257,10 @@ public class Manager
                 color = SetMigrationPressureOverlayColor(cell, color);
                 break;
 
+            case PlanetOverlay.PolityMigrationPressure:
+                color = SetPolityMigrationPressureOverlayColor(cell, color);
+                break;
+
             case PlanetOverlay.UpdateSpan:
                 color = SetUpdateSpanOverlayColor(cell, color);
                 break;
@@ -3992,6 +3997,43 @@ public class Manager
         }
 
         color = Color.red * group.MigrationPressure;
+
+        return color;
+    }
+
+    private static Color SetPolityMigrationPressureOverlayColor(TerrainCell cell, Color color)
+    {
+        CellGroup group = cell.Group;
+
+        if (group == null)
+        {
+            return color;
+        }
+
+        Territory territory = cell.EncompassingTerritory;
+
+        PolityProminence prominence = null;
+        Color polityColor = Color.black;
+
+        if (territory != null)
+        {
+            Polity polity = territory.Polity;
+
+            polityColor = GenerateColorFromId(polity.Id);
+            prominence = group.GetPolityProminence(polity);
+        }
+
+        if (prominence != null)
+        {
+            float nonPolPressure = group.MigrationPressure - prominence.MigrationPressure;
+            Color pColor = (Color.white * nonPolPressure) + (polityColor * prominence.MigrationPressure);
+
+            color = (0.5f * polityColor) + (0.5f * pColor);
+        }
+        else
+        {
+            color = Color.red * group.MigrationPressure * 0.5f;
+        }
 
         return color;
     }
