@@ -1377,14 +1377,19 @@ public abstract class Polity : ISynchronizable
         World.InsertEventToHappen(polityEvent);
     }
 
-    public abstract float CalculateGroupProminenceExpansionValue(CellGroup sourceGroup, CellGroup targetGroup, float sourceValue);
+    public abstract float CalculateGroupProminenceExpansionValue(
+        CellGroup sourceGroup, CellGroup targetGroup, float sourceValue);
 
-    public virtual void GroupUpdateEffects(CellGroup group, float prominenceValue, float totalPolityProminenceValue, long timeSpan)
+    public virtual void GroupUpdateEffects(
+        CellGroup group,
+        float prominenceValue,
+        float totalPolityProminenceValue,
+        long timeSpan)
     {
         if (totalPolityProminenceValue == 0)
         {
-            throw new System.Exception("totalPolityProminenceValue is 0. Polity Id: " +
-                Id + ", Group Id: " + group);
+            throw new System.Exception(
+                $"totalPolityProminenceValue is 0. Polity Id: {Id}, Group Id: {group}");
         }
 
         if (!group.HasProperty(CanFormPolityAttribute + "tribe"))
@@ -1431,7 +1436,7 @@ public abstract class Polity : ISynchronizable
         if (ProminenceClusters.Count <= 0)
         {
             throw new System.Exception(
-                "Invalid number of prominence clusters in polity: " + ProminenceClusters.Count);
+                $"Invalid number of prominence clusters in polity {Id}: {ProminenceClusters.Count}");
         }
 
         // Pick a random cluster
