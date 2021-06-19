@@ -9,7 +9,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     [XmlIgnore]
     public World World;
 
-    public const long GenerationSpan = 25 * World.YearLength;
+    public const long QuarterGenSpan = 5 * World.YearLength;
+    public const long GenerationSpan = QuarterGenSpan * 4;
 
     public const long MaxUpdateSpan = GenerationSpan * 8000;
 
@@ -1344,13 +1345,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             return;
         }
 
-        float maxProminencePercent = Mathf.Clamp01(migrationValue);
+        migrationValue = Mathf.Clamp01(migrationValue);
 
         SetPopulationMigrationEvent(
             targetCell,
             migrationDirection,
             MigrationType.Land,
-            maxProminencePercent,
+            migrationValue,
             polity?.Id,
             arrivalDate);
     }
@@ -1436,13 +1437,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             return;
         }
 
-        float maxProminencePercent = Mathf.Clamp01(migrationValue);
+        migrationValue = Mathf.Clamp01(migrationValue);
 
         SetPopulationMigrationEvent(
             targetCell,
             migrationDirection,
             MigrationType.Sea,
-            maxProminencePercent,
+            migrationValue,
             polity?.Id,
             nextDate);
     }
@@ -2034,8 +2035,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         Profiler.BeginSample("CalculateMigrationPressure");
 
-        float factor = 3;
-
         float neighborhoodValue = 0;
         foreach (TerrainCell cell in Cell.NeighborList)
         {
@@ -2046,7 +2045,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             neighborhoodValue =
                 Mathf.Max(
                     neighborhoodValue,
-                    cell.CalculateMigrationValue(this, migratingPolity) * factor);
+                    cell.CalculateMigrationValue(this, migratingPolity));
         }
 
         Profiler.EndSample(); // ("CalculateMigrationPressure");
@@ -2065,10 +2064,17 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         if (HasMigrationEvent)
             return 0;
 
+        // Reset stored pressures
+        foreach (PolityProminence prominence in _polityProminences.Values)
+        {
+            prominence.MigrationPressure = 1;
+        }
+        MigrationPressure = 1;
+
         float populationFactor;
         if (OptimalPopulation > 0)
         {
-            populationFactor = Population / OptimalPopulation;
+            populationFactor = Population / (float)OptimalPopulation;
         }
         else
         {
@@ -2080,6 +2086,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         // if the population is not near its optimum then don't add pressure
         if (populationFactor < minPopulationConstant)
         {
+            // Set stored pressures to 0
+            foreach (PolityProminence prominence in _polityProminences.Values)
+            {
+                prominence.MigrationPressure = 0;
+            }
+            MigrationPressure = 0;
+
             return 0;
         }
 
@@ -2089,10 +2102,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         // Get the pressure from polity populations
         foreach (PolityProminence prominence in _polityProminences.Values)
         {
-            // 1 should be the maximum. So no need to calculate further
-            if (pressure >= 1)
-                return 1;
-
             float pPressure = CalculateNeighborhoodMigrationPressure(prominence.Polity);
             prominence.MigrationPressure = pPressure;
 
@@ -2125,11 +2134,11 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         randomFactor = 1f - Mathf.Pow(randomFactor, 4);
 
         float migrationFactor = 1 - CalculateOverallMigrationPressure();
+        migrationFactor = Mathf.Pow(migrationFactor, 4f);
 
         float skillLevelFactor = Culture.MinimumSkillAdaptationLevel();
         float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel();
 
-        //float circumstanceFactor = migrationFactor * skillLevelFactor * knowledgeLevelFactor;
         float circumstancesFactor =
             Mathf.Min(migrationFactor, skillLevelFactor, knowledgeLevelFactor);
 
@@ -2142,25 +2151,20 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         float mixFactor = SlownessConstant * randomFactor * circumstancesFactor * populationFactor;
 
-        long updateSpan = GenerationSpan + (long)Mathf.Ceil(mixFactor);
-
-//#if DEBUG
-//        if (migrationFactor < 1)
-//        {
-//            Debug.LogWarning("Debugging migration pressure");
-
-//            if (_polityProminences.Count > 0)
-//            {
-//                Debug.LogWarning("Debugging migration pressure");
-//            }
-//        }
-//#endif
+        long updateSpan = QuarterGenSpan + (long)Mathf.Ceil(mixFactor);
 
         if (updateSpan < 0)
             updateSpan = MaxUpdateSpan;
 
-        updateSpan = (updateSpan < GenerationSpan) ? GenerationSpan : updateSpan;
+        updateSpan = (updateSpan < QuarterGenSpan) ? QuarterGenSpan : updateSpan;
         updateSpan = (updateSpan > MaxUpdateSpan) ? MaxUpdateSpan : updateSpan;
+
+//#if DEBUG
+//        if ((migrationFactor < 0.1f) && (updateSpan > 10000))
+//        {
+//            Debug.LogWarning("Debugging CalculateNextUpdateDate");
+//        }
+//#endif
 
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))

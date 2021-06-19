@@ -606,7 +606,7 @@ public class TerrainCell
             freeSpaceOffset = sourceFreeSpace;
         }
 
-        float modTargetFreeSpace = targetFreeSpace - freeSpaceOffset + 1;
+        float modTargetFreeSpace = targetFreeSpace - freeSpaceOffset;
         float modSourceFreeSpace = sourceFreeSpace - freeSpaceOffset;
 
         if (polity != null)
@@ -618,14 +618,16 @@ public class TerrainCell
                 modTargetFreeSpace *= 0.05f;
         }
 
-        float freeSpaceFactor =
-            modTargetFreeSpace / (modTargetFreeSpace + modSourceFreeSpace);
 
-        freeSpaceFactor *= targetFreeSpace / (sourceOptimalPop + 1);
+
+        float freeSpaceFactor =
+            modTargetFreeSpace / (modTargetFreeSpace + modSourceFreeSpace + 1);
+
+        float relOptimalPopFactor = targetOptimalPop / (targetOptimalPop + sourceOptimalPop + 1);
 
         float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceCell);
 
-        float cellValue = freeSpaceFactor * altitudeFactor;
+        float cellValue = relOptimalPopFactor * freeSpaceFactor * altitudeFactor;
 
         if (float.IsNaN(cellValue))
         {

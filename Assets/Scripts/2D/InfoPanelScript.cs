@@ -389,7 +389,9 @@ public class InfoPanelScript : MonoBehaviour
             return;
         }
 
-        int population = cell.Group.Population;
+        CellGroup group = cell.Group;
+
+        int population = group.Population;
 
         if (population <= 0)
         {
@@ -398,12 +400,19 @@ public class InfoPanelScript : MonoBehaviour
             return;
         }
 
-        long lastUpdateDate = cell.Group.LastUpdateDate;
-        long nextUpdateDate = cell.Group.NextUpdateDate;
+        long lastUpdateDate = group.LastUpdateDate;
+        long nextUpdateDate = group.NextUpdateDate;
 
-        InfoText.text += "\nLast Update Date: " + Manager.GetDateString(lastUpdateDate);
-        InfoText.text += "\nNext Update Date: " + Manager.GetDateString(nextUpdateDate);
-        InfoText.text += "\nTime between updates: " + Manager.GetTimeSpanString(nextUpdateDate - lastUpdateDate);
+        InfoText.text += $"\nLast Update Date: {Manager.GetDateString(lastUpdateDate)}";
+        InfoText.text += $"\nNext Update Date: {Manager.GetDateString(nextUpdateDate)}";
+        InfoText.text += $"\nTime between updates: {Manager.GetTimeSpanString(nextUpdateDate - lastUpdateDate)}";
+
+        InfoText.text += $"\n\nMigration Pressure: {group.MigrationPressure:0.000}";
+
+#if DEBUG
+        float currentPressure = group.CalculateOverallMigrationPressure();
+        InfoText.text += $"\n\n(DEBUG) Current Migration Pressure: {group.MigrationPressure:0.000}";
+#endif
     }
 
     private void AddCellDataToInfoPanel_PolityProminence(TerrainCell cell)
