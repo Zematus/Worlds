@@ -62,7 +62,7 @@ public class TerrainCell
 
     public const float PopulationForagingConstant = 10;
     public const float PopulationFarmingConstant = 5;
-    public const float PopulationFishingConstant = 2;
+    public const float PopulationFishingConstant = 1;
 
     public const int MaxNeighborhoodCellCount = 9;
 
@@ -436,7 +436,7 @@ public class TerrainCell
         float altitudeDeltaFactor = altChangeConstant * altitudeChange / (sourceCell.Area + Area);
 
         altitudeDeltaFactor = Mathf.Abs(altitudeDeltaFactor + 0.5f); // downslope preference offset
-        altitudeDeltaFactor = 0.5f / (altitudeDeltaFactor + 0.5f);
+        altitudeDeltaFactor = 1f / (altitudeDeltaFactor + 0.5f);
 
         return altitudeDeltaFactor;
     }
@@ -560,74 +560,56 @@ public class TerrainCell
     }
 
     /// <summary>
-    /// Estimates how valuable this cell might be as a migration target for unorganized
-    /// bands
+    /// Estimates how valuable this cell might be as a migration target using another
+    /// group as reference
     /// </summary>
-    /// <param name="sourceGroup">the group from which the migration will arrive</param>
-    /// <param name="polity">the polity to which the migrating population belongs, if any</param>
+    /// <param name="refGroup">the group to use as reference to calculate</param>
+    /// <param name="refPolity">the polity to use as reference to calculate</param>
     /// <returns></returns>
-    public float CalculateMigrationValue(CellGroup sourceGroup, Polity polity)
+    public float CalculateRelativeMigrationValue(
+        CellGroup refGroup,
+        Polity refPolity)
     {
-        float freeSpaceOffset = 0;
-
-        bool isPolity = polity != null;
+        bool isPolity = refPolity != null;
 
         Culture sourceCulture;
         if (isPolity)
         {
-            sourceCulture = polity.Culture;
+            sourceCulture = refPolity.Culture;
         }
         else
         {
-            sourceCulture = sourceGroup.Culture;
+            sourceCulture = refGroup.Culture;
         }
 
-        TerrainCell sourceCell = sourceGroup.Cell;
+        TerrainCell sourceCell = refGroup.Cell;
 
-        float targetOptimalPop =
-            EstimateOptimalPopulation(sourceCulture);
+        float targetOptimalPop = EstimateOptimalPopulation(sourceCulture);
+        float sourceOptimalPop = sourceCell.EstimateOptimalPopulation(sourceCulture);
 
-        float targetFreeSpace =
-            targetOptimalPop - EstimateEffectiveOccupancy(sourceCulture, isPolity);
+        float targetOccupancy = EstimateEffectiveOccupancy(sourceCulture, isPolity);
+        float sourceOccupancy = sourceCell.EstimateEffectiveOccupancy(sourceCulture, isPolity);
 
-        float sourceOptimalPop =
-            sourceCell.EstimateOptimalPopulation(sourceCulture);
+        float migResitance = 1000;
 
-        float sourceFreeSpace =
-            sourceOptimalPop - sourceCell.EstimateEffectiveOccupancy(sourceCulture, isPolity);
+        float targetModOccRatio = (targetOccupancy + migResitance) / (targetOptimalPop + migResitance);
+        float sourceModOccRatio = (sourceOccupancy + migResitance) / (sourceOptimalPop + migResitance);
 
-        if (targetFreeSpace < freeSpaceOffset)
+        float occRatioFactor = sourceModOccRatio - targetModOccRatio;
+
+        float coreRegionFactor = 1;
+        if (refPolity != null)
         {
-            freeSpaceOffset = targetFreeSpace;
+            if (!refPolity.CoreRegions.Contains(sourceCell.Region))
+                coreRegionFactor *= 20f;
+
+            if (!refPolity.CoreRegions.Contains(Region))
+                coreRegionFactor *= 0.05f;
         }
-
-        if (sourceFreeSpace < freeSpaceOffset)
-        {
-            freeSpaceOffset = sourceFreeSpace;
-        }
-
-        float modTargetFreeSpace = targetFreeSpace - freeSpaceOffset;
-        float modSourceFreeSpace = sourceFreeSpace - freeSpaceOffset;
-
-        if (polity != null)
-        {
-            if (!polity.CoreRegions.Contains(sourceCell.Region))
-                modSourceFreeSpace *= 0.05f;
-
-            if (!polity.CoreRegions.Contains(Region))
-                modTargetFreeSpace *= 0.05f;
-        }
-
-
-
-        float freeSpaceFactor =
-            modTargetFreeSpace / (modTargetFreeSpace + modSourceFreeSpace + 1);
-
-        float relOptimalPopFactor = targetOptimalPop / (targetOptimalPop + sourceOptimalPop + 1);
 
         float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceCell);
 
-        float cellValue = relOptimalPopFactor * freeSpaceFactor * altitudeFactor;
+        float cellValue = occRatioFactor * coreRegionFactor * altitudeFactor;
 
         if (float.IsNaN(cellValue))
         {

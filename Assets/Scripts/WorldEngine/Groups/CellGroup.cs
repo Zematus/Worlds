@@ -1238,30 +1238,22 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// Calculates the chance of a successful migration to the target cell.
     /// </summary>
     /// <param name="cell">the target cell</param>
+    /// <param name="targetValue">the relative value of the target cell as a migration
+    /// target</param>
     /// <param name="migratingPolity">the polity that intend to migrate
     /// (null if migrating unorganized bands)</param>
     /// <returns>Migration chance as a value between 0 and 1</returns>
     public float CalculateMigrationChance(
         TerrainCell cell,
-        out float migrationValue,
+        out float targetValue,
         Polity migratingPolity = null)
     {
-//#if DEBUG
-//        if (migratingPolity != null)
-//        {
-//            Debug.LogWarning("Debugging CalculateMigrationChance");
-//        }
-//#endif
-
         float offset = -0.1f;
-        migrationValue = cell.CalculateMigrationValue(this, migratingPolity);
+        targetValue = cell.CalculateRelativeMigrationValue(this, migratingPolity);
 
-        float unbiasedChance = Mathf.Clamp01(migrationValue + offset);
+        float unbiasedChance = Mathf.Clamp01(targetValue + offset);
 
-        // Bias the value toward 1
-        float chance = 1 - Mathf.Pow(1 - unbiasedChance, 4);
-
-        return Mathf.Clamp01(chance);
+        return unbiasedChance;
     }
 
     /// <summary>
@@ -1289,7 +1281,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 //        }
 //#endif
 
-        float cellChance = CalculateMigrationChance(targetCell, out float migrationValue, polity);
+        float cellChance = CalculateMigrationChance(targetCell, out float targetValue, polity);
 
         if (cellChance <= 0)
             return;
@@ -1345,13 +1337,11 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             return;
         }
 
-        migrationValue = Mathf.Clamp01(migrationValue);
-
         SetPopulationMigrationEvent(
             targetCell,
             migrationDirection,
             MigrationType.Land,
-            migrationValue,
+            targetValue,
             polity?.Id,
             arrivalDate);
     }
@@ -1392,7 +1382,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             throw new System.Exception("target cell is null. Group: " + Id);
         }
 
-        float cellChance = CalculateMigrationChance(targetCell, out float migrationValue, polity);
+        float cellChance = CalculateMigrationChance(targetCell, out float targetValue, polity);
 
         if (cellChance <= 0)
             return;
@@ -1437,13 +1427,11 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             return;
         }
 
-        migrationValue = Mathf.Clamp01(migrationValue);
-
         SetPopulationMigrationEvent(
             targetCell,
             migrationDirection,
             MigrationType.Sea,
-            migrationValue,
+            targetValue,
             polity?.Id,
             nextDate);
     }
@@ -1457,7 +1445,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <returns>the max percent of prominence population to migrate</returns>
     private float CalculateMaxProminencePercentToMigrate(float cellValue, Identifier polityId)
     {
-        return Mathf.Clamp01(cellValue);
+        float valueFactor = cellValue / (cellValue + 1) + 0.1f;
+
+        return Mathf.Clamp01(valueFactor);
     }
 
     /// <summary>
@@ -2045,7 +2035,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             neighborhoodValue =
                 Mathf.Max(
                     neighborhoodValue,
-                    cell.CalculateMigrationValue(this, migratingPolity));
+                    cell.CalculateRelativeMigrationValue(this, migratingPolity));
         }
 
         Profiler.EndSample(); // ("CalculateMigrationPressure");
@@ -2133,7 +2123,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float randomFactor = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CALCULATE_NEXT_UPDATE);
         randomFactor = 1f - Mathf.Pow(randomFactor, 4);
 
-        float migrationFactor = 1 - CalculateOverallMigrationPressure();
+        float migrationPressure = CalculateOverallMigrationPressure();
+        float migrationFactor = 1 - migrationPressure;
         migrationFactor = Mathf.Pow(migrationFactor, 4f);
 
         float skillLevelFactor = Culture.MinimumSkillAdaptationLevel();
