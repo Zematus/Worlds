@@ -1297,6 +1297,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         if (cellSurvivability <= 0)
             return;
 
+#if DEBUG
+        if ((Cell.IsSelected) && (polity is null))
+        {
+            Debug.LogWarning("Debugging ConsiderLandMigration");
+        }
+#endif
+
         float cellAltitudeDeltaFactor =
             targetCell.CalculateMigrationAltitudeDeltaFactor(Cell);
 
@@ -1437,17 +1444,33 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     }
 
     /// <summary>
-    /// Calculates the max percent of the prominence population to migrate during
+    /// Calculates the percent of the prominence population to migrate during
     /// a migration event
     /// </summary>
     /// <param name="cellValue">the migration value of the target cell</param>
-    /// <param name="polityId">the id of the polity to migrate (if any)</param>
-    /// <returns>the max percent of prominence population to migrate</returns>
-    private float CalculateMaxProminencePercentToMigrate(float cellValue, Identifier polityId)
+    /// <param name="prominenceValue">the current prominence value</param>
+    /// <returns>the percent of prominence population to migrate</returns>
+    private float CalculateProminencePercentToMigrate(float cellValue, float prominenceValue)
     {
-        float valueFactor = cellValue / (cellValue + 1) + 0.1f;
+        float minProminenceVal = 0.05f;
 
-        return Mathf.Clamp01(valueFactor);
+        float affectedValue = Mathf.Max(0, prominenceValue - minProminenceVal);
+
+        //If the prominence value is less that the minProminenceVal, migrate 100%
+        if (affectedValue <= 0)
+            return 1f;
+
+        cellValue = Mathf.Clamp01(cellValue);
+
+        float valueFactor = cellValue / (cellValue + 1);
+
+        float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
+
+        float prominenceFactor = minProminenceVal + (affectedValue * valueFactor * randomFactor);
+
+        float promPercent = prominenceValue * prominenceFactor;
+
+        return Mathf.Clamp01(promPercent);
     }
 
     /// <summary>
@@ -1466,15 +1489,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         Identifier polityId,
         long nextDate)
     {
-        float overflowFactor = 1.2f;
+        float promValue = GetPolityProminenceValue(polityId);
 
-        float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
-
-        float maxProminencePercent = CalculateMaxProminencePercentToMigrate(cellValue, polityId);
-
-        float prominencePercent = maxProminencePercent * randomFactor * overflowFactor;
-
-        prominencePercent = Mathf.Clamp01(prominencePercent);
+        float prominencePercent = CalculateProminencePercentToMigrate(cellValue, promValue);
 
         if (PopulationMigrationEvent == null)
         {
@@ -2025,6 +2042,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         Profiler.BeginSample("CalculateMigrationPressure");
 
+        float prominenceValue = GetPolityProminenceValue(migratingPolity);
+
+        if (prominenceValue <= 0)
+            return 0;
+
+        float prominenceFactor = Mathf.Clamp01(20f * prominenceValue);
+
         float neighborhoodValue = 0;
         foreach (TerrainCell cell in Cell.NeighborList)
         {
@@ -2040,7 +2064,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         Profiler.EndSample(); // ("CalculateMigrationPressure");
 
-        return Mathf.Clamp01(neighborhoodValue);
+        return Mathf.Clamp01(neighborhoodValue * prominenceFactor);
     }
 
     /// <summary>
@@ -2348,12 +2372,21 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return polityProminence;
     }
 
-    public float GetPolityProminenceValue(Polity polity)
+    public float GetPolityProminenceValue(Identifier polityId)
     {
-        if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
+        // return the prominence of unorganized bands
+        if (polityId is null)
+            return 1f - TotalPolityProminenceValue;
+
+        if (!_polityProminences.TryGetValue(polityId, out PolityProminence polityProminence))
             return 0;
 
         return polityProminence.Value;
+    }
+
+    public float GetPolityProminenceValue(Polity polity)
+    {
+        return GetPolityProminenceValue(polity?.Id);
     }
 
     public float GetFactionCoreDistance(Polity polity)
