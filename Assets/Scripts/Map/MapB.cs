@@ -87,8 +87,12 @@ public class MapB : MonoBehaviour
                 TerrainCell Cell = Line[ii];
                 
                 GenDataText.SetPixel(i, ii, new Color((Cell.Altitude / 16000f) +0.5f, (Cell.Temperature /120f)+0.5f, (Manager.GetSlant(Cell)/12000f) + 0.5f));
-                WaterPresence.SetPixel(i, ii, new Color((Cell.FlowingWater/80000f)+0.5f, Cell.Rainfall/6000f, Cell.WaterBiomePresence));
-
+                int IcedCell = 0;
+                if (Biome.Biomes[Cell.BiomeWithMostPresence].TerrainType == BiomeTerrainType.Ice) {
+                    IcedCell = 1;
+                }
+                WaterPresence.SetPixel(i, ii, new Color((Cell.FlowingWater/80000f)+0.5f, Cell.Rainfall/6000f, Cell.WaterBiomePresence, IcedCell));
+                
                 for (int iii = 0; iii < LayerNeededText; iii++) {
                     Color LayerColor = new Color(0, 0, 0, 0);
                     if (Layers.Count > iii * 4 + 0) {

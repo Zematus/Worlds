@@ -180,7 +180,8 @@ Shader "WorldMap/Coastline"
                 half TrueFlowingWater = 0;
                 half TrueRainfall = 0;
                 half TrueWarterBiomePresence = 0;
-                
+                half TrueIcedScore = 0;
+
                 float pi = 3.141592;
                 half2 SmoothDistanceFromCenterOfPixel = half2(sin((DistanceFromCenterOfPixel.x - 0.5) * pi) / 2 + 0.5, sin((DistanceFromCenterOfPixel.y - 0.5) * pi) / 2 + 0.5);
 
@@ -203,7 +204,7 @@ Shader "WorldMap/Coastline"
                     TrueWarterBiomePresence = Data2.b;
                 }
                 //Linear
-                if (MustChargeLinearMode) {
+                if (MustChargeLinearMode && true) {
                     half2 LocalDistance;
                     if (Linear_Distance_mode == 0) {
                         LocalDistance = DistanceFromCenterOfPixel;
@@ -233,6 +234,8 @@ Shader "WorldMap/Coastline"
                     TrueRainfall = RainfallTranslator(finalOutput2.g);
                     if (WarterBiomePresence_Mode == 1)
                     TrueWarterBiomePresence = finalOutput2.b;
+
+                    TrueIcedScore = finalOutput2.a;
                 }
                 
                 //complex
@@ -293,7 +296,10 @@ Shader "WorldMap/Coastline"
                     TrueWarterBiomePresence = ComplexValueCalculation(A1b.b, A2b.b, A3b.b, A4b.b, B1b.b, B2b.b, B3b.b, B4b.b, C1b.b, C2b.b, C3b.b, C4b.b, D1b.b, D2b.b, D3b.b, D4b.b, LocalDistance);
                 }
             
-
+                if (TrueIcedScore > 0.9) {
+                    TrueHeight = 0.1;
+                }
+                
                 //Coast
                 bool IsCoast = false;
                 float CoastSize = 1;
@@ -301,20 +307,47 @@ Shader "WorldMap/Coastline"
                 CoastSize = _CoastSize/2;
 
                 float Val00 = HeightTranslator(tex2D(_AltTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x - CoastSize) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y - CoastSize) / TextHeight)).r);
+                if (tex2D(_SecondTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x - CoastSize) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y - CoastSize) / TextHeight)).a > 0.9) {
+                    Val00 = 0.1;
+                }
                 float Val10 = HeightTranslator(tex2D(_AltTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y - CoastSize) / TextHeight)).r);
+                if (tex2D(_SecondTex,half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y - CoastSize) / TextHeight)).a > 0.9) {
+                    Val10 = 0.1;
+                }
                 float Val20 = HeightTranslator(tex2D(_AltTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x + CoastSize) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y - CoastSize) / TextHeight)).r);
+                if (tex2D(_SecondTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x + CoastSize) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y - CoastSize) / TextHeight)).a > 0.9) {
+                    Val20 = 0.1;
+                }
                 float Val01 = HeightTranslator(tex2D(_AltTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x - CoastSize) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y) / TextHeight)).r);
+                if (tex2D(_SecondTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x - CoastSize) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y) / TextHeight)).a > 0.9) {
+                    Val01 = 0.1;
+                }
                 float Val11 = HeightTranslator(tex2D(_AltTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y) / TextHeight)).r);
+                if (tex2D(_SecondTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x ) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y ) / TextHeight)).a > 0.9) {
+                    Val11 = 0.1;
+                }
                 float Val21 = HeightTranslator(tex2D(_AltTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x + CoastSize) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y) / TextHeight)).r);
+                if (tex2D(_SecondTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x + CoastSize) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y) / TextHeight)).a > 0.9) {
+                    Val21 = 0.1;
+                }
                 float Val02 = HeightTranslator(tex2D(_AltTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x - CoastSize) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y + CoastSize) / TextHeight)).r);
+                if (tex2D(_SecondTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x - CoastSize) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y + CoastSize) / TextHeight)).a > 0.9) {
+                    Val02 = 0.1;
+                }
                 float Val12 = HeightTranslator(tex2D(_AltTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y + CoastSize) / TextHeight)).r);
+                if (tex2D(_SecondTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x ) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y + CoastSize) / TextHeight)).a > 0.9) {
+                    Val12 = 0.1;
+                }
                 float Val22 = HeightTranslator(tex2D(_AltTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x + CoastSize) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y + CoastSize) / TextHeight)).r);
-                if (TrueHeight < 0) {
+                if (tex2D(_SecondTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x + CoastSize) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y + CoastSize) / TextHeight)).a > 0.9) {
+                    Val22 = 0.1;
+                }
+                if (Val00 < 0) {
                     if (Val00 > 0 || Val10 > 0 || Val20 > 0 || Val01 > 0 || Val11 > 0 || Val21 > 0 || Val02 > 0 || Val12 > 0 || Val22 > 0) {
                         IsCoast = true;
                     }
                 }
-                if (TrueHeight > 0) {
+                if (Val00 > 0) {
                     if (Val00 < 0 || Val10 < 0 || Val20 < 0 || Val01 < 0 || Val11 < 0 || Val21 < 0 || Val02 < 0 || Val12 < 0 || Val22 < 0) {
                         IsCoast = true;
                     }
@@ -348,6 +381,9 @@ Shader "WorldMap/Coastline"
                         o.Albedo = Base_Color;
                     }
                 }
+                /*if (TrueIcedScore > 0.9) {
+                    o.Albedo = (Montain_Color * 0.3) + (Base_Color * (1 - 0.3));;
+                }*/
 
                 //o.Albedo = tex2D(_MainTex, half2((CaseIndex.x + PositionDecay.x + 0.5 + DistanceFromCenterOfPixel.x - CoastSize) / TextLenght, (CaseIndex.y + PositionDecay.y + 0.5 + +DistanceFromCenterOfPixel.y - CoastSize) / TextHeight));
                 
