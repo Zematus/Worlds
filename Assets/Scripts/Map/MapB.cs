@@ -34,6 +34,7 @@ public class MapB : MonoBehaviour
         Shader.SetGlobalTexture("_AltTex", GenDataText);
         Shader.SetGlobalTexture("_SecondTex", WaterPresence);
         Shader.SetGlobalTexture("_LayerTex", LayerDataText);
+        Shader.SetGlobalFloatArray("Biomes", new float[1000]);
         Shader.SetGlobalFloatArray("Biomes", BiomeList);
         /*int i = 0;
         foreach (float f in BiomeList) {
@@ -51,6 +52,7 @@ public class MapB : MonoBehaviour
         if (Surface != null) {
             float OffSetSize = Surface.uvRect.width;
             Shader.SetGlobalFloat("_CoastSize", OffSetSize);
+            Shader.SetGlobalFloat("_StartX", Surface.uvRect.min.x);
         }
 
     }
@@ -71,7 +73,7 @@ public class MapB : MonoBehaviour
         //Debug.LogError(LayerNeededText);
         if (LayerNeededText > 0)
         {
-            LayerDataText = new Texture2D(terrainCells.Length * LayerNeededText, terrainCells[0].Length);
+            LayerDataText = new Texture2D(terrainCells.Length * LayerNeededText *2, terrainCells[0].Length);
         }
         else {
             LayerDataText = new Texture2D(1, 1);
@@ -104,7 +106,8 @@ public class MapB : MonoBehaviour
                     {
                         LayerColor.a = Cell.GetLayerValue(Layers[iii * 4 + 3].Id);
                     }
-                    LayerDataText.SetPixel(i + iii * terrainCells.Length, ii, LayerColor);
+                    LayerDataText.SetPixel(i + iii * terrainCells.Length *2, ii, LayerColor);
+                    LayerDataText.SetPixel(i + (iii*2 +1) * terrainCells.Length, ii, LayerColor);
                 }
                 /*
                 if (Cell.GetLayerValue(Layers[1].Id) > MaxAltitude) {
@@ -116,9 +119,9 @@ public class MapB : MonoBehaviour
             }
         }
         Debug.Log(MinAltitude + "|" + MaxAltitude);
-        GenDataText.filterMode = FilterMode.Point;
-        WaterPresence.filterMode = FilterMode.Point;
-        LayerDataText.filterMode = FilterMode.Point;
+        //GenDataText.filterMode = FilterMode.Point;
+        //WaterPresence.filterMode = FilterMode.Point;
+        //LayerDataText.filterMode = FilterMode.Point;
         GenDataText.Apply();
         WaterPresence.Apply();
         LayerDataText.Apply();

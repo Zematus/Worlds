@@ -2916,7 +2916,7 @@ public class Manager
         _manager._currentMapOverlayShaderInfoTexture = texture;
     }
 
-    private static float GetSlant(TerrainCell cell)
+    public static float GetSlant(TerrainCell cell)
     {
         if (_manager._currentCellSlants[cell.Longitude, cell.Latitude] != null)
         {

@@ -268,6 +268,7 @@ ENDCG
             float _TempData2;
             float4 _AltTex_TexelSize;
             half4 ice_shelf_Color;
+            float _StartX;
 
 
             // for hard double-sided proximity lighting
@@ -305,25 +306,16 @@ ENDCG
                 half TextHeight = 200;
                 half TextLenght = 400;
                 half2 CorrectUv = IN.uv_AltTex;
-                float2 uv2 = half2 (frac(CorrectUv.x +0.5)-0.5 , CorrectUv.y);
-                float2 uv1 = frac(IN.uv_AltTex);
-                CorrectUv = uv1;
-                if ((uv2.x > -0.25 && uv2.x < 0.25) ) {
-                    CorrectUv = uv2;
-                    CorrectUv.x += 1;
+                int InitialX = _StartX;
+                if (_StartX < 0) {
+                    InitialX--;
                 }
-                //CorrectUv = uv1;
-                /*half LineSpace = 0.1;
-                if (CorrectUv.x < LineSpace) {
-                    CorrectUv.x = LineSpace;
-                }
-                else if (CorrectUv.x > 1- LineSpace) {
-                    CorrectUv.x = 1- LineSpace;
-                }*/
+                CorrectUv.x -= InitialX;
 
                 int2 CaseIndex = int2(CorrectUv.x * TextLenght, CorrectUv.y * TextHeight);
                 half2 DistanceFromCenterOfPixel = half2(CorrectUv.x * TextLenght - (CaseIndex.x + 0.5), CorrectUv.y * TextHeight - (CaseIndex.y + 0.5));
                 
+
                 int2 PositionDecay = int2(0, 0);
                 if (DistanceFromCenterOfPixel.x < 0) {
                     PositionDecay.x = -1;
@@ -509,10 +501,10 @@ ENDCG
                 
                 for (int Val = 0; Val < LayerTexSize; Val++) {
                     
-                    half4 finalOutput = tex2D(_LayerTex, half2((CasePos00.x + Val)/ LayerTexSize, CasePos00.y)) * (1 - DistanceFromCenterOfPixel.x) * (1 - DistanceFromCenterOfPixel.y);
-                    finalOutput += tex2D(_LayerTex, half2((CasePos10.x + Val) / LayerTexSize, CasePos10.y)) * (DistanceFromCenterOfPixel.x) * (1 - DistanceFromCenterOfPixel.y);
-                    finalOutput += tex2D(_LayerTex, half2((CasePos01.x + Val) / LayerTexSize, CasePos01.y)) * (1 - DistanceFromCenterOfPixel.x) * (DistanceFromCenterOfPixel.y);
-                    finalOutput += tex2D(_LayerTex, half2((CasePos11.x + Val) / LayerTexSize, CasePos11.y)) * (DistanceFromCenterOfPixel.x) * (DistanceFromCenterOfPixel.y);
+                    half4 finalOutput = tex2D(_LayerTex, half2((CasePos00.x + Val)/ (LayerTexSize *2), CasePos00.y)) * (1 - DistanceFromCenterOfPixel.x) * (1 - DistanceFromCenterOfPixel.y);
+                    finalOutput += tex2D(_LayerTex, half2((CasePos10.x + Val) / (LayerTexSize * 2), CasePos10.y)) * (DistanceFromCenterOfPixel.x) * (1 - DistanceFromCenterOfPixel.y);
+                    finalOutput += tex2D(_LayerTex, half2((CasePos01.x + Val) / (LayerTexSize * 2), CasePos01.y)) * (1 - DistanceFromCenterOfPixel.x) * (DistanceFromCenterOfPixel.y);
+                    finalOutput += tex2D(_LayerTex, half2((CasePos11.x + Val) / (LayerTexSize * 2), CasePos11.y)) * (DistanceFromCenterOfPixel.x) * (DistanceFromCenterOfPixel.y);
                     
                     LayerValues[Val * 4 + 0] = finalOutput.r;
                     LayerValues[Val * 4 + 1] = finalOutput.g;
@@ -669,13 +661,13 @@ ENDCG
                 if (slantFactor > 1) {
                     slantFactor = 1;
                 }
-                slantFactor = min(1, (4 + (10 * slantFactor)) / 5);
+                slantFactor = min(1, (4 + (10 * slantFactor)) * 0.2);
 
-                float altitudeFactor = min(1, (0.5 + ((TrueHeight - HeightTranslator(0)) / (HeightTranslator(1) - HeightTranslator(0)))) / 1.5);
+                float altitudeFactor = min(1, (0.5 + ((TrueHeight - HeightTranslator(0)) / (HeightTranslator(1) - HeightTranslator(0)))) * 0.6);
 
-                o.Albedo *= slantFactor * altitudeFactor;
+                o.Albedo *= max(0.2,slantFactor * altitudeFactor);
 
-
+               
                 /*if (CorrectUv.x < 0.0001  || CorrectUv.x > 0.9999) {
                     o.Albedo = half4(CorrectUv.x, CorrectUv.y, 0, 1);
                 }*/
@@ -691,7 +683,7 @@ ENDCG
                 //CorrectUv = half2( CorrectUv.x - UvCible, CorrectUv.y) ;
                 //o.Albedo = tex2D(_AltTex, uv).rgb;
                 //o.Albedo = half4(LayerValues[0], LayerValues[1], 0, 0).rgb;
-                //o.Albedo = half4(uv2.x, uv1.x, 0, 0).rgb;
+                //o.Albedo = half4(CorrectUv.x/2, 1- (CorrectUv.x / 2), 0, 0).rgb;
                 //o.Albedo = half4(IN.uv_AltTex.x - (CaseIndex.x + 0.5) / TextLenght, (IN.uv_AltTex.y - (CaseIndex.y + 0.5) / TextLenght), 0, 0).rgb;
                 //o.Albedo = half4(DistanceFromCenterOfPixel.x +0.5, DistanceFromCenterOfPixel.y+0.5, 0, 0).rgb;
                 //o.Albedo = finalOutput.rgb;

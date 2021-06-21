@@ -110,6 +110,7 @@ Shader "WorldMap/Coastline"
             int Linear_Distance_mode;
             int Complex_Distance_mode;
             float _CoastSize;
+            float _StartX;
             float _CoastSeaLand;
             float _Slant;
             float4 _AltTex_TexelSize;
@@ -155,12 +156,12 @@ Shader "WorldMap/Coastline"
                 half TextHeight = 200;
                 half TextLenght = 400;
                 half2 CorrectUv = IN.uv_AltTex;
-                while (CorrectUv.x < 0) {
-                    CorrectUv.x += 1;
+                int InitialX = _StartX;
+                if (_StartX < 0) {
+                    InitialX--;
                 }
-                while (CorrectUv.x >= 1) {
-                    CorrectUv.x -= 1;
-                }
+                CorrectUv.x -= InitialX;
+
 
                 int2 CaseIndex = int2(CorrectUv.x * TextLenght, CorrectUv.y * TextHeight);
                 half2 DistanceFromCenterOfPixel = half2(CorrectUv.x * TextLenght - (CaseIndex.x + 0.5), CorrectUv.y * TextHeight - (CaseIndex.y + 0.5));
