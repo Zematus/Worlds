@@ -179,18 +179,9 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     public void SetCellToAdd(TerrainCell cell)
     {
-
-//#if DEBUG
-//        if (cell.Position.Equals(6, 111))
-//        {
-//            Debug.LogWarning("Debugging SetCellToAdd, cell: " + cell.Position + ", group: "+
-//                cell.Group + ", polity: " + Polity.Id);
-//        }
-//#endif
-
         if (_cellsToRemove.Contains(cell))
         {
-            // This cell is part of an already enclosed piece of land. No need to add again
+            // This cell is being removed
             _cellsToRemove.Remove(cell);
             return;
         }
@@ -205,13 +196,9 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         if ((cell.TerritoryToAddTo != null) &&
             (cell.TerritoryToAddTo != this))
         {
-            //// If this cell was to be added to another territory, override that
-            //cell.TerritoryToAddTo.RemoveCellToAdd(cell);
-
-            // We should avoid this scenario
-            throw new System.Exception(
-                "We are already attempting to add this cell " + cell.Position +
-                " to the territory of polity " + cell.TerritoryToAddTo.Polity.Id);
+            // This is an unlikely but still possible scenario. So it should be ok
+            // to switch the territory we which to add the cell to
+            cell.TerritoryToAddTo.RemoveCellToAdd(cell);
         }
 
         if (_cells.Contains(cell))
@@ -235,15 +222,6 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     public void SetCellToRemove(TerrainCell cell)
     {
-
-//#if DEBUG
-//        if (cell.Position.Equals(6, 111))
-//        {
-//            Debug.LogWarning("Debugging SetCellToRemove, cell: " + cell.Position + ", group: " +
-//                cell.Group + ", polity: " + Polity.Id);
-//        }
-//#endif
-
         if (_cellsToAdd.Contains(cell))
         {
             RemoveCellToAdd(cell);
