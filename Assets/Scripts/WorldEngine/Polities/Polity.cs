@@ -16,7 +16,6 @@ public abstract class Polity : ISynchronizable
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 2500;
     public const float CoreDistanceEffectConstant = 10000;
-    public const float MinPolityProminenceValue = 0.01f;
     public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
 
     public static List<IWorldEventGenerator> OnPolityContactChangeEventGenerators;

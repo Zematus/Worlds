@@ -22,9 +22,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     public const float NaturalGrowthRate = NaturalBirthRate - NaturalDeathRate;
 
-    public const float MinKnowledgeTransferValue = 0.25f;
-
     public const float SeaTravelBaseFactor = 25f;
+
+    public const float MinProminencePopulation = 2;
 
     public static float TravelWidthFactor;
 
@@ -1248,7 +1248,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         out float targetValue,
         Polity migratingPolity = null)
     {
-        float offset = -0.1f;
+        float offset = -0.1f * (1 - MigrationPressure);
         targetValue = cell.CalculateRelativeMigrationValue(this, migratingPolity);
 
         float unbiasedChance = Mathf.Clamp01(targetValue + offset);
@@ -1296,13 +1296,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         if (cellSurvivability <= 0)
             return;
-
-#if DEBUG
-        if ((Cell.IsSelected) && (polity is null))
-        {
-            Debug.LogWarning("Debugging ConsiderLandMigration");
-        }
-#endif
 
         float cellAltitudeDeltaFactor =
             targetCell.CalculateMigrationAltitudeDeltaFactor(Cell);
@@ -2165,7 +2158,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float SlownessConstant = 100 * GenerationSpan;
 
         float mixFactor = SlownessConstant * randomFactor * circumstancesFactor * populationFactor;
-
         long updateSpan = QuarterGenSpan + (long)Mathf.Ceil(mixFactor);
 
         if (updateSpan < 0)
@@ -2586,27 +2578,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         _hasPromValueDeltas = false;
     }
 
-    /// <summary>
-    /// Update all prominence values using all the applied value deltas so far
-    /// </summary>
-    /// <param name="afterPolityUpdates">
-    /// Set to true if this function is being called after polity updates have been done</param>
-    /// <returns>'true' if there was a change in prominence values</returns>
-    private bool CalculateNewPolityProminenceValues(bool afterPolityUpdates = false)
+    private void AddProminenceValuesToDeltas()
     {
-        // NOTE: after polity updates there might be no deltas, bu we might still need
-        // to recalculate if the amount of prominences changed
-        bool calculateRegardless = afterPolityUpdates && _polityProminences.Count > 0;
-
-        // There was no new deltas so there's nothing to calculate
-        if (!calculateRegardless && !_hasPromValueDeltas)
-        {
-            ResetProminenceValueDeltas();
-            return false;
-        }
-
-        // add to the prominence deltas the current prominence values
+        // first the set the unorganized bands prominence delta
         AddUBandsProminenceValueDelta(1f - TotalPolityProminenceValue);
+
+        // now do the same for every polity prominence delta
         foreach (PolityProminence p in _polityProminences.Values)
         {
             if (_polityPromDeltas.ContainsKey(p.Polity))
@@ -2618,68 +2595,57 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 _polityPromDeltas.Add(p.Polity, p.Value);
             }
         }
+    }
 
-        // get the offset to apply to all deltas so that there are no negative values
+    private float CalculateProminenceDeltaOffset()
+    {
         // -----
         // NOTE: This is not a proper solution. A better one would require for every
         // prominence value transfer between polities to be recorded as a transaction,
         // and balancing out those transactions that push a prominence value below zero
         // independently from all others
         // -----
-        float polPromDeltaOffset = Mathf.Min(0, _unorgBandsPromDelta);
+        float offset = Mathf.Min(0, _unorgBandsPromDelta);
         foreach (float delta in _polityPromDeltas.Values)
         {
-            polPromDeltaOffset = Mathf.Min(polPromDeltaOffset, delta);
+            offset = Mathf.Min(offset, delta);
         }
 
-        if (float.IsNaN(polPromDeltaOffset))
+        if (float.IsNaN(offset))
         {
             throw new System.Exception("prominence delta offset is Nan. Group: " + Id);
         }
 
-        // replace prom values with deltas minus offset, and get the total sum
-        float ubProminenceValue = _unorgBandsPromDelta - polPromDeltaOffset;
-        float totalValue = ubProminenceValue;
+        return offset;
+    }
 
-#if DEBUG
-        if (totalValue < 0)
-        {
-            Debug.LogWarning("initial totalValue less than 0: " + totalValue +
-                ", polPromDeltaOffset: " + polPromDeltaOffset);
-        }
-
-        if (_polityPromDeltas.Count == 0)
-        {
-            Debug.LogWarning("amount of of polity prominence deltas equals to 0");
-
-            if (totalValue <= 0)
-            {
-                throw new System.Exception("Unexpected total prominence value of: " + totalValue +
-                    ", group: " + Id + ", date: " + World.CurrentDate);
-            }
-        }
-#endif
+    private float UpdateProminenceValuesWithDeltas(float promDeltaOffset, bool afterPolityUpdates)
+    {
+        float totalValue = 0;
+        float ubProminenceValue = _unorgBandsPromDelta - promDeltaOffset;
 
         foreach (KeyValuePair<Polity, float> pair in _polityPromDeltas)
         {
             Polity polity = pair.Key;
             float newValue = pair.Value;
 
-            newValue -= polPromDeltaOffset;
+            newValue -= promDeltaOffset;
 
-            if (newValue < Polity.MinPolityProminenceValue)
+            float popPercent = ExactPopulation * newValue;
+
+            if (popPercent < MinProminencePopulation)
             {
                 // try to remove prominences that would end up with a value far too small
                 // NOTE: Can't do that after polities have been updated
                 if (afterPolityUpdates || !SetPolityProminenceToRemove(pair.Key, false))
                 {
                     // if not possible to remove this prominence, set it to a min value
-                    newValue = Polity.MinPolityProminenceValue;
+                    newValue = MinProminencePopulation / ExactPopulation;
                 }
                 else
                 {
                     // We will "transfer" its prominence value to unorganized bands
-                    totalValue += newValue;
+                    ubProminenceValue += newValue;
                     continue;
                 }
             }
@@ -2713,7 +2679,19 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             totalValue += newValue;
         }
 
-        // normalize values
+        // add in the prominence value of unorganized bands
+        // (if there's enough population to sustain it)
+        float ubPopPercent = ExactPopulation * ubProminenceValue;
+        if (ubPopPercent < MinProminencePopulation)
+        {
+            totalValue += ubProminenceValue;
+        }
+
+        return totalValue;
+    }
+
+    private void NormalizeProminenceValues(float totalValue)
+    {
         foreach (PolityProminence prom in _polityProminences.Values)
         {
             if (_polityProminencesToRemove.Contains(prom.PolityId))
@@ -2746,12 +2724,43 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                     ", Polity: " + prom.PolityId);
             }
         }
+    }
 
-        ResetProminenceValueDeltas();
+    /// <summary>
+    /// Update all prominence values using all the applied value deltas so far
+    /// </summary>
+    /// <param name="afterPolityUpdates">
+    /// Set to true if this function is being called after polity updates have been done</param>
+    /// <returns>'true' if there was a change in prominence values</returns>
+    private bool CalculateNewPolityProminenceValues(bool afterPolityUpdates = false)
+    {
+        // NOTE: after polity updates there might be no deltas, bu we might still need
+        // to recalculate if the amount of prominences changed
+        bool calculateRegardless = afterPolityUpdates && _polityProminences.Count > 0;
 
-        // remove any prominences set to be removed above
+        if (!calculateRegardless && !_hasPromValueDeltas)
+        {
+            // There was no new deltas so there's nothing to calculate
+            ResetProminenceValueDeltas();
+            return false;
+        }
+
+        // add current prominence values to deltas
+        AddProminenceValuesToDeltas();
+
+        // get the offset to apply to all deltas so that there are no negative values
+        float promDeltaOffset = CalculateProminenceDeltaOffset();
+
+        // replace prom values with deltas minus the offset, and get the total sum
+        float totalValue = UpdateProminenceValuesWithDeltas(promDeltaOffset, afterPolityUpdates);
+
+        // normalize values
+        NormalizeProminenceValues(totalValue);
+
+        // remove any prominences set to be removed after the value updates
         RemovePolityProminences();
 
+        ResetProminenceValueDeltas();
         return true;
     }
 

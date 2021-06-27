@@ -409,10 +409,10 @@ public class InfoPanelScript : MonoBehaviour
 
         InfoText.text += $"\n\nMigration Pressure: {group.MigrationPressure:0.000}";
 
-#if DEBUG
-        float currentPressure = group.CalculateOverallMigrationPressure();
-        InfoText.text += $"\n\n(DEBUG) Current Migration Pressure: {group.MigrationPressure:0.000}";
-#endif
+//#if DEBUG
+//        float currentPressure = group.CalculateOverallMigrationPressure();
+//        InfoText.text += $"\n\n(DEBUG) Current Migration Pressure: {group.MigrationPressure:0.000}";
+//#endif
     }
 
     private void AddCellDataToInfoPanel_PolityProminence(TerrainCell cell)
