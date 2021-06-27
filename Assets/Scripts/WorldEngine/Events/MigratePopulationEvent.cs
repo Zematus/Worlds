@@ -97,6 +97,8 @@ public class MigratePopulationEvent : CellGroupEvent
         if (!base.CanTrigger())
             return false;
 
+        float promValue = 0;
+
         Polity = null;
         if (!(PolityId is null))
         {
@@ -107,27 +109,40 @@ public class MigratePopulationEvent : CellGroupEvent
                 return false;
 
             Polity = prominence.Polity;
-
-            _prominenceValueDelta = ProminencePercent * prominence.Value;
+            promValue = prominence.Value;
         }
         else
         {
-            float prominenceValue = Group.GetUBandsProminenceValue();
-
-            _prominenceValueDelta = ProminencePercent * prominenceValue;
+            promValue = Group.GetUBandsProminenceValue();
         }
 
-        _population = (int)(Group.Population * _prominenceValueDelta);
+        float promPop = Group.ExactPopulation * promValue;
 
-        if (_population <= 0)
+        if (promPop < CellGroup.MinProminencePopulation)
         {
 #if DEBUG
-            Debug.LogWarning($"Trying to migrate zero population. " +
-                $"Group population: {Group.Population}" +
-                $"_prominenceValueDelta: {_prominenceValueDelta}");
+            Debug.LogWarning($"Too small a population to migrate. " +
+                $"Prominence Population: {promPop}" +
+                $", Group Exact Population: {Group.ExactPopulation}" +
+                $", promValue: {promValue}");
 #endif
             return false;
         }
+
+        float extraPopThatCanMigrate = promPop - CellGroup.MinProminencePopulation;
+        float popToMigrate =
+            (extraPopThatCanMigrate * ProminencePercent) + CellGroup.MinProminencePopulation;
+        _population = (int)popToMigrate;
+
+        if (_population <= 0)
+        {
+            new System.Exception($"Trying to migrate zero population. " +
+                $"Group population: {Group.Population}" +
+                $", popToMigrate: {popToMigrate}");
+        }
+
+        ProminencePercent = _population / promPop;
+        _prominenceValueDelta = ProminencePercent * promValue;
 
         return true;
     }
