@@ -120,7 +120,14 @@ public class MigratePopulationEvent : CellGroupEvent
         _population = (int)(Group.Population * _prominenceValueDelta);
 
         if (_population <= 0)
+        {
+#if DEBUG
+            Debug.LogWarning($"Trying to migrate zero population. " +
+                $"Group population: {Group.Population}" +
+                $"_prominenceValueDelta: {_prominenceValueDelta}");
+#endif
             return false;
+        }
 
         return true;
     }
@@ -166,7 +173,7 @@ public class MigratePopulationEvent : CellGroupEvent
         Group.PopulationMigrationEvent = this;
     }
 
-    protected override void DestroyInternal()
+    public override void Cleanup()
     {
         if (Group != null)
         {
@@ -178,7 +185,7 @@ public class MigratePopulationEvent : CellGroupEvent
             }
         }
 
-        base.DestroyInternal();
+        base.Cleanup();
     }
 
     /// <summary>

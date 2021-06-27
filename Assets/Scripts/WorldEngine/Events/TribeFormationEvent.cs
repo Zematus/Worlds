@@ -134,13 +134,13 @@ public class TribeFormationEvent : CellGroupEvent
         }
     }
 
-    protected override void DestroyInternal()
+    public override void Cleanup()
     {
         if (Group != null)
         {
             Group.HasTribeFormationEvent = false;
         }
 
-        base.DestroyInternal();
+        base.Cleanup();
     }
 }

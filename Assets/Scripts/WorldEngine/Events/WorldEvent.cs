@@ -179,9 +179,17 @@ public abstract class WorldEvent : ISynchronizable, IEffectTrigger
     }
 
     /// <summary>
-    /// Performs subclass-specific cleanup tasks before destroying the object
+    /// Performs subclass-specific destroy tasks
     /// </summary>
     protected virtual void DestroyInternal()
+    {
+        Cleanup();
+    }
+
+    /// <summary>
+    /// Performs subclass-specific cleanup
+    /// </summary>
+    public virtual void Cleanup()
     {
 
     }
