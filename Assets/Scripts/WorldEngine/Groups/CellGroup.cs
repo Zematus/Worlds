@@ -2067,16 +2067,16 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <returns>the migration presure value</returns>
     public float CalculateOverallMigrationPressure()
     {
-        // There's low pressure if there's already a migration event occurring
-        if (HasMigrationEvent)
-            return 0;
-
         // Reset stored pressures
         foreach (PolityProminence prominence in _polityProminences.Values)
         {
-            prominence.MigrationPressure = 1;
+            prominence.MigrationPressure = 0;
         }
-        MigrationPressure = 1;
+        MigrationPressure = 0;
+
+        // There's low pressure if there's already a migration event occurring
+        if (HasMigrationEvent)
+            return 0;
 
         float populationFactor;
         if (OptimalPopulation > 0)
@@ -2085,6 +2085,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         }
         else
         {
+            // Set stored pressures to 1
+            foreach (PolityProminence prominence in _polityProminences.Values)
+            {
+                prominence.MigrationPressure = 1;
+            }
+            MigrationPressure = 1;
+
             return 1;
         }
 
@@ -2092,16 +2099,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         // if the population is not near its optimum then don't add pressure
         if (populationFactor < minPopulationConstant)
-        {
-            // Set stored pressures to 0
-            foreach (PolityProminence prominence in _polityProminences.Values)
-            {
-                prominence.MigrationPressure = 0;
-            }
-            MigrationPressure = 0;
-
             return 0;
-        }
 
         // Get the pressure from unorganized bands
         float pressure = CalculateNeighborhoodMigrationPressure(null);
