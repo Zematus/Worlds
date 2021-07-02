@@ -312,6 +312,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             polityPop.MigrationDirection)
     {
         AddPolityProminence(polityPop.Polity, 1.0f, true);
+        FindHighestPolityProminence();
     }
 
     public CellGroup(
@@ -2617,6 +2618,16 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return offset;
     }
 
+    public void SetPolityProminenceValue(Polity polity, float newValue)
+    {
+        _polityProminences[polity.Id].Value = newValue;
+    }
+
+    public void ModifyPolityProminenceValue(Polity polity, float valueDelta)
+    {
+        _polityProminences[polity.Id].Value += valueDelta;
+    }
+
     private float UpdateProminenceValuesWithDeltas(float promDeltaOffset, bool afterPolityUpdates)
     {
         float totalValue = 0;
@@ -2629,9 +2640,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
             newValue -= promDeltaOffset;
 
-            float popPercent = ExactPopulation * newValue;
+            float promPopulation = ExactPopulation * newValue;
 
-            if (popPercent < MinProminencePopulation)
+            if (promPopulation < MinProminencePopulation)
             {
                 // try to remove prominences that would end up with a value far too small
                 // NOTE: Can't do that after polities have been updated
@@ -2673,14 +2684,14 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             }
 #endif
 
-            _polityProminences[polity.Id].Value = newValue;
+            SetPolityProminenceValue(polity, newValue);
             totalValue += newValue;
         }
 
         // add in the prominence value of unorganized bands
-        // (if there's enough population to sustain it)
-        float ubPopPercent = ExactPopulation * ubProminenceValue;
-        if (ubPopPercent < MinProminencePopulation)
+        // if there's enough population to sustain it
+        float upPopulation = ExactPopulation * ubProminenceValue;
+        if (upPopulation >= MinProminencePopulation)
         {
             totalValue += ubProminenceValue;
         }
@@ -2824,9 +2835,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// </summary>
     /// <param name="polity">polity to associate the new prominence with</param>
     /// <param name="initialValue">starting prominence value</param>
-    /// <param name="modifyTotalValue">'true' if a new cell group is being initialized using
-    /// this prominence</param>
-    public void AddPolityProminence(Polity polity, float initialValue = 0, bool modifyTotalValue = false)
+    /// <param name="modifyTotalValue">'true' if the total prominence value has to
+    /// be updated</param>
+    public void AddPolityProminence(
+        Polity polity,
+        float initialValue = 0,
+        bool modifyTotalValue = false)
     {
         PolityProminence polityProminence = new PolityProminence(this, polity, initialValue);
 
@@ -2855,8 +2869,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         if (modifyTotalValue)
         {
             TotalPolityProminenceValue += initialValue;
-
-            FindHighestPolityProminence();
         }
 
         World.AddPromToCalculateCoreDistFor(polityProminence);

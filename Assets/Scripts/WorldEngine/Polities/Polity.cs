@@ -1376,9 +1376,6 @@ public abstract class Polity : ISynchronizable
         World.InsertEventToHappen(polityEvent);
     }
 
-    public abstract float CalculateGroupProminenceExpansionValue(
-        CellGroup sourceGroup, CellGroup targetGroup, float sourceValue);
-
     public virtual void GroupUpdateEffects(
         CellGroup group,
         float prominenceValue,

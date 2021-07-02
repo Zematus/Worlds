@@ -100,9 +100,7 @@ public class TribeFormationEvent : CellGroupEvent
         if (value < MinSocialOrganizationKnowledgeTribeFormation)
             return false;
 
-        float prominenceFactor = Mathf.Min(1, Group.TotalPolityProminenceValue * 3f);
-
-        if (prominenceFactor > 0)
+        if (Group.TotalPolityProminenceValue > 0)
             return false;
 
         return true;

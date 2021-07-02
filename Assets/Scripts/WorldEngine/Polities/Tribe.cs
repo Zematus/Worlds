@@ -54,10 +54,8 @@ public class Tribe : Polity
 
         SetDominantFaction(clan, false);
 
-        coreGroup.AddPolityProminence(this, coreProminenceFactor, modifyTotalValue: true);
-
-        // substract the new tribe prominence from the unorganized bands prominence
-        coreGroup.AddUBandsProminenceValueDelta(-coreProminenceFactor);
+        coreGroup.AddPolityProminence(this, coreProminenceFactor, true);
+        coreGroup.FindHighestPolityProminence();
 
         GenerateName();
     }
@@ -215,8 +213,9 @@ public class Tribe : Polity
             CellGroup group = pair.Key;
             float value = pair.Value;
 
-            group.AddPolityProminenceValueDelta(sourcePolity, -value);
-            group.AddPolityProminence(this, value, modifyTotalValue: true);
+            group.ModifyPolityProminenceValue(sourcePolity, -value);
+            group.AddPolityProminence(this, value);
+            group.FindHighestPolityProminence();
 
             World.AddGroupToUpdate(group);
         }
@@ -320,37 +319,6 @@ public class Tribe : Polity
         //		#if DEBUG
         //		Debug.Log ("Tribe #" + Id + " name: " + Name);
         //		#endif
-    }
-
-    public override float CalculateGroupProminenceExpansionValue(CellGroup sourceGroup, CellGroup targetGroup, float sourceValue)
-    {
-        if (sourceValue <= 0)
-            return 0;
-
-        float sourceGroupTotalPolityProminenceValue = sourceGroup.TotalPolityProminenceValue;
-        float targetGroupTotalPolityProminenceValue = targetGroup.TotalPolityProminenceValue;
-
-        if (sourceGroupTotalPolityProminenceValue <= 0)
-        {
-            throw new System.Exception("sourceGroup.TotalPolityProminenceValue equal or less than 0: " + sourceGroupTotalPolityProminenceValue);
-        }
-
-        float prominenceFactor = sourceGroupTotalPolityProminenceValue / (targetGroupTotalPolityProminenceValue + sourceGroupTotalPolityProminenceValue);
-        prominenceFactor = Mathf.Pow(prominenceFactor, 4);
-
-        targetGroup.Cell.CalculateAdaptation(Culture, out _, out float modifiedSurvivability);
-
-        float survivabilityFactor = Mathf.Pow(modifiedSurvivability, 2);
-
-        float finalFactor = prominenceFactor * survivabilityFactor;
-
-        if (sourceGroup != targetGroup)
-        {
-            // There should be a strong bias against polity expansion to reduce activity
-            finalFactor *= TribalExpansionFactor;
-        }
-
-        return finalFactor;
     }
 
     public override void FinalizeLoad()

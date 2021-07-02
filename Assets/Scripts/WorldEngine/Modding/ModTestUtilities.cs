@@ -160,11 +160,6 @@ public class TestPolity : Polity
         _testId = _testCounter++;
     }
 
-    public override float CalculateGroupProminenceExpansionValue(CellGroup sourceGroup, CellGroup targetGroup, float sourceValue)
-    {
-        throw new NotImplementedException();
-    }
-
     protected override void GenerateName()
     {
         throw new NotImplementedException();
