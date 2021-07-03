@@ -193,14 +193,6 @@ public class Territory : ISynchronizable, ICellCollectionGetter
             return;
         }
 
-        if ((cell.TerritoryToAddTo != null) &&
-            (cell.TerritoryToAddTo != this))
-        {
-            // This is an unlikely but still possible scenario. So it should be ok
-            // to switch the territory we which to add the cell to
-            cell.TerritoryToAddTo.RemoveCellToAdd(cell);
-        }
-
         if (_cells.Contains(cell))
         {
             throw new System.Exception(
@@ -214,19 +206,23 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         World.AddTerritoryToUpdate(this);
     }
 
-    public void RemoveCellToAdd(TerrainCell cell)
+    public bool TryRemoveCellToAdd(TerrainCell cell)
     {
-        cell.TerritoryToAddTo = null;
-        _cellsToAdd.Remove(cell);
+        if (_cellsToAdd.Contains(cell))
+        {
+            cell.TerritoryToAddTo = null;
+            _cellsToAdd.Remove(cell);
+
+            return true;
+        }
+
+        return false;
     }
 
     public void SetCellToRemove(TerrainCell cell)
     {
-        if (_cellsToAdd.Contains(cell))
-        {
-            RemoveCellToAdd(cell);
+        if (TryRemoveCellToAdd(cell))
             return;
-        }
 
         if (!_cells.Contains(cell))
         {
@@ -417,14 +413,6 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     private void AddCell(TerrainCell cell)
     {
-//#if DEBUG
-//        if (cell.Position.Equals(123, 93) && (Polity.Id == "0000000000237445853:2799754581787250256"))
-//        {
-//            Debug.LogWarning("Debugging AddCell, cell: " + cell.Position + ", group: " +
-//                cell.Group + ", polity: " + Polity.Id);
-//        }
-//#endif
-
         if (!_cells.Add(cell))
         {
             // the cell has already been added, there's nothing else that needs to be done

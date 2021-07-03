@@ -700,29 +700,22 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         if (HighestPolityProminence == prominence)
             return;
 
-        if ((Cell.EncompassingTerritory != null) &&
-            ((prominence == null) ||
-            (Cell.EncompassingTerritory != prominence.Polity.Territory)))
+        if (Cell.EncompassingTerritory != null)
         {
-
-//#if DEBUG
-//            if (Cell.Position.Equals(6, 111))
-//            {
-//                Debug.LogWarning("Debugging SetHighestPolityProminence, cell: " + Cell.Position + ", group: " +
-//                    Cell.Group + ", territory polity: " + Cell.EncompassingTerritory.Polity.Id +
-//                    ", prominence polity: " + prominence?.PolityId);
-//            }
-//#endif
-
             Cell.EncompassingTerritory.SetCellToRemove(Cell);
         }
 
-        HighestPolityProminence = prominence;
+        if (Cell.TerritoryToAddTo != null)
+        {
+            Cell.TerritoryToAddTo.TryRemoveCellToAdd(Cell);
+        }
 
         if (prominence != null)
         {
             prominence.Polity.Territory.SetCellToAdd(Cell);
         }
+
+        HighestPolityProminence = prominence;
 
         if (FactionCores.Count > 0)
         {
@@ -1575,7 +1568,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         if (Cell.TerritoryToAddTo != null)
         {
-            Cell.TerritoryToAddTo.RemoveCellToAdd(Cell);
+            Cell.TerritoryToAddTo.TryRemoveCellToAdd(Cell);
         }
 
         if (Cell.EncompassingTerritory != null)
