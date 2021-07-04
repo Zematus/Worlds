@@ -547,6 +547,6 @@ public class Culture : ISynchronizable
 
         Profiler.EndSample(); // ("CalculateAggressionTowards");
 
-        return aggrPrefB - aggrPrefA;
+        return aggrPrefA - aggrPrefB;
     }
 }

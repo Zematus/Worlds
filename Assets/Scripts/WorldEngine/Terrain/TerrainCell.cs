@@ -370,7 +370,7 @@ public class TerrainCell
 
         CalculateAdaptation(culture, out float foragingCapacity, out float survivability);
 
-        float survivabilityOffset = 0.15f;
+        float survivabilityOffset = 0.25f;
 
         float survivabilityFactor =
             (survivability - survivabilityOffset) / (1 - survivabilityOffset);
@@ -473,17 +473,23 @@ public class TerrainCell
         }
     }
 
-    public float CalculateOccupancyAggressionFactor(Culture cultureA, Culture cultureB)
+    public float CalculateOccupancyAggressionFactor(
+        Culture cultureA, Culture cultureB, float minDelta = 0)
     {
-        float aggrFactor = Culture.CalculateAggressionDiff(cultureA, cultureB);
+        float aggrDiff = Culture.CalculateAggressionDiff(cultureA, cultureB);
 
-        if (aggrFactor <= 0)
+        float scaleConst = 1000;
+        float aggrFactor = 1;
+
+        if (aggrDiff >= 0)
         {
-            aggrFactor = 1 + (aggrFactor * 0.99f);
+            aggrFactor = Mathf.Max(0, aggrDiff - minDelta);
+            aggrFactor = 1 + aggrFactor * scaleConst;
         }
         else
         {
-            aggrFactor = 1 / (1 - (aggrFactor * 0.99f));
+            aggrFactor = Mathf.Max(0, -aggrDiff - minDelta);
+            aggrFactor = 1 / (1 + aggrFactor * scaleConst);
         }
 
         return aggrFactor;
@@ -536,7 +542,7 @@ public class TerrainCell
             if (sourceCulture != promCulture)
             {
                 promAggrFactor =
-                    CalculateOccupancyAggressionFactor(sourceCulture, promCulture);
+                    CalculateOccupancyAggressionFactor(promCulture, sourceCulture);
             }
 
             promPopulation += Group.Population * p.Value * promAggrFactor;
@@ -550,12 +556,20 @@ public class TerrainCell
 
         //////// Effective population from unorganized bands
 
-        float ubAggrFactor =
-            CalculateOccupancyAggressionFactor(sourceCulture, Group.Culture);
+        float ubAggrFactor = 1;
+
+        if (isPolity)
+        {
+            CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture);
+        }
+        else
+        {
+            CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture, 0.25f);
+        }
 
         float ubPopulation =
-            Group.Population * (1 - Group.TotalPolityProminenceValue) * ubAggrFactor;
-        float ubEffectivePopulation = ubPopulation * ubEffectivenessFactor;
+            Group.Population * (1 - Group.TotalPolityProminenceValue);
+        float ubEffectivePopulation = ubPopulation * ubEffectivenessFactor * ubAggrFactor;
 
         effectivePopulation += Mathf.Max(0, ubEffectivePopulation);
 
@@ -625,8 +639,8 @@ public class TerrainCell
         if (!targetIsPartOfCoreRegion)
             coreRegionFactor *= 1 / targetcoreRegionConst;
 
-        float targetOptFactor = targetOptimalPop + 10;
-        float sourceOptFactor = sourceOptimalPop + 10;
+        float targetOptFactor = targetOptimalPop + 1;
+        float sourceOptFactor = sourceOptimalPop + 1;
         float optimalityFactor = 2 * targetOptFactor / (targetOptFactor + sourceOptFactor);
 
         float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceCell);
