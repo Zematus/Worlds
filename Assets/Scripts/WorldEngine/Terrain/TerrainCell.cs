@@ -506,7 +506,7 @@ public class TerrainCell
         float effectivePopulation = 0;
 
         // This allows polities to expand into free, populated territories
-        float effectivenessConstant = 10f;
+        float effectivenessConstant = 100f;
 
         float polityEffectivenessFactor = effectivenessConstant;
         float ubEffectivenessFactor = 1f;
@@ -600,8 +600,10 @@ public class TerrainCell
             sourceCulture = refGroup.Culture;
         }
 
-        float targetOptimalPop = EstimateOptimalPopulation(sourceCulture);
-        float sourceOptimalPop = sourceCell.EstimateOptimalPopulation(sourceCulture);
+        float targetOptimalPop =
+            EstimateOptimalPopulation(sourceCulture);
+        float sourceOptimalPop =
+            sourceCell.EstimateOptimalPopulation(sourceCulture);
 
         float targetOccupancy =
             EstimateEffectiveOccupancy(sourceCulture, isPolity);
@@ -623,8 +625,8 @@ public class TerrainCell
         if (!targetIsPartOfCoreRegion)
             coreRegionFactor *= 1 / targetcoreRegionConst;
 
-        float targetOptFactor = targetOptimalPop + 100;
-        float sourceOptFactor = sourceOptimalPop + 100;
+        float targetOptFactor = targetOptimalPop + 10;
+        float sourceOptFactor = sourceOptimalPop + 10;
         float optimalityFactor = 2 * targetOptFactor / (targetOptFactor + sourceOptFactor);
 
         float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceCell);
