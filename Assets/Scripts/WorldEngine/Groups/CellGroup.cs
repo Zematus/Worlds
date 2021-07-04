@@ -1243,7 +1243,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         Polity migratingPolity = null)
     {
         float offset = -0.1f * (1 - MigrationPressure);
-        targetValue = cell.CalculateRelativeMigrationValue(this, migratingPolity);
+        targetValue = cell.CalculateRelativeMigrationValue(this, true, migratingPolity);
 
         float unbiasedChance = Mathf.Clamp01(targetValue + offset);
 
@@ -1278,6 +1278,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float cellChance = CalculateMigrationChance(targetCell, out float targetValue, polity);
 
         if (cellChance <= 0)
+            return;
+
+        Identifier polityId = polity?.Id;
+
+        float prominencePercent = CalculateProminencePercentToMigrate(targetValue, polityId);
+
+        if (prominencePercent <= 0)
             return;
 
         float attemptValue =
@@ -1335,8 +1342,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             targetCell,
             migrationDirection,
             MigrationType.Land,
-            targetValue,
-            polity?.Id,
+            prominencePercent,
+            polityId,
             arrivalDate);
     }
 
@@ -1379,6 +1386,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float cellChance = CalculateMigrationChance(targetCell, out float targetValue, polity);
 
         if (cellChance <= 0)
+            return;
+
+        Identifier polityId = polity?.Id;
+
+        float prominencePercent = CalculateProminencePercentToMigrate(targetValue, polityId);
+
+        if (prominencePercent <= 0)
             return;
 
         targetCell.CalculateAdaptation(Culture, out _, out float cellSurvivability);
@@ -1425,7 +1439,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             targetCell,
             migrationDirection,
             MigrationType.Sea,
-            targetValue,
+            prominencePercent,
             polity?.Id,
             nextDate);
     }
@@ -1435,17 +1449,18 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// a migration event
     /// </summary>
     /// <param name="cellValue">the migration value of the target cell</param>
-    /// <param name="prominenceValue">the current prominence value</param>
+    /// <param name="polityId">the id of the polity to migrate (null for unorganized bands)</param>
     /// <returns>the percent of prominence population to migrate</returns>
-    private float CalculateProminencePercentToMigrate(float cellValue, float prominenceValue)
+    private float CalculateProminencePercentToMigrate(float cellValue, Identifier polityId)
     {
-        float minProminenceVal = 0.05f;
+        float prominenceValue = GetPolityProminenceValue(polityId);
 
-        float affectedValue = Mathf.Max(0, prominenceValue - minProminenceVal);
+        float promPop = ExactPopulation * prominenceValue;
 
-        //If the prominence value is less that the minProminenceVal, migrate 100%
-        if (affectedValue <= 0)
-            return 1f;
+        if (promPop < MinProminencePopulation)
+            return 0;
+
+        float minProminenceVal = prominenceValue * MinProminencePopulation / promPop;
 
         cellValue = Mathf.Clamp01(cellValue);
 
@@ -1453,9 +1468,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         float randomFactor = GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_PICK_PROMINENCE_PERCENT);
 
-        float prominenceFactor = minProminenceVal + (affectedValue * valueFactor * randomFactor);
+        float prominenceValToMove = minProminenceVal + (prominenceValue - minProminenceVal) * valueFactor * randomFactor;
 
-        float promPercent = prominenceValue * prominenceFactor;
+        float promPercent = prominenceValToMove / prominenceValue;
 
         return Mathf.Clamp01(promPercent);
     }
@@ -1466,20 +1481,16 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <param name="targetCell">cell which the group population will migrate toward</param>
     /// <param name="migrationDirection">direction toward which the migration will occur</param>
     /// <param name="migrationType">'Land' or 'Sea' migration</param>
-    /// <param name="cellValue">the migration value of the target cell</param>
+    /// <param name="prominencePercent">prominence percent to migrate</param>
     /// <param name="nextDate">the next date on which this event should trigger</param>
     private void SetPopulationMigrationEvent(
         TerrainCell targetCell,
         Direction migrationDirection,
         MigrationType migrationType,
-        float cellValue,
+        float prominencePercent,
         Identifier polityId,
         long nextDate)
     {
-        float promValue = GetPolityProminenceValue(polityId);
-
-        float prominencePercent = CalculateProminencePercentToMigrate(cellValue, promValue);
-
         if (PopulationMigrationEvent == null)
         {
             PopulationMigrationEvent =
@@ -2046,7 +2057,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             neighborhoodValue =
                 Mathf.Max(
                     neighborhoodValue,
-                    cell.CalculateRelativeMigrationValue(this, migratingPolity));
+                    cell.CalculateRelativeMigrationValue(this, false, migratingPolity));
         }
 
         Profiler.EndSample(); // ("CalculateMigrationPressure");
@@ -2236,7 +2247,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             float geometricTimeFactor = Mathf.Pow(2, timeFactor);
             float populationFactor = 1 - ExactPopulation / (float)OptimalPopulation;
 
-            population = OptimalPopulation * MathUtility.RoundToSixDecimals(1 - Mathf.Pow(populationFactor, geometricTimeFactor));
+            population =
+                OptimalPopulation * MathUtility.RoundToSixDecimals(1 - Mathf.Pow(populationFactor, geometricTimeFactor));
 
 #if DEBUG
             if ((int)population < -1000)
@@ -2269,7 +2281,10 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         if (population > OptimalPopulation)
         {
-            population = OptimalPopulation + (ExactPopulation - OptimalPopulation) * MathUtility.RoundToSixDecimals(Mathf.Exp(-timeFactor));
+            float decayFactor = -5 * timeFactor;
+            population =
+                OptimalPopulation +
+                (ExactPopulation - OptimalPopulation) * MathUtility.RoundToSixDecimals(Mathf.Exp(decayFactor));
 
 #if DEBUG
             if ((int)population < -1000)

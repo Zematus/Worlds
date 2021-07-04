@@ -370,8 +370,15 @@ public class TerrainCell
 
         CalculateAdaptation(culture, out float foragingCapacity, out float survivability);
 
-        if (survivability <= 0)
+        float survivabilityOffset = 0.15f;
+
+        float survivabilityFactor =
+            (survivability - survivabilityOffset) / (1 - survivabilityOffset);
+
+        if (survivabilityFactor <= 0)
             return 0;
+
+        survivabilityFactor = Mathf.Clamp01(survivabilityFactor);
 
         float populationCapacityByForaging =
             foragingContribution * PopulationForagingConstant * Area * foragingCapacity;
@@ -404,7 +411,7 @@ public class TerrainCell
 
         float populationCapacity =
             (populationCapacityByForaging + populationCapacityByFarming + populationCapacityByFishing) *
-            survivability * accesibilityFactor;
+            survivabilityFactor * accesibilityFactor;
 
         return Mathf.Max(0, populationCapacity);
     }
@@ -568,27 +575,41 @@ public class TerrainCell
     /// <returns></returns>
     public float CalculateRelativeMigrationValue(
         CellGroup refGroup,
+#if DEBUG
+        bool debugging,
+#endif
         Polity refPolity)
     {
         bool isPolity = refPolity != null;
+
+        float sourceCoreRegionConst = 10;
+        float targetcoreRegionConst = 1000;
+
+        bool sourceIsPartOfCoreRegion = true;
+        bool targetIsPartOfCoreRegion = true;
+
+        TerrainCell sourceCell = refGroup.Cell;
 
         Culture sourceCulture;
         if (isPolity)
         {
             sourceCulture = refPolity.Culture;
+
+            sourceIsPartOfCoreRegion = refPolity.CoreRegions.Contains(sourceCell.Region);
+            targetIsPartOfCoreRegion = refPolity.CoreRegions.Contains(Region);
         }
         else
         {
             sourceCulture = refGroup.Culture;
         }
 
-        TerrainCell sourceCell = refGroup.Cell;
-
         float targetOptimalPop = EstimateOptimalPopulation(sourceCulture);
         float sourceOptimalPop = sourceCell.EstimateOptimalPopulation(sourceCulture);
 
-        float targetOccupancy = EstimateEffectiveOccupancy(sourceCulture, isPolity);
-        float sourceOccupancy = sourceCell.EstimateEffectiveOccupancy(sourceCulture, isPolity);
+        float targetOccupancy =
+            EstimateEffectiveOccupancy(sourceCulture, isPolity);
+        float sourceOccupancy =
+            sourceCell.EstimateEffectiveOccupancy(sourceCulture, isPolity);
 
         float migResitance = 1000;
 
@@ -598,18 +619,20 @@ public class TerrainCell
         float occRatioFactor = sourceModOccRatio - targetModOccRatio;
 
         float coreRegionFactor = 1;
-        if (refPolity != null)
-        {
-            if (!refPolity.CoreRegions.Contains(sourceCell.Region))
-                coreRegionFactor *= 20f;
 
-            if (!refPolity.CoreRegions.Contains(Region))
-                coreRegionFactor *= 0.05f;
-        }
+        if (!sourceIsPartOfCoreRegion)
+            coreRegionFactor *= sourceCoreRegionConst;
+
+        if (!targetIsPartOfCoreRegion)
+            coreRegionFactor *= 1 / targetcoreRegionConst;
+
+        float targetOptFactor = targetOptimalPop + 1;
+        float sourceOptFactor = sourceOptimalPop + 1;
+        float optimalityFactor = 2 * targetOptFactor / (targetOptFactor + sourceOptFactor);
 
         float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceCell);
 
-        float cellValue = occRatioFactor * coreRegionFactor * altitudeFactor;
+        float cellValue = occRatioFactor * coreRegionFactor * optimalityFactor * altitudeFactor;
 
         if (float.IsNaN(cellValue))
         {
