@@ -3954,7 +3954,7 @@ public class Manager
 
     private static Color SetPopulationChangeOverlayColor(TerrainCell cell, Color color)
     {
-        float deltaLimitFactor = 0.1f;
+        float deltaLimitFactor = 1f;
 
         float prevPopulation = 0;
         float population = 0;
@@ -3973,6 +3973,7 @@ public class Manager
         {
             float value = delta / (population * deltaLimitFactor);
             value = Mathf.Clamp01(value);
+            value = MathUtility.ToPseudoLogaritmicScale01(value, 1);
 
             color = Color.green * value;
         }
@@ -3980,6 +3981,7 @@ public class Manager
         {
             float value = -delta / (prevPopulation * deltaLimitFactor);
             value = Mathf.Clamp01(value);
+            value = MathUtility.ToPseudoLogaritmicScale01(value, 1);
 
             color = Color.red * value;
         }
@@ -4566,13 +4568,11 @@ public class Manager
             if (_manager._currentMaxUpdateSpan < updateSpan)
                 _manager._currentMaxUpdateSpan = updateSpan;
 
-            float maxUpdateSpan = CellGroup.MaxUpdateSpan;
+            float maxUpdateSpan =
+                Mathf.Min(_manager._currentMaxUpdateSpan, CellGroup.MaxUpdateSpan);
 
-            maxUpdateSpan = Mathf.Min(_manager._currentMaxUpdateSpan, maxUpdateSpan);
-
-            normalizedValue = 1f - updateSpan / maxUpdateSpan;
-
-            normalizedValue = Mathf.Clamp01(normalizedValue);
+            normalizedValue = Mathf.Clamp01(updateSpan / maxUpdateSpan);
+            normalizedValue = 1 - MathUtility.ToPseudoLogaritmicScale01(normalizedValue, 1f);
         }
 
         if ((population > 0) && (normalizedValue > 0))
