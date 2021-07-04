@@ -1243,7 +1243,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         Polity migratingPolity = null)
     {
         float offset = -0.1f * (1 - MigrationPressure);
-        targetValue = cell.CalculateRelativeMigrationValue(this, true, migratingPolity);
+        targetValue = cell.CalculateRelativeMigrationValue(this, migratingPolity);
 
         float unbiasedChance = Mathf.Clamp01(targetValue + offset);
 
@@ -2057,7 +2057,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             neighborhoodValue =
                 Mathf.Max(
                     neighborhoodValue,
-                    cell.CalculateRelativeMigrationValue(this, false, migratingPolity));
+                    cell.CalculateRelativeMigrationValue(this, migratingPolity));
         }
 
         Profiler.EndSample(); // ("CalculateMigrationPressure");

@@ -575,9 +575,6 @@ public class TerrainCell
     /// <returns></returns>
     public float CalculateRelativeMigrationValue(
         CellGroup refGroup,
-#if DEBUG
-        bool debugging,
-#endif
         Polity refPolity)
     {
         bool isPolity = refPolity != null;
@@ -626,8 +623,8 @@ public class TerrainCell
         if (!targetIsPartOfCoreRegion)
             coreRegionFactor *= 1 / targetcoreRegionConst;
 
-        float targetOptFactor = targetOptimalPop + 1;
-        float sourceOptFactor = sourceOptimalPop + 1;
+        float targetOptFactor = targetOptimalPop + 100;
+        float sourceOptFactor = sourceOptimalPop + 100;
         float optimalityFactor = 2 * targetOptFactor / (targetOptFactor + sourceOptFactor);
 
         float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceCell);
