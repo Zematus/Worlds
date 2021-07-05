@@ -555,23 +555,28 @@ public class TerrainCell
         effectivePopulation += Mathf.Max(0, promEffectivePopulation);
 
         //////// Effective population from unorganized bands
-
-        float ubAggrFactor = 1;
-
-        if (isPolity)
-        {
-            CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture);
-        }
-        else
-        {
-            CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture, 0.25f);
-        }
-
+        
         float ubPopulation =
             Group.Population * (1 - Group.TotalPolityProminenceValue);
-        float ubEffectivePopulation = ubPopulation * ubEffectivenessFactor * ubAggrFactor;
 
-        effectivePopulation += Mathf.Max(0, ubEffectivePopulation);
+        if (ubPopulation > 0)
+        {
+            float ubAggrFactor = 1;
+
+            if (isPolity)
+            {
+                CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture);
+            }
+            else
+            {
+                CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture, 0.25f);
+            }
+
+            float ubEffectivePopulation =
+                ubPopulation * ubEffectivenessFactor * ubAggrFactor;
+
+            effectivePopulation += Mathf.Max(0, ubEffectivePopulation);
+        }
 
         ////////
 
