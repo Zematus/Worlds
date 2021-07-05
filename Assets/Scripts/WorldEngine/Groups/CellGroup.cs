@@ -2169,13 +2169,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         updateSpan = (updateSpan < QuarterGenSpan) ? QuarterGenSpan : updateSpan;
         updateSpan = (updateSpan > MaxUpdateSpan) ? MaxUpdateSpan : updateSpan;
 
-//#if DEBUG
-//        if ((migrationFactor < 0.1f) && (updateSpan > 10000))
-//        {
-//            Debug.LogWarning("Debugging CalculateNextUpdateDate");
-//        }
-//#endif
-
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         {
