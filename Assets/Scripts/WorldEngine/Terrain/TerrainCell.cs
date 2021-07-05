@@ -499,10 +499,14 @@ public class TerrainCell
     /// Estimates the effective "occupancy" on a cell as a population quantity
     /// </summary>
     /// <param name="sourceCulture">the culture the value is calculated for</param>
-    /// <param name="isPolity">'true' is the target culture is associated to a polity.
+    /// <param name="isPolity">'true' if the target culture is associated to a polity.
     /// 'false' if its associated to unorganized bands</param>
+    /// <param name="isSource">'true' if this cell is equal to the source cell</param>
     /// <returns>the estimated occupancy</returns>
-    public float EstimateEffectiveOccupancy(Culture sourceCulture, bool isPolity)
+    public float EstimateEffectiveOccupancy(
+        Culture sourceCulture,
+        bool isPolity,
+        bool isSource = false)
     {
         if (Group == null)
             return 0;
@@ -511,16 +515,19 @@ public class TerrainCell
 
         float effectivePopulation = 0;
 
-        // This allows polities to expand into free, populated territories
-        float effectivenessConstant = 100f;
+        // This allows polities to expand into territories occupied by
+        // unorganized bands
+        float ubEffectConst = 100f;
+        // This reduces the incentive of a polity to migrate inwards
+        float innerMigPenalty = isSource ? 0f : 5f;
 
-        float polityEffectivenessFactor = effectivenessConstant;
+        float polityEffectivenessFactor = ubEffectConst;
         float ubEffectivenessFactor = 1f;
 
         if (isPolity)
         {
-            polityEffectivenessFactor /= effectivenessConstant;
-            ubEffectivenessFactor /= effectivenessConstant;
+            polityEffectivenessFactor /= ubEffectConst;
+            ubEffectivenessFactor /= ubEffectConst;
         }
 
         //////// Effective population from polities
@@ -536,6 +543,7 @@ public class TerrainCell
             PolityProminence p = PolityProminences[i];
 
             float promAggrFactor = 1;
+            float innerMigFactor = 1;
 
             Culture promCulture = p.Polity.Culture;
 
@@ -544,8 +552,13 @@ public class TerrainCell
                 promAggrFactor =
                     CalculateOccupancyAggressionFactor(promCulture, sourceCulture);
             }
+            else
+            {
+                float valueFactor = Mathf.Clamp01(p.Value - 0.5f) * 2f;
+                innerMigFactor = 1 + innerMigPenalty * valueFactor;
+            }
 
-            promPopulation += Group.Population * p.Value * promAggrFactor;
+            promPopulation += Group.Population * p.Value * promAggrFactor * innerMigFactor;
         }
 
         Profiler.EndSample(); // ("EstimateEffectiveOccupancy foreach");
@@ -620,14 +633,14 @@ public class TerrainCell
         }
 
         float targetOptimalPop =
-            EstimateOptimalPopulation(sourceCulture);
+            EstimateOptimalPopulation(refGroup.Culture);
         float sourceOptimalPop =
-            sourceCell.EstimateOptimalPopulation(sourceCulture);
+            sourceCell.EstimateOptimalPopulation(refGroup.Culture);
 
         float targetOccupancy =
             EstimateEffectiveOccupancy(sourceCulture, isPolity);
         float sourceOccupancy =
-            sourceCell.EstimateEffectiveOccupancy(sourceCulture, isPolity);
+            sourceCell.EstimateEffectiveOccupancy(sourceCulture, isPolity, true);
 
         float migResitance = 1000;
 
