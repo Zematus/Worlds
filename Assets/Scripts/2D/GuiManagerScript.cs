@@ -242,8 +242,10 @@ public class GuiManagerScript : MonoBehaviour
         PlanetOverlay.PolityCulturalSkill,
         PlanetOverlay.PolityCulturalKnowledge,
         PlanetOverlay.PolityCulturalDiscovery,
+        PlanetOverlay.PolityAdminCost,
         PlanetOverlay.FactionCoreDistance,
-        PlanetOverlay.PolityCluster
+        PlanetOverlay.PolityCluster,
+        PlanetOverlay.ClusterAdminCost
     };
     private int _currentPolityOverlay = 0;
 
@@ -1112,7 +1114,8 @@ public class GuiManagerScript : MonoBehaviour
     {
         if ((Manager.CurrentDevMode == DevMode.None) &&
             ((_polityOverlays[_currentPolityOverlay] == PlanetOverlay.FactionCoreDistance) ||
-            (_polityOverlays[_currentPolityOverlay] == PlanetOverlay.PolityCluster)))
+            (_polityOverlays[_currentPolityOverlay] == PlanetOverlay.PolityCluster) ||
+            (_polityOverlays[_currentPolityOverlay] == PlanetOverlay.ClusterAdminCost)))
         {
             _currentPolityOverlay = 0;
         }
@@ -1212,6 +1215,7 @@ public class GuiManagerScript : MonoBehaviour
             (overlay == PlanetOverlay.PolityCulturalPreference) ||
             (overlay == PlanetOverlay.PolityCulturalKnowledge) ||
             (overlay == PlanetOverlay.PolityCulturalDiscovery) ||
+            (overlay == PlanetOverlay.PolityAdminCost) ||
             (overlay == PlanetOverlay.PolityTerritory) ||
             (overlay == PlanetOverlay.PolityContacts) ||
             (overlay == PlanetOverlay.PolityCoreRegions) ||
@@ -1964,7 +1968,10 @@ public class GuiManagerScript : MonoBehaviour
                 planetOverlayStr = "_polity_territories";
                 break;
             case PlanetOverlay.PolityCluster:
-                planetOverlayStr = "_polity_vlusters";
+                planetOverlayStr = "_polity_clusters";
+                break;
+            case PlanetOverlay.ClusterAdminCost:
+                planetOverlayStr = "_cluster_admin_cost";
                 break;
             case PlanetOverlay.FactionCoreDistance:
                 planetOverlayStr = "_faction_core_distances";
@@ -1995,6 +2002,9 @@ public class GuiManagerScript : MonoBehaviour
                 break;
             case PlanetOverlay.PolityCulturalDiscovery:
                 planetOverlayStr = "_polity_cultural_discovery_" + _planetOverlaySubtype;
+                break;
+            case PlanetOverlay.PolityAdminCost:
+                planetOverlayStr = "_polity_admin_cost";
                 break;
             case PlanetOverlay.Temperature:
                 planetOverlayStr = "_temperature";
@@ -2697,6 +2707,10 @@ public class GuiManagerScript : MonoBehaviour
         {
             ChangePlanetOverlay(PlanetOverlay.PolityCluster, false);
         }
+        else if (OverlayDialogPanelScript.ClusterAdminCostToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.ClusterAdminCost, false);
+        }
         else if (OverlayDialogPanelScript.DistancesToCoresToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.FactionCoreDistance, false);
@@ -2732,6 +2746,10 @@ public class GuiManagerScript : MonoBehaviour
         else if (OverlayDialogPanelScript.PolityCulturalDiscoveryToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.PolityCulturalDiscovery, false);
+        }
+        else if (OverlayDialogPanelScript.PolityAdminCostToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PolityAdminCost, false);
         }
         else if (OverlayDialogPanelScript.TemperatureToggle.isOn)
         {
@@ -3448,7 +3466,7 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    private void ShowCellInfoToolTip_PolityTerritory(TerrainCell cell)
+    private void ShowCellInfoToolTip_Territory(TerrainCell cell)
     {
         if (cell.EncompassingTerritory == _lastHoveredOverTerritory)
             return;
@@ -3487,6 +3505,9 @@ public class GuiManagerScript : MonoBehaviour
                 break;
             case PlanetOverlay.PolityTerritory:
                 ShowCellInfoToolTip_PolityTerritory(polity, tooltipPos);
+                break;
+            case PlanetOverlay.PolityAdminCost:
+                ShowCellInfoToolTip_PolityAdminCost(polity, tooltipPos);
                 break;
             case PlanetOverlay.PolityContacts:
                 ShowCellInfoToolTip_PolityContacts(polity, tooltipPos);
@@ -3580,6 +3601,22 @@ public class GuiManagerScript : MonoBehaviour
         {
             InfoTooltipScript.SetVisible(false);
         }
+    }
+
+    private void ShowCellInfoToolTip_PolityAdminCost(Polity polity, Vector3 position, float fadeStart = 5)
+    {
+        float value = polity.TotalAdministrativeCost;
+
+        string text = $"Total Admin Cost: {value:0.00}\n\nFaction Admin Loads:";
+
+        foreach (Faction faction in polity.GetFactions())
+        {
+            value = faction.AdministrativeLoad;
+
+            text += $"\n {faction.Name.Text}: {value:0.00}";
+        }
+
+        InfoTooltipScript.DisplayTip(text, position, fadeStart);
     }
 
     private void ShowCellInfoToolTip_PolityCulturalActivity(Polity polity, Vector3 position, float fadeStart = 5)
@@ -3817,7 +3854,7 @@ public class GuiManagerScript : MonoBehaviour
             return;
 
         if (IsPolityOverlay(_planetOverlay))
-            ShowCellInfoToolTip_PolityTerritory(hoveredCell);
+            ShowCellInfoToolTip_Territory(hoveredCell);
         else if (_planetOverlay == PlanetOverlay.Region)
             ShowCellInfoToolTip_Region(hoveredCell);
         else if (_planetOverlay == PlanetOverlay.RegionSelection)

@@ -28,8 +28,10 @@ public class OverlayDialogPanelScript : MenuPanelScript
     public Toggle PolityCulturalSkillToggle;
     public Toggle PolityCulturalKnowledgeToggle;
     public Toggle PolityCulturalDiscoveryToggle;
+    public Toggle PolityAdminCostToggle;
     public Toggle DistancesToCoresToggle;
     public Toggle PolityClustersToggle;
+    public Toggle ClusterAdminCostToggle;
 
     public Toggle TemperatureToggle;
     public Toggle RainfallToggle;
@@ -70,6 +72,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
         DevDataToggle.gameObject.SetActive(validDevMode);
         DistancesToCoresToggle.gameObject.SetActive(validDevMode);
         PolityClustersToggle.gameObject.SetActive(validDevMode);
+        ClusterAdminCostToggle.gameObject.SetActive(validDevMode);
     }
 
     public void SetLayerOverlay(bool state)
@@ -108,7 +111,9 @@ public class OverlayDialogPanelScript : MenuPanelScript
             PolityCulturalSkillToggle.isOn = false;
             PolityCulturalKnowledgeToggle.isOn = false;
             PolityCulturalDiscoveryToggle.isOn = false;
+            PolityAdminCostToggle.isOn = false;
             PolityClustersToggle.isOn = false;
+            ClusterAdminCostToggle.isOn = false;
         }
 
         if (!MiscDataToggle.isOn)
@@ -173,7 +178,9 @@ public class OverlayDialogPanelScript : MenuPanelScript
             (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill) ||
             (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalKnowledge) ||
             (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalDiscovery) ||
-            (Manager.PlanetOverlay == PlanetOverlay.PolityCluster)
+            (Manager.PlanetOverlay == PlanetOverlay.PolityCluster) ||
+            (Manager.PlanetOverlay == PlanetOverlay.PolityAdminCost) ||
+            (Manager.PlanetOverlay == PlanetOverlay.ClusterAdminCost)
         );
         MiscDataToggle.isOn = (
             (Manager.PlanetOverlay == PlanetOverlay.Temperature) ||
@@ -212,8 +219,10 @@ public class OverlayDialogPanelScript : MenuPanelScript
         PolityCulturalSkillToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill);
         PolityCulturalKnowledgeToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalKnowledge);
         PolityCulturalDiscoveryToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalDiscovery);
+        PolityAdminCostToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityAdminCost);
         DistancesToCoresToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance);
         PolityClustersToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCluster);
+        ClusterAdminCostToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.ClusterAdminCost);
 
         TemperatureToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Temperature);
         RainfallToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Rainfall);

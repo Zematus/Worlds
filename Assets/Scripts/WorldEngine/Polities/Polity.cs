@@ -18,6 +18,8 @@ public abstract class Polity : ISynchronizable
     public const float CoreDistanceEffectConstant = 10000;
     public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
 
+    public const float MaxAdminCost = 1000000000;
+
     public static List<IWorldEventGenerator> OnPolityContactChangeEventGenerators;
     public static List<IWorldEventGenerator> OnRegionAccessibilityUpdateEventGenerators;
 

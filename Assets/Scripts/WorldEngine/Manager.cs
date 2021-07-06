@@ -50,6 +50,7 @@ public enum PlanetOverlay
     PolityCulturalSkill,
     PolityCulturalKnowledge,
     PolityCulturalDiscovery,
+    PolityAdminCost,
     Temperature,
     Rainfall,
     DrainageBasins,
@@ -66,7 +67,8 @@ public enum PlanetOverlay
     PolityMigrationPressure,
     UpdateSpan,
     Migration,
-    PolityCluster
+    PolityCluster,
+    ClusterAdminCost
 }
 
 public enum OverlayColorId
@@ -274,6 +276,9 @@ public class Manager
     public static bool SimulationRunning { get; private set; }
     public static bool WorldIsReady { get; private set; }
 
+    public static long CurrentMaxUpdateSpan = 0;
+    public static float CurrentMaxAdminCost = 0;
+
     private static bool _isLoadReady = false;
 
     private static string _debugLogFilename = "debug";
@@ -351,8 +356,6 @@ public class Manager
     private Color32[] _pointerOverlayTextureColors = null;
 
     private float?[,] _currentCellSlants;
-
-    private long _currentMaxUpdateSpan = 0;
 
     private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 
@@ -1323,7 +1326,9 @@ public class Manager
 
         _manager._currentWorld = world;
         _manager._currentCellSlants = new float?[world.Width, world.Height];
-        _manager._currentMaxUpdateSpan = 0;
+
+        CurrentMaxUpdateSpan = 0;
+        CurrentMaxAdminCost = 0;
 
         WorldIsReady = true;
 
@@ -1388,7 +1393,9 @@ public class Manager
         world.FinishInitialization();
 
         _manager._currentCellSlants = new float?[world.Width, world.Height];
-        _manager._currentMaxUpdateSpan = 0;
+
+        CurrentMaxUpdateSpan = 0;
+        CurrentMaxAdminCost = 0;
 
         WorldIsReady = true;
 
@@ -1582,7 +1589,9 @@ public class Manager
 
         _manager._currentWorld = world;
         _manager._currentCellSlants = new float?[world.Width, world.Height];
-        _manager._currentMaxUpdateSpan = 0;
+
+        CurrentMaxUpdateSpan = 0;
+        CurrentMaxAdminCost = 0;
 
         WorldBeingLoaded = null;
 
@@ -1683,7 +1692,8 @@ public class Manager
         {
             _observableUpdateTypes = CellUpdateType.Region;
         }
-        else if (overlay == PlanetOverlay.PolityCluster)
+        else if ((overlay == PlanetOverlay.PolityCluster) ||
+            (overlay == PlanetOverlay.ClusterAdminCost))
         {
             _observableUpdateTypes = CellUpdateType.Cluster;
         }
@@ -1698,7 +1708,8 @@ public class Manager
             (overlay == PlanetOverlay.PolityCulturalActivity) ||
             (overlay == PlanetOverlay.PolityCulturalDiscovery) ||
             (overlay == PlanetOverlay.PolityCulturalKnowledge) ||
-            (overlay == PlanetOverlay.PolityCulturalSkill))
+            (overlay == PlanetOverlay.PolityCulturalSkill) ||
+            (overlay == PlanetOverlay.PolityAdminCost))
         {
             _observableUpdateTypes = CellUpdateType.Territory;
         }
@@ -1759,6 +1770,11 @@ public class Manager
             (overlay == PlanetOverlay.PolityCulturalSkill))
         {
             _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.Culture;
+        }
+        else if ((overlay == PlanetOverlay.PolityAdminCost) ||
+            (overlay == PlanetOverlay.ClusterAdminCost))
+        {
+            _observableUpdateSubTypes = CellUpdateSubType.All;
         }
         else
         {
@@ -3165,8 +3181,16 @@ public class Manager
                 color = SetPolityTerritoryOverlayColor(cell, color);
                 break;
 
+            case PlanetOverlay.PolityAdminCost:
+                color = SetPolityAdminCostOverlayColor(cell, color);
+                break;
+
             case PlanetOverlay.PolityCluster:
                 color = SetPolityClusterOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.ClusterAdminCost:
+                color = SetClusterAdminCostOverlayColor(cell, color);
                 break;
 
             case PlanetOverlay.FactionCoreDistance:
@@ -3675,6 +3699,74 @@ public class Manager
         return color;
     }
 
+    private static Color SetClusterAdminCostOverlayColor(TerrainCell cell, Color color)
+    {
+        CellGroup group = cell?.Group;
+
+        if (group != null)
+        {
+            color = GetUnincorporatedGroupColor();
+
+            bool foundCluster = false;
+            bool isSelected = false;
+            bool useSelected = false;
+
+            float maxAdminCost = 0;
+
+            useSelected = CurrentWorld.SelectedTerritory != null;
+
+            foreach (var prominence in group.GetPolityProminences())
+            {
+                foundCluster = true;
+
+                if (prominence.Polity.Territory.IsSelected)
+                    isSelected = true;
+
+                float adminCost =
+                    Mathf.Min(prominence.Cluster.TotalAdministrativeCost, Polity.MaxAdminCost);
+
+                if (isSelected)
+                {
+                    maxAdminCost = adminCost;
+                    break;
+                }
+                else
+                {
+                    maxAdminCost = Mathf.Max(adminCost, maxAdminCost);
+                }
+            }
+
+            if (foundCluster)
+            {
+                if (CurrentMaxAdminCost < maxAdminCost)
+                    CurrentMaxAdminCost = maxAdminCost;
+
+                float value = 0;
+                if (maxAdminCost > 0)
+                {
+                    value = maxAdminCost / CurrentMaxAdminCost;
+                    value = MathUtility.ToPseudoLogaritmicScale01(value, 1f);
+                }
+
+                value = 0.25f + 0.75f * Mathf.Clamp01(value);
+
+                if (useSelected && !isSelected)
+                {
+                    color = Color.gray * value;
+                }
+                else
+                {
+                    color = Color.yellow * value;
+                }
+                color.a = 1;
+            }
+
+            return color;
+        }
+
+        return color;
+    }
+
     private static Color SetFactionCoreDistanceOverlayColor(TerrainCell cell, Color color)
     {
         if (cell.Group != null)
@@ -3823,7 +3915,7 @@ public class Manager
 
         float contactValue = 0;
 
-        Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
+        Territory selectedTerritory = CurrentWorld.SelectedTerritory;
 
         bool isSelectedTerritory = false;
         bool isInContact = false;
@@ -4137,6 +4229,42 @@ public class Manager
             return GetUnincorporatedGroupColor();
 
         color = GetPolityCulturalAttributeOverlayColor(preference.Value, IsTerritoryBorder(territory, cell));
+
+        return color;
+    }
+
+    private static Color SetPolityAdminCostOverlayColor(TerrainCell cell, Color color)
+    {
+        Territory territory = cell.EncompassingTerritory;
+
+        if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
+            return GetUnincorporatedGroupColor();
+        }
+
+        float adminCost =
+            Mathf.Min(territory.Polity.TotalAdministrativeCost, Polity.MaxAdminCost);
+
+        if (CurrentMaxAdminCost < adminCost)
+            CurrentMaxAdminCost = adminCost;
+
+        float value = 0;
+        if (adminCost > 0)
+        {
+            value = adminCost / CurrentMaxAdminCost;
+            value = MathUtility.ToPseudoLogaritmicScale01(value, 1f);
+        }
+
+        Color baseColor = GetUnincorporatedGroupColor();
+
+        color = IsTerritoryBorder(territory, cell) ? new Color(1, 0.75f, 0f) : Color.yellow;
+
+        value = 0.25f + 0.75f * Mathf.Clamp01(value);
+
+        color = (baseColor * (1 - value)) + (color * value);
 
         return color;
     }
@@ -4565,11 +4693,11 @@ public class Manager
             long nextUpdateDate = cell.Group.NextUpdateDate;
             long updateSpan = nextUpdateDate - lastUpdateDate;
 
-            if (_manager._currentMaxUpdateSpan < updateSpan)
-                _manager._currentMaxUpdateSpan = updateSpan;
+            if (CurrentMaxUpdateSpan < updateSpan)
+                CurrentMaxUpdateSpan = updateSpan;
 
             float maxUpdateSpan =
-                Mathf.Min(_manager._currentMaxUpdateSpan, CellGroup.MaxUpdateSpan);
+                Mathf.Min(CurrentMaxUpdateSpan, CellGroup.MaxUpdateSpan);
 
             normalizedValue = Mathf.Clamp01(updateSpan / maxUpdateSpan);
             normalizedValue = 1 - MathUtility.ToPseudoLogaritmicScale01(normalizedValue, 1f);

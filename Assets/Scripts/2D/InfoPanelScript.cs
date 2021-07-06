@@ -777,12 +777,14 @@ public class InfoPanelScript : MonoBehaviour
                     firstPolity = false;
                 }
 
-                InfoText.text += "\n\tPolity: " + polity.Name.Text +
-                    "\n\t\tProminence: " + prominenceValue.ToString("P");
+                InfoText.text += $"\n\tPolity: {polity.Name.Text}" +
+                    $"\n\t\tProminence: {prominenceValue:P}";
 
                 if (prominenceCluster != null)
                 {
-                    InfoText.text += "\n\t\tCluster: " + prominenceCluster;
+                    InfoText.text += $"\n\t\tCluster: {prominenceCluster}";
+                    InfoText.text += $"\n\t\tCluster Admin Cost: " +
+                        $"{prominenceCluster.TotalAdministrativeCost:0.000}";
                 }
                 else
                 {
@@ -1290,12 +1292,14 @@ public class InfoPanelScript : MonoBehaviour
 
         if ((Manager.PlanetOverlay == PlanetOverlay.PolityCoreRegions) ||
             (Manager.PlanetOverlay == PlanetOverlay.PolityTerritory) ||
-            (Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance))
+            (Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance) ||
+            (Manager.PlanetOverlay == PlanetOverlay.PolityAdminCost))
         {
             AddCellDataToInfoPanel_PolityTerritory(cell);
         }
 
-        if (Manager.PlanetOverlay == PlanetOverlay.PolityCluster)
+        if ((Manager.PlanetOverlay == PlanetOverlay.PolityCluster) ||
+            (Manager.PlanetOverlay == PlanetOverlay.ClusterAdminCost))
         {
             AddCellDataToInfoPanel_PolityClusters(cell);
         }
