@@ -1975,6 +1975,17 @@ public class World : ISynchronizable, IWorldDateGetter
         _factionsToRemove.Add(faction);
     }
 
+    public IEnumerable<Polity> GetActivePolities()
+    {
+        foreach (var polityInfo in _polityInfos.Values)
+        {
+            if (polityInfo.Polity != null)
+            {
+                yield return polityInfo.Polity;
+            }
+        }
+    }
+
     public void AddPolityInfo(Polity polity)
     {
         _polityInfos.Add(polity.Id, polity.Info);

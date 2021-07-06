@@ -1774,11 +1774,11 @@ public class Manager
         else if ((overlay == PlanetOverlay.PolityAdminCost) ||
             (overlay == PlanetOverlay.ClusterAdminCost))
         {
-            _observableUpdateSubTypes = CellUpdateSubType.All;
+            _observableUpdateSubTypes = CellUpdateSubType.AdminCost;
         }
         else
         {
-            _observableUpdateSubTypes = CellUpdateSubType.All;
+            _observableUpdateSubTypes = CellUpdateSubType.AdminCost;
         }
     }
 
@@ -1933,33 +1933,38 @@ public class Manager
         }
     }
 
+    private static void SetSelectedTerritory_HandleUpdate(Territory territory, Region.FilterType type)
+    {
+        if (_planetOverlay == PlanetOverlay.PolityContacts)
+        {
+            // Add to updated cells to make sure that it gets displayed correctly
+            UpdatedCells.UnionWith(territory.GetCells());
+
+            foreach (PolityContact contact in territory.Polity.GetContacts())
+            {
+                UpdatedCells.UnionWith(contact.NeighborPolity.Territory.GetCells());
+            }
+        }
+        else if (_planetOverlay == PlanetOverlay.PolityCoreRegions)
+        {
+            // Add to updated cells to make sure that it gets displayed correctly
+            UpdatedCells.UnionWith(territory.GetCells());
+
+            foreach (Region region in territory.Polity.CoreRegions)
+            {
+                UpdatedCells.UnionWith(region.GetCells());
+                region.AssignedFilterType = type;
+            }
+        }
+    }
+
     public static void SetSelectedTerritory(Territory territory)
     {
         if (CurrentWorld.SelectedTerritory != null)
         {
             AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory, CellUpdateType.Territory);
 
-            if (_planetOverlay == PlanetOverlay.PolityContacts)
-            {
-                // Add to updated cells to make sure that it gets displayed correctly
-                UpdatedCells.UnionWith(CurrentWorld.SelectedTerritory.GetCells());
-
-                foreach (PolityContact contact in CurrentWorld.SelectedTerritory.Polity.GetContacts())
-                {
-                    UpdatedCells.UnionWith(contact.NeighborPolity.Territory.GetCells());
-                }
-            }
-            else if (_planetOverlay == PlanetOverlay.PolityCoreRegions)
-            {
-                // Add to updated cells to make sure that it gets displayed correctly
-                UpdatedCells.UnionWith(CurrentWorld.SelectedTerritory.GetCells());
-
-                foreach (Region region in CurrentWorld.SelectedTerritory.Polity.CoreRegions)
-                {
-                    UpdatedCells.UnionWith(region.GetCells());
-                    region.AssignedFilterType = Region.FilterType.None;
-                }
-            }
+            SetSelectedTerritory_HandleUpdate(CurrentWorld.SelectedTerritory, Region.FilterType.None);
 
             CurrentWorld.SelectedTerritory.IsSelected = false;
             CurrentWorld.SelectedTerritory = null;
@@ -1972,26 +1977,15 @@ public class Manager
 
             AddSelectedCellsToHighlight(territory, CellUpdateType.Territory);
 
-            if (_planetOverlay == PlanetOverlay.PolityContacts)
-            {
-                // Add to updated cells to make sure that it gets displayed correctly
-                UpdatedCells.UnionWith(territory.GetCells());
+            SetSelectedTerritory_HandleUpdate(territory, Region.FilterType.Core);
+        }
 
-                foreach (PolityContact contact in territory.Polity.GetContacts())
-                {
-                    UpdatedCells.UnionWith(contact.NeighborPolity.Territory.GetCells());
-                }
-            }
-            else if (_planetOverlay == PlanetOverlay.PolityCoreRegions)
+        if ((_planetOverlay == PlanetOverlay.PolityCluster) ||
+            (_planetOverlay == PlanetOverlay.ClusterAdminCost))
+        {
+            foreach (var polity in CurrentWorld.GetActivePolities())
             {
-                // Add to updated cells to make sure that it gets displayed correctly
-                UpdatedCells.UnionWith(CurrentWorld.SelectedTerritory.GetCells());
-
-                foreach (Region region in CurrentWorld.SelectedTerritory.Polity.CoreRegions)
-                {
-                    UpdatedCells.UnionWith(region.GetCells());
-                    region.AssignedFilterType = Region.FilterType.Core;
-                }
+                AddSelectedCellsToHighlight(polity.Territory, CellUpdateType.Cluster);
             }
         }
     }
@@ -3709,11 +3703,8 @@ public class Manager
 
             bool foundCluster = false;
             bool isSelected = false;
-            bool useSelected = false;
-
             float maxAdminCost = 0;
-
-            useSelected = CurrentWorld.SelectedTerritory != null;
+            bool useSelected = CurrentWorld.SelectedTerritory != null;
 
             foreach (var prominence in group.GetPolityProminences())
             {
@@ -3749,16 +3740,16 @@ public class Manager
                 }
 
                 value = 0.25f + 0.75f * Mathf.Clamp01(value);
+                color = Color.yellow * value;
 
                 if (useSelected && !isSelected)
                 {
-                    color = Color.gray * value;
+                    color.a = 0.5f;
                 }
                 else
                 {
-                    color = Color.yellow * value;
+                    color.a = 1;
                 }
-                color.a = 1;
             }
 
             return color;
