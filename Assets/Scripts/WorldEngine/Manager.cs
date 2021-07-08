@@ -1774,11 +1774,11 @@ public class Manager
         else if ((overlay == PlanetOverlay.PolityAdminCost) ||
             (overlay == PlanetOverlay.ClusterAdminCost))
         {
-            _observableUpdateSubTypes = CellUpdateSubType.AdminCost;
+            _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.AdminCost;
         }
         else
         {
-            _observableUpdateSubTypes = CellUpdateSubType.AdminCost;
+            _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.AdminCost;
         }
     }
 
@@ -3671,17 +3671,41 @@ public class Manager
 
     private static Color SetPolityClusterOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group != null)
+        CellGroup group = cell.Group;
+
+        if (group != null)
         {
+            bool useSelected = CurrentWorld.SelectedTerritory != null;
+
             if (cell.EncompassingTerritory != null)
             {
                 Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
-                PolityProminence prominence = cell.Group.GetPolityProminence(territoryPolity);
+                PolityProminence prominence = group.GetPolityProminence(territoryPolity);
+                bool isSelected = cell.EncompassingTerritory.IsSelected;
+
+                if (useSelected && !isSelected)
+                {
+                    foreach (var localProminence in group.GetPolityProminences())
+                    {
+                        if (localProminence.Polity.Territory.IsSelected)
+                        {
+                            isSelected = true;
+                            prominence = localProminence;
+                            break;
+                        }
+                    }
+                }
 
                 if (prominence?.Cluster != null)
                 {
                     color = GenerateColorFromId(prominence.Cluster.Id);
+
+                    if (useSelected && !isSelected)
+                    {
+                        color *= 0.5f;
+                        color.a = 1;
+                    }
                 }
             }
             else
@@ -3740,16 +3764,16 @@ public class Manager
                 }
 
                 value = 0.25f + 0.75f * Mathf.Clamp01(value);
-                color = Color.yellow * value;
 
                 if (useSelected && !isSelected)
                 {
-                    color.a = 0.5f;
+                    color = (Color.cyan + Color.yellow) * value / 2;
                 }
                 else
                 {
-                    color.a = 1;
+                    color = Color.yellow * value;
                 }
+                color.a = 1;
             }
 
             return color;
