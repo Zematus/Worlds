@@ -1835,15 +1835,21 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float groupIsolationPrefValue =
             Culture.GetIsolationPreferenceValue();
 
+        float coreDistanceFactor = prominence.FactionCoreDistance / PolityProminence.MaxCoreDistance;
+        coreDistanceFactor = 1 - Mathf.Clamp01(coreDistanceFactor);
+
         // acculturation on unorganized bands
 
         float maxIsolationPrefValue = Mathf.Max(polityIsolationPrefValue, groupIsolationPrefValue);
 
         float ubOpennessFactor = 1 - maxIsolationPrefValue;
 
-        float prominenceOnUBFactor = prominence.Value * (1 - TotalPolityProminenceValue);
+        float prominenceOnUBFactor =
+            Mathf.Max(prominence.Value * (1 - TotalPolityProminenceValue), 0.01f);
 
         int polityIdHash = prominence.PolityId.GetHashCode();
+
+        float ubCoreDistanceFactor = (coreDistanceFactor * 2) - 1;
 
         float ubRandomFactor = Cell.GetNextLocalRandomFloat(
             RngOffsets.CELL_GROUP_UB_ACCULTURATION + polityIdHash);
@@ -1851,11 +1857,16 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float ubTransferConstant = 3;
 
         float ubAcculturation =
-            ubOpennessFactor * prominenceOnUBFactor * ubRandomFactor * timeFactor * ubTransferConstant;
+            ubOpennessFactor *
+            ubCoreDistanceFactor *
+            prominenceOnUBFactor *
+            ubRandomFactor *
+            timeFactor *
+            ubTransferConstant;
 
         AddUBandsProminenceValueDelta(-ubAcculturation);
 
-        // acculturation on prominence
+        // acculturation on prominence from other prominences
 
         float othersOnPromFactor = TotalPolityProminenceValue - prominence.Value;
 
@@ -1864,10 +1875,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         float promOpennessFactor = 1 - polityIsolationPrefValue;
 
-        float promTransferConstant = 0.5f;
-
         float promAcculturation =
-            promOpennessFactor * othersOnPromFactor * promRandomFactor * timeFactor * promTransferConstant;
+            promOpennessFactor *
+            othersOnPromFactor *
+            promRandomFactor *
+            timeFactor *
+            coreDistanceFactor;
 
         AddPolityProminenceValueDelta(prominence.Polity, -promAcculturation);
     }
