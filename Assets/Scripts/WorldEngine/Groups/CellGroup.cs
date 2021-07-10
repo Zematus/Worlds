@@ -1849,40 +1849,46 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         int polityIdHash = prominence.PolityId.GetHashCode();
 
-        float ubCoreDistanceFactor = (coreDistanceFactor * 2) - 1;
+        if (prominenceOnUBFactor > 0)
+        {
+            float ubCoreDistanceFactor = (coreDistanceFactor * 1.5f) - 0.5f;
 
-        float ubRandomFactor = Cell.GetNextLocalRandomFloat(
-            RngOffsets.CELL_GROUP_UB_ACCULTURATION + polityIdHash);
+            float ubRandomFactor = Cell.GetNextLocalRandomFloat(
+                RngOffsets.CELL_GROUP_UB_ACCULTURATION + polityIdHash);
 
-        float ubTransferConstant = 3;
+            float ubTransferConstant = 3;
 
-        float ubAcculturation =
-            ubOpennessFactor *
-            ubCoreDistanceFactor *
-            prominenceOnUBFactor *
-            ubRandomFactor *
-            timeFactor *
-            ubTransferConstant;
+            float ubAcculturation =
+                ubOpennessFactor *
+                ubCoreDistanceFactor *
+                prominenceOnUBFactor *
+                ubRandomFactor *
+                timeFactor *
+                ubTransferConstant;
 
-        AddUBandsProminenceValueDelta(-ubAcculturation);
+            AddUBandsProminenceValueDelta(-ubAcculturation);
+        }
 
         // acculturation on prominence from other prominences
 
         float othersOnPromFactor = TotalPolityProminenceValue - prominence.Value;
 
-        float promRandomFactor = Cell.GetNextLocalRandomFloat(
-            RngOffsets.CELL_GROUP_PROM_ACCULTURATION + polityIdHash);
+        if (othersOnPromFactor > 0)
+        {
+            float promRandomFactor = Cell.GetNextLocalRandomFloat(
+                RngOffsets.CELL_GROUP_PROM_ACCULTURATION + polityIdHash);
 
-        float promOpennessFactor = 1 - polityIsolationPrefValue;
+            float promOpennessFactor = 1 - polityIsolationPrefValue;
 
-        float promAcculturation =
-            promOpennessFactor *
-            othersOnPromFactor *
-            promRandomFactor *
-            timeFactor *
-            coreDistanceFactor;
+            float promAcculturation =
+                promOpennessFactor *
+                othersOnPromFactor *
+                promRandomFactor *
+                timeFactor *
+                coreDistanceFactor;
 
-        AddPolityProminenceValueDelta(prominence.Polity, -promAcculturation);
+            AddPolityProminenceValueDelta(prominence.Polity, -promAcculturation);
+        }
     }
 
     /// <summary>
