@@ -1835,41 +1835,60 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float groupIsolationPrefValue =
             Culture.GetIsolationPreferenceValue();
 
+        float coreDistanceFactor = prominence.FactionCoreDistance / PolityProminence.MaxCoreDistance;
+        coreDistanceFactor = 1 - Mathf.Clamp01(coreDistanceFactor);
+
         // acculturation on unorganized bands
 
         float maxIsolationPrefValue = Mathf.Max(polityIsolationPrefValue, groupIsolationPrefValue);
 
         float ubOpennessFactor = 1 - maxIsolationPrefValue;
 
-        float prominenceOnUBFactor = prominence.Value * (1 - TotalPolityProminenceValue);
+        float prominenceOnUBFactor =
+            Mathf.Max(prominence.Value * (1 - TotalPolityProminenceValue), 0.01f);
 
         int polityIdHash = prominence.PolityId.GetHashCode();
 
-        float ubRandomFactor = Cell.GetNextLocalRandomFloat(
-            RngOffsets.CELL_GROUP_UB_ACCULTURATION + polityIdHash);
+        if (prominenceOnUBFactor > 0)
+        {
+            float ubCoreDistanceFactor = (coreDistanceFactor * 1.5f) - 0.5f;
 
-        float ubTransferConstant = 3;
+            float ubRandomFactor = Cell.GetNextLocalRandomFloat(
+                RngOffsets.CELL_GROUP_UB_ACCULTURATION + polityIdHash);
 
-        float ubAcculturation =
-            ubOpennessFactor * prominenceOnUBFactor * ubRandomFactor * timeFactor * ubTransferConstant;
+            float ubTransferConstant = 3;
 
-        AddUBandsProminenceValueDelta(-ubAcculturation);
+            float ubAcculturation =
+                ubOpennessFactor *
+                ubCoreDistanceFactor *
+                prominenceOnUBFactor *
+                ubRandomFactor *
+                timeFactor *
+                ubTransferConstant;
 
-        // acculturation on prominence
+            AddUBandsProminenceValueDelta(-ubAcculturation);
+        }
+
+        // acculturation on prominence from other prominences
 
         float othersOnPromFactor = TotalPolityProminenceValue - prominence.Value;
 
-        float promRandomFactor = Cell.GetNextLocalRandomFloat(
-            RngOffsets.CELL_GROUP_PROM_ACCULTURATION + polityIdHash);
+        if (othersOnPromFactor > 0)
+        {
+            float promRandomFactor = Cell.GetNextLocalRandomFloat(
+                RngOffsets.CELL_GROUP_PROM_ACCULTURATION + polityIdHash);
 
-        float promOpennessFactor = 1 - polityIsolationPrefValue;
+            float promOpennessFactor = 1 - polityIsolationPrefValue;
 
-        float promTransferConstant = 0.5f;
+            float promAcculturation =
+                promOpennessFactor *
+                othersOnPromFactor *
+                promRandomFactor *
+                timeFactor *
+                coreDistanceFactor;
 
-        float promAcculturation =
-            promOpennessFactor * othersOnPromFactor * promRandomFactor * timeFactor * promTransferConstant;
-
-        AddPolityProminenceValueDelta(prominence.Polity, -promAcculturation);
+            AddPolityProminenceValueDelta(prominence.Polity, -promAcculturation);
+        }
     }
 
     /// <summary>

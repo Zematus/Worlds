@@ -38,7 +38,7 @@
         { "id": "influence_delta", "value": "max(0, dominant_faction.influence - target.influence)" },
         { "id": "target_authority", "value": "target.preferences.authority" },
         { "id": "admin_factors", "value": "0.01 + relationship_value * influence_delta * target.preferences.authority" },
-        { "id": "min_admin_load", "value": "100000 * admin_factors" },
+        { "id": "min_admin_load", "value": "400000 * admin_factors" },
         { "id": "max_admin_load", "value": "5000000 * admin_factors" },
         { "id": "chance_of_making_demand", "value": "(1 - normalize(target.administrative_load, min_admin_load, max_admin_load) * target_authority * 2)" }
       ],
