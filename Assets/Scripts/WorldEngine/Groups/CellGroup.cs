@@ -28,8 +28,10 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     public static float TravelWidthFactor;
 
-    public static List<ICellGroupEventGenerator> OnSpawnEventGenerators;
+    private HashSet<ICellGroupEventGenerator> _generatorsToTestAssignmentFor =
+        new HashSet<ICellGroupEventGenerator>();
 
+    public static List<IWorldEventGenerator> OnSpawnEventGenerators;
     public static List<IWorldEventGenerator> OnCoreHighestProminenceChangeEventGenerators;
 
     [XmlAttribute("MT")]
@@ -626,9 +628,25 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         _deferredEffects.Add(effect);
     }
 
+    public void TryAssignEvents()
+    {
+        foreach (var generator in _generatorsToTestAssignmentFor)
+        {
+            generator.TryGenerateEventAndAssign(this);
+        }
+
+        _generatorsToTestAssignmentFor.Clear();
+    }
+
+    public void AddGeneratorToTestAssignmentFor(ICellGroupEventGenerator generator)
+    {
+        _generatorsToTestAssignmentFor.Add(generator);
+        World.AddGroupToAssignEventsTo(this);
+    }
+
     public static void ResetEventGenerators()
     {
-        OnSpawnEventGenerators = new List<ICellGroupEventGenerator>();
+        OnSpawnEventGenerators = new List<IWorldEventGenerator>();
         OnCoreHighestProminenceChangeEventGenerators = new List<IWorldEventGenerator>();
     }
 
@@ -636,7 +654,10 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         foreach (ICellGroupEventGenerator generator in OnSpawnEventGenerators)
         {
-            generator.TryGenerateEventAndAssign(this);
+            if (generator is ICellGroupEventGenerator gGenerator)
+            {
+                AddGeneratorToTestAssignmentFor(gGenerator);
+            }
         }
     }
 
@@ -651,8 +672,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             {
                 foreach (Faction faction in FactionCores.Values)
                 {
-                    fGenerator.TryGenerateEventAndAssign(faction);
+                    faction.AddGeneratorToTestAssignmentFor(fGenerator);
                 }
+            }
+            else if (generator is ICellGroupEventGenerator gGenerator)
+            {
+                AddGeneratorToTestAssignmentFor(gGenerator);
             }
         }
     }

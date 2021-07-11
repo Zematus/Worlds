@@ -9,6 +9,9 @@ using System;
 [XmlInclude(typeof(Clan))]
 public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 {
+    private HashSet<IFactionEventGenerator> _generatorsToTestAssignmentFor =
+        new HashSet<IFactionEventGenerator>();
+
     public static List<IWorldEventGenerator> OnSpawnEventGenerators;
     public static List<IWorldEventGenerator> OnStatusChangeEventGenerators;
     public static List<IWorldEventGenerator> OnGuideSwitchEventGenerators;
@@ -566,6 +569,16 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         World.AddPolityToUpdate(Polity);
     }
 
+    public void TryAssignEvents()
+    {
+        foreach (var generator in _generatorsToTestAssignmentFor)
+        {
+            generator.TryGenerateEventAndAssign(this);
+        }
+
+        _generatorsToTestAssignmentFor.Clear();
+    }
+
     /// <summary>
     /// Cleans up all state flags
     /// </summary>
@@ -782,13 +795,19 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         OnGuideSwitchEventGenerators = new List<IWorldEventGenerator>();
     }
 
+    public void AddGeneratorToTestAssignmentFor(IFactionEventGenerator generator)
+    {
+        _generatorsToTestAssignmentFor.Add(generator);
+        World.AddFactionToAssignEventsTo(this);
+    }
+
     private void InitializeOnSpawnEvents()
     {
         foreach (var generator in OnSpawnEventGenerators)
         {
             if (generator is IFactionEventGenerator fGenerator)
             {
-                fGenerator.TryGenerateEventAndAssign(this);
+                AddGeneratorToTestAssignmentFor(fGenerator);
             }
         }
     }
@@ -810,7 +829,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         {
             if (generator is IFactionEventGenerator fGenerator)
             {
-                fGenerator.TryGenerateEventAndAssign(this);
+                AddGeneratorToTestAssignmentFor(fGenerator);
             }
         }
 
@@ -829,7 +848,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         {
             if (generator is IFactionEventGenerator fGenerator)
             {
-                fGenerator.TryGenerateEventAndAssign(this);
+                AddGeneratorToTestAssignmentFor(fGenerator);
             }
         }
     }
