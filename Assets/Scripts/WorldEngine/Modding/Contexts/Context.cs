@@ -173,6 +173,28 @@ public abstract class Context : IDebugLogger
         }
     }
 
+    private string ExplodedPartiallyEvaluatedExpression(IExpression exp)
+    {
+        string output = "";
+
+        int depth = 0;
+        string partEval = exp.ToPartiallyEvaluatedString(depth);
+        output += $"\n\t - Partial eval (depth {depth}): {partEval}";
+
+        while (true)
+        {
+            string nextPartEval = exp.ToPartiallyEvaluatedString(++depth);
+
+            if (nextPartEval.Equals(partEval))
+                break;
+
+            output += $"\n\t - Partial eval (depth {depth}): {nextPartEval}";
+            partEval = nextPartEval;
+        }
+
+        return output;
+    }
+
     public void AddExpDebugOutput(
         string label, IExpression exp)
     {
@@ -186,28 +208,13 @@ public abstract class Context : IDebugLogger
         {
             if (exp != null)
             {
-                string debugOutput = $"\t{label}: {exp}";
-
-                int depth = 0;
-                string partEval = exp.ToPartiallyEvaluatedString(depth);
-                debugOutput += $"\n\t - Partial eval (depth {depth}): {partEval}";
-
-                while (true)
-                {
-                    string nextPartEval = exp.ToPartiallyEvaluatedString(++depth);
-
-                    if (nextPartEval.Equals(partEval))
-                        break;
-
-                    debugOutput += $"\n\t - Partial eval (depth {depth}): {nextPartEval}";
-                    partEval = nextPartEval;
-                }
-
-                AddDebugOutput(debugOutput);
+                AddDebugOutput(
+                    $"\t{label}: {exp}" +
+                    $"{ExplodedPartiallyEvaluatedExpression(exp)}");
             }
             else
             {
-                AddDebugOutput("  " + label + " is null");
+                AddDebugOutput($"\t{label} is null");
             }
         }
     }
@@ -225,13 +232,14 @@ public abstract class Context : IDebugLogger
         {
             if (exp != null)
             {
-                AddDebugOutput("\t" + label + ": " + exp.ToString() +
-                    "\n\t - Partial eval: " + exp.ToPartiallyEvaluatedString() + 
-                    "\n\t - Value: " + exp.Value);
+                AddDebugOutput(
+                    $"\t{label}: {exp}" +
+                    $"{ExplodedPartiallyEvaluatedExpression(exp)}" +
+                    $"\n\t - Value: {exp.Value}");
             }
             else
             {
-                AddDebugOutput("  " + label + " is null");
+                AddDebugOutput($"\t{label} is null");
             }
         }
     }
@@ -249,13 +257,14 @@ public abstract class Context : IDebugLogger
         {
             if (exp != null)
             {
-                AddDebugOutput("\t" + label + ": " + exp.ToString() +
-                    "\n\t - Partial eval: " + exp.ToPartiallyEvaluatedString() +
-                    "\n\t - Value: " + exp.ValueObject);
+                AddDebugOutput(
+                    $"\t{label}: {exp}" +
+                    $"{ExplodedPartiallyEvaluatedExpression(exp)}" +
+                    $"\n\t - Value: {exp.ValueObject}");
             }
             else
             {
-                AddDebugOutput("  " + label + " is null");
+                AddDebugOutput($"\t{label} is null");
             }
         }
     }
