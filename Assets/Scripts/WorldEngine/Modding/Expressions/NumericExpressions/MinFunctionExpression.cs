@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class MinFunctionExpression : FunctionExpression, IValueExpression<float>
+public class MinFunctionExpression : FunctionExpressionWithOutput<float>
 {
     public const string FunctionId = "min";
 
@@ -21,7 +21,7 @@ public class MinFunctionExpression : FunctionExpression, IValueExpression<float>
         }
     }
 
-    public float Value
+    public override float Value
     {
         get {
             float min = float.MaxValue;
@@ -37,8 +37,4 @@ public class MinFunctionExpression : FunctionExpression, IValueExpression<float>
             return min;
         }
     }
-
-    public object ValueObject => Value;
-
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 }

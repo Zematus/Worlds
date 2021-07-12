@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 public abstract class EntityAttributeExpression : IExpression
 {
@@ -14,28 +15,19 @@ public abstract class EntityAttributeExpression : IExpression
 
     public bool RequiresInput => _attribute.RequiresInput;
 
-    public string ToPartiallyEvaluatedString(bool evaluate)
+    public string ToPartiallyEvaluatedString(int depth = -1)
     {
-        if (_attribute.Arguments == null)
+        if ((_attribute.Arguments == null) || (depth == 0))
         {
-            return _attribute.ToPartiallyEvaluatedString(evaluate);
+            return _attribute.ToPartiallyEvaluatedString(depth);
         }
 
-        string output = _attribute.Entity.Id + "." + _attribute.Id + "(";
+        depth = (depth > 0) ? depth - 1 : depth;
 
-        bool notFirst = false;
-        foreach (IExpression argument in _attribute.Arguments)
-        {
-            if (notFirst)
-            {
-                output += ", ";
-            }
-
-            output += argument.ToPartiallyEvaluatedString(true);
-            notFirst = true;
-        }
-
-        output += ")";
+        string output = $"{_attribute.Entity.Id}.{_attribute.Id}(" +
+            string.Join(
+                ", ", _attribute.Arguments.Select(e => e.ToPartiallyEvaluatedString(depth))) +
+            $")";
 
         return output;
     }

@@ -17,7 +17,7 @@ public class FixedValueExpression<T> : IValueExpression<T>
 
     public string GetFormattedString() => Value.ToString().ToBoldFormat();
 
-    public string ToPartiallyEvaluatedString(bool evaluate) => ToString();
+    public string ToPartiallyEvaluatedString(int depth = -1) => ToString();
 
     public bool TryGetRequest(out InputRequest request)
     {

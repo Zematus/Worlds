@@ -186,8 +186,24 @@ public abstract class Context : IDebugLogger
         {
             if (exp != null)
             {
-                AddDebugOutput("\t" + label + ": " + exp.ToString() +
-                    "\n\t - Partial eval: " + exp.ToPartiallyEvaluatedString());
+                string debugOutput = $"\t{label}: {exp}";
+
+                int depth = 0;
+                string partEval = exp.ToPartiallyEvaluatedString(depth);
+                debugOutput += $"\n\t - Partial eval (depth {depth}): {partEval}";
+
+                while (true)
+                {
+                    string nextPartEval = exp.ToPartiallyEvaluatedString(++depth);
+
+                    if (nextPartEval.Equals(partEval))
+                        break;
+
+                    debugOutput += $"\n\t - Partial eval (depth {depth}): {nextPartEval}";
+                    partEval = nextPartEval;
+                }
+
+                AddDebugOutput(debugOutput);
             }
             else
             {

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class PercentFunctionExpression : FunctionExpression, IValueExpression<string>
+public class PercentFunctionExpression : FunctionExpressionWithOutput<string>
 {
     public const string FunctionId = "percent";
 
@@ -15,9 +15,5 @@ public class PercentFunctionExpression : FunctionExpression, IValueExpression<st
         _arg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[0]);
     }
 
-    public string Value => _arg.Value.ToString("P");
-
-    public object ValueObject => Value;
-
-    public string GetFormattedString() => Value.ToBoldFormat();
+    public override string Value => _arg.Value.ToString("P");
 }

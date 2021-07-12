@@ -50,8 +50,8 @@ public class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
         _evaluated = false;
     }
 
-    public override string ToPartiallyEvaluatedString(bool evaluate) =>
-        _valExpression.ToPartiallyEvaluatedString(evaluate);
+    public override string ToPartiallyEvaluatedString(int depth = -1) =>
+        _valExpression.ToPartiallyEvaluatedString(depth);
 
     public override bool TryGetRequest(out InputRequest request) =>
         _valExpression.TryGetRequest(out request);

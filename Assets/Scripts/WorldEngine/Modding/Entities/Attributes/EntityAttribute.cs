@@ -49,7 +49,8 @@ public abstract class EntityAttribute : IInputRequester
         return Entity.Id + "." + Id;
     }
 
-    public virtual string ToPartiallyEvaluatedString(bool evaluate) => ToString();
+    public virtual string ToPartiallyEvaluatedString(int depth = -1) =>
+        ToString();
 
     public virtual bool TryGetRequest(out InputRequest request)
     {

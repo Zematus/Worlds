@@ -21,5 +21,5 @@ public interface IEntity : IComparable<object>, IInputRequester, IFormattedStrin
 
     EntityAttribute GetThisEntityAttribute(Entity parent);
 
-    string ToPartiallyEvaluatedString(bool evaluate);
+    string ToPartiallyEvaluatedString(int depth = -1);
 }

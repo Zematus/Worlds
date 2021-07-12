@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class LerpFunctionExpression : FunctionExpression, IValueExpression<float>
+public class LerpFunctionExpression : FunctionExpressionWithOutput<float>
 {
     public const string FunctionId = "lerp";
 
@@ -19,12 +19,8 @@ public class LerpFunctionExpression : FunctionExpression, IValueExpression<float
         _percentArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[2]);
     }
 
-    public float Value => Mathf.Lerp(
+    public override float Value => Mathf.Lerp(
             _startArg.Value,
             _endArg.Value,
             _percentArg.Value);
-
-    public object ValueObject => Value;
-
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 }

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class NormalizeFunctionExpression : FunctionExpression, IValueExpression<float>
+public class NormalizeFunctionExpression : FunctionExpressionWithOutput<float>
 {
     public const string FunctionId = "normalize";
 
@@ -19,7 +19,7 @@ public class NormalizeFunctionExpression : FunctionExpression, IValueExpression<
         _maxArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[2]);
     }
 
-    public float Value
+    public override float Value
     {
         get {
             float min = _minArg.Value;
@@ -43,8 +43,4 @@ public class NormalizeFunctionExpression : FunctionExpression, IValueExpression<
             return (_valueArg.Value - min) / (max - min);
         }
     }
-
-    public object ValueObject => Value;
-
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 }

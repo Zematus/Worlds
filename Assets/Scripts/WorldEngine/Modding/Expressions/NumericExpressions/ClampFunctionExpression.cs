@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class ClampFunctionExpression : FunctionExpression, IValueExpression<float>
+public class ClampFunctionExpression : FunctionExpressionWithOutput<float>
 {
     public const string FunctionId = "clamp";
 
@@ -22,7 +22,7 @@ public class ClampFunctionExpression : FunctionExpression, IValueExpression<floa
             ValueExpressionBuilder.ValidateValueExpression<float>(arguments[2]);
     }
 
-    public float Value
+    public override float Value
     {
         get {
             return Mathf.Clamp(
@@ -31,8 +31,4 @@ public class ClampFunctionExpression : FunctionExpression, IValueExpression<floa
                 _maxParameterExp.Value);
         }
     }
-
-    public object ValueObject => Value;
-
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 }

@@ -217,13 +217,12 @@ public class ModDecision : Context
                 {
                     string weightPartialExpression =
                         (option.Weight != null) ?
-                        ("\n - expression: " + option.Weight.ToPartiallyEvaluatedString(true)) :
+                        $"\n - expression: {option.Weight.ToPartiallyEvaluatedString(0)}" :
                         string.Empty;
 
                     throw new System.Exception(
-                        Id + "->" + option.Id + ", decision option weight is less than zero: " +
-                        weightPartialExpression +
-                        "\n - weight: " + weight);
+                        $"{Id}->{option.Id}, decision option weight is less than " +
+                        $"zero: {weightPartialExpression}\n - weight: {weight}");
                 }
             }
 

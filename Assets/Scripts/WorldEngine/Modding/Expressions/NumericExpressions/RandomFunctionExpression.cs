@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class RandomFunctionExpression : FunctionExpression, IValueExpression<float>
+public class RandomFunctionExpression : FunctionExpressionWithOutput<float>
 {
     public const string FunctionId = "random";
 
@@ -25,7 +25,7 @@ public class RandomFunctionExpression : FunctionExpression, IValueExpression<flo
         }
     }
 
-    public float Value
+    public override float Value
     {
         get {
             float minMax = _minMaxArg.Value;
@@ -62,8 +62,4 @@ public class RandomFunctionExpression : FunctionExpression, IValueExpression<flo
                 min, max, _context.GetNextRandomFloat(_iterOffset + _context.GetBaseOffset()));
         }
     }
-
-    public object ValueObject => Value;
-
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 }

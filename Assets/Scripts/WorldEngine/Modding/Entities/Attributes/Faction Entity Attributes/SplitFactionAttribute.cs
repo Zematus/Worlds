@@ -56,12 +56,12 @@ public class SplitFactionAttribute : EffectEntityAttribute
         if (influencePercentToTransfer >= 0.5)
         {
             throw new System.Exception(
-                "ERROR: SplitFactionAttribute.Apply - influence percent to transfer can't be equal or greater than 0.5" +
-                "\n - attribute id: " + Id +
-                "\n - partial influence to transfer expression: " + _influencePercentToTransferArg.ToPartiallyEvaluatedString(true) +
-                "\n - world date: " + faction.World.CurrentDate +
-                "\n - faction id: " + faction.Id +
-                "\n - expression result: " + influencePercentToTransfer);
+                $"ERROR: SplitFactionAttribute.Apply - influence percent to transfer can't be equal or greater than 0.5" +
+                $"\n - attribute id: {Id}" +
+                $"\n - partial influence to transfer expression: {_influencePercentToTransferArg.ToPartiallyEvaluatedString(0)}" +
+                $"\n - world date: {faction.World.CurrentDate}" +
+                $"\n - faction id: {faction.Id}" +
+                $"\n - expression result: {influencePercentToTransfer}");
         }
 
         float influenceToTransfer = _influencePercentToTransferArg.Value * faction.Influence;

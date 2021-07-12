@@ -96,7 +96,7 @@ public abstract class Entity : IEntity
         return _thisAttribute;
     }
 
-    public virtual string ToPartiallyEvaluatedString(bool evaluate)
+    public virtual string ToPartiallyEvaluatedString(int depth)
     {
         return GetDebugString();
     }
