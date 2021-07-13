@@ -296,8 +296,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             bands.World,
             bands.TargetCell,
             bands.Population,
-            bands.Culture,
-            bands.MigrationDirection)
+            bands.Culture)
     {
     }
 
@@ -310,19 +309,22 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             polityPop.World,
             polityPop.TargetCell,
             polityPop.Population,
-            polityPop.Culture,
-            polityPop.MigrationDirection)
+            polityPop.Culture)
     {
-        AddPolityProminence(polityPop.Polity, 1.0f, true);
-        FindHighestPolityProminence();
+        bool addProminence = polityPop.Type != MigrationType.Sea;
+
+        if (addProminence)
+        {
+            AddPolityProminence(polityPop.Polity, 1.0f, true);
+            FindHighestPolityProminence();
+        }
     }
 
     public CellGroup(
         World world,
         TerrainCell cell,
         int initialPopulation,
-        Culture baseCulture = null,
-        Direction migrationDirection = Direction.Null)
+        Culture baseCulture = null)
     {
         World = world;
 
@@ -468,7 +470,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// Defines population to migrate
     /// </summary>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    /// <param name="direction">the direction this group is moving out from the source</param>
+    /// <param name="type">the migration type (Land/Sea)</param>
     /// <param name="prominencePercent">prominence value to migrate out</param>
     /// <param name="prominenceValueDelta">how much the prominence value should change</param>
     /// <param name="population">population to migrate</param>
@@ -477,7 +480,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <param name="endDate">the migration end date</param>
     public void SetMigratingPopulation(
         TerrainCell targetCell,
-        Direction migrationDirection,
+        Direction direction,
+        MigrationType type,
         float prominencePercent,
         float prominenceValueDelta,
         int population,
@@ -489,7 +493,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         {
             SetMigratingUnorganizedBands(
                 targetCell,
-                migrationDirection,
+                direction,
+                type,
                 prominencePercent,
                 prominenceValueDelta,
                 population,
@@ -500,7 +505,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         SetMigratingPolityPopulation(
             targetCell,
-            migrationDirection,
+            direction,
+            type,
             prominencePercent,
             prominenceValueDelta,
             population,
@@ -513,7 +519,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// Sets Migrating Bands object
     /// </summary>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    /// <param name="direction">the direction this group is moving out from the source</param>
+    /// <param name="type">the migration type (Land/Sea)</param>
     /// <param name="prominencePercent">prominence value to migrate out</param>
     /// <param name="prominenceValueDelta">how much the prominence value should change</param>
     /// <param name="population">population to migrate</param>
@@ -521,7 +528,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <param name="endDate">the migration end date</param>
     public void SetMigratingUnorganizedBands(
         TerrainCell targetCell,
-        Direction migrationDirection,
+        Direction direction,
+        MigrationType type,
         float prominencePercent,
         float prominenceValueDelta,
         int population,
@@ -544,7 +552,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                     population,
                     this,
                     targetCell,
-                    migrationDirection,
+                    direction,
+                    type,
                     startDate,
                     endDate);
         }
@@ -556,7 +565,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 population,
                 this,
                 targetCell,
-                migrationDirection,
+                direction,
+                type,
                 startDate,
                 endDate);
         }
@@ -568,7 +578,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// Sets Migrating Polity Population object
     /// </summary>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    /// <param name="direction">the direction this group is moving out from the source</param>
+    /// <param name="type">the migration type (Land/Sea)</param>
     /// <param name="prominencePercent">prominence value to migrate out</param>
     /// <param name="prominenceValueDelta">how much the prominence value should change</param>
     /// <param name="population">population to migrate</param>
@@ -577,7 +588,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <param name="endDate">the migration end date</param>
     public void SetMigratingPolityPopulation(
         TerrainCell targetCell,
-        Direction migrationDirection,
+        Direction direction,
+        MigrationType type,
         float prominencePercent,
         float prominenceValueDelta,
         int population,
@@ -602,7 +614,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                     this,
                     polity,
                     targetCell,
-                    migrationDirection,
+                    direction,
+                    type,
                     startDate,
                     endDate);
         }
@@ -615,7 +628,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 this,
                 polity,
                 targetCell,
-                migrationDirection,
+                direction,
+                type,
                 startDate,
                 endDate);
         }

@@ -162,6 +162,7 @@ public class MigratePopulationEvent : CellGroupEvent
         Group.SetMigratingPopulation(
             TargetCell,
             MigrationDirection,
+            MigrationType,
             ProminencePercent,
             _prominenceValueDelta,
             _population,
