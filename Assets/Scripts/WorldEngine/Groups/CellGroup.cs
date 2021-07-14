@@ -2605,6 +2605,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             return;
         }
 
+        if (_polityProminencesToRemove.Contains(polity.Id))
+        {
+            Debug.LogWarning("Trying to add value delta to prominence " +
+                "that will be removed...");
+            return;
+        }
+
         if (float.IsNaN(delta) || float.IsInfinity(delta))
         {
             throw new System.Exception("prominence delta is Nan or Infinity. Group: " + Id);
@@ -2680,7 +2687,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public bool SetPolityProminenceValue(
         Polity polity,
         float newValue,
-        bool afterPolityUpdates = false)
+        bool afterPolityUpdates = false,
+        bool throwIfCantRemove = true)
     {
         float promPopulation = ExactPopulation * newValue;
 
@@ -2690,6 +2698,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             // NOTE: Can't do that after polities have been updated
             if (afterPolityUpdates || !SetPolityProminenceToRemove(polity, false))
             {
+                if (throwIfCantRemove)
+                {
+                    throw new System.Exception(
+                        $"Unable to remove prominence {polity.Id} from group {Id}");
+                }
+
                 // if not possible to remove this prominence, set it to a min value
                 newValue = MinProminencePopulation / ExactPopulation;
             }
@@ -2730,7 +2744,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
             newValue -= promDeltaOffset;
 
-            if (SetPolityProminenceValue(polity, newValue, afterPolityUpdates))
+            if (SetPolityProminenceValue(
+                polity, newValue, afterPolityUpdates, false))
             {
                 totalValue += newValue;
             }
