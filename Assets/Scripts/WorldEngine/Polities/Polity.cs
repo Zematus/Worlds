@@ -442,17 +442,16 @@ public abstract class Polity : ISynchronizable
 
     public void Split(string polityType, Faction splittingFaction)
     {
-        Polity newPolity = null;
+        Polity newPolity;
 
         switch (polityType)
         {
             case Tribe.PolityTypeStr:
-                Tribe newTribe = new Tribe(splittingFaction as Clan, this as Tribe);
-                newPolity = newTribe;
+                newPolity = new Tribe(splittingFaction as Clan, this as Tribe);
 
                 AddEventMessage(new TribeSplitEventMessage(
                     splittingFaction as Clan,
-                    this as Tribe, newTribe, World.CurrentDate));
+                    this as Tribe, newPolity as Tribe, World.CurrentDate));
                 break;
 
             default:
@@ -670,6 +669,34 @@ public abstract class Polity : ISynchronizable
         if (!World.PolitiesHaveBeenUpdated)
         {
             World.AddPolityToUpdate(this);
+        }
+    }
+
+    protected void TransferGroups(
+        Polity sourcePolity,
+        Dictionary<CellGroup, float> groupsToTransfer)
+    {
+        foreach (var pair in groupsToTransfer)
+        {
+            CellGroup group = pair.Key;
+            float value = pair.Value;
+
+            float oldPromVal = group.GetPolityProminenceValue(sourcePolity);
+
+            bool removed = !group.SetPolityProminenceValue(
+                sourcePolity, oldPromVal - value);
+
+            if (removed)
+            {
+                // the old prominence was completely removed, so we transfer its
+                // full value to the new prominence
+                value = oldPromVal;
+            }
+
+            group.AddPolityProminence(this, value);
+            group.FindHighestPolityProminence();
+
+            World.AddGroupToUpdate(group);
         }
     }
 

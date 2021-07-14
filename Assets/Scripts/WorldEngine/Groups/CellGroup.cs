@@ -2677,17 +2677,48 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return offset;
     }
 
-    public void SetPolityProminenceValue(Polity polity, float newValue)
+    public bool SetPolityProminenceValue(
+        Polity polity,
+        float newValue,
+        bool afterPolityUpdates = false)
     {
+        float promPopulation = ExactPopulation * newValue;
+
+        if (promPopulation < MinProminencePopulation)
+        {
+            // try to remove prominences that would end up with a value far too small
+            // NOTE: Can't do that after polities have been updated
+            if (afterPolityUpdates || !SetPolityProminenceToRemove(polity, false))
+            {
+                // if not possible to remove this prominence, set it to a min value
+                newValue = MinProminencePopulation / ExactPopulation;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        if (!_polityProminences.ContainsKey(polity.Id))
+        {
+            if (afterPolityUpdates)
+            {
+                Debug.LogWarning("Trying to add polity " + polity.Id +
+                    " after polity updates have already happened.  Group: " + Id);
+            }
+
+            // add missing prominences that have values greater than MinPolityProminenceValue
+            AddPolityProminence(polity);
+        }
+
         _polityProminences[polity.Id].Value = newValue;
+
+        return true;
     }
 
-    public void ModifyPolityProminenceValue(Polity polity, float valueDelta)
-    {
-        _polityProminences[polity.Id].Value += valueDelta;
-    }
-
-    private float UpdateProminenceValuesWithDeltas(float promDeltaOffset, bool afterPolityUpdates)
+    private float UpdateProminenceValuesWithDeltas(
+        float promDeltaOffset,
+        bool afterPolityUpdates)
     {
         float totalValue = 0;
         float ubProminenceValue = _unorgBandsPromDelta - promDeltaOffset;
@@ -2699,52 +2730,16 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
             newValue -= promDeltaOffset;
 
-            float promPopulation = ExactPopulation * newValue;
-
-            if (promPopulation < MinProminencePopulation)
+            if (SetPolityProminenceValue(polity, newValue, afterPolityUpdates))
             {
-                // try to remove prominences that would end up with a value far too small
-                // NOTE: Can't do that after polities have been updated
-                if (afterPolityUpdates || !SetPolityProminenceToRemove(pair.Key, false))
-                {
-                    // if not possible to remove this prominence, set it to a min value
-                    newValue = MinProminencePopulation / ExactPopulation;
-                }
-                else
-                {
-                    // We will "transfer" its prominence value to unorganized bands
-                    ubProminenceValue += newValue;
-                    continue;
-                }
+                totalValue += newValue;
             }
-
-            if (!_polityProminences.ContainsKey(polity.Id))
+            else
             {
-                if (afterPolityUpdates)
-                {
-                    Debug.LogWarning("Trying to add polity " + polity.Id +
-                        " after polity updates have already happened.  Group: " + Id);
-                }
-
-                // add missing prominences that have values greater than MinPolityProminenceValue
-                AddPolityProminence(polity);
+                // We will "transfer" its prominence value to unorganized bands
+                // instead
+                ubProminenceValue += newValue;
             }
-
-#if DEBUG
-            if (newValue <= 0)
-            {
-                Debug.LogWarning("new value less than 0: " + newValue);
-            }
-
-            if (newValue > (totalValue + newValue))
-            {
-                Debug.LogWarning("new total value less than new value. prev total value: "
-                    + totalValue + ", new value: " + newValue);
-            }
-#endif
-
-            SetPolityProminenceValue(polity, newValue);
-            totalValue += newValue;
         }
 
         // add in the prominence value of unorganized bands
