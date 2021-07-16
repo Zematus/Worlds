@@ -1809,8 +1809,6 @@ public abstract class Polity : ISynchronizable
 
         float administrativeLoad = TotalAdministrativeCost / socialOrganizationValue;
 
-        administrativeLoad = Mathf.Pow(administrativeLoad, 2);
-
         if (administrativeLoad < 0)
         {
             Debug.LogWarning("administrativeLoad less than 0: " + administrativeLoad);

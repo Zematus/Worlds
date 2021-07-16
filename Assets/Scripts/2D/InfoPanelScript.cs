@@ -1280,7 +1280,8 @@ public class InfoPanelScript : MonoBehaviour
             AddCellDataToInfoPanel_UpdateSpan(cell);
         }
 
-        if (Manager.PlanetOverlay == PlanetOverlay.PolityProminence)
+        if ((Manager.PlanetOverlay == PlanetOverlay.PolityProminence) ||
+            (Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance))
         {
             AddCellDataToInfoPanel_PolityProminence(cell);
         }
@@ -1292,7 +1293,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if ((Manager.PlanetOverlay == PlanetOverlay.PolityCoreRegions) ||
             (Manager.PlanetOverlay == PlanetOverlay.PolityTerritory) ||
-            (Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance) ||
             (Manager.PlanetOverlay == PlanetOverlay.PolityAdminCost))
         {
             AddCellDataToInfoPanel_PolityTerritory(cell);

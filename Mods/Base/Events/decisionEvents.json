@@ -13,15 +13,15 @@
         "target.type == clan"
       ],
       "triggerConditions": [
-        "target.administrative_load > 100000",
+        "target.administrative_load > 10000",
         "target.preferences.cohesion < 0.65",
-        "new_core_group.faction_core_distance(target.polity) > 1500",
+        "new_core_group.faction_core_distance(target.polity) > 1000",
         "new_core_group.polity_with_highest_prominence == target.polity",
         "polity_prominence > 0.6",
         "new_core_group.knowledges.social_organization >= 6",
         "new_core_group.faction_cores_count == 0"
       ],
-      "timeToTrigger": "9125 + random(9125000 * (1 - saturation(target.administrative_load, 400000)) * target.preferences.cohesion)",
+      "timeToTrigger": "9125 + random(91250 * (1 - saturation(target.administrative_load, 400000)) * target.preferences.cohesion)",
       "effects": [
         "target.trigger_decision(event_prio, clan_decide_split, new_core_group)"
       ],
