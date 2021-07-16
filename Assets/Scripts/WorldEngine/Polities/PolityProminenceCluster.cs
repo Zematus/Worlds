@@ -85,11 +85,6 @@ public class PolityProminenceCluster : Identifiable, ISynchronizable
             TotalPopulation += polityPop;
 
             ProminenceArea += prominence.Group.Cell.Area;
-
-            Manager.AddUpdatedCell(
-                prominence.Group.Cell,
-                CellUpdateType.Cluster | CellUpdateType.Territory,
-                CellUpdateSubType.AdminCost);
         }
 
         NeedsNewCensus = false;

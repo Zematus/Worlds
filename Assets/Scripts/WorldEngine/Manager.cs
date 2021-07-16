@@ -1771,14 +1771,9 @@ public class Manager
         {
             _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.Culture;
         }
-        else if ((overlay == PlanetOverlay.PolityAdminCost) ||
-            (overlay == PlanetOverlay.ClusterAdminCost))
-        {
-            _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.AdminCost;
-        }
         else
         {
-            _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.AdminCost;
+            _observableUpdateSubTypes = CellUpdateSubType.All;
         }
     }
 
