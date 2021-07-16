@@ -1957,6 +1957,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         foreach (PolityProminence polityProminence in _polityProminences.Values)
         {
+            if (_polityProminencesToRemove.Contains(polityProminence.PolityId))
+                continue;
+
             Polity polity = polityProminence.Polity;
 
             polity.GroupUpdateEffects(this, polityProminence.Value, TotalPolityProminenceValue, timeSpan);
@@ -2598,7 +2601,10 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// </summary>
     /// <param name="polity">polity to apply prominence value delta</param>
     /// <param name="delta">value delta to apply</param>
-    public void AddPolityProminenceValueDelta(Polity polity, float delta)
+    /// <param name="ignoreRemoval">if 'true', apply delta even if prominence
+    /// was going to be removed</param>
+    public void AddPolityProminenceValueDelta(
+        Polity polity, float delta, bool ignoreRemoval = false)
     {
         if (delta == 0)
         {
@@ -2607,9 +2613,17 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         if (_polityProminencesToRemove.Contains(polity.Id))
         {
-            Debug.LogWarning("Trying to add value delta to prominence " +
-                "that will be removed...");
-            return;
+            if (ignoreRemoval && (delta > 0))
+            {
+                // prevent removal if delta is positive
+                _polityProminencesToRemove.Remove(polity.Id);
+            }
+            else
+            {
+                Debug.LogWarning("Trying to add value delta to prominence " +
+                    "that will be removed...");
+                return;
+            }
         }
 
         if (float.IsNaN(delta) || float.IsInfinity(delta))

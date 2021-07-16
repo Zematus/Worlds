@@ -131,7 +131,8 @@ public class MigratingPolityPopulation : MigratingPopulation
 
         if (addProminence)
         {
-            targetGroup.AddPolityProminenceValueDelta(Polity, percentageOfPopulation);
+            targetGroup.AddPolityProminenceValueDelta(
+                Polity, percentageOfPopulation, true);
         }
 
         targetGroup.TriggerInterference();
