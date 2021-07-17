@@ -15,17 +15,18 @@
       "triggerConditions": [
         "target.administrative_load > 10000",
         "target.preferences.cohesion < 0.65",
-        "new_core_group.faction_core_distance(target.polity) > 1000",
+        "new_core_group.faction_core_distance(target.polity) > 500",
         "new_core_group.polity_with_highest_prominence == target.polity",
         "polity_prominence > 0.6",
         "new_core_group.knowledges.social_organization >= 6",
         "new_core_group.faction_cores_count == 0"
       ],
-      "timeToTrigger": "9125 + random(91250 * (1 - saturation(target.administrative_load, 400000)) * target.preferences.cohesion)",
+      "timeToTrigger": "9125 + random(91250 * (1 - saturation(target.administrative_load, 40000)) * target.preferences.cohesion)",
       "effects": [
         "target.trigger_decision(event_prio, clan_decide_split, new_core_group)"
       ],
-      "repeatable": true
+      "repeatable": true,
+      "debug": true
     },
     {
       "id": "clan_decide_performing_influence_demand",
@@ -52,7 +53,7 @@
         "chance_of_making_demand > 0",
         "(target_authority > dominant_faction.preferences.authority) || (dominant_faction.administrative_load > 100000)"
       ],
-      "timeToTrigger": "9125 + random(9125000 * (1 - saturation(target.administrative_load, 200000)) * target_authority)",
+      "timeToTrigger": "9125 + random(91250 * (1 - saturation(target.administrative_load, 20000)) * target_authority)",
       "effects": [
         "target.trigger_decision(event_prio, clan_decide_performing_influence_demand, dominant_faction, chance_of_making_demand)"
       ],
@@ -107,7 +108,7 @@
         "target.administrative_load > min_admin_load",
         "target.core_group.polity_with_highest_prominence == target.polity"
       ],
-      "timeToTrigger": "9125 + random(9125000 * (1 - saturation(dominant_faction.administrative_load, max_admin_load)))",
+      "timeToTrigger": "9125 + random(912500 * (1 - saturation(dominant_faction.administrative_load, max_admin_load)))",
       "effects": [
         "target.trigger_decision(event_prio, clan_decide_form_new_tribe, chance_of_making_attempt)"
       ],

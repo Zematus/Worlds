@@ -427,7 +427,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
         if (Cluster != null)
         {
-            // Indicate that the cluster this prominence belongs too will require a
+            // Indicate that the cluster this prominence belongs to will require a
             // new census
             Cluster.RequireNewCensus(true);
         }
