@@ -1863,6 +1863,19 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <param name="timeSpan">the time span since the last cell update</param>
     private void EvaluateAcculturation(PolityProminence prominence, long timeSpan)
     {
+        if (prominence.FactionCoreDistance < 0)
+        {
+            // the faction core distance is still not set, so avoid applying acculturation effects
+            // just yet
+            return;
+        }
+
+        if (_polityProminencesToRemove.Contains(prominence.PolityId))
+        {
+            // since this prominence will be removed, there's no need to calculate acculturation effects
+            return;
+        }
+
         float expectedSpanConstant = GenerationSpan;
         float timeFactor = timeSpan / (timeSpan + expectedSpanConstant);
 
@@ -1874,36 +1887,41 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float groupIsolationPrefValue =
             Culture.GetIsolationPreferenceValue();
 
-        float coreDistanceFactor = prominence.FactionCoreDistance / PolityProminence.MaxCoreDistance;
-        coreDistanceFactor = 1 - Mathf.Clamp01(coreDistanceFactor);
+        float maxCoreDist = 1500;
+
+        float coreDistFactor = prominence.FactionCoreDistance / maxCoreDist;
+        coreDistFactor = Mathf.Pow(coreDistFactor, 2);
 
         // acculturation on unorganized bands
 
-        float maxIsolationPrefValue = Mathf.Max(polityIsolationPrefValue, groupIsolationPrefValue);
+        float ubTransferConstant = 3;
 
-        float ubOpennessFactor = 1 - maxIsolationPrefValue;
+        float ubCoreDistanceFactor = ubTransferConstant - coreDistFactor;
 
-        float prominenceOnUBFactor =
-            Mathf.Max(prominence.Value * (1 - TotalPolityProminenceValue), 0.01f);
+        float ubOpennessFactor = 1 - polityIsolationPrefValue;
+        float prominenceOnUBFactor = prominence.Value;
+
+        if (ubCoreDistanceFactor < 0)
+        {
+            ubOpennessFactor = 1 - groupIsolationPrefValue;
+            prominenceOnUBFactor = 1 - TotalPolityProminenceValue;
+        }
 
         int polityIdHash = prominence.PolityId.GetHashCode();
 
-        if (prominenceOnUBFactor > 0)
+        if (prominenceOnUBFactor < 1)
         {
-            float ubCoreDistanceFactor = (coreDistanceFactor * 1.5f) - 0.5f;
-
-            float ubRandomFactor = Cell.GetNextLocalRandomFloat(
+            float ubRandomFactor = 0.8f + 0.4f * Cell.GetNextLocalRandomFloat(
                 RngOffsets.CELL_GROUP_UB_ACCULTURATION + polityIdHash);
-
-            float ubTransferConstant = 3;
 
             float ubAcculturation =
                 ubOpennessFactor *
                 ubCoreDistanceFactor *
                 prominenceOnUBFactor *
                 ubRandomFactor *
-                timeFactor *
-                ubTransferConstant;
+                timeFactor;
+
+            ubAcculturation = Mathf.Clamp(ubAcculturation, -0.5f, 0.5f);
 
             AddUBandsProminenceValueDelta(-ubAcculturation);
         }
@@ -1914,7 +1932,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         if (othersOnPromFactor > 0)
         {
-            float promRandomFactor = Cell.GetNextLocalRandomFloat(
+            float promRandomFactor = 0.8f + 0.4f * Cell.GetNextLocalRandomFloat(
                 RngOffsets.CELL_GROUP_PROM_ACCULTURATION + polityIdHash);
 
             float promOpennessFactor = 1 - polityIsolationPrefValue;
@@ -1924,7 +1942,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 othersOnPromFactor *
                 promRandomFactor *
                 timeFactor *
-                coreDistanceFactor;
+                coreDistFactor;
+
+            promAcculturation = Mathf.Clamp(promAcculturation, 0, 0.5f);
 
             AddPolityProminenceValueDelta(prominence.Polity, -promAcculturation);
         }

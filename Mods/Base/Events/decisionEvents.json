@@ -25,8 +25,7 @@
       "effects": [
         "target.trigger_decision(event_prio, clan_decide_split, new_core_group)"
       ],
-      "repeatable": true,
-      "debug": true
+      "repeatable": true
     },
     {
       "id": "clan_decide_performing_influence_demand",
