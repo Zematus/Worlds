@@ -2239,9 +2239,34 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
+        float prominenceFactor = 1;
+
+        if (TotalPolityProminenceValue < 1)
+        {
+            // if there are unorganized bands, then set the prom factor accordingly
+            prominenceFactor = 1 - TotalPolityProminenceValue;
+        }
+
+        float minPromFactor = 0.00001f;
+
+        foreach (var prominence in _polityProminences.Values)
+        {
+            if (prominenceFactor < minPromFactor)
+                break;
+
+            if (prominence.Value < prominenceFactor)
+            {
+                prominenceFactor = prominence.Value;
+            }
+        }
+        
+        // avoid setting a prom factor equal or less than zero
+        prominenceFactor = Mathf.Max(minPromFactor, prominenceFactor);
+
         float SlownessConstant = 100 * GenerationSpan;
 
-        float mixFactor = SlownessConstant * randomFactor * circumstancesFactor * populationFactor;
+        float mixFactor = 
+            SlownessConstant * randomFactor * circumstancesFactor * populationFactor * prominenceFactor;
         long updateSpan = QuarterGenSpan + (long)Mathf.Ceil(mixFactor);
 
         if (updateSpan < 0)
