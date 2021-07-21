@@ -18,7 +18,7 @@ public abstract class Polity : ISynchronizable
     public const float CoreDistanceEffectConstant = 10000;
     public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
 
-    public const float MaxAdminCost = 1000000000;
+    public const float MaxAdminCost = 1000000000000;
 
     public static List<IWorldEventGenerator> OnPolityContactChangeEventGenerators;
     public static List<IWorldEventGenerator> OnRegionAccessibilityUpdateEventGenerators;
@@ -442,6 +442,10 @@ public abstract class Polity : ISynchronizable
 
     public void Split(string polityType, Faction splittingFaction)
     {
+//#if DEBUG
+//        Manager.Debug_PauseSimRequested = true;
+//#endif
+
         Polity newPolity;
 
         switch (polityType)
@@ -989,10 +993,8 @@ public abstract class Polity : ISynchronizable
                 cluster.RunCensus();
             }
 
-            if (cluster.TotalAdministrativeCost < float.MaxValue)
-                TotalAdministrativeCost_Internal += cluster.TotalAdministrativeCost;
-            else
-                TotalAdministrativeCost_Internal = float.MaxValue;
+            TotalAdministrativeCost_Internal = 
+                Mathf.Min(TotalAdministrativeCost_Internal + cluster.TotalAdministrativeCost, MaxAdminCost);
 
             TotalPopulation_Internal += cluster.TotalPopulation;
 

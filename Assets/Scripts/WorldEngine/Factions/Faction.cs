@@ -428,7 +428,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         float initialRelationshipValue)
     {
 //#if DEBUG
-//        Manager.DebugPauseSimRequested = true;
+//        Manager.Debug_PauseSimRequested = true;
 //#endif
 
         Influence -= influenceToTransfer;

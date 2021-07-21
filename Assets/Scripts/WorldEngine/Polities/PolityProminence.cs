@@ -9,6 +9,9 @@ public class PolityProminence // : IKeyedValue<Identifier>
 {
     public const float MaxCoreDistance = 1000000000000f;
 
+    public const float MaxAdminCost = 
+        PolityProminenceCluster.MaxAdminCost / PolityProminenceCluster.MaxSize;
+
     [XmlAttribute("V")]
     public float Value = 0;
     [XmlAttribute("FCT")]
@@ -280,9 +283,11 @@ public class PolityProminence // : IKeyedValue<Identifier>
     {
         float polityPopulation = Group.Population * Value;
 
-        float distanceFactor = 500 + FactionCoreDistance;
+        float distConst = 500;
+        float distanceFactor = (distConst + FactionCoreDistance) / distConst;
 
-        _adminCost = polityPopulation * distanceFactor * 0.001f;
+        _adminCost = polityPopulation * distanceFactor;
+        _adminCost = Mathf.Min(_adminCost, MaxAdminCost);
 
         if (_adminCost < 0)
         {

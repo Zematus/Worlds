@@ -3733,7 +3733,7 @@ public class Manager
                     isSelected = true;
 
                 float adminCost =
-                    Mathf.Min(prominence.Cluster.TotalAdministrativeCost, Polity.MaxAdminCost);
+                    Mathf.Min(prominence.Cluster.TotalAdministrativeCost, PolityProminenceCluster.MaxAdminCost);
 
                 if (isSelected)
                 {
