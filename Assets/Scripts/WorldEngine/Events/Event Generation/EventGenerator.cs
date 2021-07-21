@@ -182,9 +182,14 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         throw new System.ArgumentException("Invalid target type: " + targetStr);
     }
 
-    protected bool CanAssignEventToTarget()
+    protected bool CanAssignEventToTarget(bool displayTargetInfo = true)
     {
         OpenDebugOutput("Evaluating Assignment Conditions:");
+
+        if (displayTargetInfo)
+        {
+            AddTargetDebugOutput();
+        }
 
         if (AssignmentConditions != null)
         {
@@ -206,16 +211,20 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         return true;
     }
 
-    public bool CanTriggerEvent()
+    public bool CanTriggerEvent(WorldEvent sourceEvent)
     {
         Profiler.BeginSample("EventGenerator - CanTriggerEvent - Id:" + Id);
 
         OpenDebugOutput("Evaluating Trigger Conditions:");
 
+        AddDebugOutput(
+            $"\tSpawn Date: {Manager.GetDateString(sourceEvent.SpawnDate)}");
+        AddTargetDebugOutput();
+
         Profiler.BeginSample("EventGenerator - CanAssignEventToTarget");
 
         // Always validate that the target is still valid
-        if (!CanAssignEventToTarget())
+        if (!CanAssignEventToTarget(false))
         {
             Profiler.EndSample(); // "EventGenerator - CanAssignEventToTarget"
             Profiler.EndSample(); // "EventGenerator - CanTriggerEvent"
@@ -257,7 +266,8 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     protected long CalculateEventTriggerDate(World world)
     {
         OpenDebugOutput("Calculating Trigger Date:");
-        AddDebugOutput("  CurrentDate: " + world.CurrentDate);
+        AddTargetDebugOutput();
+        AddDebugOutput($"\tCurrentDate: {Manager.GetDateString(world.CurrentDate)}");
 
         float timeToTrigger = TimeToTrigger.Value;
 
@@ -287,13 +297,20 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             return long.MinValue;
         }
 
-        CloseDebugOutput("Calculated trigger date: " + targetDate);
+        CloseDebugOutput($"Calculated trigger date: {Manager.GetDateString(targetDate)}");
         return targetDate;
     }
+
+    protected virtual void AddTargetDebugOutput()
+    { }
 
     public void TriggerEvent(WorldEvent sourceEvent)
     {
         OpenDebugOutput("Applying Effects:");
+
+        AddDebugOutput(
+            $"\tSpawn Date: {Manager.GetDateString(sourceEvent.SpawnDate)}");
+        AddTargetDebugOutput();
 
         foreach (IEffectExpression exp in Effects)
         {

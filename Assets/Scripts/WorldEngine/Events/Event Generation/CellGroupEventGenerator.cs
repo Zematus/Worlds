@@ -104,4 +104,10 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
 
         return TryGenerateEventAndAssign(modEvent.Group, modEvent, true);
     }
+
+    protected override void AddTargetDebugOutput()
+    {
+        AddDebugOutput(
+            $"\tTarget Group: {_target.Group.Id}");
+    }
 }

@@ -102,4 +102,10 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 
         return TryGenerateEventAndAssign(modEvent.Faction, modEvent, true);
     }
+
+    protected override void AddTargetDebugOutput()
+    {
+        AddDebugOutput(
+            $"\tTarget Faction: {Target.Faction.Name}");
+    }
 }

@@ -38,7 +38,7 @@ public class CellGroupModEvent : CellGroupEvent
 
         _generator.SetTarget(Group);
 
-        if (!_generator.CanTriggerEvent())
+        if (!_generator.CanTriggerEvent(this))
         {
             return false;
         }

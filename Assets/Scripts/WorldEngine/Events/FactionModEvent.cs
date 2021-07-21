@@ -48,7 +48,7 @@ public class FactionModEvent : FactionEvent
 
         Profiler.EndSample(); // "FactionModEvent CanTrigger - SetTarget"
 
-        if (!Generator.CanTriggerEvent())
+        if (!Generator.CanTriggerEvent(this))
         {
             Profiler.EndSample(); // "FactionModEvent CanTrigger"
 
