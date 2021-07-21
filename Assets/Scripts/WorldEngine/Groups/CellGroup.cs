@@ -1887,7 +1887,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float groupIsolationPrefValue =
             Culture.GetIsolationPreferenceValue();
 
-        float maxCoreDist = 1500;
+        float maxCoreDist = 1000;
 
         float coreDistFactor = prominence.FactionCoreDistance / maxCoreDist;
         coreDistFactor = Mathf.Pow(coreDistFactor, 2);
@@ -1904,12 +1904,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         if (ubCoreDistanceFactor < 0)
         {
             ubOpennessFactor = 1 - groupIsolationPrefValue;
-            prominenceOnUBFactor = 1 - TotalPolityProminenceValue;
+            prominenceOnUBFactor = 1;
         }
 
         int polityIdHash = prominence.PolityId.GetHashCode();
 
-        if (prominenceOnUBFactor < 1)
+        if ((ubCoreDistanceFactor < 0) || (TotalPolityProminenceValue < 1))
         {
             float ubRandomFactor = 0.8f + 0.4f * Cell.GetNextLocalRandomFloat(
                 RngOffsets.CELL_GROUP_UB_ACCULTURATION + polityIdHash);
@@ -1921,7 +1921,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 ubRandomFactor *
                 timeFactor;
 
-            ubAcculturation = Mathf.Clamp(ubAcculturation, -0.5f, 0.5f);
+            ubAcculturation = Mathf.Clamp(ubAcculturation, -0.75f, 0.75f);
 
             AddUBandsProminenceValueDelta(-ubAcculturation);
         }
