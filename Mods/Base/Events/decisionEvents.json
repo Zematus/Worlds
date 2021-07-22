@@ -13,7 +13,7 @@
         "target.type == clan"
       ],
       "triggerConditions": [
-        "target.administrative_load > 10000",
+        "target.administrative_load > 500",
         "target.preferences.cohesion < 0.65",
         "new_core_group.faction_core_distance(target.polity) > 500",
         "new_core_group.polity_with_highest_prominence == target.polity",
@@ -21,7 +21,7 @@
         "new_core_group.knowledges.social_organization >= 6",
         "new_core_group.faction_cores_count == 0"
       ],
-      "timeToTrigger": "9125 + random(91250 * (1 - saturation(target.administrative_load, 40000)) * target.preferences.cohesion)",
+      "timeToTrigger": "36500 + random(365000 * (1 - saturation(target.administrative_load, 10000)) * target.preferences.cohesion)",
       "effects": [
         "target.trigger_decision(event_prio, clan_decide_split, new_core_group)"
       ],
@@ -92,11 +92,10 @@
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
-        { "id": "influence_delta", "value": "max(0, dominant_faction.influence - target.influence)" },
-        { "id": "admin_factors", "value": "0.01 + relationship_value * influence_delta * target.preferences.cohesion" },
-        { "id": "min_admin_load", "value": "100000 * admin_factors" },
-        { "id": "max_admin_load", "value": "5000000 * admin_factors" },
-        { "id": "chance_of_making_attempt", "value": "normalize(dominant_faction.administrative_load, min_admin_load, max_admin_load)" }
+        { "id": "relationship_factor", "value": "max(0, ((1 - relationship_value) * 2) - 1)" },
+        { "id": "influence_delta", "value": "dominant_faction.influence - target.influence" },
+        { "id": "influence_factor", "value": "1 - influence_delta" },
+        { "id": "chance_of_making_attempt", "value": "clamp(influence_factor * relationship_factor * (1 - target.preferences.cohesion), 0, 1)" }
       ],
       "assignmentConditions": [
         "target.type == clan",
@@ -104,10 +103,10 @@
         "target != dominant_faction"
       ],
       "triggerConditions": [
-        "target.administrative_load > min_admin_load",
+        "chance_of_making_attempt > 0",
         "target.core_group.polity_with_highest_prominence == target.polity"
       ],
-      "timeToTrigger": "9125 + random(912500 * (1 - saturation(dominant_faction.administrative_load, max_admin_load)))",
+      "timeToTrigger": "73000 + random(182500 * (1 - chance_of_making_attempt))",
       "effects": [
         "target.trigger_decision(event_prio, clan_decide_form_new_tribe, chance_of_making_attempt)"
       ],
