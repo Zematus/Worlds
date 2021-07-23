@@ -252,7 +252,10 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         {
             PrepareToAddNonEnclosedCell(cell);
 
-            AddCell(cell);
+            if (!TryAddCell(cell))
+            {
+                throw new System.Exception($"Failed to add cell {cell.Position}");
+            }
         }
 
         _cellsToAdd.Clear();
@@ -383,19 +386,29 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
             _enclosedAreas.Add(enclosedSet.GetArea());
 
-            foreach (TerrainCell cell in enclosedSet.Cells)
+            List<TerrainCell> cellsToTryToAddAgain = new List<TerrainCell>();
+
+            foreach (var cell in enclosedSet.Cells)
             {
                 _enclosedCells.Add(cell);
 
-//#if DEBUG
-//                if (cell.Position.Equals(6, 111))
-//                {
-//                    Debug.LogWarning("Debugging AddEnclosedAreas, cell: " + cell.Position + ", group: " +
-//                        cell.Group + ", polity: " + Polity.Id);
-//                }
-//#endif
+                if (!TryAddCell(cell))
+                {
+                    // Sometimes a land region can't be generated from this cell (rivers),
+                    // so we can delay adding this cell until a it has already been added
+                    // to a region
+                    cellsToTryToAddAgain.Add(cell);
+                }
+            }
 
-                AddCell(cell);
+            foreach (var cell in cellsToTryToAddAgain)
+            {
+                if (!TryAddCell(cell))
+                {
+                    // No land region could be generated that encompasses this cell, so we can't
+                    // add it to the territory.
+                    Debug.LogWarning($"Failed to add enclosed cell {cell.Position} after second attempt");
+                }
             }
         }
 
@@ -411,12 +424,19 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         AddEnclosedAreas();
     }
 
-    private void AddCell(TerrainCell cell)
+    private bool TryAddCell(TerrainCell cell)
     {
         if (!_cells.Add(cell))
         {
             // the cell has already been added, there's nothing else that needs to be done
-            return;
+            return true;
+        }
+
+        Region region = cell.GetRegion(Polity.Culture.Language);
+
+        if (region == null)
+        {
+            return false;
         }
 
         cell.EncompassingTerritory = this;
@@ -439,14 +459,6 @@ public class Territory : ISynchronizable, ICellCollectionGetter
             }
         }
 
-        Region region = cell.GetRegion(Polity.Culture.Language);
-
-        if (region == null)
-        {
-            throw new System.Exception(
-                "Unable to generate region for cell " + cell.Position);
-        }
-
         IncreaseAccessToRegion(region);
 
         foreach (TerrainCell nCell in cell.NeighborList)
@@ -461,6 +473,8 @@ public class Territory : ISynchronizable, ICellCollectionGetter
                 IncreaseAccessToRegion(region);
             }
         }
+
+        return true;
     }
 
     private void RemoveCell(TerrainCell cell)
