@@ -9,7 +9,8 @@
         { "id": "polity", "value": "target.get_random_polity(tribe)" },
         { "id": "faction", "value": "target.get_faction(polity)" },
         { "id": "faction_core_distance", "value": "target.get_faction_core_distance(polity)" },
-        { "id": "polity_prominence", "value": "target.prominence(polity)" }
+        { "id": "polity_prominence", "value": "target.prominence(polity)" },
+        { "id": "core_distance_factor", "value": "100 / (faction_core_distance + 100)" }
       ],
       "assignmentConditions": [
         "target.has_polity_of_type(tribe)",
@@ -24,7 +25,7 @@
         "polity_prominence > 0.6",
         "target.knowledges.social_organization >= 6"
       ],
-      "timeToTrigger": "18250 + random(14600000 * (1 - saturation(faction.administrative_load, 10000)) * faction.preferences.cohesion)",
+      "timeToTrigger": "18250 + random(14600000 * (1 - saturation(faction.administrative_load, 10000)) * faction.preferences.cohesion * core_distance_factor)",
       "effects": [
         "faction.trigger_decision(event_prio, clan_decide_split, target)"
       ],
