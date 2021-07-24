@@ -33,6 +33,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     public static List<IWorldEventGenerator> OnSpawnEventGenerators;
     public static List<IWorldEventGenerator> OnCoreHighestProminenceChangeEventGenerators;
+    public static List<IWorldEventGenerator> OnPolityCountChangeEventGenerators;
+    public static List<IWorldEventGenerator> OnCoreCountChangeEventGenerators;
 
     [XmlAttribute("MT")]
     public bool MigrationTagged = false;
@@ -662,11 +664,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         OnSpawnEventGenerators = new List<IWorldEventGenerator>();
         OnCoreHighestProminenceChangeEventGenerators = new List<IWorldEventGenerator>();
+        OnCoreCountChangeEventGenerators = new List<IWorldEventGenerator>();
+        OnPolityCountChangeEventGenerators = new List<IWorldEventGenerator>();
     }
 
     private void InitializeOnSpawnEvents()
     {
-        foreach (ICellGroupEventGenerator generator in OnSpawnEventGenerators)
+        foreach (IWorldEventGenerator generator in OnSpawnEventGenerators)
         {
             if (generator is ICellGroupEventGenerator gGenerator)
             {
@@ -703,6 +707,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             FactionCores.Add(faction.Id, faction);
             Manager.AddUpdatedCell(Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
         }
+
+        World.AddGroupWithCoreCountChange(this);
     }
 
     public void RemoveFactionCore(Faction faction)
@@ -712,6 +718,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             FactionCores.Remove(faction.Id);
             Manager.AddUpdatedCell(Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
         }
+
+        World.AddGroupWithCoreCountChange(this);
     }
 
     public bool FactionHasCoreHere(Faction faction)
@@ -722,6 +730,23 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public ICollection<Faction> GetFactionCores()
     {
         return FactionCores.Values;
+    }
+
+    public bool HasPolityOfType(PolityType type)
+    {
+        foreach (var prominence in _polityProminences.Values)
+        {
+            if (_polityProminencesToRemove.Contains(prominence.PolityId))
+                continue;
+
+            if (type == PolityType.Any)
+                return true;
+
+            if (prominence.Polity.Type == type)
+                return true;
+        }
+
+        return false;
     }
 
     public CellGroupSnapshot GetSnapshot()
@@ -2497,6 +2522,16 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return polityProminence.FactionCoreDistance;
     }
 
+    public Faction GetFaction(Polity polity)
+    {
+        if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
+        {
+            return null;
+        }
+
+        return polityProminence.ClosestFaction;
+    }
+
     public float GetPolityCoreDistance(Polity polity)
     {
         if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
@@ -2958,6 +2993,28 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return true;
     }
 
+    public void OnPolityCountChange() 
+    {
+        foreach (IWorldEventGenerator generator in OnPolityCountChangeEventGenerators)
+        {
+            if (generator is ICellGroupEventGenerator gGenerator)
+            {
+                AddGeneratorToTestAssignmentFor(gGenerator);
+            }
+        }
+    }
+
+    public void OnCoreCountChange()
+    {
+        foreach (IWorldEventGenerator generator in OnCoreCountChangeEventGenerators)
+        {
+            if (generator is ICellGroupEventGenerator gGenerator)
+            {
+                AddGeneratorToTestAssignmentFor(gGenerator);
+            }
+        }
+    }
+
     /// <summary>
     /// Add a new polity prominence
     /// </summary>
@@ -3000,6 +3057,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         }
 
         World.AddPromToCalculateCoreDistFor(polityProminence);
+        World.AddGroupWithPolityCountChange(this);
     }
 
     /// <summary>
@@ -3058,6 +3116,11 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             polityProminence.ResetNeighborCoreDistances();
 
             _hasRemovedProminences = true;
+        }
+
+        if (_hasRemovedProminences)
+        {
+            World.AddGroupWithPolityCountChange(this);
         }
 
         _polityProminencesToRemove.Clear();
@@ -3168,6 +3231,31 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public void AddPropertyToLose(string property)
     {
         _propertiesToLose.Add(property);
+    }
+
+    public Polity GetRandomPolity(int rngOffset, PolityType type)
+    {
+        if (_polityProminences.Count < 1)
+            return null;
+
+        int selectionValue = GetNextLocalRandomInt(rngOffset, _polityProminences.Count);
+
+        int count = 0;
+        foreach (var prominence in _polityProminences.Values)
+        {
+            if ((type != PolityType.Any) && (prominence.Polity.Type != type))
+                continue;
+
+            if (_polityProminencesToRemove.Contains(prominence.PolityId))
+                continue;
+
+            if (count == selectionValue)
+                return prominence.Polity;
+
+            count++;
+        }
+
+        return null;
     }
 
     public void Synchronize()

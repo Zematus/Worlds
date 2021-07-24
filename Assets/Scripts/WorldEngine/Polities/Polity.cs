@@ -121,7 +121,10 @@ public abstract class Polity : ISynchronizable
     public Identifier Id => Info.Id;
 
     [XmlIgnore]
-    public string Type => Info.Type;
+    public string TypeStr => Info.TypeStr;
+
+    [XmlIgnore]
+    public PolityType Type => Info.Type;
 
     [XmlIgnore]
     public Name Name => Info.Name;

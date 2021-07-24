@@ -305,6 +305,8 @@ public class World : ISynchronizable, IWorldDateGetter
     private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToApplyEventsTo = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
+    private HashSet<CellGroup> _groupsWithPolityCountChange = new HashSet<CellGroup>();
+    private HashSet<CellGroup> _groupsWithCoreCountChange = new HashSet<CellGroup>();
 
     private HashSet<PolityProminence> _promsWithCoreDistToCalculate = new HashSet<PolityProminence>();
 
@@ -1111,6 +1113,20 @@ public class World : ISynchronizable, IWorldDateGetter
         }
 
         _groupsToPostUpdate_afterPolityUpdates.Clear();
+
+        foreach (CellGroup group in _groupsWithPolityCountChange)
+        {
+            group.OnPolityCountChange();
+        }
+
+        _groupsWithPolityCountChange.Clear();
+
+        foreach (CellGroup group in _groupsWithCoreCountChange)
+        {
+            group.OnCoreCountChange();
+        }
+
+        _groupsWithCoreCountChange.Clear();
     }
 
     private void AfterUpdateGroupCleanup() // This function cleans up flags and other properties of cell groups set by events or faction/polity updates
@@ -1822,6 +1838,16 @@ public class World : ISynchronizable, IWorldDateGetter
     public void AddPromToCalculateCoreDistFor(PolityProminence prominence)
     {
         _promsWithCoreDistToCalculate.Add(prominence);
+    }
+
+    public void AddGroupWithPolityCountChange(CellGroup group)
+    {
+        _groupsWithPolityCountChange.Add(group);
+    }
+
+    public void AddGroupWithCoreCountChange(CellGroup group)
+    {
+        _groupsWithCoreCountChange.Add(group);
     }
 
     public void AddGroupToRemove(CellGroup group)

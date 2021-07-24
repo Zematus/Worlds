@@ -501,7 +501,7 @@ public class InfoPanelScript : MonoBehaviour
 
         Polity polity = territory.Polity;
 
-        InfoText.text += "\nTerritory of the " + polity.Name.Text + " " + polity.Type.ToLower();
+        InfoText.text += "\nTerritory of the " + polity.Name.Text + " " + polity.TypeStr.ToLower();
         InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
         InfoText.text += "\nFormation Date: " + Manager.GetDateString(polity.FormationDate);
         InfoText.text += "\n";
@@ -519,7 +519,7 @@ public class InfoPanelScript : MonoBehaviour
         {
             Polity contactPolity = contact.NeighborPolity;
 
-            InfoText.text += "\n\n\tPolity: " + contactPolity.Name.Text + " " + contactPolity.Type.ToLower();
+            InfoText.text += "\n\n\tPolity: " + contactPolity.Name.Text + " " + contactPolity.TypeStr.ToLower();
 
             Faction dominantFaction = contactPolity.DominantFaction;
 
@@ -570,7 +570,7 @@ public class InfoPanelScript : MonoBehaviour
         {
             Polity polity = territory.Polity;
 
-            InfoText.text += "Territory of the " + polity.Name.Text + " " + polity.Type.ToLower();
+            InfoText.text += "Territory of the " + polity.Name.Text + " " + polity.TypeStr.ToLower();
             InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
             InfoText.text += "\nFormation Date: " + Manager.GetDateString(polity.FormationDate);
             InfoText.text += "\n";
@@ -589,7 +589,7 @@ public class InfoPanelScript : MonoBehaviour
 
             int polPopulation = (int)polity.TotalPopulation;
 
-            if (polity.Type == Tribe.PolityTypeStr)
+            if (polity.TypeStr == Tribe.PolityTypeStr)
             {
                 InfoText.text += polPopulation + " tribe members";
             }
@@ -632,7 +632,7 @@ public class InfoPanelScript : MonoBehaviour
 
         Polity polity = territory.Polity;
 
-        InfoText.text += "\nTerritory of the " + polity.Name.Text + " " + polity.Type.ToLower();
+        InfoText.text += "\nTerritory of the " + polity.Name.Text + " " + polity.TypeStr.ToLower();
         InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
         InfoText.text += "\nFormation Date: " + Manager.GetDateString(polity.FormationDate);
         InfoText.text += "\n";

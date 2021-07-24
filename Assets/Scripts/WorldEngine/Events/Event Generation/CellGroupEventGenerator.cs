@@ -27,6 +27,16 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         // can be assigned by other events by default
     }
 
+    public override void SetToAssignOnPolityCountChange()
+    {
+        CellGroup.OnPolityCountChangeEventGenerators.Add(this);
+    }
+
+    public override void SetToAssignOnCoreCountChange()
+    {
+        CellGroup.OnCoreCountChangeEventGenerators.Add(this);
+    }
+
     public override void SetToAssignOnStatusChange()
     {
         throw new System.InvalidOperationException(

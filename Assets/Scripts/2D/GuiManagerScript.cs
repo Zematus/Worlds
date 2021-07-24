@@ -3535,7 +3535,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ShowCellInfoToolTip_PolityTerritory(Polity polity, Vector3 position, float fadeStart = 5)
     {
-        string text = polity.Name.Text + " " + polity.Type.ToLower() + "\n\nFaction Influences:";
+        string text = polity.Name.Text + " " + polity.TypeStr.ToLower() + "\n\nFaction Influences:";
 
         foreach (Faction faction in polity.GetFactions())
         {
@@ -3547,7 +3547,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ShowCellInfoToolTip_PolityContacts(Polity polity, Vector3 position, float fadeStart = 5)
     {
-        string polityTitle = polity.Name.Text + " " + polity.Type.ToLower();
+        string polityTitle = polity.Name.Text + " " + polity.TypeStr.ToLower();
 
         string text;
 

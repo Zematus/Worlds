@@ -3,27 +3,30 @@
     {
       "id": "clan_decide_split",
       "name": "clan decide split",
-      "target": "faction",
-      "assignOn": ["spawn"],
+      "target": "group",
+      "assignOn": ["spawn", "polity_count_change", "core_count_change"],
       "properties": [
-        { "id": "new_core_group", "value": "target.polity.get_random_group()" },
-        { "id": "polity_prominence", "value": "new_core_group.prominence(target.polity)" }
+        { "id": "polity", "value": "target.get_random_polity(tribe)" },
+        { "id": "faction", "value": "target.get_faction(polity)" },
+        { "id": "faction_core_distance", "value": "target.get_faction_core_distance(polity)" },
+        { "id": "polity_prominence", "value": "target.prominence(polity)" }
       ],
       "assignmentConditions": [
-        "target.type == clan"
+        "target.has_polity_of_type(tribe)",
+        "target.faction_cores_count == 0"
       ],
       "triggerConditions": [
-        "target.administrative_load > 500",
-        "target.preferences.cohesion < 0.65",
-        "new_core_group.faction_core_distance(target.polity) > 500",
-        "new_core_group.polity_with_highest_prominence == target.polity",
+        "faction.type == clan",
+        "faction_core_distance > 500",
+        "faction.administrative_load > 500",
+        "faction.preferences.cohesion < 0.65",
+        "target.polity_with_highest_prominence == polity",
         "polity_prominence > 0.6",
-        "new_core_group.knowledges.social_organization >= 6",
-        "new_core_group.faction_cores_count == 0"
+        "target.knowledges.social_organization >= 6"
       ],
-      "timeToTrigger": "36500 + random(365000 * (1 - saturation(target.administrative_load, 10000)) * target.preferences.cohesion)",
+      "timeToTrigger": "18250 + random(14600000 * (1 - saturation(faction.administrative_load, 10000)) * faction.preferences.cohesion)",
       "effects": [
-        "target.trigger_decision(event_prio, clan_decide_split, new_core_group)"
+        "faction.trigger_decision(event_prio, clan_decide_split, target)"
       ],
       "repeatable": true
     },

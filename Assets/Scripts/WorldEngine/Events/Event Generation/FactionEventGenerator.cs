@@ -48,6 +48,18 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         Faction.OnGuideSwitchEventGenerators.Add(this);
     }
 
+    public override void SetToAssignOnPolityCountChange()
+    {
+        throw new System.InvalidOperationException(
+            "OnAssign does not support 'polity_count_change' for Faction");
+    }
+
+    public override void SetToAssignOnCoreCountChange()
+    {
+        throw new System.InvalidOperationException(
+            "OnAssign does not support 'core_count_change' for Factions");
+    }
+
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
         FactionModEvent modEvent = new FactionModEvent(this, Target.Faction, triggerDate);
