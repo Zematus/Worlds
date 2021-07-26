@@ -479,7 +479,7 @@ public class TerrainCell
         float aggrDiff = Culture.CalculateAggressionDiff(cultureA, cultureB);
 
         float scaleConst = 1000;
-        float aggrFactor = 1;
+        float aggrFactor;
 
         if (aggrDiff >= 0)
         {
@@ -574,15 +574,15 @@ public class TerrainCell
 
         if (ubPopulation > 0)
         {
-            float ubAggrFactor = 1;
+            float ubAggrFactor;
 
             if (isPolity)
             {
-                CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture);
+                ubAggrFactor = CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture);
             }
             else
             {
-                CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture, 0.25f);
+                ubAggrFactor = CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture, 0.25f);
             }
 
             float ubEffectivePopulation =
