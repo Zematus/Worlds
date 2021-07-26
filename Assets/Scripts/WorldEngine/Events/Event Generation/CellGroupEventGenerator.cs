@@ -67,6 +67,12 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
             "OnAssign does not support 'guide_switch' for Cell Groups");
     }
 
+    public override void SetToAssignOnCoreGroupProminenceValueBelow(string valueStr)
+    {
+        throw new System.InvalidOperationException(
+            "OnAssign does not support 'core_group_prominence_value_below' for Cell Groups");
+    }
+
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
         CellGroupModEvent modEvent =

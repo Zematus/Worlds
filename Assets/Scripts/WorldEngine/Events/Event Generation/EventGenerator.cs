@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
+using System.Text.RegularExpressions;
 
 /// <summary>
 /// Object that generates events of a certain type during the simulation run
@@ -19,6 +20,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public const string AssignOnGuideSwitch = "guide_switch";
     public const string AssignOnPolityCountChange = "polity_count_change";
     public const string AssignOnCoreCountChange = "core_count_change";
+    public const string AssignOnCoreGroupProminenceValueBelow = "core_group_prominence_value_below";
 
     public const string FactionTargetType = "faction";
     public const string GroupTargetType = "group";
@@ -117,6 +119,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public abstract void SetToAssignOnGuideSwitch();
     public abstract void SetToAssignOnPolityCountChange();
     public abstract void SetToAssignOnCoreCountChange();
+    public abstract void SetToAssignOnCoreGroupProminenceValueBelow(string valueStr);
 
     protected EventGenerator()
     {
@@ -131,7 +134,17 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
         foreach (string assignOn in AssignOn)
         {
-            switch (assignOn)
+            Match match;
+
+            if ((match = Regex.Match(assignOn, ModParseUtility.AssignOnRegex)).Success != true)
+            {
+                throw new System.Exception($"Unable to parse 'assignOn' entry: {assignOn}");
+            }
+
+            string idStr = match.Groups["identifier"].Value.Trim();
+            string valueStr = match.Groups["value"].Value.Trim();
+
+            switch (idStr)
             {
                 case AssignOnSpawn:
                     SetToAssignOnSpawn();
@@ -169,9 +182,13 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
                     SetToAssignOnGuideSwitch();
                     break;
 
+                case AssignOnCoreGroupProminenceValueBelow:
+                    SetToAssignOnCoreGroupProminenceValueBelow(valueStr);
+                    break;
+
                 default:
                     throw new System.Exception(
-                        "Unhandled event assignOn type: " + assignOn);
+                        "Unhandled event assignOn type: " + idStr);
             }
         }
     }

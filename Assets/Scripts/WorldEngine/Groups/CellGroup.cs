@@ -2598,6 +2598,16 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
             _hasRemovedProminences = false;
         }
+
+        foreach (var pair in FactionCores)
+        {
+            Faction faction = pair.Value;
+
+            float promValue = GetPolityProminenceValue(faction.PolityId);
+            {
+                faction.GenerateCoreGroupProminenceValueBelowEvents(promValue);
+            }
+        }
     }
 
     /// <summary>

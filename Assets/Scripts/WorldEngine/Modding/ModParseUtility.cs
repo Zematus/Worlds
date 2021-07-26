@@ -17,9 +17,18 @@ public static class ModParseUtility
     public const string AccessorRegexPart = @"\.";
 
     /// <summary>
+    /// Regex used to capture base values like numbers, booleans and identifiers
+    /// </summary>
+    public const string ValueRegexPart =
+        @"(?:" + NumberRegexPart +
+        @")|(?:" + BooleanRegexPart +
+        @")|(?:" + IdentifierRegexPart +
+        @")";
+
+    /// <summary>
     /// Regex used to capture base elements like numbers, booleans and identifiers
     /// </summary>
-    public const string BaseStatementRegexPart = 
+    public const string BaseStatementRegexPart =
         @"(?<number>" + NumberRegexPart +
         @")|(?<boolean>" + BooleanRegexPart +
         @")|(?<identifierStatement>" + IdentifierStatementRegexPart +
@@ -202,6 +211,14 @@ public static class ModParseUtility
         @")" +
         AccessorRegexPart +
         @"(?<attribute>" + IdentifierStatementRegexPart + @")";
+
+    /// <summary>
+    /// Regex used to capture assign on statement
+    /// </summary>
+    public const string AssignOnRegex =
+        @"^\s*(?<identifier>" + IdentifierRegexPart +
+        @")(?:\s*:\s*(?<value>" + ValueRegexPart +
+        @"))?\s*$";
 
     /// <summary>
     /// Regex used to indentify an access operation (bounded)

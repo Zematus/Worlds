@@ -4,6 +4,8 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 {
     public readonly FactionEntity Target;
 
+    public float OnCoreGroupProminenceValueBelowParameterValue;
+
     public FactionEventGenerator()
     {
         Target = new FactionEntity(this, TargetEntityId);
@@ -58,6 +60,31 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
     {
         throw new System.InvalidOperationException(
             "OnAssign does not support 'core_count_change' for Factions");
+    }
+
+    public override void SetToAssignOnCoreGroupProminenceValueBelow(string valueStr)
+    {
+        if (string.IsNullOrWhiteSpace(valueStr))
+        {
+            throw new System.ArgumentException
+                ($"parameter for 'core_group_prominence_value_below' is empty");
+        }
+
+        if (!MathUtility.TryParseCultureInvariant(valueStr, out float value))
+        {
+            throw new System.ArgumentException
+                ($"parameter for 'core_group_prominence_value_below' is not a valid number: {valueStr}");
+        }
+
+        if (!value.IsInsideRange(0, 1))
+        {
+            throw new System.ArgumentException
+                ($"parameter for 'core_group_prominence_value_below', '{valueStr}' is not a value between 0 and 1");
+        }
+
+        OnCoreGroupProminenceValueBelowParameterValue = value;
+
+        Faction.OnCoreGroupProminenceValueBelowEventGenerators.Add(this);
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)

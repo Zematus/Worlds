@@ -15,6 +15,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public static List<IWorldEventGenerator> OnSpawnEventGenerators;
     public static List<IWorldEventGenerator> OnStatusChangeEventGenerators;
     public static List<IWorldEventGenerator> OnGuideSwitchEventGenerators;
+    public static List<IWorldEventGenerator> OnCoreGroupProminenceValueBelowEventGenerators;
 
     [XmlAttribute("Inf")]
     public float InfluenceInternal;
@@ -793,6 +794,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         OnSpawnEventGenerators = new List<IWorldEventGenerator>();
         OnStatusChangeEventGenerators = new List<IWorldEventGenerator>();
         OnGuideSwitchEventGenerators = new List<IWorldEventGenerator>();
+        OnCoreGroupProminenceValueBelowEventGenerators = new List<IWorldEventGenerator>();
     }
 
     public void AddGeneratorToTestAssignmentFor(IFactionEventGenerator generator)
@@ -847,6 +849,21 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         foreach (var generator in OnGuideSwitchEventGenerators)
         {
             if (generator is IFactionEventGenerator fGenerator)
+            {
+                AddGeneratorToTestAssignmentFor(fGenerator);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tries to generate and apply all events related to core group dropping below target value
+    /// </summary>
+    public void GenerateCoreGroupProminenceValueBelowEvents(float prominenceValue)
+    {
+        foreach (var generator in OnCoreGroupProminenceValueBelowEventGenerators)
+        {
+            if ((generator is FactionEventGenerator fGenerator) &&
+                (prominenceValue < fGenerator.OnCoreGroupProminenceValueBelowParameterValue))
             {
                 AddGeneratorToTestAssignmentFor(fGenerator);
             }
