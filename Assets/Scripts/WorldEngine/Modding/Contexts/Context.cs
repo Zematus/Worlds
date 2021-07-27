@@ -21,16 +21,16 @@ public abstract class Context : IDebugLogger
 
     public string Id;
 
-    protected bool DebugEnabled
+    protected bool DebugLogEnabled
     {
         get
         {
             if (_parentContext != null)
             {
-                return _parentContext.DebugEnabled;
+                return _parentContext.DebugLogEnabled;
             }
 
-            return (Manager.CurrentDevMode == DevMode.Advanced) && _debug;
+            return (Manager.CurrentDevMode == DevMode.Advanced) && _enableDebugLog;
         }
     }
 
@@ -38,7 +38,7 @@ public abstract class Context : IDebugLogger
 
     protected Context _parentContext = null;
 
-    protected bool _debug = false;
+    protected bool _enableDebugLog = false;
 
     private string _dbgStr = null;
     private int _dbgTabCount = -1;
@@ -59,7 +59,7 @@ public abstract class Context : IDebugLogger
         }
 
         public LoadedProperty[] properties;
-        public bool debug;
+        public bool enableDebugLog;
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public abstract class Context : IDebugLogger
             }
         }
 
-        _debug = c.debug;
+        _enableDebugLog = c.enableDebugLog;
     }
 
     private void AddPropertyEntity(LoadedContext.LoadedProperty p)
@@ -160,7 +160,7 @@ public abstract class Context : IDebugLogger
             return;
         }
 
-        if (DebugEnabled)
+        if (DebugLogEnabled)
         {
             _dbgTabCount++;
 
@@ -204,7 +204,7 @@ public abstract class Context : IDebugLogger
             return;
         }
 
-        if (DebugEnabled)
+        if (DebugLogEnabled)
         {
             if (exp != null)
             {
@@ -228,7 +228,7 @@ public abstract class Context : IDebugLogger
             return;
         }
 
-        if (DebugEnabled)
+        if (DebugLogEnabled)
         {
             if (exp != null)
             {
@@ -253,7 +253,7 @@ public abstract class Context : IDebugLogger
             return;
         }
 
-        if (DebugEnabled)
+        if (DebugLogEnabled)
         {
             if (exp != null)
             {
@@ -280,7 +280,7 @@ public abstract class Context : IDebugLogger
         if (string.IsNullOrEmpty(message))
             return;
 
-        if (DebugEnabled)
+        if (DebugLogEnabled)
         {
             string idString = "[" + Id + "] ";
 
@@ -306,7 +306,7 @@ public abstract class Context : IDebugLogger
             return;
         }
 
-        if (DebugEnabled)
+        if (DebugLogEnabled)
         {
             AddDebugOutput(message);
 

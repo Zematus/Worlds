@@ -2800,7 +2800,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         {
             // try to remove prominences that would end up with a value far too small
             // NOTE: Can't do that after polities have been updated
-            if (afterPolityUpdates || !SetPolityProminenceToRemove(polity, false))
+            if (afterPolityUpdates || !SetPolityProminenceToRemove(polity, false, false))
             {
                 if (throwIfCantRemove)
                 {
@@ -2954,9 +2954,10 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <returns>'false' if the polity prominence can't be removed</returns>
     public bool SetPolityProminenceToRemove(
         Polity polity,
-        bool throwIfNotPresent = true)
+        bool throwIfNotPresent = true,
+        bool forceCoreRemoval = true)
     {
-        return SetPolityProminenceToRemove(polity.Id, throwIfNotPresent);
+        return SetPolityProminenceToRemove(polity.Id, throwIfNotPresent, forceCoreRemoval);
     }
 
     /// <summary>
@@ -2967,7 +2968,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <returns>'false' if the polity prominence can't be removed</returns>
     public bool SetPolityProminenceToRemove(
         Identifier polityId,
-        bool throwIfNotPresent = true)
+        bool throwIfNotPresent = true,
+        bool forceCoreRemoval = true)
     {
         if (!_polityProminences.ContainsKey(polityId))
         {
@@ -2999,6 +3001,30 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             return false;
         }
 
+        var prominence = GetPolityProminence(polityId);
+
+        if (!forceCoreRemoval)
+        {
+            foreach (var pair in FactionCores)
+            {
+                Faction faction = pair.Value;
+
+                if (faction.PolityId == prominence.PolityId)
+                {
+                    if (!faction.BeingRemoved)
+                    {
+                        Debug.LogWarning(
+                            $"Group has valid faction core, group: {Id}" +
+                            $", faction: {faction.Id}" +
+                            $", polity: {polityId}" +
+                            $", date: {World.CurrentDate}");
+                    }
+
+                    return false;
+                }
+            }
+        }
+        
         _polityProminencesToRemove.Add(polityId);
         return true;
     }

@@ -213,6 +213,13 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     protected bool CanAssignEventToTarget(bool displayTargetInfo = true)
     {
+//#if DEBUG
+//        if (DebugEnabled)
+//        {
+//            Debug.LogWarning("Debugging CanAssignEventToTarget");
+//        }
+//#endif
+
         OpenDebugOutput("Evaluating Assignment Conditions:");
 
         if (displayTargetInfo)

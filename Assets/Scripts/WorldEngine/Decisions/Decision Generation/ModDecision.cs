@@ -32,6 +32,8 @@ public class ModDecision : Context
 
     public IEffectTrigger Trigger { get; private set; }
 
+    public bool DebugPlayerGuidance = false;
+
     public ModDecision(string id, string targetStr)
     {
         DebugType = "Decision";

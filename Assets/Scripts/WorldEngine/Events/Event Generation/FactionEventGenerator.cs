@@ -122,10 +122,11 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         WorldEvent originalEvent = null,
         bool reassigning = false)
     {
-        if (!reassigning && faction.IsFlagSet(EventSetFlag))
-        {
+        if (faction.BeingRemoved)
             return false;
-        }
+
+        if (!reassigning && faction.IsFlagSet(EventSetFlag))
+            return false;
 
         SetTarget(faction);
 

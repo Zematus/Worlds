@@ -55,6 +55,7 @@ public class DecisionLoader
         public LoadedParameter[] parameters;
         public LoadedOptionalDescription[] description;
         public LoadedOption[] options;
+        public bool debugPlayerGuidance;
     }
 
 #pragma warning restore 0649
@@ -341,6 +342,7 @@ public class DecisionLoader
         decision.Name = d.name;
         decision.DescriptionSegments = segments;
         decision.Options = options;
+        decision.DebugPlayerGuidance = d.debugPlayerGuidance;
 
         return decision;
     }

@@ -13,6 +13,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
     public const string PreferencesAttributeId = "preferences";
     public const string TriggerDecisionAttributeId = "trigger_decision";
     public const string SplitAttributeId = "split";
+    public const string RemoveAttributeId = "remove";
     public const string CoreGroupAttributeId = "core_group";
     public const string TypeAttributeId = "type";
     public const string GuideAttributeId = "guide";
@@ -102,6 +103,17 @@ public class FactionEntity : DelayedSetEntity<Faction>
         return _coreGroupEntity.GetThisEntityAttribute(this);
     }
 
+    private EffectEntityAttribute GenerateRemoveAttribute()
+    {
+        EffectEntityAttribute attribute =
+            new EffectApplierEntityAttribute(
+                RemoveAttributeId,
+                this,
+                () => Faction.SetToRemove());
+
+        return attribute;
+    }
+
     public string GetGuide() =>
         Faction.IsUnderPlayerGuidance ? "player" : "simulation";
 
@@ -141,6 +153,9 @@ public class FactionEntity : DelayedSetEntity<Faction>
 
             case SplitAttributeId:
                 return new SplitFactionAttribute(this, arguments);
+
+            case RemoveAttributeId:
+                return GenerateRemoveAttribute();
 
             case GetRelationshipAttributeId:
                 return new GetRelationshipAttribute(this, arguments);
