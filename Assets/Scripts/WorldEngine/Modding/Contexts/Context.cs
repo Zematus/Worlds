@@ -65,7 +65,7 @@ public abstract class Context : IDebugLogger
     /// <summary>
     /// List of entities that can be referenced by expressions using this context
     /// </summary>
-    readonly private Dictionary<string, Entity> _entities =
+    readonly protected Dictionary<string, Entity> _entities =
         new Dictionary<string, Entity>();
 
     readonly private List<IReseteableEntity> _propertyEntities =

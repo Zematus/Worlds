@@ -5,7 +5,20 @@ public interface IEntity : IComparable<object>, IInputRequester, IFormattedStrin
 {
     string Id { get; }
 
-    EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null);
+    EntityAttribute GetParametricAttribute(
+        string attributeId,
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments);
+
+    EntityAttribute GetAttribute(
+        string attributeId, 
+        IExpression[] arguments = null);
+
+    ParametricSubcontext BuildParametricSubcontext(
+        Context parentContext, 
+        string attributeId, 
+        string[] paramIds);
 
     string GetDebugString();
 

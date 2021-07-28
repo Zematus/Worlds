@@ -32,7 +32,18 @@ public abstract class Entity : IEntity
         return Id + "." + attrId;
     }
 
-    public abstract EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null);
+    public virtual EntityAttribute GetParametricAttribute(
+        string attributeId,
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments)
+    {
+        throw new NotImplementedException($"Entity of type {GetType()} does not support attributes with parametric subcontexts");
+    }
+
+    public abstract EntityAttribute GetAttribute(
+        string attributeId,
+        IExpression[] arguments = null);
 
     public abstract string GetFormattedString();
 
@@ -86,6 +97,14 @@ public abstract class Entity : IEntity
         PartiallyEvaluatedStringConverter converter)
     {
         Set(o);
+    }
+
+    public virtual ParametricSubcontext BuildParametricSubcontext(
+        Context parentContext,
+        string attributeId,
+        string[] paramIds)
+    {
+        throw new NotImplementedException($"Entity of type {GetType()} does not support building parametric subcontexts");
     }
 
     public virtual EntityAttribute GetThisEntityAttribute(Entity parent)

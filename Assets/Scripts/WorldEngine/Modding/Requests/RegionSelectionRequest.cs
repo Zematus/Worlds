@@ -2,7 +2,7 @@
 
 public class RegionSelectionRequest : EntitySelectionRequest<Region>
 {
-    private HashSet<Region> _involvedRegions = null;
+    private readonly HashSet<Region> _involvedRegions = null;
 
     public ModText Text { get; private set; }
 

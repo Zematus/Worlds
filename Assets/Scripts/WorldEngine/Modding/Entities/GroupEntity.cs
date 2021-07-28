@@ -48,6 +48,12 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
     {
     }
 
+    public GroupEntity(
+        TryRequestGenMethod<CellGroup> tryRequestGenMethod, Context c, string id)
+        : base(tryRequestGenMethod, c, id)
+    {
+    }
+
     public EntityAttribute GetCellAttribute()
     {
         _cellEntity =

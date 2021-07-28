@@ -148,15 +148,11 @@
       "id": "clan_collapse",
       "name": "clan collapse",
       "target": "faction",
-      "assignOn": ["core_group_prominence_value_below:0.15"],
-      "properties": [
-        { "id": "core_group", "value": "target.core_group" },
-        { "id": "core_prominence_value", "value": "target.core_group.prominence_value(target.polity)" }
-      ],
+      "assignOn": ["core_group_prominence_value_below:0.05"],
       "assignmentConditions": [
         "target.type == clan"
       ],
-      "timeToTrigger": "15",
+      "timeToTrigger": "5",
       "effects": [
         "target.trigger_decision(event_prio, clan_collapse)"
       ]

@@ -7,7 +7,7 @@
       "description": [
         {
           "id": "description",
-          "text": "The clan <<target>> of the <<target.polity>> tribe has weakened to the point it can't mantain its integrity and the few members that remain are abandoning it or dying off. From now on, clan <<target>> will cease to exist."
+          "text": "The clan <<target>> of the <<target.polity>> tribe has weakened due to lack of prominence to the point it can no longer mantain its integrity. The few members that remain are abandoning it or dying out of old age...\n\nFrom now on, clan <<target>> will cease to exist."
         }
       ],
       "options": [

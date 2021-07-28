@@ -101,13 +101,35 @@ public static class ModParseUtility
         @"(?(open)(?!))";
 
     /// <summary>
-    /// Regex used to indetify the first argument within a set of arguments (used recursively)
+    /// Regex used to select the first argument within a set of arguments (used recursively)
     /// </summary>
     public const string ArgumentListRegex =
         @"^\s*" +
         @"(?<argument>" + ArgumentRegexPart + @")\s*" +
         @"(?:," +
             @"(?<otherArgs>" +
+                @".*" +
+            @")" +
+        @")?$";
+
+    /// <summary>
+    /// Regex used to indentify a set of parameter identifiers given to a function
+    /// </summary>
+    public const string ParamIdsRegexPart =
+        @"(?:\<" +
+            @"(?<paramIds>" + IdentifierRegexPart + @"\s*" + 
+                @"(?:,\s*" + IdentifierRegexPart  + @"\s*)*" + 
+            @")" + 
+        @"\>)";
+
+    /// <summary>
+    /// Regex used to select the first identifier within a set of identifiers (used recursively)
+    /// </summary>
+    public const string IdentifierListRegex =
+        @"^\s*" +
+        @"(?<identifier>" + IdentifierRegexPart + @")\s*" +
+        @"(?:," +
+            @"(?<otherIds>" +
                 @".*" +
             @")" +
         @")?$";
@@ -157,6 +179,7 @@ public static class ModParseUtility
     /// </summary>
     public const string IdentifierStatementRegexPart =
         @"(?<identifier>" + IdentifierRegexPart + @")\s*" +
+        @"(?:" + ParamIdsRegexPart + @")?\s*" +
         @"(?:" + ArgumentsRegexPart + @")?";
 
     /// <summary>
