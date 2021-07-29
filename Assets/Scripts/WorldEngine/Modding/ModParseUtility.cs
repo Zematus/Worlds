@@ -116,11 +116,11 @@ public static class ModParseUtility
     /// Regex used to indentify a set of parameter identifiers given to a function
     /// </summary>
     public const string ParamIdsRegexPart =
-        @"(?:\<" +
+        @"(?:\[" +
             @"(?<paramIds>" + IdentifierRegexPart + @"\s*" + 
                 @"(?:,\s*" + IdentifierRegexPart  + @"\s*)*" + 
             @")" + 
-        @"\>)";
+        @"\])";
 
     /// <summary>
     /// Regex used to select the first identifier within a set of identifiers (used recursively)
