@@ -331,7 +331,9 @@ public class PolityProminenceCluster : Identifiable, ISynchronizable
             p.World = Polity.World;
             p.Group = Polity.World.GetGroup(pair.Key);
             p.Polity = Polity;
-            p.ClosestFaction = Polity.GetFaction(p.ClosestFactionId);
+
+            p.SetClosestFaction(Polity.GetFaction(p.ClosestFactionId));
+
             p.Cluster = this;
 
             if (p.ClosestFaction == null)

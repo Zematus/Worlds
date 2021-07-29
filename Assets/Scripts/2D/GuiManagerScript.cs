@@ -306,7 +306,6 @@ public class GuiManagerScript : MonoBehaviour
     private long _simulationDateSpan = 0;
 
     private bool _willFinishResolvingDecision = false;
-    private bool _resolvedDecision = false;
 
     private int _mapUpdateCount = 0;
     private int _pixelUpdateCount = 0;
@@ -2348,7 +2347,6 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ResetSimulationState()
     {
-        _resolvedDecision = false;
         _resolvingDecision = false;
         _willFinishResolvingDecision = false;
         _doneHandlingRequest = false;
@@ -2658,7 +2656,6 @@ public class GuiManagerScript : MonoBehaviour
 
         _willFinishResolvingDecision = false;
         _resolvingDecision = false;
-        _resolvedDecision = true;
     }
 
     public void ChangePlanetOverlayToSelected()

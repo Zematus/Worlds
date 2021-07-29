@@ -1648,7 +1648,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             // We want to update the polity if a group is removed.
             SetPolityUpdate(polityProminence, true);
 
-            polityProminence.ResetNeighborCoreDistances();
+            polityProminence.Destroy();
         }
 
         if (Cell.TerritoryToAddTo != null)
@@ -3159,7 +3159,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 SetPolityUpdate(polityProminence, true);
             }
 
-            polityProminence.ResetNeighborCoreDistances();
+            polityProminence.Destroy();
 
             _hasRemovedProminences = true;
         }

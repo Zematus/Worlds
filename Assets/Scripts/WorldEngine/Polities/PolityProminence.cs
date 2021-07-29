@@ -27,7 +27,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
         set { ClosestFactionId = value; }
     }
     [XmlIgnore]
-    public Identifier ClosestFactionId;
+    public Identifier ClosestFactionId = null;
     #endregion
 
     #region PolityId
@@ -56,7 +56,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
     public PolityProminenceCluster Cluster = null;
 
     [XmlIgnore]
-    public Faction ClosestFaction;
+    public Faction ClosestFaction = null;
     [XmlIgnore]
     public Polity Polity;
 
@@ -125,6 +125,26 @@ public class PolityProminence // : IKeyedValue<Identifier>
         }
     }
 
+    public void Destroy()
+    {
+        ClosestFaction?.RemoveInnerGroup(Group);
+
+        ResetNeighborCoreDistances();
+    }
+
+    public void SetClosestFaction(Faction faction)
+    {
+        if (ClosestFaction == faction)
+            return;
+
+        ClosestFaction?.RemoveInnerGroup(Group);
+
+        ClosestFaction = faction;
+        ClosestFactionId = faction?.Id;
+
+        faction?.AddInnerGroup(Group);
+    }
+
     /// <summary>
     /// Define the new core distances to update this prominence with
     /// </summary>
@@ -143,8 +163,8 @@ public class PolityProminence // : IKeyedValue<Identifier>
         {
             FactionCoreDistance = newFactionCoreDistance;
             PolityCoreDistance = newPolityCoreDistance;
-            ClosestFaction = closestFaction;
-            ClosestFactionId = closestFaction.Id;
+
+            SetClosestFaction(closestFaction);
 
 #if DEBUG
             PrevCoreDistanceSet = LastCoreDistanceSet;
@@ -369,8 +389,8 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
             prom.FactionCoreDistance = MaxCoreDistance;
             prom.PolityCoreDistance = MaxCoreDistance;
-            prom.ClosestFaction = Polity.DominantFaction;
-            prom.ClosestFactionId = Polity.DominantFactionId;
+
+            prom.SetClosestFaction(Polity.DominantFaction);
 
 #if DEBUG
             prom.LastCoreDistanceReset = Manager.CurrentWorld.CurrentDate;

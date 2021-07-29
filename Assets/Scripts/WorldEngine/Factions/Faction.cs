@@ -137,6 +137,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlIgnore]
     public long CurrentDate => World.CurrentDate;
 
+    [XmlIgnore]
+    public HashSet<CellGroup> InnerGroups = new HashSet<CellGroup>();
+
     protected Dictionary<Identifier, FactionRelationship> _relationships =
         new Dictionary<Identifier, FactionRelationship>();
 
@@ -275,6 +278,16 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         Info.Faction = null;
 
         StillPresent = false;
+    }
+
+    public void AddInnerGroup(CellGroup group)
+    {
+        InnerGroups.Add(group);
+    }
+
+    public void RemoveInnerGroup(CellGroup group)
+    {
+        InnerGroups.Remove(group);
     }
 
     /// <summary>
