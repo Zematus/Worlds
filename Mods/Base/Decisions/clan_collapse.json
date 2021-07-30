@@ -17,7 +17,7 @@
           "effects": [
             {
               "id": "collapse_clan",
-              "text": "the clan <<target>> dissapears...",
+              "text": "the clan <<target>> disappears...",
               "result": "target.remove()"
             }
           ]

@@ -521,15 +521,7 @@ public abstract class Polity : ISynchronizable
 
             if (resetCoreDistances)
             {
-                PolityProminence prom = CoreGroup.GetPolityProminence(Id);
-
-                if (prom == null)
-                {
-                    throw new System.Exception(
-                        $"Unable to find prominence with Id {Id} in group {CoreGroup.Id}");
-                }
-
-                prom.ResetCoreDistances(addToRecalcs: true);
+                CoreGroup.ResetCoreDistances(Id, true);
             }
         }
 
@@ -541,14 +533,7 @@ public abstract class Polity : ISynchronizable
 
         if (resetCoreDistances)
         {
-            PolityProminence prom = CoreGroup.GetPolityProminence(Id);
-
-            if (prom == null)
-            {
-                throw new System.Exception("Unable to find prominence with Id " + Id + " in group " + CoreGroup.Id);
-            }
-
-            prom.ResetCoreDistances(addToRecalcs: true);
+            CoreGroup.ResetCoreDistances(Id, true);
         }
     }
 

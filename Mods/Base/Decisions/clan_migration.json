@@ -1,0 +1,80 @@
+{
+  "decisions": [
+    {
+      "id": "clan_migration",
+      "name": "clan migration",
+      "target": "faction",
+      "parameters": [
+        { "id": "valid_groups", "type": "group_collection" }
+      ],
+      "properties": [
+        { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" }
+      ],
+      "description": [
+        {
+          "id": "description",
+          "text": "The clan <<target>> is losing prominence on the head of the clan's homeplace. If this continues, the clan risks losing its integrity and disappear. There's currently a chance though for the leader of the clan, <<target.leader>>, to move the location of their homeplace to a new location. There likely won't be another opportunity to make this move in the future."
+        }
+      ],
+      "options": [
+        {
+          "id": "randomly_move_core",
+          "text": "[Warning: simulation AI only] We'll a random location for the new homeplace...",
+          "effects": [
+            {
+              "id": "move_core_random",
+              "properties": [
+                { "id": "new_core_group", "value": "valid_groups.select_random()" }
+              ],
+              "text": "the clan <<target>> moves its core to a random location near its previous homeplace",
+              "result": "target.migrate_core_to_group(new_core_group)"
+            }
+          ],
+          "weight": "1 - target.preferences.cohesion",
+          "allowedGuide": "simulation"
+        },
+        {
+          "id": "select_new_core",
+          "text": "We'll move our homeplace to a better location...",
+          "effects": [
+            {
+              "id": "move_core_select",
+              "properties": [
+              { "id": "gs_description", "value": "''Select group the clan <<target>> tribe should move its homeplace to...''" },
+              { "id": "new_core_group", "value": "valid_groups.request_selection(gs_description)" }
+              ],
+              "text": "Player selects a valid location near the clan's previous homeplace",
+              "result": "target.migrate_core_to_group(new_core_group)"
+            }
+          ],
+          "allowedGuide": "player"
+        },
+        {
+          "id": "persist",
+          "text": "We will remain at our current location and persevere!",
+          "effects": [
+            {
+              "id": "increase_cohesion",
+              "properties": [
+                { "id": "min_new_cohesion_pref", "value": "lerp(target.preferences.cohesion, 1, 0.2 * charisma_factor)" },
+                { "id": "max_new_cohesion_pref", "value": "lerp(target.preferences.cohesion, 1, 0.5 * charisma_factor)" }
+              ],
+              "text": "Clan <<target>>: cohesion preference (<<target.preferences.cohesion>>) increases to a value between <<min_new_cohesion_pref>> and <<max_new_cohesion_pref>>",
+              "result": "target.preferences.cohesion = random(min_new_cohesion_pref, max_new_cohesion_pref)"
+            },
+            {
+              "id": "increase_aggression",
+              "properties": [
+                { "id": "min_new_aggression_pref", "value": "lerp(target.preferences.aggression, 1, 0.2 * charisma_factor)" },
+                { "id": "max_new_aggression_pref", "value": "lerp(target.preferences.aggression, 1, 0.5 * charisma_factor)" }
+              ],
+              "text": "Clan <<target>>: aggression preference (<<target.preferences.aggression>>) increases to a value between <<min_new_aggression_pref>> and <<max_new_aggression_pref>>",
+              "result": "target.preferences.cohesion = random(min_new_aggression_pref, max_new_aggression_pref)"
+            }
+          ],
+          "weight": "target.preferences.cohesion"
+        }
+      ]
+    }
+  ]
+}

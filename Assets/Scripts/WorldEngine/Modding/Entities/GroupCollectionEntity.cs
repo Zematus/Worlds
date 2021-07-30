@@ -10,6 +10,11 @@ public class GroupCollectionEntity : CollectionEntity<CellGroup>
     private readonly List<GroupEntity>
         _groupEntitiesToSet = new List<GroupEntity>();
 
+    public GroupCollectionEntity(Context c, string id)
+        : base(c, id)
+    {
+    }
+
     public GroupCollectionEntity(
         CollectionGetterMethod<CellGroup> getterMethod, Context c, string id)
         : base(getterMethod, c, id)

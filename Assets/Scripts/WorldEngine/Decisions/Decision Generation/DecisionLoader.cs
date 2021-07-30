@@ -236,6 +236,9 @@ public class DecisionLoader
             case "group":
                 return new GroupEntity(c, p.id);
 
+            case "group_collection":
+                return new GroupCollectionEntity(c, p.id);
+
             case "faction":
                 return new FactionEntity(c, p.id);
 

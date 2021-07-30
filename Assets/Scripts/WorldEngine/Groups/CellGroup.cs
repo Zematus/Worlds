@@ -2552,6 +2552,19 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return polityProminence.PolityCoreDistance;
     }
 
+    public void ResetCoreDistances(Identifier polityId, bool addToRecalcs = false)
+    {
+        var prom = GetPolityProminence(polityId);
+
+        if (prom == null)
+        {
+            throw new System.Exception(
+                $"Unable to find prominence with Id {polityId} in group {Id}");
+        }
+
+        prom.ResetCoreDistances(addToRecalcs: addToRecalcs);
+    }
+
 #if DEBUG
     /// <summary>
     /// Updates polity prominences and values (for unit tests only)

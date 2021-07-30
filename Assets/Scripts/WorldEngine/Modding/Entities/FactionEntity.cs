@@ -10,6 +10,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
     public const string TriggerDecisionAttributeId = "trigger_decision";
     public const string SplitAttributeId = "split";
     public const string RemoveAttributeId = "remove";
+    public const string MigrateCoreToGroupAttributeId = "migrate_core_to_group";
     public const string CoreGroupAttributeId = "core_group";
     public const string TypeAttributeId = "type";
     public const string GuideAttributeId = "guide";
@@ -116,6 +117,38 @@ public class FactionEntity : DelayedSetEntity<Faction>
         return attribute;
     }
 
+    public EffectEntityAttribute GetMigrateCoreToGroupAttribute(IExpression[] arguments)
+    {
+        if ((arguments == null) || (arguments.Length < 1))
+        {
+            throw new System.ArgumentException(
+                $"{MigrateCoreToGroupAttributeId}: expected one argument");
+        }
+
+        var entityExp = 
+            ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
+
+        EffectEntityAttribute attribute =
+            new EffectApplierEntityAttribute(
+                MigrateCoreToGroupAttributeId,
+                this,
+                () => {
+                    GroupEntity groupEntity = entityExp.Value as GroupEntity;
+
+                    if (groupEntity == null)
+                    {
+                        throw new System.ArgumentException(
+                            $"{MigrateCoreToGroupAttributeId}: invalid faction to set relationship to:" +
+                            $"\n - expression: {ToString()}" +
+                            $"\n - group: {entityExp.ToPartiallyEvaluatedString()}");
+                    }
+
+                    Faction.MigrateCoreToGroup(groupEntity.Group);
+                });
+
+        return attribute;
+    }
+
     public string GetGuide() =>
         Faction.IsUnderPlayerGuidance ? "player" : "simulation";
 
@@ -152,7 +185,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
         if ((paramIds == null) || (paramIds.Length < 1))
         {
             throw new System.ArgumentException(
-                GetGroupsWithConditionAttributeId + ": expected at least one parameter identifier");
+                GetGroupsWithConditionAttributeId + ": expected one parameter identifier");
         }
 
         GroupEntity paramGroupEntity = subcontext.GetEntity(paramIds[0]) as GroupEntity;
@@ -160,7 +193,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
         if ((arguments == null) || (arguments.Length < 1))
         {
             throw new System.ArgumentException(
-                GetGroupsWithConditionAttributeId + ": expected at least one condition argument");
+                GetGroupsWithConditionAttributeId + ": expected one condition argument");
         }
 
         var conditionExp = ValueExpressionBuilder.ValidateValueExpression<bool>(arguments[0]);
@@ -274,6 +307,9 @@ public class FactionEntity : DelayedSetEntity<Faction>
 
             case CoreGroupAttributeId:
                 return GetCoreGroupAttribute();
+
+            case MigrateCoreToGroupAttributeId:
+                return GetMigrateCoreToGroupAttribute(arguments);
 
             case GetGroupsWithConditionAttributeId:
                 throw new System.ArgumentException($"Faction: '{attributeId}' is a parametric attribute");

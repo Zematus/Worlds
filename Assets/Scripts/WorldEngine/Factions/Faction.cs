@@ -107,9 +107,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public CellGroup CoreGroup;
 
     [XmlIgnore]
-    public CellGroup NewCoreGroup = null;
-
-    [XmlIgnore]
     public bool IsInitialized = false;
 
     [XmlIgnore]
@@ -295,8 +292,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     /// </summary>
     public void SetToRemove()
     {
-        PolityProminence prominence = CoreGroup.GetPolityProminence(PolityId);
-        prominence.ResetCoreDistances();
+        CoreGroup.ResetCoreDistances(PolityId, true);
 
         World.AddFactionToRemove(this);
 
@@ -602,24 +598,27 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         HasBeenUpdated = false;
     }
 
-    public void PrepareNewCoreGroup(CellGroup coreGroup)
+    public void MigrateCoreToGroup(CellGroup group)
     {
-        NewCoreGroup = coreGroup;
-    }
+        if (group == CoreGroup)
+            return;
 
-    [System.Obsolete]
-    public void MigrateToNewCoreGroup()
-    {
+        if (group == null)
+            throw new ArgumentNullException("MigrateCoreToGroup: group to se as core can't be null");
+
         CoreGroup.RemoveFactionCore(this);
+        CoreGroup.ResetCoreDistances(PolityId, true);
 
-        CoreGroup = NewCoreGroup;
-        CoreGroupId = NewCoreGroup.Id;
+        CoreGroup = group;
+        CoreGroupId = group.Id;
 
-        CoreGroup.AddFactionCore(this);
+        group.AddFactionCore(this);
+        var prom = group.GetPolityProminence(PolityId);
+        World.AddPromToCalculateCoreDistFor(prom);
 
         if (IsDominant)
         {
-            Polity.SetCoreGroup(CoreGroup);
+            Polity.SetCoreGroup(group);
         }
     }
 
@@ -752,9 +751,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         Polity.RemoveFaction(this);
 
-        var prom = CoreGroup.GetPolityProminence(Polity);
-
-        prom.ResetCoreDistances(addToRecalcs: true);
+        CoreGroup.ResetCoreDistances(PolityId, true);
 
         Polity = targetPolity;
         PolityId = Polity.Id;

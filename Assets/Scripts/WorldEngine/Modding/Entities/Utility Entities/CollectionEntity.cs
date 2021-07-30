@@ -17,6 +17,11 @@ public abstract class CollectionEntity<T> : Entity
     protected ICollection<T> _collection = null;
     protected bool _isReset = false;
 
+    public CollectionEntity(Context c, string id)
+        : base(c, id)
+    {
+    }
+
     public CollectionEntity(
         CollectionGetterMethod<T> getterMethod, Context c, string id)
         : base(c, id)
