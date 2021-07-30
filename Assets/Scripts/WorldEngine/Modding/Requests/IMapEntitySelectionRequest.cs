@@ -2,5 +2,5 @@
 
 public interface IMapEntitySelectionRequest
 {
-    public ModText Text { get; }
+    ModText Text { get; }
 }
