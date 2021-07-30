@@ -176,8 +176,7 @@
       "timeToTrigger": "15 + random(1825 * core_prominence_value)",
       "effects": [
         "target.trigger_decision(event_prio, clan_migration, valid_groups)"
-      ],
-      "enableDebugLog": true
+      ]
     },
     {
       "id": "expand_toward_region",

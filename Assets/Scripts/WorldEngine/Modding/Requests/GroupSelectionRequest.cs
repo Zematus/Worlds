@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-public class GroupSelectionRequest : EntitySelectionRequest<CellGroup>
+public class GroupSelectionRequest : EntitySelectionRequest<CellGroup>, IMapEntitySelectionRequest
 {
     private readonly HashSet<CellGroup> _involvedGroups = null;
 

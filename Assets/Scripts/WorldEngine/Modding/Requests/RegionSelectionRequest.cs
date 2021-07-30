@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-public class RegionSelectionRequest : EntitySelectionRequest<Region>
+public class RegionSelectionRequest : EntitySelectionRequest<Region>, IMapEntitySelectionRequest
 {
     private readonly HashSet<Region> _involvedRegions = null;
 

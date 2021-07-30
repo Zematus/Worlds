@@ -1730,6 +1730,8 @@ public class GuiManagerScript : MonoBehaviour
             _doneHandlingRequest = TryCompleteRegionSelectionRequest(rsRequest, clickedCell);
             return;
         }
+
+        throw new System.NotImplementedException("No method defined to complete current input request");
     }
 
     private bool TryCompleteRegionSelectionRequest(
@@ -2594,13 +2596,20 @@ public class GuiManagerScript : MonoBehaviour
     {
         Manager.CurrentInputRequest = request;
 
+        if (request is IMapEntitySelectionRequest mapRequest)
+        {
+            DisplayNonBlockingMessage.Invoke(mapRequest.Text.GetFormattedString());
+
+            _mapLeftClickOp += ClickOp_SelectRequestTarget;
+        }
+
         if (request is RegionSelectionRequest rsRequest)
         {
             ChangePlanetOverlay(PlanetOverlay.RegionSelection, temporary: true);
-
-            DisplayNonBlockingMessage.Invoke(rsRequest.Text.GetFormattedString());
-
-            _mapLeftClickOp += ClickOp_SelectRequestTarget;
+        }
+        else if (request is GroupSelectionRequest gsRequest)
+        {
+            throw new System.NotImplementedException("Group selection request handling not fully implemented");
         }
     }
 

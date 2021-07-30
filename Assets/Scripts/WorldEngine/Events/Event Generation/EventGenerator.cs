@@ -342,7 +342,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     public void TriggerEvent(WorldEvent sourceEvent)
     {
-        OpenDebugOutput("Applying Effects:");
+        OpenDebugOutput("Applying Event Effects:");
 
         AddDebugOutput(
             $"\tSpawn Date: {Manager.GetDateString(sourceEvent.SpawnDate)}");

@@ -74,7 +74,8 @@
           ],
           "weight": "target.preferences.cohesion"
         }
-      ]
+      ],
+      "enableDebugLog": true
     }
   ]
 }

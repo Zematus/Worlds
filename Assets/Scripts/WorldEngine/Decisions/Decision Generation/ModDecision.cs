@@ -227,6 +227,10 @@ public class ModDecision : Context
                         $"zero: {weightPartialExpression}\n - weight: {weight}");
                 }
             }
+            else
+            {
+                AddDebugOutput("  Option not allowed");
+            }
 
             CloseDebugOutput();
 
@@ -265,12 +269,18 @@ public class ModDecision : Context
 
         if (effects != null)
         {
+            OpenDebugOutput("Applying simulation chosen decision option effects:");
+
             // Apply all option effects
             foreach (DecisionOptionEffect effect in effects)
             {
+                AddExpDebugOutput("Effect", effect.Result);
+
                 effect.Result.Trigger = Trigger;
                 effect.Result.Apply();
             }
+
+            CloseDebugOutput();
         }
 
         CloseDebugOutput();
