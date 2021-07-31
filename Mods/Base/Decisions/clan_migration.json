@@ -40,7 +40,7 @@
             {
               "id": "move_core_select",
               "properties": [
-              { "id": "gs_description", "value": "''Select group the clan <<target>> tribe should move its homeplace to...''" },
+              { "id": "gs_description", "value": "''Select the group the clan <<target>> tribe should move its homeplace to...''" },
               { "id": "new_core_group", "value": "valid_groups.request_selection(gs_description)" }
               ],
               "text": "Player selects a valid location near the clan's previous homeplace",

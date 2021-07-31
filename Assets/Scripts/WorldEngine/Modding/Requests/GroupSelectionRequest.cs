@@ -25,11 +25,11 @@ public class GroupSelectionRequest : EntitySelectionRequest<CellGroup>, IMapEnti
 
         // Set involved groups as filtered so that the UI can quickly filter them
 
-        guidedFaction.CoreGroup.AssignedFilterType = CellGroup.FilterType.Core;
+        guidedFaction.CoreGroup.Cell.AssignedFilterType = TerrainCell.FilterType.Core;
 
         foreach (var group in collection)
         {
-            group.AssignedFilterType = CellGroup.FilterType.Selectable;
+            group.Cell.AssignedFilterType = TerrainCell.FilterType.Selectable;
         }
     }
 
@@ -37,7 +37,7 @@ public class GroupSelectionRequest : EntitySelectionRequest<CellGroup>, IMapEnti
     {
         foreach (var group in _involvedGroups)
         {
-            group.AssignedFilterType = CellGroup.FilterType.None;
+            group.Cell.AssignedFilterType = TerrainCell.FilterType.None;
         }
 
         base.Close();

@@ -6,12 +6,6 @@ using UnityEngine.Profiling;
 
 public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 {
-    public enum FilterType
-    {
-        None,
-        Core,
-        Selectable
-    }
 
     [XmlIgnore]
     public World World;
@@ -200,9 +194,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     [XmlIgnore]
     public float MigrationPressure = 0;
-
-    [XmlIgnore]
-    public FilterType AssignedFilterType = FilterType.None;
 
     [XmlIgnore]
     public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill>();

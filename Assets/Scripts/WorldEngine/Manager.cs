@@ -61,6 +61,7 @@ public enum PlanetOverlay
     Layer,
     Region,
     RegionSelection,
+    CellSelection,
     Language,
     PopChange,
     MigrationPressure,
@@ -149,7 +150,8 @@ public class Manager
 
     //	public static IRecorder Recorder = DefaultRecorder.Default;
 
-    public const string NoOverlaySubtype = "None";
+    public const string NoOverlaySubtype = "none";
+    public const string GroupProminenceOverlaySubtype = "prominence";
 
     public const int WorldWidth = 400;
     public const int WorldHeight = 200;
@@ -1682,7 +1684,8 @@ public class Manager
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.DrainageBasins) ||
             (overlay == PlanetOverlay.Temperature) ||
-            (overlay == PlanetOverlay.FarmlandDistribution))
+            (overlay == PlanetOverlay.FarmlandDistribution) ||
+            (overlay == PlanetOverlay.CellSelection))
         {
             _observableUpdateTypes = CellUpdateType.Cell;
         }
@@ -1796,6 +1799,10 @@ public class Manager
         {
             _highlightMode = HighlightMode.OnHoveredCollection;
             _filterHighlightCollection = FilterSelectableRegion;
+        }
+        else if (overlay == PlanetOverlay.CellSelection)
+        {
+            _highlightMode = HighlightMode.OnHoveredCell;
         }
         else if ((overlay == PlanetOverlay.PolityContacts) ||
             (overlay == PlanetOverlay.PolityCoreRegions))
@@ -3258,6 +3265,14 @@ public class Manager
                 color = SetRegionSelectionOverlayColor(cell, color);
                 break;
 
+            case PlanetOverlay.CellSelection:
+                if (_planetOverlaySubtype == GroupProminenceOverlaySubtype)
+                    color = SetGroupSelectionByProminenceOverlayColor(cell, color);
+                else
+                    throw new System.Exception(
+                        $"Unsupported Planet Overlay Subtype: {_planetOverlaySubtype}");
+                break;
+
             case PlanetOverlay.Language:
                 color = SetLanguageOverlayColor(cell, color);
                 break;
@@ -3283,7 +3298,8 @@ public class Manager
                 break;
 
             default:
-                throw new System.Exception("Unsupported Planet Overlay Type");
+                throw new System.Exception(
+                    $"Unsupported Planet Overlay Type: {_planetOverlay}");
         }
 
         return color;
@@ -3552,6 +3568,28 @@ public class Manager
             regionColor.a = 0.5f;
 
             color = regionColor;
+        }
+
+        return color;
+    }
+
+    private static Color SetGroupSelectionByProminenceOverlayColor(TerrainCell cell, Color color)
+    {
+        if (CurrentWorld.GuidedFaction == null)
+            throw new System.Exception("Can't generate overlay without an active guided faction");
+
+        if (!(CurrentInputRequest is GroupSelectionRequest))
+            throw new System.Exception("Can't generate overlay without an region selection request");
+
+        color = SetPolityProminenceOverlayColor(cell, color);
+
+        if (cell.AssignedFilterType == TerrainCell.FilterType.None)
+        {
+            color *= 0.37f;
+        }
+        else if (cell.AssignedFilterType == TerrainCell.FilterType.Core)
+        {
+            color = (color * 0.5f) + (Color.white * 0.5f);
         }
 
         return color;

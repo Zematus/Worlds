@@ -50,6 +50,13 @@ public enum CellUpdateSubType
 
 public class TerrainCell
 {
+    public enum FilterType
+    {
+        None,
+        Core,
+        Selectable
+    }
+
 #if DEBUG
     public delegate void GetNextLocalRandomCalledDelegate(string callerMethod);
 
@@ -209,6 +216,8 @@ public class TerrainCell
 
     public bool IsSelected = false;
     public bool IsHovered = false;
+
+    public FilterType AssignedFilterType = FilterType.None;
 
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
 

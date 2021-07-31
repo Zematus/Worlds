@@ -1353,5 +1353,13 @@ public class InfoPanelScript : MonoBehaviour
         {
             AddCellDataToInfoPanel_PopCulturalDiscovery(cell);
         }
+
+        if (Manager.PlanetOverlay == PlanetOverlay.CellSelection)
+        {
+            if (Manager.PlanetOverlaySubtype == Manager.GroupProminenceOverlaySubtype)
+                AddCellDataToInfoPanel_PolityProminence(cell);
+            else
+                AddCellDataToInfoPanel_Terrain(cell);
+        }
     }
 }

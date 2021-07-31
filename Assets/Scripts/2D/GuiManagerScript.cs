@@ -2037,6 +2037,9 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.RegionSelection:
                 planetOverlayStr = "_region_select";
                 break;
+            case PlanetOverlay.CellSelection:
+                planetOverlayStr = "_cell_select";
+                break;
             case PlanetOverlay.PopChange:
                 planetOverlayStr = "_population_change";
                 break;
@@ -2612,7 +2615,10 @@ public class GuiManagerScript : MonoBehaviour
         }
         else if (request is GroupSelectionRequest gsRequest)
         {
-            throw new System.NotImplementedException("Group selection request handling not fully implemented");
+            ChangePlanetOverlay(
+                PlanetOverlay.CellSelection, 
+                Manager.GroupProminenceOverlaySubtype, 
+                temporary: true);
         }
     }
 
@@ -3774,6 +3780,46 @@ public class GuiManagerScript : MonoBehaviour
         InfoTooltipScript.DisplayTip(_lastHoveredOverRegion.Name.Text, tooltipPos);
     }
 
+    private int ComparePromValuesDescending(PolityProminence a, PolityProminence b)
+    {
+        if (a.Value > b.Value) return -1;
+        if (a.Value < b.Value) return 1;
+        return 0;
+    }
+
+    private void ShowCellInfoToolTip_GroupProminenceSelection(TerrainCell cell)
+    {
+        Faction guidedFaction = Manager.CurrentWorld.GuidedFaction ??
+            throw new System.Exception("Can't show tooltip without an active guided faction");
+
+        if (!(Manager.CurrentInputRequest is GroupSelectionRequest))
+            throw new System.Exception("Can't show tooltip without an group selection request");
+
+        if ((_lastHoveredCell == null) ||
+            (_lastHoveredCell.AssignedFilterType != TerrainCell.FilterType.Selectable))
+        {
+            InfoTooltipScript.SetVisible(false);
+            return;
+        }
+
+        Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(cell.Position) + _tooltipOffset;
+
+        CellGroup group = cell.Group ??
+            throw new System.Exception($"Terrain cell {cell.Position} has no group");
+
+        string text = "Prominence Values:";
+
+        var prominences = new List<PolityProminence>(group.GetPolityProminences());
+        prominences.Sort(ComparePromValuesDescending);
+
+        foreach (var prominence in prominences)
+        {
+            text += $"\n\t{prominence.Polity.Name.Text}: {prominence.Value:0.000}";
+        }
+
+        InfoTooltipScript.DisplayTip(text, tooltipPos);
+    }
+
     public void BeginDrag(BaseEventData data)
     {
         if (Manager.ViewingGlobe)
@@ -3872,5 +3918,10 @@ public class GuiManagerScript : MonoBehaviour
             ShowCellInfoToolTip_Region(hoveredCell);
         else if (_planetOverlay == PlanetOverlay.RegionSelection)
             ShowCellInfoToolTip_RegionSelection(hoveredCell);
+        else if (_planetOverlay == PlanetOverlay.CellSelection)
+        {
+            if (_planetOverlaySubtype == Manager.GroupProminenceOverlaySubtype)
+                ShowCellInfoToolTip_GroupProminenceSelection(hoveredCell);
+        }
     }
 }
