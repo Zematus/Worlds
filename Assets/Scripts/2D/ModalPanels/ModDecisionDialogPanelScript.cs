@@ -104,7 +104,10 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
 
                 foreach (DecisionOptionEffect effect in option.Effects)
                 {
-                    option.AddExpDebugOutput("Effect", effect.Result);
+                    if (effect.Result.RequiresInput)
+                        option.AddDebugOutput($"Effect {effect.Id} waiting for player input...");
+                    else
+                        option.AddExpDebugOutput("Effect", effect.Result);
 
                     effect.Result.Trigger = _decision.Trigger;
                     world.AddEffectToResolve(effect.Result);

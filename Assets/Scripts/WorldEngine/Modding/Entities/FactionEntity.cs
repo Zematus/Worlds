@@ -112,7 +112,8 @@ public class FactionEntity : DelayedSetEntity<Faction>
             new EffectApplierEntityAttribute(
                 RemoveAttributeId,
                 this,
-                () => Faction.SetToRemove());
+                () => Faction.SetToRemove(),
+                null);
 
         return attribute;
     }
@@ -144,7 +145,8 @@ public class FactionEntity : DelayedSetEntity<Faction>
                     }
 
                     Faction.MigrateCoreToGroup(groupEntity.Group);
-                });
+                },
+                arguments);
 
         return attribute;
     }

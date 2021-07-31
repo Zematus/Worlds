@@ -2430,11 +2430,14 @@ public class GuiManagerScript : MonoBehaviour
 
             Faction targetFaction = initializer.TargetFaction;
 
-            bool underPlayerGuidance =
-                targetFaction.IsUnderPlayerGuidance ||
-                (decisionToResolve.DebugPlayerGuidance && (Manager.CurrentDevMode == DevMode.Advanced));
+            if (decisionToResolve.DebugPlayerGuidance &&
+                !targetFaction.IsUnderPlayerGuidance &&
+                (Manager.CurrentDevMode == DevMode.Advanced))
+            {
+                Manager.SetGuidedFaction(targetFaction);
+            }
 
-            if (underPlayerGuidance)
+            if (targetFaction.IsUnderPlayerGuidance)
             {
                 RequestModDecisionResolution(decisionToResolve);
                 return false;

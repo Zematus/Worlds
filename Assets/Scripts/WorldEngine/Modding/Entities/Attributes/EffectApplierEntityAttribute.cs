@@ -15,8 +15,9 @@ public class EffectApplierEntityAttribute : EffectEntityAttribute
         string id,
         Entity entity,
         EffectApplierMethod applierMethod,
+        IExpression[] arguments,
         PartiallyEvaluatedStringConverter converter = null)
-        : base(id, entity, null)
+        : base(id, entity, arguments)
     {
         _applierMethod = applierMethod;
         _partialEvalStringConverter = converter;
