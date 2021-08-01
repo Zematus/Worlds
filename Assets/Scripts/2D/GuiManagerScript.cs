@@ -1730,12 +1730,27 @@ public class GuiManagerScript : MonoBehaviour
             _doneHandlingRequest = TryCompleteRegionSelectionRequest(rsRequest, clickedCell);
             return;
         }
+        else if (Manager.CurrentInputRequest is GroupSelectionRequest gsRequest)
+        {
+            _doneHandlingRequest = TryCompleteGroupSelectionRequest(gsRequest, clickedCell);
+            return;
+        }
 
-        throw new System.NotImplementedException("No method defined to complete current input request");
+        throw new System.NotImplementedException(
+            $"No method defined to complete input request of type: {Manager.CurrentInputRequest.GetType()}");
+    }
+
+    private void CompleteSelectRequestTargetOp()
+    {
+        HideNonBlockingMessage.Invoke();
+
+        RevertTempPlanetOverlay();
+
+        _mapLeftClickOp -= ClickOp_SelectRequestTarget;
     }
 
     private bool TryCompleteRegionSelectionRequest(
-        RegionSelectionRequest rsRequest,
+        RegionSelectionRequest request,
         TerrainCell targetCell)
     {
         Region targetRegion = targetCell.Region;
@@ -1743,15 +1758,29 @@ public class GuiManagerScript : MonoBehaviour
         if ((targetRegion != null) &&
             (targetRegion.AssignedFilterType == Region.FilterType.Selectable))
         {
-            rsRequest.Set(targetRegion);
-            rsRequest.Close();
+            request.Set(targetRegion);
+            request.Close();
 
-            HideNonBlockingMessage.Invoke();
+            CompleteSelectRequestTargetOp();
+            return true;
+        }
 
-            RevertTempPlanetOverlay();
+        return false;
+    }
 
-            _mapLeftClickOp -= ClickOp_SelectRequestTarget;
+    private bool TryCompleteGroupSelectionRequest(
+        GroupSelectionRequest request,
+        TerrainCell targetCell)
+    {
+        CellGroup targetGroup = targetCell.Group;
 
+        if ((targetGroup != null) &&
+            (targetCell.AssignedFilterType == TerrainCell.FilterType.Selectable))
+        {
+            request.Set(targetGroup);
+            request.Close();
+
+            CompleteSelectRequestTargetOp();
             return true;
         }
 
@@ -2612,6 +2641,7 @@ public class GuiManagerScript : MonoBehaviour
         if (request is RegionSelectionRequest rsRequest)
         {
             ChangePlanetOverlay(PlanetOverlay.RegionSelection, temporary: true);
+            return;
         }
         else if (request is GroupSelectionRequest gsRequest)
         {
@@ -2619,7 +2649,11 @@ public class GuiManagerScript : MonoBehaviour
                 PlanetOverlay.CellSelection, 
                 Manager.GroupProminenceOverlaySubtype, 
                 temporary: true);
+            return;
         }
+
+        throw new System.NotImplementedException(
+            $"No method defined to handle input request of type: {request.GetType()}");
     }
 
     /// <summary>
