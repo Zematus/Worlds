@@ -1732,6 +1732,8 @@ public class GuiManagerScript : MonoBehaviour
         }
         else if (Manager.CurrentInputRequest is GroupSelectionRequest gsRequest)
         {
+            //SelectAndCenterOnCell(corePosition);
+
             _doneHandlingRequest = TryCompleteGroupSelectionRequest(gsRequest, clickedCell);
             return;
         }

@@ -67,4 +67,10 @@ public struct WorldPosition
 
         return result;
     }
+
+    public static implicit operator Vector2Int(WorldPosition p) => 
+        new Vector2Int(p.Longitude, p.Latitude);
+
+    public static implicit operator WorldPosition(Vector2Int v) =>
+        new WorldPosition(v.x, v.y);
 }

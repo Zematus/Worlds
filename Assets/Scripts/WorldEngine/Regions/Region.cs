@@ -188,4 +188,6 @@ public abstract class Region : ISynchronizable, ICellCollectionGetter
     }
 
     public abstract TerrainCell GetMostCenteredCell();
+
+    public abstract RectInt GetRectangle();
 }

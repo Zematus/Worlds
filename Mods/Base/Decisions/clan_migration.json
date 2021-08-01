@@ -13,7 +13,7 @@
       "description": [
         {
           "id": "description",
-          "text": "The clan <<target>> is losing prominence on the head of the clan's homeplace. If this continues, the clan risks losing its integrity and disappear. There's currently a chance though for the leader of the clan, <<target.leader>>, to move the location of their homeplace to a new location. There likely won't be another opportunity to make this move in the future."
+          "text": "The clan <<target>> is losing prominence on the clan's homeplace current location. If this continues, the clan risks losing its integrity and disappear.\n\n<<target.leader>>, leader of the clan, has a chance to move their homeplace to a new location. There might not be another opportunity to make this move in the future..."
         }
       ],
       "options": [

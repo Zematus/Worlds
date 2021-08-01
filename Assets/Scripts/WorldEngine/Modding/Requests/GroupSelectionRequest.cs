@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class GroupSelectionRequest : EntitySelectionRequest<CellGroup>, IMapEntitySelectionRequest
 {
@@ -41,5 +42,35 @@ public class GroupSelectionRequest : EntitySelectionRequest<CellGroup>, IMapEnti
         }
 
         base.Close();
+    }
+
+    /// <summary>
+    /// Returns the smallest rectangle that encompasses all selectable groups 
+    /// in this request.
+    /// NOTE: The rect returned by this function can contain longitude values
+    /// that are greater than the current world width.
+    /// </summary>
+    /// <returns>a rectange with min and max longitude and latitude values</returns>
+    public RectInt GetEncompassingRectangle()
+    {
+        RectInt rect = new RectInt();
+
+        int worldWidth = Manager.CurrentWorld.Width;
+
+        bool first = true;
+        foreach (CellGroup group in _involvedGroups)
+        {
+            if (first)
+            {
+                rect.SetMinMax(group.Position, group.Position);
+
+                first = false;
+                continue;
+            }
+
+            rect.Extend(group.Position, worldWidth);
+        }
+
+        return rect;
     }
 }
