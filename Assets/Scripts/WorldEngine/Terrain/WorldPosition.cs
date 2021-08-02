@@ -73,4 +73,7 @@ public struct WorldPosition
 
     public static implicit operator WorldPosition(Vector2Int v) =>
         new WorldPosition(v.x, v.y);
+
+    public static implicit operator WorldPosition(Vector2 v) =>
+        new WorldPosition(Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y));
 }

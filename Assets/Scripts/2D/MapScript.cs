@@ -29,6 +29,12 @@ public class MapScript : MonoBehaviour
 
     private float _zoomFactor = 1.0f;
 
+    private Rect _startUvRect;
+    private Rect _endUvRect;
+    private float _moveAccTime;
+    private float _moveTotalTime;
+    private bool _moveToTargetUvRect = false;
+
     void Start()
     {
         // Prevent material (asset) from being overwritten
@@ -38,10 +44,26 @@ public class MapScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        UpdateUvRect();
+
         if (Manager.ViewingGlobe)
             return;
 
         ReadKeyboardInput();
+    }
+
+    private void UpdateUvRect()
+    {
+        if (!_moveToTargetUvRect)
+            return;
+
+        _moveAccTime += Time.deltaTime;
+
+        float percent = Mathf.Clamp01(_moveAccTime/_moveTotalTime);
+
+        Rect uvRect = MathUtility.Lerp(_startUvRect, _endUvRect, percent);
+
+        SetUvRect(uvRect);
     }
 
     private void ReadKeyboardInput()
@@ -402,10 +424,26 @@ public class MapScript : MonoBehaviour
         SetUvRect(newUvRect);
     }
 
-    public void ShiftSurfaceToPosition(WorldPosition mapPosition)
+    public void ZoomAndShiftMap(float scale, WorldPosition position)
     {
-        Rect mapImageRect = MapImage.rectTransform.rect;
+        ZoomMapToScale(scale);
+        ShiftMapToPosition(position);
+    }
 
+    private void ZoomMapToScale(float scale)
+    {
+        _zoomFactor = scale;
+
+        Rect newUvRect = MapImage.uvRect;
+
+        newUvRect.width = _zoomFactor;
+        newUvRect.height = _zoomFactor;
+
+        SetUvRect(newUvRect);
+    }
+
+    private void ShiftMapToPosition(WorldPosition mapPosition)
+    {
         Vector2 uvPos = Manager.GetUVFromMapCoordinates(mapPosition);
 
         Vector2 mapImagePos = uvPos - MapImage.uvRect.center;

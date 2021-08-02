@@ -1248,21 +1248,28 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void ShiftSurfaceToPosition(WorldPosition mapPosition)
+    public void ZoomAndShiftMap(float scale, WorldPosition mapPosition)
     {
-        if (Manager.ViewingGlobe)
-        {
-            PlanetScript.ShiftSurfaceToPosition(mapPosition);
-        }
-        else
-        {
-            MapScript.ShiftSurfaceToPosition(mapPosition);
-        }
+        PlanetScript.ZoomAndCenterCamera(Mathf.Clamp01(scale * 1.4f), mapPosition);
+        MapScript.ZoomAndShiftMap(scale, mapPosition);
+    }
+
+    private void CenterAndZoomOnRect(RectInt rect)
+    {
+        float hScale = rect.width / (float)Manager.CurrentWorld.Width;
+        float vScale = rect.height / (float)Manager.CurrentWorld.Height;
+
+        float scale = Mathf.Max(hScale, vScale);
+
+        // zoom in if the rect is very small but only parthway thru
+        scale = Mathf.Clamp01(Mathf.Lerp(scale, 2f, 0.1f));
+
+        ZoomAndShiftMap(scale, rect.center);
     }
 
     private void SelectAndCenterOnCell(WorldPosition position)
     {
-        ShiftSurfaceToPosition(position);
+        ZoomAndShiftMap(0.5f, position);
 
         Manager.SetSelectedCell(position);
 
@@ -1732,8 +1739,6 @@ public class GuiManagerScript : MonoBehaviour
         }
         else if (Manager.CurrentInputRequest is GroupSelectionRequest gsRequest)
         {
-            //SelectAndCenterOnCell(corePosition);
-
             _doneHandlingRequest = TryCompleteGroupSelectionRequest(gsRequest, clickedCell);
             return;
         }
@@ -2638,6 +2643,8 @@ public class GuiManagerScript : MonoBehaviour
             DisplayNonBlockingMessage.Invoke(mapRequest.Text.GetFormattedString());
 
             _mapLeftClickOp += ClickOp_SelectRequestTarget;
+
+            CenterAndZoomOnRect(mapRequest.GetEncompassingRectangle());
         }
 
         if (request is RegionSelectionRequest rsRequest)

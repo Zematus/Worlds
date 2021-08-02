@@ -42,7 +42,7 @@ public class PlanetScript : MonoBehaviour
     private Vector3 _lastDragMousePosition;
 
     private const float _maxCameraDistance = -2.5f;
-    private const float _minCameraDistance = -1.15f;
+    private const float _minCameraDistance = -1.25f;
 
     private const float _maxZoomFactor = 1f;
     private const float _minZoomFactor = 0f;
@@ -392,7 +392,23 @@ public class PlanetScript : MonoBehaviour
         return Camera.WorldToScreenPoint(worldPosition);
     }
 
-    public void ShiftSurfaceToPosition(WorldPosition mapPosition)
+    public void ZoomAndCenterCamera(float scale, WorldPosition position)
+    {
+        ZoomCameraToScale(scale);
+        CenterCameraOnPosition(position);
+    }
+
+    private void ZoomCameraToScale(float scale)
+    {
+        _zoomFactor = scale;
+
+        Vector3 cameraPosition = Camera.transform.localPosition;
+        cameraPosition.z = Mathf.Lerp(_minCameraDistance, _maxCameraDistance, _zoomFactor);
+
+        Camera.transform.localPosition = cameraPosition;
+    }
+
+    public void CenterCameraOnPosition(WorldPosition mapPosition)
     {
         // First, we horizontally rotate the outer pivot
 

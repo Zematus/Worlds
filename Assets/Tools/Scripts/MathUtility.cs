@@ -597,4 +597,16 @@ public static class MathUtility
             target.xMax = target.xMin + mapWidth;
         }
     }
+
+    public static Rect Lerp(Rect a, Rect b, float t)
+    {
+        Rect r = new Rect();
+
+        r.xMin = Mathf.Lerp(a.xMin, b.xMin, t);
+        r.xMax = Mathf.Lerp(a.xMax, b.xMax, t);
+        r.yMin = Mathf.Lerp(a.yMin, b.yMin, t);
+        r.yMax = Mathf.Lerp(a.yMax, b.yMax, t);
+
+        return r;
+    }
 }
