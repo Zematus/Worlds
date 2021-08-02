@@ -57,11 +57,8 @@ public class PlanetScript : MonoBehaviour
     private Vector3 _startCameraPos;
     private Vector3 _endCameraPos;
 
-    private float _startHRotation;
-    private float _endHRotation;
-
-    private float _startVRotation;
-    private float _endVRotation;
+    private Vector2 _startMapPos;
+    private Vector2 _endMapPos;
 
     private float _moveAccTime;
     private float _moveTotalTime;
@@ -104,12 +101,10 @@ public class PlanetScript : MonoBehaviour
         float percent = Mathf.Clamp01(_moveAccTime / _moveTotalTime);
 
         Vector3 cameraPos = Vector3.Lerp(_startCameraPos, _endCameraPos, percent);
-        float hRotation = Mathf.Lerp(_startHRotation, _endHRotation, percent);
-        float vRotation = Mathf.Lerp(_startVRotation, _endVRotation, percent);
+        Vector2 mapPos = Vector2.Lerp(_startMapPos, _endMapPos, percent);
 
         Camera.transform.localPosition = cameraPos;
-        RotateOuterPivot(hRotation);
-        RotateInnerPivot(vRotation);
+        CenterCameraOnPosition(mapPos);
     }
 
     private void ReadKeyboardInput()
@@ -351,13 +346,11 @@ public class PlanetScript : MonoBehaviour
 
     public bool GetUvCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 uvPosition)
     {
-        Ray ray = Camera.ScreenPointToRay(Input.mousePosition);
-
-        RaycastHit raycastHit;
+        Ray ray = Camera.ScreenPointToRay(pointerPosition);
 
         Collider collider = Surface.GetComponent<Collider>();
 
-        if (!collider.Raycast(ray, out raycastHit, 50))
+        if (!collider.Raycast(ray, out RaycastHit raycastHit, 50))
         {
             uvPosition = -Vector2.one;
 
@@ -369,7 +362,7 @@ public class PlanetScript : MonoBehaviour
         return true;
     }
 
-    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition)
+    public bool TryGetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition)
     {
         Vector2 uvPosition;
 
@@ -399,7 +392,7 @@ public class PlanetScript : MonoBehaviour
         return true;
     }
 
-    private Vector3 GetWorldPositionFromMapCoordinates(WorldPosition mapPosition)
+    private Vector3 GetWorldPositionFromMapCoordinates(Vector2 mapPosition)
     {
         Vector2 uvPos = Manager.GetUVFromMapCoordinates(mapPosition);
 
@@ -433,25 +426,28 @@ public class PlanetScript : MonoBehaviour
         return Camera.WorldToScreenPoint(worldPosition);
     }
 
-    public void ZoomAndCenterCamera(float scale, WorldPosition position, float timeDelay = 0)
+    public void ZoomAndCenterCamera(float scale, WorldPosition position, float timeToMove = 0)
     {
         SetRotationType(SphereRotationType.AutoCameraFollow);
         SetLightingType(SphereLightingType.CameraLight);
 
         ZoomCameraToScale(scale);
-        CenterCameraOnPosition(position);
 
-        if (timeDelay > 0)
+        Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+        TryGetMapCoordinatesFromPointerPosition(screenCenter, out _startMapPos);
+
+        _endMapPos = position;
+
+        if (timeToMove > 0)
         {
             _moveToTarget = true;
             _moveAccTime = 0;
-            _moveTotalTime = timeDelay;
+            _moveTotalTime = timeToMove;
         }
         else
         {
             Camera.transform.localPosition = _endCameraPos;
-            //RotateOuterPivot(_endHRotation);
-            //RotateInnerPivot(_endVRotation);
+            CenterCameraOnPosition(_endMapPos);
         }
     }
 
@@ -465,7 +461,7 @@ public class PlanetScript : MonoBehaviour
         _endCameraPos.z = Mathf.Lerp(_minCameraDistance, _maxCameraDistance, _zoomFactor);
     }
 
-    private void CenterCameraOnPosition(WorldPosition mapPosition)
+    private void CenterCameraOnPosition(Vector2 mapPosition)
     {
         // First, we horizontally rotate the outer pivot
 

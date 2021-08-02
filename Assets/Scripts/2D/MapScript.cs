@@ -377,7 +377,7 @@ public class MapScript : MonoBehaviour
         return false;
     }
 
-    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowWrap = false)
+    public bool TryGetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowWrap = false)
     {
         Vector2 uvPosition;
 
@@ -434,7 +434,7 @@ public class MapScript : MonoBehaviour
         SetUvRect(newUvRect);
     }
 
-    public void ZoomAndShiftMap(float scale, WorldPosition position, float timeDelay = 0)
+    public void ZoomAndShiftMap(float scale, WorldPosition position, float timeToMove = 0)
     {
         _startUvRect = MapImage.uvRect;
         _endUvRect = _startUvRect;
@@ -442,11 +442,11 @@ public class MapScript : MonoBehaviour
         ZoomMapToScale(scale, ref _endUvRect);
         ShiftMapToPosition(position, ref _endUvRect);
 
-        if (timeDelay > 0)
+        if (timeToMove > 0)
         {
             _moveToTargetUvRect = true;
             _moveAccTime = 0;
-            _moveTotalTime = timeDelay;
+            _moveTotalTime = timeToMove;
         }
         else
         {

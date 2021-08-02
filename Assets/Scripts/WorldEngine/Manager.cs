@@ -956,9 +956,9 @@ public class Manager
         }
     }
 
-    public static Vector2 GetUVFromMapCoordinates(WorldPosition mapPosition)
+    public static Vector2 GetUVFromMapCoordinates(Vector2 mapPosition)
     {
-        return new Vector2(mapPosition.Longitude / (float)CurrentWorld.Width, mapPosition.Latitude / (float)CurrentWorld.Height);
+        return new Vector2(mapPosition.x / CurrentWorld.Width, mapPosition.y / CurrentWorld.Height);
     }
 
     /// <summary>Generates a texture based on the current map and overlay and exports it to an image file.</summary>

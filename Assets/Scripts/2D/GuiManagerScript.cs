@@ -1250,7 +1250,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ZoomAndShiftMap(float scale, WorldPosition mapPosition)
     {
-        PlanetScript.ZoomAndCenterCamera(Mathf.Clamp01(scale * 1.4f), mapPosition);
+        PlanetScript.ZoomAndCenterCamera(Mathf.Clamp01(scale * 1.4f), mapPosition, 1);
         MapScript.ZoomAndShiftMap(scale, mapPosition, 1);
     }
 
@@ -3484,15 +3484,15 @@ public class GuiManagerScript : MonoBehaviour
             Manager.UnsetFocusOnPolity(selectedTerritory.Polity);
     }
 
-    private bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowWrap = false)
+    private bool TryGetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowWrap = false)
     {
         if (Manager.ViewingGlobe)
         {
-            return PlanetScript.GetMapCoordinatesFromPointerPosition(pointerPosition, out mapPosition);
+            return PlanetScript.TryGetMapCoordinatesFromPointerPosition(pointerPosition, out mapPosition);
         }
         else
         {
-            return MapScript.GetMapCoordinatesFromPointerPosition(pointerPosition, out mapPosition, allowWrap);
+            return MapScript.TryGetMapCoordinatesFromPointerPosition(pointerPosition, out mapPosition, allowWrap);
         }
     }
 
@@ -3500,7 +3500,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         Vector2 mapCoordinates;
 
-        if (!GetMapCoordinatesFromPointerPosition(position, out mapCoordinates, allowWrap))
+        if (!TryGetMapCoordinatesFromPointerPosition(position, out mapCoordinates, allowWrap))
             return null;
 
         int longitude = (int)mapCoordinates.x;
@@ -3923,7 +3923,7 @@ public class GuiManagerScript : MonoBehaviour
 
         Vector2 mapPosition;
 
-        if (!GetMapCoordinatesFromPointerPosition(pointerData.position, out mapPosition))
+        if (!TryGetMapCoordinatesFromPointerPosition(pointerData.position, out mapPosition))
             return;
 
         if (_mapLeftClickOp != null)
