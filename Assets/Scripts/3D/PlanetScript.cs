@@ -54,6 +54,9 @@ public class PlanetScript : MonoBehaviour
 
     private float _zoomFactor = 1.0f;
 
+    private float _startZoomFactor;
+    private float _endZoomFactor;
+
     private Vector3 _startCameraPos;
     private Vector3 _endCameraPos;
 
@@ -100,6 +103,7 @@ public class PlanetScript : MonoBehaviour
 
         float percent = Mathf.Clamp01(_moveAccTime / _moveTotalTime);
 
+        _zoomFactor = Mathf.Lerp(_startZoomFactor, _endZoomFactor, percent);
         Vector3 cameraPos = Vector3.Lerp(_startCameraPos, _endCameraPos, percent);
         Vector2 mapPos = Vector2.Lerp(_startMapPos, _endMapPos, percent);
 
@@ -446,6 +450,7 @@ public class PlanetScript : MonoBehaviour
         }
         else
         {
+            _zoomFactor = _endZoomFactor;
             Camera.transform.localPosition = _endCameraPos;
             CenterCameraOnPosition(_endMapPos);
         }
@@ -455,10 +460,11 @@ public class PlanetScript : MonoBehaviour
     {
         _startCameraPos = Camera.transform.localPosition;
 
-        _zoomFactor = scale;
+        _startZoomFactor = _zoomFactor;
+        _endZoomFactor = scale;
 
         _endCameraPos = _startCameraPos;
-        _endCameraPos.z = Mathf.Lerp(_minCameraDistance, _maxCameraDistance, _zoomFactor);
+        _endCameraPos.z = Mathf.Lerp(_minCameraDistance, _maxCameraDistance, scale);
     }
 
     private void CenterCameraOnPosition(Vector2 mapPosition)
