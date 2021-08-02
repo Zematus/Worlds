@@ -1251,7 +1251,7 @@ public class GuiManagerScript : MonoBehaviour
     public void ZoomAndShiftMap(float scale, WorldPosition mapPosition)
     {
         PlanetScript.ZoomAndCenterCamera(Mathf.Clamp01(scale * 1.4f), mapPosition);
-        MapScript.ZoomAndShiftMap(scale, mapPosition);
+        MapScript.ZoomAndShiftMap(scale, mapPosition, 1);
     }
 
     private void CenterAndZoomOnRect(RectInt rect)

@@ -59,6 +59,12 @@ public class MapScript : MonoBehaviour
 
         _moveAccTime += Time.deltaTime;
 
+        if (_moveAccTime > _moveTotalTime)
+        {
+            _moveAccTime = _moveTotalTime;
+            _moveToTargetUvRect = false;
+        }
+
         float percent = Mathf.Clamp01(_moveAccTime/_moveTotalTime);
 
         Rect uvRect = MathUtility.Lerp(_startUvRect, _endUvRect, percent);
@@ -219,6 +225,8 @@ public class MapScript : MonoBehaviour
     {
         if (Manager.EditorBrushIsActive)
             return;
+
+        _moveToTargetUvRect = false;
 
         _beginDragPosition = pointerData.position;
         _beginDragMapUvRect = MapImage.uvRect;
@@ -404,6 +412,8 @@ public class MapScript : MonoBehaviour
         if (_isDraggingMap || Manager.EditorBrushIsActive)
             return;
 
+        _moveToTargetUvRect = false;
+
         float oldZoomFactor = _zoomFactor;
         _zoomFactor = Mathf.Clamp(_zoomFactor - delta, _minZoomFactor, _maxZoomFactor);
 
@@ -424,38 +434,46 @@ public class MapScript : MonoBehaviour
         SetUvRect(newUvRect);
     }
 
-    public void ZoomAndShiftMap(float scale, WorldPosition position)
+    public void ZoomAndShiftMap(float scale, WorldPosition position, float timeDelay = 0)
     {
-        ZoomMapToScale(scale);
-        ShiftMapToPosition(position);
+        _startUvRect = MapImage.uvRect;
+        _endUvRect = _startUvRect;
+
+        ZoomMapToScale(scale, ref _endUvRect);
+        ShiftMapToPosition(position, ref _endUvRect);
+
+        if (timeDelay > 0)
+        {
+            _moveToTargetUvRect = true;
+            _moveAccTime = 0;
+            _moveTotalTime = timeDelay;
+        }
+        else
+        {
+            SetUvRect(_endUvRect);
+        }
     }
 
-    private void ZoomMapToScale(float scale)
+    private void ZoomMapToScale(float scale, ref Rect targetUvRect)
     {
         _zoomFactor = scale;
 
-        Rect newUvRect = MapImage.uvRect;
-
-        newUvRect.width = _zoomFactor;
-        newUvRect.height = _zoomFactor;
-
-        SetUvRect(newUvRect);
+        targetUvRect.width = _zoomFactor;
+        targetUvRect.height = _zoomFactor;
     }
 
-    private void ShiftMapToPosition(WorldPosition mapPosition)
+    private void ShiftMapToPosition(WorldPosition mapPosition, ref Rect targetUvRect)
     {
         Vector2 uvPos = Manager.GetUVFromMapCoordinates(mapPosition);
 
-        Vector2 mapImagePos = uvPos - MapImage.uvRect.center;
-        mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
+        Vector2 mapImagePos = uvPos - targetUvRect.center;
+        if (Mathf.Abs(mapImagePos.x) > 1.0f)
+            mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
 
         float maxUvY = 1f - _zoomFactor;
 
-        Rect newUvRect = MapImage.uvRect;
-        newUvRect.x += mapImagePos.x;
-        newUvRect.y = Mathf.Clamp(newUvRect.y + mapImagePos.y, 0, maxUvY);
-
-        SetUvRect(newUvRect);
+        targetUvRect.x += mapImagePos.x;
+        targetUvRect.y = Mathf.Clamp(targetUvRect.y + mapImagePos.y, 0, maxUvY);
     }
 
     public Vector3 GetScreenPositionFromMapCoordinates(WorldPosition mapPosition)

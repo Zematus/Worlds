@@ -75,7 +75,6 @@
           "weight": "target.preferences.cohesion"
         }
       ],
-      "enableDebugLog": true,
       "debugPlayerGuidance": true
     }
   ]

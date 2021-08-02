@@ -54,6 +54,19 @@ public class PlanetScript : MonoBehaviour
 
     private float _zoomFactor = 1.0f;
 
+    private Vector3 _startCameraPos;
+    private Vector3 _endCameraPos;
+
+    private float _startHRotation;
+    private float _endHRotation;
+
+    private float _startVRotation;
+    private float _endVRotation;
+
+    private float _moveAccTime;
+    private float _moveTotalTime;
+    private bool _moveToTarget = false;
+
     private SphereRotationType _rotationType = SphereRotationType.Auto;
     private SphereLightingType _lightingType = SphereLightingType.SunLight;
 
@@ -61,6 +74,8 @@ public class PlanetScript : MonoBehaviour
 
     void Update()
     {
+        UpdateCamera();
+
         if (!Manager.ViewingGlobe)
             return;
 
@@ -71,6 +86,30 @@ public class PlanetScript : MonoBehaviour
         {
             AutoRotationPivot.transform.Rotate(Vector3.up * Time.deltaTime * -0.5f);
         }
+    }
+
+    private void UpdateCamera()
+    {
+        if (!_moveToTarget)
+            return;
+
+        _moveAccTime += Time.deltaTime;
+
+        if (_moveAccTime > _moveTotalTime)
+        {
+            _moveAccTime = _moveTotalTime;
+            _moveToTarget = false;
+        }
+
+        float percent = Mathf.Clamp01(_moveAccTime / _moveTotalTime);
+
+        Vector3 cameraPos = Vector3.Lerp(_startCameraPos, _endCameraPos, percent);
+        float hRotation = Mathf.Lerp(_startHRotation, _endHRotation, percent);
+        float vRotation = Mathf.Lerp(_startVRotation, _endVRotation, percent);
+
+        Camera.transform.localPosition = cameraPos;
+        RotateOuterPivot(hRotation);
+        RotateInnerPivot(vRotation);
     }
 
     private void ReadKeyboardInput()
@@ -222,7 +261,9 @@ public class PlanetScript : MonoBehaviour
     {
         if (_isDraggingSurface)
             return;
-        
+
+        _moveToTarget = false;
+
         _zoomFactor = Mathf.Clamp(_zoomFactor - delta, _minZoomFactor, _maxZoomFactor);
 
         Vector3 cameraPosition = Camera.transform.localPosition;
@@ -392,23 +433,39 @@ public class PlanetScript : MonoBehaviour
         return Camera.WorldToScreenPoint(worldPosition);
     }
 
-    public void ZoomAndCenterCamera(float scale, WorldPosition position)
+    public void ZoomAndCenterCamera(float scale, WorldPosition position, float timeDelay = 0)
     {
+        SetRotationType(SphereRotationType.AutoCameraFollow);
+        SetLightingType(SphereLightingType.CameraLight);
+
         ZoomCameraToScale(scale);
         CenterCameraOnPosition(position);
+
+        if (timeDelay > 0)
+        {
+            _moveToTarget = true;
+            _moveAccTime = 0;
+            _moveTotalTime = timeDelay;
+        }
+        else
+        {
+            Camera.transform.localPosition = _endCameraPos;
+            //RotateOuterPivot(_endHRotation);
+            //RotateInnerPivot(_endVRotation);
+        }
     }
 
     private void ZoomCameraToScale(float scale)
     {
+        _startCameraPos = Camera.transform.localPosition;
+
         _zoomFactor = scale;
 
-        Vector3 cameraPosition = Camera.transform.localPosition;
-        cameraPosition.z = Mathf.Lerp(_minCameraDistance, _maxCameraDistance, _zoomFactor);
-
-        Camera.transform.localPosition = cameraPosition;
+        _endCameraPos = _startCameraPos;
+        _endCameraPos.z = Mathf.Lerp(_minCameraDistance, _maxCameraDistance, _zoomFactor);
     }
 
-    public void CenterCameraOnPosition(WorldPosition mapPosition)
+    private void CenterCameraOnPosition(WorldPosition mapPosition)
     {
         // First, we horizontally rotate the outer pivot
 
@@ -431,19 +488,17 @@ public class PlanetScript : MonoBehaviour
         worldPosScreenCenter = Camera.ScreenToWorldPoint(screenCenter); // the screen position in the scene has to be recalculated
         Vector3 innerPivotPosScreenCenter = InnerPivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosScreenCenter).normalized;
 
-        worldPosition = GetWorldPositionFromMapCoordinates(mapPosition); // so do we need a new scene position for the surface map position
         Vector3 innerPivotPosition = InnerPivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosition).normalized;
         
         Vector3 eulerAnglesVertical = Quaternion.FromToRotation(innerPivotPosScreenCenter, innerPivotPosition).eulerAngles;
 
         RotateInnerPivot(eulerAnglesVertical.x);
-
-        SetRotationType(SphereRotationType.AutoCameraFollow);
-        SetLightingType(SphereLightingType.CameraLight);
     }
 
     public void BeginDrag(BaseEventData data)
     {
+        _moveToTarget = false;
+
         PointerEventData pointerData = data as PointerEventData;
 
         if (pointerData.button == PointerEventData.InputButton.Right)
