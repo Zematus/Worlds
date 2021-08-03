@@ -15,6 +15,8 @@ public class CellRegion : Region
 
     private TerrainCell _mostCenteredCell = null;
 
+    private RectInt _rect;
+
     public CellRegion()
     {
 
@@ -38,8 +40,22 @@ public class CellRegion : Region
         }
     }
 
+    private void UpdateRectangle(TerrainCell cell, bool first)
+    {
+        if (first)
+        {
+            _rect = new RectInt(cell.Position, Vector2Int.zero);
+        }
+        else
+        {
+            _rect.Extend(cell.Position, World.Width);
+        }
+    }
+
     public bool AddCell(TerrainCell cell)
     {
+        UpdateRectangle(cell, _cells.Count == 0);
+
         if (!_cells.Add(cell))
             return false;
 
@@ -236,17 +252,6 @@ public class CellRegion : Region
         DefineElements();
     }
 
-    public bool RemoveCell(TerrainCell cell)
-    {
-        if (!_cells.Remove(cell))
-            return false;
-
-        cell.Region = null;
-        Manager.AddUpdatedCell(cell, CellUpdateType.Region, CellUpdateSubType.Membership);
-
-        return true;
-    }
-
     public override void Synchronize()
     {
         CellPositions = new List<WorldPosition>(_cells.Count);
@@ -267,6 +272,8 @@ public class CellRegion : Region
             {
                 throw new System.Exception("Cell missing at position " + position.Longitude + "," + position.Latitude);
             }
+
+            UpdateRectangle(cell, _cells.Count == 0);
 
             _cells.Add(cell);
 
@@ -370,5 +377,10 @@ public class CellRegion : Region
     public override bool IsWithinRegion(TerrainCell cell)
     {
         return cell.Region == this;
+    }
+
+    public override RectInt GetRectangle()
+    {
+        return _rect;
     }
 }

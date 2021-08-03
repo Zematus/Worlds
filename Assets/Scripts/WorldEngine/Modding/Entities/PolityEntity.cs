@@ -118,6 +118,24 @@ public class PolityEntity : DelayedSetEntity<Polity>
         return entity.GetThisEntityAttribute(this);
     }
 
+    public static PolityType ConvertToType(string typeStr)
+    {
+        typeStr = typeStr.ToLowerInvariant();
+
+        if (string.IsNullOrWhiteSpace(typeStr))
+        {
+            return PolityType.Any;
+        }
+
+        switch (typeStr)
+        {
+            case "tribe":
+                return PolityType.Tribe;
+            default:
+                throw new System.Exception($"Unhandled polity type: {typeStr}");
+        }
+    }
+
     private EntityAttribute GenerateGetRandomContactEntityAttribute()
     {
         int index = _contactIndex++;
@@ -184,7 +202,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
             case TypeAttributeId:
                 _typeAttribute =
                     _typeAttribute ?? new ValueGetterEntityAttribute<string>(
-                        TypeAttributeId, this, () => Polity.Type);
+                        TypeAttributeId, this, () => Polity.TypeStr);
                 return _typeAttribute;
 
             case ContactCountAttributeId:

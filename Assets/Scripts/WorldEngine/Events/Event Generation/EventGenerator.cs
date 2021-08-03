@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
+using System.Text.RegularExpressions;
 
 /// <summary>
 /// Object that generates events of a certain type during the simulation run
@@ -17,6 +18,9 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public const string AssignOnCoreHighestProminenceChange = "core_highest_prominence_change";
     public const string AssignOnRegionAccessibilityUpdate = "region_accessibility_update";
     public const string AssignOnGuideSwitch = "guide_switch";
+    public const string AssignOnPolityCountChange = "polity_count_change";
+    public const string AssignOnCoreCountChange = "core_count_change";
+    public const string AssignOnCoreGroupProminenceValueBelow = "core_group_prominence_value_below";
 
     public const string FactionTargetType = "faction";
     public const string GroupTargetType = "group";
@@ -113,6 +117,9 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public abstract void SetToAssignOnCoreHighestProminenceChange();
     public abstract void SetToAssignOnRegionAccessibilityUpdate();
     public abstract void SetToAssignOnGuideSwitch();
+    public abstract void SetToAssignOnPolityCountChange();
+    public abstract void SetToAssignOnCoreCountChange();
+    public abstract void SetToAssignOnCoreGroupProminenceValueBelow(string valueStr);
 
     protected EventGenerator()
     {
@@ -127,10 +134,28 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
         foreach (string assignOn in AssignOn)
         {
-            switch (assignOn)
+            Match match;
+
+            if ((match = Regex.Match(assignOn, ModParseUtility.AssignOnRegex)).Success != true)
+            {
+                throw new System.Exception($"Unable to parse 'assignOn' entry: {assignOn}");
+            }
+
+            string idStr = match.Groups["identifier"].Value.Trim();
+            string valueStr = match.Groups["value"].Value.Trim();
+
+            switch (idStr)
             {
                 case AssignOnSpawn:
                     SetToAssignOnSpawn();
+                    break;
+
+                case AssignOnPolityCountChange:
+                    SetToAssignOnPolityCountChange();
+                    break;
+
+                case AssignOnCoreCountChange:
+                    SetToAssignOnCoreCountChange();
                     break;
 
                 case AssignOnEvent:
@@ -157,9 +182,13 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
                     SetToAssignOnGuideSwitch();
                     break;
 
+                case AssignOnCoreGroupProminenceValueBelow:
+                    SetToAssignOnCoreGroupProminenceValueBelow(valueStr);
+                    break;
+
                 default:
                     throw new System.Exception(
-                        "Unhandled event assignOn type: " + assignOn);
+                        "Unhandled event assignOn type: " + idStr);
             }
         }
     }
@@ -182,9 +211,21 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         throw new System.ArgumentException("Invalid target type: " + targetStr);
     }
 
-    protected bool CanAssignEventToTarget()
+    protected bool CanAssignEventToTarget(bool displayTargetInfo = true)
     {
+//#if DEBUG
+//        if (DebugEnabled)
+//        {
+//            Debug.LogWarning("Debugging CanAssignEventToTarget");
+//        }
+//#endif
+
         OpenDebugOutput("Evaluating Assignment Conditions:");
+
+        if (displayTargetInfo)
+        {
+            AddTargetDebugOutput();
+        }
 
         if (AssignmentConditions != null)
         {
@@ -206,16 +247,20 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         return true;
     }
 
-    public bool CanTriggerEvent()
+    public bool CanTriggerEvent(WorldEvent sourceEvent)
     {
         Profiler.BeginSample("EventGenerator - CanTriggerEvent - Id:" + Id);
 
         OpenDebugOutput("Evaluating Trigger Conditions:");
 
+        AddDebugOutput(
+            $"\tSpawn Date: {Manager.GetDateString(sourceEvent.SpawnDate)}");
+        AddTargetDebugOutput();
+
         Profiler.BeginSample("EventGenerator - CanAssignEventToTarget");
 
         // Always validate that the target is still valid
-        if (!CanAssignEventToTarget())
+        if (!CanAssignEventToTarget(false))
         {
             Profiler.EndSample(); // "EventGenerator - CanAssignEventToTarget"
             Profiler.EndSample(); // "EventGenerator - CanTriggerEvent"
@@ -257,7 +302,8 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     protected long CalculateEventTriggerDate(World world)
     {
         OpenDebugOutput("Calculating Trigger Date:");
-        AddDebugOutput("  CurrentDate: " + world.CurrentDate);
+        AddTargetDebugOutput();
+        AddDebugOutput($"\tCurrentDate: {Manager.GetDateString(world.CurrentDate)}");
 
         float timeToTrigger = TimeToTrigger.Value;
 
@@ -287,13 +333,20 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             return long.MinValue;
         }
 
-        CloseDebugOutput("Calculated trigger date: " + targetDate);
+        CloseDebugOutput($"Calculated trigger date: {Manager.GetDateString(targetDate)}");
         return targetDate;
     }
 
+    protected virtual void AddTargetDebugOutput()
+    { }
+
     public void TriggerEvent(WorldEvent sourceEvent)
     {
-        OpenDebugOutput("Applying Effects:");
+        OpenDebugOutput("Applying Event Effects:");
+
+        AddDebugOutput(
+            $"\tSpawn Date: {Manager.GetDateString(sourceEvent.SpawnDate)}");
+        AddTargetDebugOutput();
 
         foreach (IEffectExpression exp in Effects)
         {

@@ -14,8 +14,8 @@ public class MigratingPolityPopulation : MigratingPopulation
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="polity">the polity to which the migrating population belongs</param>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is exiting
-    /// from the source</param>
+    /// <param name="direction">the direction this group is moving out from the source</param>
+    /// <param name="type">the migration type (Land/Sea)</param>
     /// <param name="startDate">the migration start date</param>
     /// <param name="endDate">the migration end date</param>
     public MigratingPolityPopulation(
@@ -26,7 +26,8 @@ public class MigratingPolityPopulation : MigratingPopulation
         CellGroup sourceGroup,
         Polity polity,
         TerrainCell targetCell,
-        Direction migrationDirection,
+        Direction direction,
+        MigrationType type,
         long startDate,
         long endDate)
         : base (
@@ -37,7 +38,8 @@ public class MigratingPolityPopulation : MigratingPopulation
             sourceGroup,
             polity,
             targetCell,
-            migrationDirection,
+            direction,
+            type,
             startDate,
             endDate)
     {
@@ -52,8 +54,8 @@ public class MigratingPolityPopulation : MigratingPopulation
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="polity">the polity to which the migrating population belongs</param>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is moving out
-    /// from the source</param>
+    /// <param name="direction">the direction this group is moving out from the source</param>
+    /// <param name="type">the migration type (Land/Sea)</param>
     /// <param name="startDate">the migration start date</param>
     /// <param name="endDate">the migration end date</param>
     public void Set(
@@ -63,7 +65,8 @@ public class MigratingPolityPopulation : MigratingPopulation
         CellGroup sourceGroup,
         Polity polity,
         TerrainCell targetCell,
-        Direction migrationDirection,
+        Direction direction,
+        MigrationType type,
         long startDate,
         long endDate)
     {
@@ -74,7 +77,8 @@ public class MigratingPolityPopulation : MigratingPopulation
             sourceGroup,
             polity,
             targetCell,
-            migrationDirection,
+            direction,
+            type,
             startDate,
             endDate);
     }
@@ -118,7 +122,18 @@ public class MigratingPolityPopulation : MigratingPopulation
 
         targetGroup.Culture.MergeCulture(Culture, percentageOfPopulation);
 
-        targetGroup.AddPolityProminenceValueDelta(Polity, percentageOfPopulation);
+        bool addProminence = true;
+
+        if (Type == MigrationType.Sea)
+        {
+            addProminence = targetGroup.GetPolityProminence(Polity) != null;
+        }
+
+        if (addProminence)
+        {
+            targetGroup.AddPolityProminenceValueDelta(
+                Polity, percentageOfPopulation, true);
+        }
 
         targetGroup.TriggerInterference();
     }

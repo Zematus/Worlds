@@ -48,10 +48,10 @@ public abstract class FunctionExpression : IExpression
         return Id + "(" + parameters + ")";
     }
 
-    public string ToPartiallyEvaluatedString(bool evaluate)
+    public virtual string ToPartiallyEvaluatedString(int depth = -1)
     {
         string parameters =
-            string.Join(", ", _arguments.Select(e => e.ToPartiallyEvaluatedString(evaluate)));
+            string.Join(", ", _arguments.Select(e => e.ToPartiallyEvaluatedString(depth)));
 
         return Id + "(" + parameters + ")";
     }

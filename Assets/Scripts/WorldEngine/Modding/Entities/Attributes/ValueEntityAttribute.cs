@@ -23,11 +23,11 @@ public abstract class ValueEntityAttribute<T> : EntityAttribute
         return new ValueEntityAttributeExpression<T>(this);
     }
 
-    public override string ToPartiallyEvaluatedString(bool evaluate)
+    public override string ToPartiallyEvaluatedString(int depth = -1)
     {
         if (Value is IEntity e)
         {
-            return e.ToPartiallyEvaluatedString(evaluate);
+            return e.ToPartiallyEvaluatedString(depth);
         }
 
         return Value.ToString();

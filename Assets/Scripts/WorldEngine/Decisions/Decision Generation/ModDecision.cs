@@ -32,6 +32,8 @@ public class ModDecision : Context
 
     public IEffectTrigger Trigger { get; private set; }
 
+    public bool DebugPlayerGuidance = false;
+
     public ModDecision(string id, string targetStr)
     {
         DebugType = "Decision";
@@ -217,14 +219,17 @@ public class ModDecision : Context
                 {
                     string weightPartialExpression =
                         (option.Weight != null) ?
-                        ("\n - expression: " + option.Weight.ToPartiallyEvaluatedString(true)) :
+                        $"\n - expression: {option.Weight.ToPartiallyEvaluatedString(0)}" :
                         string.Empty;
 
                     throw new System.Exception(
-                        Id + "->" + option.Id + ", decision option weight is less than zero: " +
-                        weightPartialExpression +
-                        "\n - weight: " + weight);
+                        $"{Id}->{option.Id}, decision option weight is less than " +
+                        $"zero: {weightPartialExpression}\n - weight: {weight}");
                 }
+            }
+            else
+            {
+                AddDebugOutput("  Option not allowed");
             }
 
             CloseDebugOutput();
@@ -264,12 +269,18 @@ public class ModDecision : Context
 
         if (effects != null)
         {
+            OpenDebugOutput("Applying simulation chosen decision option effects:");
+
             // Apply all option effects
             foreach (DecisionOptionEffect effect in effects)
             {
+                AddExpDebugOutput("Effect", effect.Result);
+
                 effect.Result.Trigger = Trigger;
                 effect.Result.Apply();
             }
+
+            CloseDebugOutput();
         }
 
         CloseDebugOutput();

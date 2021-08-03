@@ -32,6 +32,6 @@ public class SetRelationshipAttribute : EffectEntityAttribute
                 "\n - value: " + _valueExp.ToPartiallyEvaluatedString());
         }
 
-        _factionEntity.Faction.SetRelationship(targetEntity.Faction, _valueExp.Value);
+        Faction.SetRelationship(_factionEntity.Faction, targetEntity.Faction, _valueExp.Value);
     }
 }

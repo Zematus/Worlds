@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 public delegate T ValueGetterMethod<T>();
-public delegate string PartiallyEvaluatedStringConverter(bool evaluate);
+public delegate string PartiallyEvaluatedStringConverter(int depth = -1);
 
 public class ValueGetterExpression<T> : IValueExpression<T>
 {
@@ -44,9 +44,9 @@ public class ValueGetterExpression<T> : IValueExpression<T>
         _partialEvalStringConverter = partialEvalStringConverter;
     }
 
-    public string ToPartiallyEvaluatedString(bool evaluate)
+    public string ToPartiallyEvaluatedString(int depth = -1)
     {
-        return _partialEvalStringConverter?.Invoke(evaluate) ?? Value.ToString();
+        return _partialEvalStringConverter?.Invoke(depth) ?? Value.ToString();
     }
 
     public virtual bool TryGetRequest(out InputRequest request)

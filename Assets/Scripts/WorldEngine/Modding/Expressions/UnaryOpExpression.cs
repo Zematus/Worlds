@@ -25,8 +25,8 @@ public abstract class UnaryOpExpression<T> : IValueExpression<T>
 
     public override string ToString() => $"({_opStr}{_expression})";
 
-    public virtual string ToPartiallyEvaluatedString(bool evaluate) =>
-        $"({_opStr}{_expression.ToPartiallyEvaluatedString(evaluate)})";
+    public virtual string ToPartiallyEvaluatedString(int depth = -1) =>
+        $"({_opStr}{_expression.ToPartiallyEvaluatedString(depth)})";
 
     public string GetFormattedString() => Value.ToString().ToBoldFormat();
 

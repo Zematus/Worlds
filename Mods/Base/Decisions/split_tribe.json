@@ -88,12 +88,10 @@
       ],
       "properties": [
         { "id": "relationship_value", "value": "target.get_relationship(splitting_faction)" },
-        { "id": "leader_charisma", "value": "target.leader.charisma" },
-        { "id": "target_authority", "value": "target.preferences.authority" },
-        { "id": "admin_factors", "value": "0.01 + relationship_value * target_authority * leader_charisma" },
-        { "id": "min_admin_load", "value": "0" },
-        { "id": "max_admin_load", "value": "6000000 * admin_factors" },
-        { "id": "chance_of_preventing_split", "value": "1 - normalize(target.administrative_load, min_admin_load, max_admin_load)" }
+        { "id": "relationship_factor", "value": "max(0, (relationship_value * 3) - 1) / 2" },
+        { "id": "influence_delta", "value": "target.influence - splitting_faction.influence" },
+        { "id": "influence_factor", "value": "influence_delta" },
+        { "id": "chance_of_preventing_split", "value": "clamp(influence_factor * relationship_factor * target.preferences.cohesion, 0, 1)" }
       ],
       "description": [
         {
@@ -132,7 +130,7 @@
             {
               "id": "increase_cohesion",
               "properties": [
-                { "id": "charisma_factor", "value": "0.5 + leader_charisma" },
+                { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
                 { "id": "target_cohesion", "value": "target.preferences.cohesion" },
                 { "id": "cohesion_min", "value": "lerp(target_cohesion, 1, (0.1 * charisma_factor))" },
                 { "id": "cohesion_max", "value": "lerp(target_cohesion, 1, (0.2 * charisma_factor))" }
@@ -144,7 +142,6 @@
               "id": "decrease_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.get_relationship(splitting_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 0, (0.2 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 0, (0.1 * charisma_factor))" }
               ],

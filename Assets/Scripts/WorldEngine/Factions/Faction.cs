@@ -9,9 +9,13 @@ using System;
 [XmlInclude(typeof(Clan))]
 public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 {
+    private HashSet<IFactionEventGenerator> _generatorsToTestAssignmentFor =
+        new HashSet<IFactionEventGenerator>();
+
     public static List<IWorldEventGenerator> OnSpawnEventGenerators;
     public static List<IWorldEventGenerator> OnStatusChangeEventGenerators;
     public static List<IWorldEventGenerator> OnGuideSwitchEventGenerators;
+    public static List<IWorldEventGenerator> OnCoreGroupProminenceValueBelowEventGenerators;
 
     [XmlAttribute("Inf")]
     public float InfluenceInternal;
@@ -103,9 +107,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public CellGroup CoreGroup;
 
     [XmlIgnore]
-    public CellGroup NewCoreGroup = null;
-
-    [XmlIgnore]
     public bool IsInitialized = false;
 
     [XmlIgnore]
@@ -132,6 +133,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     [XmlIgnore]
     public long CurrentDate => World.CurrentDate;
+
+    [XmlIgnore]
+    public HashSet<CellGroup> InnerGroups = new HashSet<CellGroup>();
 
     protected Dictionary<Identifier, FactionRelationship> _relationships =
         new Dictionary<Identifier, FactionRelationship>();
@@ -273,13 +277,22 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         StillPresent = false;
     }
 
+    public void AddInnerGroup(CellGroup group)
+    {
+        InnerGroups.Add(group);
+    }
+
+    public void RemoveInnerGroup(CellGroup group)
+    {
+        InnerGroups.Remove(group);
+    }
+
     /// <summary>
     /// Sets this faction to be removed from the world
     /// </summary>
     public void SetToRemove()
     {
-        PolityProminence prominence = CoreGroup.GetPolityProminence(PolityId);
-        prominence.ResetCoreDistances();
+        CoreGroup.ResetCoreDistances(PolityId, true);
 
         World.AddFactionToRemove(this);
 
@@ -425,7 +438,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         float initialRelationshipValue)
     {
 //#if DEBUG
-//        Manager.DebugPauseSimRequested = true;
+//        Manager.Debug_PauseSimRequested = true;
 //#endif
 
         Influence -= influenceToTransfer;
@@ -566,6 +579,16 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         World.AddPolityToUpdate(Polity);
     }
 
+    public void TryAssignEvents()
+    {
+        foreach (var generator in _generatorsToTestAssignmentFor)
+        {
+            generator.TryGenerateEventAndAssign(this);
+        }
+
+        _generatorsToTestAssignmentFor.Clear();
+    }
+
     /// <summary>
     /// Cleans up all state flags
     /// </summary>
@@ -575,24 +598,27 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         HasBeenUpdated = false;
     }
 
-    public void PrepareNewCoreGroup(CellGroup coreGroup)
+    public void MigrateCoreToGroup(CellGroup group)
     {
-        NewCoreGroup = coreGroup;
-    }
+        if (group == CoreGroup)
+            return;
 
-    [System.Obsolete]
-    public void MigrateToNewCoreGroup()
-    {
+        if (group == null)
+            throw new ArgumentNullException("MigrateCoreToGroup: group to se as core can't be null");
+
         CoreGroup.RemoveFactionCore(this);
+        CoreGroup.ResetCoreDistances(PolityId, true);
 
-        CoreGroup = NewCoreGroup;
-        CoreGroupId = NewCoreGroup.Id;
+        CoreGroup = group;
+        CoreGroupId = group.Id;
 
-        CoreGroup.AddFactionCore(this);
+        group.AddFactionCore(this);
+        var prom = group.GetPolityProminence(PolityId);
+        World.AddPromToCalculateCoreDistFor(prom);
 
         if (IsDominant)
         {
-            Polity.SetCoreGroup(CoreGroup);
+            Polity.SetCoreGroup(group);
         }
     }
 
@@ -725,9 +751,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         Polity.RemoveFaction(this);
 
-        var prom = CoreGroup.GetPolityProminence(Polity);
-
-        prom.ResetCoreDistances(addToRecalcs: true);
+        CoreGroup.ResetCoreDistances(PolityId, true);
 
         Polity = targetPolity;
         PolityId = Polity.Id;
@@ -780,6 +804,13 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         OnSpawnEventGenerators = new List<IWorldEventGenerator>();
         OnStatusChangeEventGenerators = new List<IWorldEventGenerator>();
         OnGuideSwitchEventGenerators = new List<IWorldEventGenerator>();
+        OnCoreGroupProminenceValueBelowEventGenerators = new List<IWorldEventGenerator>();
+    }
+
+    public void AddGeneratorToTestAssignmentFor(IFactionEventGenerator generator)
+    {
+        _generatorsToTestAssignmentFor.Add(generator);
+        World.AddFactionToAssignEventsTo(this);
     }
 
     private void InitializeOnSpawnEvents()
@@ -788,7 +819,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         {
             if (generator is IFactionEventGenerator fGenerator)
             {
-                fGenerator.TryGenerateEventAndAssign(this);
+                AddGeneratorToTestAssignmentFor(fGenerator);
             }
         }
     }
@@ -810,7 +841,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         {
             if (generator is IFactionEventGenerator fGenerator)
             {
-                fGenerator.TryGenerateEventAndAssign(this);
+                AddGeneratorToTestAssignmentFor(fGenerator);
             }
         }
 
@@ -829,7 +860,22 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         {
             if (generator is IFactionEventGenerator fGenerator)
             {
-                fGenerator.TryGenerateEventAndAssign(this);
+                AddGeneratorToTestAssignmentFor(fGenerator);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tries to generate and apply all events related to core group dropping below target value
+    /// </summary>
+    public void GenerateCoreGroupProminenceValueBelowEvents(float prominenceValue)
+    {
+        foreach (var generator in OnCoreGroupProminenceValueBelowEventGenerators)
+        {
+            if ((generator is FactionEventGenerator fGenerator) &&
+                (prominenceValue < fGenerator.OnCoreGroupProminenceValueBelowParameterValue))
+            {
+                AddGeneratorToTestAssignmentFor(fGenerator);
             }
         }
     }

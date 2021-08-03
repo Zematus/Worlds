@@ -55,6 +55,7 @@ public class DecisionLoader
         public LoadedParameter[] parameters;
         public LoadedOptionalDescription[] description;
         public LoadedOption[] options;
+        public bool debugPlayerGuidance;
     }
 
 #pragma warning restore 0649
@@ -235,6 +236,9 @@ public class DecisionLoader
             case "group":
                 return new GroupEntity(c, p.id);
 
+            case "group_collection":
+                return new GroupCollectionEntity(c, p.id);
+
             case "faction":
                 return new FactionEntity(c, p.id);
 
@@ -341,6 +345,7 @@ public class DecisionLoader
         decision.Name = d.name;
         decision.DescriptionSegments = segments;
         decision.Options = options;
+        decision.DebugPlayerGuidance = d.debugPlayerGuidance;
 
         return decision;
     }

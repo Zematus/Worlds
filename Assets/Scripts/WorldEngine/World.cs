@@ -303,7 +303,10 @@ public class World : ISynchronizable, IWorldDateGetter
 
     private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
+    private HashSet<CellGroup> _groupsToApplyEventsTo = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
+    private HashSet<CellGroup> _groupsWithPolityCountChange = new HashSet<CellGroup>();
+    private HashSet<CellGroup> _groupsWithCoreCountChange = new HashSet<CellGroup>();
 
     private HashSet<PolityProminence> _promsWithCoreDistToCalculate = new HashSet<PolityProminence>();
 
@@ -317,6 +320,7 @@ public class World : ISynchronizable, IWorldDateGetter
 
     private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
     private HashSet<Faction> _factionsWithStatusChanges = new HashSet<Faction>();
+    private HashSet<Faction> _factionsToAssignEventsTo = new HashSet<Faction>();
     private HashSet<Faction> _factionsToCleanup = new HashSet<Faction>();
     private HashSet<Faction> _factionsToRemove = new HashSet<Faction>();
 
@@ -1109,6 +1113,20 @@ public class World : ISynchronizable, IWorldDateGetter
         }
 
         _groupsToPostUpdate_afterPolityUpdates.Clear();
+
+        foreach (CellGroup group in _groupsWithPolityCountChange)
+        {
+            group.OnPolityCountChange();
+        }
+
+        _groupsWithPolityCountChange.Clear();
+
+        foreach (CellGroup group in _groupsWithCoreCountChange)
+        {
+            group.OnCoreCountChange();
+        }
+
+        _groupsWithCoreCountChange.Clear();
     }
 
     private void AfterUpdateGroupCleanup() // This function cleans up flags and other properties of cell groups set by events or faction/polity updates
@@ -1134,6 +1152,26 @@ public class World : ISynchronizable, IWorldDateGetter
         }
 
         _factionsToUpdate.Clear();
+    }
+
+    private void TryAssignFactionEvents()
+    {
+        foreach (Faction faction in _factionsToAssignEventsTo)
+        {
+            faction.TryAssignEvents();
+        }
+
+        _factionsToAssignEventsTo.Clear();
+    }
+
+    private void TryAssignGroupEvents()
+    {
+        foreach (CellGroup group in _groupsToApplyEventsTo)
+        {
+            group.TryAssignEvents();
+        }
+
+        _groupsToApplyEventsTo.Clear();
     }
 
     private void ApplyFactionStatusChanges()
@@ -1564,6 +1602,18 @@ public class World : ISynchronizable, IWorldDateGetter
 
         //Profiler.EndSample();
 
+        //Profiler.BeginSample("TryAssignGroupEvents");
+
+        TryAssignGroupEvents();
+
+        //Profiler.EndSample();
+
+        //Profiler.BeginSample("TryAssignFactionEvents");
+
+        TryAssignFactionEvents();
+
+        //Profiler.EndSample();
+
         //
         // Skip to Next Event's Date
         //
@@ -1790,6 +1840,16 @@ public class World : ISynchronizable, IWorldDateGetter
         _promsWithCoreDistToCalculate.Add(prominence);
     }
 
+    public void AddGroupWithPolityCountChange(CellGroup group)
+    {
+        _groupsWithPolityCountChange.Add(group);
+    }
+
+    public void AddGroupWithCoreCountChange(CellGroup group)
+    {
+        _groupsWithCoreCountChange.Add(group);
+    }
+
     public void AddGroupToRemove(CellGroup group)
     {
         _groupsToRemove.Add(group);
@@ -1935,9 +1995,26 @@ public class World : ISynchronizable, IWorldDateGetter
         {
             Debug.LogWarning(
                 "Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+            return;
         }
 
         _factionsToUpdate.Add(faction);
+    }
+
+    public void AddGroupToAssignEventsTo(CellGroup group)
+    {
+        if (!group.StillPresent)
+            return;
+
+        _groupsToApplyEventsTo.Add(group);
+    }
+
+    public void AddFactionToAssignEventsTo(Faction faction)
+    {
+        if (!faction.StillPresent)
+            return;
+
+        _factionsToAssignEventsTo.Add(faction);
     }
 
     /// <summary>

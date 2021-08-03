@@ -1,8 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using UnityEngine.Profiling;
+﻿using System.Collections.Generic;
 
 public class FactionEntity : DelayedSetEntity<Faction>
 {
@@ -13,11 +9,14 @@ public class FactionEntity : DelayedSetEntity<Faction>
     public const string PreferencesAttributeId = "preferences";
     public const string TriggerDecisionAttributeId = "trigger_decision";
     public const string SplitAttributeId = "split";
+    public const string RemoveAttributeId = "remove";
+    public const string MigrateCoreToGroupAttributeId = "migrate_core_to_group";
     public const string CoreGroupAttributeId = "core_group";
     public const string TypeAttributeId = "type";
     public const string GuideAttributeId = "guide";
     public const string GetRelationshipAttributeId = "get_relationship";
     public const string SetRelationshipAttributeId = "set_relationship";
+    public const string GetGroupsWithConditionAttributeId = "get_groups_with_condition";
 
     public virtual Faction Faction
     {
@@ -35,6 +34,11 @@ public class FactionEntity : DelayedSetEntity<Faction>
     private GroupEntity _coreGroupEntity = null;
 
     private AssignableCulturalPreferencesEntity _preferencesEntity = null;
+
+    private int _groupCollectionIndex = 0;
+
+    private List<GroupCollectionEntity> _groupCollectionEntitiesToSet = 
+        new List<GroupCollectionEntity>();
 
     protected override object _reference => Faction;
 
@@ -102,8 +106,154 @@ public class FactionEntity : DelayedSetEntity<Faction>
         return _coreGroupEntity.GetThisEntityAttribute(this);
     }
 
+    private EffectEntityAttribute GenerateRemoveAttribute()
+    {
+        EffectEntityAttribute attribute =
+            new EffectApplierEntityAttribute(
+                RemoveAttributeId,
+                this,
+                () => Faction.SetToRemove(),
+                null);
+
+        return attribute;
+    }
+
+    public EffectEntityAttribute GetMigrateCoreToGroupAttribute(IExpression[] arguments)
+    {
+        if ((arguments == null) || (arguments.Length < 1))
+        {
+            throw new System.ArgumentException(
+                $"{MigrateCoreToGroupAttributeId}: expected one argument");
+        }
+
+        var entityExp = 
+            ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
+
+        EffectEntityAttribute attribute =
+            new EffectApplierEntityAttribute(
+                MigrateCoreToGroupAttributeId,
+                this,
+                () => {
+                    GroupEntity groupEntity = entityExp.Value as GroupEntity;
+
+                    if (groupEntity == null)
+                    {
+                        throw new System.ArgumentException(
+                            $"{MigrateCoreToGroupAttributeId}: invalid faction to set relationship to:" +
+                            $"\n - expression: {ToString()}" +
+                            $"\n - group: {entityExp.ToPartiallyEvaluatedString()}");
+                    }
+
+                    Faction.MigrateCoreToGroup(groupEntity.Group);
+                },
+                arguments);
+
+        return attribute;
+    }
+
     public string GetGuide() =>
         Faction.IsUnderPlayerGuidance ? "player" : "simulation";
+
+    public ParametricSubcontext BuildGroupsWithConditionAttributeSubcontext(
+        Context parentContext,
+        string[] paramIds)
+    {
+        int index = _groupCollectionIndex;
+
+        if ((paramIds == null) || (paramIds.Length < 1))
+        {
+            throw new System.ArgumentException(
+                $"{GetGroupsWithConditionAttributeId}: expected at least one parameter identifier");
+        }
+
+        var groupEntity = new GroupEntity(Context, paramIds[0]);
+
+        var subcontext = 
+            new ParametricSubcontext(
+                $"{GetGroupsWithConditionAttributeId}_{index}", 
+                parentContext);
+        subcontext.AddEntity(groupEntity);
+
+        return subcontext;
+    }
+
+    public EntityAttribute GetGroupsWithConditionAttribute(
+        ParametricSubcontext subcontext, 
+        string[] paramIds, 
+        IExpression[] arguments)
+    {
+        int index = _groupCollectionIndex++;
+
+        if ((paramIds == null) || (paramIds.Length < 1))
+        {
+            throw new System.ArgumentException(
+                GetGroupsWithConditionAttributeId + ": expected one parameter identifier");
+        }
+
+        GroupEntity paramGroupEntity = subcontext.GetEntity(paramIds[0]) as GroupEntity;
+
+        if ((arguments == null) || (arguments.Length < 1))
+        {
+            throw new System.ArgumentException(
+                GetGroupsWithConditionAttributeId + ": expected one condition argument");
+        }
+
+        var conditionExp = ValueExpressionBuilder.ValidateValueExpression<bool>(arguments[0]);
+
+        var collectionEntity = new GroupCollectionEntity(
+            () =>
+            {
+                var selectedGroups = new HashSet<CellGroup>();
+
+                foreach (var group in Faction.InnerGroups)
+                {
+                    paramGroupEntity.Set(group);
+
+                    if (conditionExp.Value)
+                    {
+                        selectedGroups.Add(group);
+                    }
+                }
+
+                return selectedGroups;
+            },
+            Context,
+            BuildAttributeId($"groups_collection_{index}"));
+
+        _groupCollectionEntitiesToSet.Add(collectionEntity);
+
+        return collectionEntity.GetThisEntityAttribute(this);
+    }
+
+    public override ParametricSubcontext BuildParametricSubcontext(
+        Context parentContext,
+        string attributeId, 
+        string[] paramIds)
+    {
+        switch (attributeId)
+        {
+            case GetGroupsWithConditionAttributeId:
+                return BuildGroupsWithConditionAttributeSubcontext(parentContext, paramIds);
+        }
+
+        throw new System.ArgumentException(
+            $"Faction: Unable to build parametric subcontext for attribute: {attributeId}");
+    }
+
+    public override EntityAttribute GetParametricAttribute(
+        string attributeId,
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments)
+    {
+        switch (attributeId)
+        {
+            case GetGroupsWithConditionAttributeId:
+                return GetGroupsWithConditionAttribute(subcontext, paramIds, arguments);
+        }
+
+        throw new System.ArgumentException("Faction: Unable to find parametric attribute: " + attributeId);
+    }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
@@ -142,6 +292,9 @@ public class FactionEntity : DelayedSetEntity<Faction>
             case SplitAttributeId:
                 return new SplitFactionAttribute(this, arguments);
 
+            case RemoveAttributeId:
+                return GenerateRemoveAttribute();
+
             case GetRelationshipAttributeId:
                 return new GetRelationshipAttribute(this, arguments);
 
@@ -156,9 +309,15 @@ public class FactionEntity : DelayedSetEntity<Faction>
 
             case CoreGroupAttributeId:
                 return GetCoreGroupAttribute();
+
+            case MigrateCoreToGroupAttributeId:
+                return GetMigrateCoreToGroupAttribute(arguments);
+
+            case GetGroupsWithConditionAttributeId:
+                throw new System.ArgumentException($"Faction: '{attributeId}' is a parametric attribute");
         }
 
-        throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
+        throw new System.ArgumentException($"Faction: Unable to find attribute: {attributeId}");
     }
 
     protected override void ResetInternal()
@@ -166,6 +325,11 @@ public class FactionEntity : DelayedSetEntity<Faction>
         if (_isReset)
         {
             return;
+        }
+
+        foreach (var entity in _groupCollectionEntitiesToSet)
+        {
+            entity.Reset();
         }
 
         _leaderEntity?.Reset();

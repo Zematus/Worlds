@@ -13,6 +13,8 @@ public class SuperRegion : Region
 
     private TerrainCell _mostCenteredCell = null;
 
+    private RectInt _rect;
+
     public SuperRegion()
     {
 
@@ -23,8 +25,24 @@ public class SuperRegion : Region
     {
     }
 
+    private void UpdateRectangle(Region subRegion, bool first)
+    {
+        RectInt subRect = subRegion.GetRectangle();
+
+        if (first)
+        {
+            _rect = new RectInt(subRect.position, subRect.size);
+        }
+        else
+        {
+            _rect.Extend(subRect, World.Width);
+        }
+    }
+
     public void Add(Region subRegion)
     {
+        UpdateRectangle(subRegion, _subRegions.Count == 0);
+
         _subRegions.Add(subRegion);
 
         _cells = null;
@@ -102,6 +120,8 @@ public class SuperRegion : Region
         {
             RegionInfo info = World.GetRegionInfo(id);
 
+            UpdateRectangle(info.Region, _subRegions.Count == 0);
+
             _subRegions.Add(info.Region);
 
             info.Region.Parent = this;
@@ -156,5 +176,10 @@ public class SuperRegion : Region
         RefreshMostCenteredCell();
 
         return _mostCenteredCell;
+    }
+
+    public override RectInt GetRectangle()
+    {
+        return _rect;
     }
 }

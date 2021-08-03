@@ -9,6 +9,9 @@ public class PolityProminence // : IKeyedValue<Identifier>
 {
     public const float MaxCoreDistance = 1000000000000f;
 
+    public const float MaxAdminCost = 
+        PolityProminenceCluster.MaxAdminCost / PolityProminenceCluster.MaxSize;
+
     [XmlAttribute("V")]
     public float Value = 0;
     [XmlAttribute("FCT")]
@@ -24,7 +27,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
         set { ClosestFactionId = value; }
     }
     [XmlIgnore]
-    public Identifier ClosestFactionId;
+    public Identifier ClosestFactionId = null;
     #endregion
 
     #region PolityId
@@ -53,7 +56,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
     public PolityProminenceCluster Cluster = null;
 
     [XmlIgnore]
-    public Faction ClosestFaction;
+    public Faction ClosestFaction = null;
     [XmlIgnore]
     public Polity Polity;
 
@@ -122,6 +125,26 @@ public class PolityProminence // : IKeyedValue<Identifier>
         }
     }
 
+    public void Destroy()
+    {
+        ClosestFaction?.RemoveInnerGroup(Group);
+
+        ResetNeighborCoreDistances();
+    }
+
+    public void SetClosestFaction(Faction faction)
+    {
+        if (ClosestFaction == faction)
+            return;
+
+        ClosestFaction?.RemoveInnerGroup(Group);
+
+        ClosestFaction = faction;
+        ClosestFactionId = faction?.Id;
+
+        faction?.AddInnerGroup(Group);
+    }
+
     /// <summary>
     /// Define the new core distances to update this prominence with
     /// </summary>
@@ -140,8 +163,8 @@ public class PolityProminence // : IKeyedValue<Identifier>
         {
             FactionCoreDistance = newFactionCoreDistance;
             PolityCoreDistance = newPolityCoreDistance;
-            ClosestFaction = closestFaction;
-            ClosestFactionId = closestFaction.Id;
+
+            SetClosestFaction(closestFaction);
 
 #if DEBUG
             PrevCoreDistanceSet = LastCoreDistanceSet;
@@ -280,9 +303,11 @@ public class PolityProminence // : IKeyedValue<Identifier>
     {
         float polityPopulation = Group.Population * Value;
 
-        float distanceFactor = 500 + FactionCoreDistance;
+        float distConst = 500;
+        float distanceFactor = (distConst + FactionCoreDistance) / distConst;
 
-        _adminCost = polityPopulation * distanceFactor * 0.001f;
+        _adminCost = polityPopulation * distanceFactor;
+        _adminCost = Mathf.Min(_adminCost, MaxAdminCost);
 
         if (_adminCost < 0)
         {
@@ -364,8 +389,8 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
             prom.FactionCoreDistance = MaxCoreDistance;
             prom.PolityCoreDistance = MaxCoreDistance;
-            prom.ClosestFaction = Polity.DominantFaction;
-            prom.ClosestFactionId = Polity.DominantFactionId;
+
+            prom.SetClosestFaction(Polity.DominantFaction);
 
 #if DEBUG
             prom.LastCoreDistanceReset = Manager.CurrentWorld.CurrentDate;
@@ -427,7 +452,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
         if (Cluster != null)
         {
-            // Indicate that the cluster this prominence belongs too will require a
+            // Indicate that the cluster this prominence belongs to will require a
             // new census
             Cluster.RequireNewCensus(true);
         }

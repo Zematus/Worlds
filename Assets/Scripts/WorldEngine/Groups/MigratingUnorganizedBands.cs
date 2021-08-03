@@ -19,8 +19,8 @@ public class MigratingUnorganizedBands : MigratingPopulation
     /// <param name="population">population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is exiting
-    /// from the source</param>
+    /// <param name="direction">the direction this group is exiting from the source</param>
+    /// <param name="type">the migration type (Land/Sea)</param>
     /// <param name="startDate">the migration start date</param>
     /// <param name="endDate">the migration end date</param>
     public MigratingUnorganizedBands(
@@ -30,7 +30,8 @@ public class MigratingUnorganizedBands : MigratingPopulation
         int population,
         CellGroup sourceGroup,
         TerrainCell targetCell,
-        Direction migrationDirection,
+        Direction direction,
+        MigrationType type,
         long startDate,
         long endDate)
         : base (
@@ -41,7 +42,8 @@ public class MigratingUnorganizedBands : MigratingPopulation
             sourceGroup,
             null,
             targetCell,
-            migrationDirection,
+            direction,
+            type,
             startDate,
             endDate)
     {
@@ -55,8 +57,8 @@ public class MigratingUnorganizedBands : MigratingPopulation
     /// <param name="population">population to migrate</param>
     /// <param name="sourceGroup">the cell group this originates from</param>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is moving out
-    /// from the source</param>
+    /// <param name="direction">the direction this group is moving out from the source</param>
+    /// <param name="type">the migration type (Land/Sea)</param>
     /// <param name="startDate">the migration start date</param>
     /// <param name="endDate">the migration end date</param>
     public void Set(
@@ -65,7 +67,8 @@ public class MigratingUnorganizedBands : MigratingPopulation
         int population,
         CellGroup sourceGroup,
         TerrainCell targetCell,
-        Direction migrationDirection,
+        Direction direction,
+        MigrationType type,
         long startDate,
         long endDate)
     {
@@ -76,7 +79,8 @@ public class MigratingUnorganizedBands : MigratingPopulation
             sourceGroup,
             null,
             targetCell,
-            migrationDirection,
+            direction,
+            type,
             startDate,
             endDate);
     }

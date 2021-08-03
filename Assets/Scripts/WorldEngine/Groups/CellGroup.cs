@@ -6,6 +6,7 @@ using UnityEngine.Profiling;
 
 public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 {
+
     [XmlIgnore]
     public World World;
 
@@ -28,9 +29,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     public static float TravelWidthFactor;
 
-    public static List<ICellGroupEventGenerator> OnSpawnEventGenerators;
+    private HashSet<ICellGroupEventGenerator> _generatorsToTestAssignmentFor =
+        new HashSet<ICellGroupEventGenerator>();
 
+    public static List<IWorldEventGenerator> OnSpawnEventGenerators;
     public static List<IWorldEventGenerator> OnCoreHighestProminenceChangeEventGenerators;
+    public static List<IWorldEventGenerator> OnPolityCountChangeEventGenerators;
+    public static List<IWorldEventGenerator> OnCoreCountChangeEventGenerators;
 
     [XmlAttribute("MT")]
     public bool MigrationTagged = false;
@@ -294,8 +299,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             bands.World,
             bands.TargetCell,
             bands.Population,
-            bands.Culture,
-            bands.MigrationDirection)
+            bands.Culture)
     {
     }
 
@@ -308,19 +312,22 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             polityPop.World,
             polityPop.TargetCell,
             polityPop.Population,
-            polityPop.Culture,
-            polityPop.MigrationDirection)
+            polityPop.Culture)
     {
-        AddPolityProminence(polityPop.Polity, 1.0f, true);
-        FindHighestPolityProminence();
+        bool addProminence = polityPop.Type != MigrationType.Sea;
+
+        if (addProminence)
+        {
+            AddPolityProminence(polityPop.Polity, 1.0f, true);
+            FindHighestPolityProminence();
+        }
     }
 
     public CellGroup(
         World world,
         TerrainCell cell,
         int initialPopulation,
-        Culture baseCulture = null,
-        Direction migrationDirection = Direction.Null)
+        Culture baseCulture = null)
     {
         World = world;
 
@@ -466,7 +473,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// Defines population to migrate
     /// </summary>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    /// <param name="direction">the direction this group is moving out from the source</param>
+    /// <param name="type">the migration type (Land/Sea)</param>
     /// <param name="prominencePercent">prominence value to migrate out</param>
     /// <param name="prominenceValueDelta">how much the prominence value should change</param>
     /// <param name="population">population to migrate</param>
@@ -475,7 +483,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <param name="endDate">the migration end date</param>
     public void SetMigratingPopulation(
         TerrainCell targetCell,
-        Direction migrationDirection,
+        Direction direction,
+        MigrationType type,
         float prominencePercent,
         float prominenceValueDelta,
         int population,
@@ -487,7 +496,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         {
             SetMigratingUnorganizedBands(
                 targetCell,
-                migrationDirection,
+                direction,
+                type,
                 prominencePercent,
                 prominenceValueDelta,
                 population,
@@ -498,7 +508,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         SetMigratingPolityPopulation(
             targetCell,
-            migrationDirection,
+            direction,
+            type,
             prominencePercent,
             prominenceValueDelta,
             population,
@@ -511,7 +522,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// Sets Migrating Bands object
     /// </summary>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    /// <param name="direction">the direction this group is moving out from the source</param>
+    /// <param name="type">the migration type (Land/Sea)</param>
     /// <param name="prominencePercent">prominence value to migrate out</param>
     /// <param name="prominenceValueDelta">how much the prominence value should change</param>
     /// <param name="population">population to migrate</param>
@@ -519,7 +531,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <param name="endDate">the migration end date</param>
     public void SetMigratingUnorganizedBands(
         TerrainCell targetCell,
-        Direction migrationDirection,
+        Direction direction,
+        MigrationType type,
         float prominencePercent,
         float prominenceValueDelta,
         int population,
@@ -542,7 +555,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                     population,
                     this,
                     targetCell,
-                    migrationDirection,
+                    direction,
+                    type,
                     startDate,
                     endDate);
         }
@@ -554,7 +568,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 population,
                 this,
                 targetCell,
-                migrationDirection,
+                direction,
+                type,
                 startDate,
                 endDate);
         }
@@ -566,7 +581,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// Sets Migrating Polity Population object
     /// </summary>
     /// <param name="targetCell">the cell group this migrates to</param>
-    /// <param name="migrationDirection">the direction this group is exiting from the source</param>
+    /// <param name="direction">the direction this group is moving out from the source</param>
+    /// <param name="type">the migration type (Land/Sea)</param>
     /// <param name="prominencePercent">prominence value to migrate out</param>
     /// <param name="prominenceValueDelta">how much the prominence value should change</param>
     /// <param name="population">population to migrate</param>
@@ -575,7 +591,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <param name="endDate">the migration end date</param>
     public void SetMigratingPolityPopulation(
         TerrainCell targetCell,
-        Direction migrationDirection,
+        Direction direction,
+        MigrationType type,
         float prominencePercent,
         float prominenceValueDelta,
         int population,
@@ -600,7 +617,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                     this,
                     polity,
                     targetCell,
-                    migrationDirection,
+                    direction,
+                    type,
                     startDate,
                     endDate);
         }
@@ -613,7 +631,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 this,
                 polity,
                 targetCell,
-                migrationDirection,
+                direction,
+                type,
                 startDate,
                 endDate);
         }
@@ -626,17 +645,38 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         _deferredEffects.Add(effect);
     }
 
+    public void TryAssignEvents()
+    {
+        foreach (var generator in _generatorsToTestAssignmentFor)
+        {
+            generator.TryGenerateEventAndAssign(this);
+        }
+
+        _generatorsToTestAssignmentFor.Clear();
+    }
+
+    public void AddGeneratorToTestAssignmentFor(ICellGroupEventGenerator generator)
+    {
+        _generatorsToTestAssignmentFor.Add(generator);
+        World.AddGroupToAssignEventsTo(this);
+    }
+
     public static void ResetEventGenerators()
     {
-        OnSpawnEventGenerators = new List<ICellGroupEventGenerator>();
+        OnSpawnEventGenerators = new List<IWorldEventGenerator>();
         OnCoreHighestProminenceChangeEventGenerators = new List<IWorldEventGenerator>();
+        OnCoreCountChangeEventGenerators = new List<IWorldEventGenerator>();
+        OnPolityCountChangeEventGenerators = new List<IWorldEventGenerator>();
     }
 
     private void InitializeOnSpawnEvents()
     {
-        foreach (ICellGroupEventGenerator generator in OnSpawnEventGenerators)
+        foreach (IWorldEventGenerator generator in OnSpawnEventGenerators)
         {
-            generator.TryGenerateEventAndAssign(this);
+            if (generator is ICellGroupEventGenerator gGenerator)
+            {
+                AddGeneratorToTestAssignmentFor(gGenerator);
+            }
         }
     }
 
@@ -651,8 +691,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             {
                 foreach (Faction faction in FactionCores.Values)
                 {
-                    fGenerator.TryGenerateEventAndAssign(faction);
+                    faction.AddGeneratorToTestAssignmentFor(fGenerator);
                 }
+            }
+            else if (generator is ICellGroupEventGenerator gGenerator)
+            {
+                AddGeneratorToTestAssignmentFor(gGenerator);
             }
         }
     }
@@ -664,6 +708,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             FactionCores.Add(faction.Id, faction);
             Manager.AddUpdatedCell(Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
         }
+
+        World.AddGroupWithCoreCountChange(this);
     }
 
     public void RemoveFactionCore(Faction faction)
@@ -673,6 +719,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             FactionCores.Remove(faction.Id);
             Manager.AddUpdatedCell(Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
         }
+
+        World.AddGroupWithCoreCountChange(this);
     }
 
     public bool FactionHasCoreHere(Faction faction)
@@ -683,6 +731,23 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public ICollection<Faction> GetFactionCores()
     {
         return FactionCores.Values;
+    }
+
+    public bool HasPolityOfType(PolityType type)
+    {
+        foreach (var prominence in _polityProminences.Values)
+        {
+            if (_polityProminencesToRemove.Contains(prominence.PolityId))
+                continue;
+
+            if (type == PolityType.Any)
+                return true;
+
+            if (prominence.Polity.Type == type)
+                return true;
+        }
+
+        return false;
     }
 
     public CellGroupSnapshot GetSnapshot()
@@ -1574,7 +1639,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             // We want to update the polity if a group is removed.
             SetPolityUpdate(polityProminence, true);
 
-            polityProminence.ResetNeighborCoreDistances();
+            polityProminence.Destroy();
         }
 
         if (Cell.TerritoryToAddTo != null)
@@ -1824,6 +1889,19 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <param name="timeSpan">the time span since the last cell update</param>
     private void EvaluateAcculturation(PolityProminence prominence, long timeSpan)
     {
+        if (prominence.FactionCoreDistance < 0)
+        {
+            // the faction core distance is still not set, so avoid applying acculturation effects
+            // just yet
+            return;
+        }
+
+        if (_polityProminencesToRemove.Contains(prominence.PolityId))
+        {
+            // since this prominence will be removed, there's no need to calculate acculturation effects
+            return;
+        }
+
         float expectedSpanConstant = GenerationSpan;
         float timeFactor = timeSpan / (timeSpan + expectedSpanConstant);
 
@@ -1835,36 +1913,41 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float groupIsolationPrefValue =
             Culture.GetIsolationPreferenceValue();
 
-        float coreDistanceFactor = prominence.FactionCoreDistance / PolityProminence.MaxCoreDistance;
-        coreDistanceFactor = 1 - Mathf.Clamp01(coreDistanceFactor);
+        float maxCoreDist = 1000;
+
+        float coreDistFactor = prominence.FactionCoreDistance / maxCoreDist;
+        coreDistFactor = Mathf.Pow(coreDistFactor, 2);
 
         // acculturation on unorganized bands
 
-        float maxIsolationPrefValue = Mathf.Max(polityIsolationPrefValue, groupIsolationPrefValue);
+        float ubTransferConstant = 3;
 
-        float ubOpennessFactor = 1 - maxIsolationPrefValue;
+        float ubCoreDistanceFactor = ubTransferConstant - coreDistFactor;
 
-        float prominenceOnUBFactor =
-            Mathf.Max(prominence.Value * (1 - TotalPolityProminenceValue), 0.01f);
+        float ubOpennessFactor = 1 - polityIsolationPrefValue;
+        float prominenceOnUBFactor = prominence.Value;
+
+        if (ubCoreDistanceFactor < 0)
+        {
+            ubOpennessFactor = 1 - groupIsolationPrefValue;
+            prominenceOnUBFactor = 1;
+        }
 
         int polityIdHash = prominence.PolityId.GetHashCode();
 
-        if (prominenceOnUBFactor > 0)
+        if ((ubCoreDistanceFactor < 0) || (TotalPolityProminenceValue < 1))
         {
-            float ubCoreDistanceFactor = (coreDistanceFactor * 1.5f) - 0.5f;
-
-            float ubRandomFactor = Cell.GetNextLocalRandomFloat(
+            float ubRandomFactor = 0.8f + 0.4f * Cell.GetNextLocalRandomFloat(
                 RngOffsets.CELL_GROUP_UB_ACCULTURATION + polityIdHash);
-
-            float ubTransferConstant = 3;
 
             float ubAcculturation =
                 ubOpennessFactor *
                 ubCoreDistanceFactor *
                 prominenceOnUBFactor *
                 ubRandomFactor *
-                timeFactor *
-                ubTransferConstant;
+                timeFactor;
+
+            ubAcculturation = Mathf.Clamp(ubAcculturation, -0.75f, 0.75f);
 
             AddUBandsProminenceValueDelta(-ubAcculturation);
         }
@@ -1875,7 +1958,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         if (othersOnPromFactor > 0)
         {
-            float promRandomFactor = Cell.GetNextLocalRandomFloat(
+            float promRandomFactor = 0.8f + 0.4f * Cell.GetNextLocalRandomFloat(
                 RngOffsets.CELL_GROUP_PROM_ACCULTURATION + polityIdHash);
 
             float promOpennessFactor = 1 - polityIsolationPrefValue;
@@ -1885,7 +1968,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 othersOnPromFactor *
                 promRandomFactor *
                 timeFactor *
-                coreDistanceFactor;
+                coreDistFactor;
+
+            promAcculturation = Mathf.Clamp(promAcculturation, 0, 0.5f);
 
             AddPolityProminenceValueDelta(prominence.Polity, -promAcculturation);
         }
@@ -1918,6 +2003,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         foreach (PolityProminence polityProminence in _polityProminences.Values)
         {
+            if (_polityProminencesToRemove.Contains(polityProminence.PolityId))
+                continue;
+
             Polity polity = polityProminence.Polity;
 
             polity.GroupUpdateEffects(this, polityProminence.Value, TotalPolityProminenceValue, timeSpan);
@@ -2177,9 +2265,34 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
+        float prominenceFactor = 1;
+
+        if (TotalPolityProminenceValue < 1)
+        {
+            // if there are unorganized bands, then set the prom factor accordingly
+            prominenceFactor = 1 - TotalPolityProminenceValue;
+        }
+
+        float minPromFactor = 0.00001f;
+
+        foreach (var prominence in _polityProminences.Values)
+        {
+            if (prominenceFactor < minPromFactor)
+                break;
+
+            if (prominence.Value < prominenceFactor)
+            {
+                prominenceFactor = prominence.Value;
+            }
+        }
+        
+        // avoid setting a prom factor equal or less than zero
+        prominenceFactor = Mathf.Max(minPromFactor, prominenceFactor);
+
         float SlownessConstant = 100 * GenerationSpan;
 
-        float mixFactor = SlownessConstant * randomFactor * circumstancesFactor * populationFactor;
+        float mixFactor = 
+            SlownessConstant * randomFactor * circumstancesFactor * populationFactor * prominenceFactor;
         long updateSpan = QuarterGenSpan + (long)Mathf.Ceil(mixFactor);
 
         if (updateSpan < 0)
@@ -2410,6 +2523,16 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return polityProminence.FactionCoreDistance;
     }
 
+    public Faction GetFaction(Polity polity)
+    {
+        if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
+        {
+            return null;
+        }
+
+        return polityProminence.ClosestFaction;
+    }
+
     public float GetPolityCoreDistance(Polity polity)
     {
         if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
@@ -2418,6 +2541,19 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         }
 
         return polityProminence.PolityCoreDistance;
+    }
+
+    public void ResetCoreDistances(Identifier polityId, bool addToRecalcs = false)
+    {
+        var prom = GetPolityProminence(polityId);
+
+        if (prom == null)
+        {
+            throw new System.Exception(
+                $"Unable to find prominence with Id {polityId} in group {Id}");
+        }
+
+        prom.ResetCoreDistances(addToRecalcs: addToRecalcs);
     }
 
 #if DEBUG
@@ -2475,6 +2611,16 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             CalculateProminenceValueTotals();
 
             _hasRemovedProminences = false;
+        }
+
+        foreach (var pair in FactionCores)
+        {
+            Faction faction = pair.Value;
+
+            float promValue = GetPolityProminenceValue(faction.PolityId);
+            {
+                faction.GenerateCoreGroupProminenceValueBelowEvents(promValue);
+            }
         }
     }
 
@@ -2559,11 +2705,29 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// </summary>
     /// <param name="polity">polity to apply prominence value delta</param>
     /// <param name="delta">value delta to apply</param>
-    public void AddPolityProminenceValueDelta(Polity polity, float delta)
+    /// <param name="ignoreRemoval">if 'true', apply delta even if prominence
+    /// was going to be removed</param>
+    public void AddPolityProminenceValueDelta(
+        Polity polity, float delta, bool ignoreRemoval = false)
     {
         if (delta == 0)
         {
             return;
+        }
+
+        if (_polityProminencesToRemove.Contains(polity.Id))
+        {
+            if (ignoreRemoval && (delta > 0))
+            {
+                // prevent removal if delta is positive
+                _polityProminencesToRemove.Remove(polity.Id);
+            }
+            else
+            {
+                Debug.LogWarning("Trying to add value delta to prominence " +
+                    "that will be removed...");
+                return;
+            }
         }
 
         if (float.IsNaN(delta) || float.IsInfinity(delta))
@@ -2638,17 +2802,55 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return offset;
     }
 
-    public void SetPolityProminenceValue(Polity polity, float newValue)
+    public bool SetPolityProminenceValue(
+        Polity polity,
+        float newValue,
+        bool afterPolityUpdates = false,
+        bool throwIfCantRemove = true)
     {
+        float promPopulation = ExactPopulation * newValue;
+
+        if (promPopulation < MinProminencePopulation)
+        {
+            // try to remove prominences that would end up with a value far too small
+            // NOTE: Can't do that after polities have been updated
+            if (afterPolityUpdates || !SetPolityProminenceToRemove(polity, false, false))
+            {
+                if (throwIfCantRemove)
+                {
+                    throw new System.Exception(
+                        $"Unable to remove prominence {polity.Id} from group {Id}");
+                }
+
+                // if not possible to remove this prominence, set it to a min value
+                newValue = MinProminencePopulation / ExactPopulation;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        if (!_polityProminences.ContainsKey(polity.Id))
+        {
+            if (afterPolityUpdates)
+            {
+                Debug.LogWarning("Trying to add polity " + polity.Id +
+                    " after polity updates have already happened.  Group: " + Id);
+            }
+
+            // add missing prominences that have values greater than MinPolityProminenceValue
+            AddPolityProminence(polity);
+        }
+
         _polityProminences[polity.Id].Value = newValue;
+
+        return true;
     }
 
-    public void ModifyPolityProminenceValue(Polity polity, float valueDelta)
-    {
-        _polityProminences[polity.Id].Value += valueDelta;
-    }
-
-    private float UpdateProminenceValuesWithDeltas(float promDeltaOffset, bool afterPolityUpdates)
+    private float UpdateProminenceValuesWithDeltas(
+        float promDeltaOffset,
+        bool afterPolityUpdates)
     {
         float totalValue = 0;
         float ubProminenceValue = _unorgBandsPromDelta - promDeltaOffset;
@@ -2660,52 +2862,17 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
             newValue -= promDeltaOffset;
 
-            float promPopulation = ExactPopulation * newValue;
-
-            if (promPopulation < MinProminencePopulation)
+            if (SetPolityProminenceValue(
+                polity, newValue, afterPolityUpdates, false))
             {
-                // try to remove prominences that would end up with a value far too small
-                // NOTE: Can't do that after polities have been updated
-                if (afterPolityUpdates || !SetPolityProminenceToRemove(pair.Key, false))
-                {
-                    // if not possible to remove this prominence, set it to a min value
-                    newValue = MinProminencePopulation / ExactPopulation;
-                }
-                else
-                {
-                    // We will "transfer" its prominence value to unorganized bands
-                    ubProminenceValue += newValue;
-                    continue;
-                }
+                totalValue += newValue;
             }
-
-            if (!_polityProminences.ContainsKey(polity.Id))
+            else
             {
-                if (afterPolityUpdates)
-                {
-                    Debug.LogWarning("Trying to add polity " + polity.Id +
-                        " after polity updates have already happened.  Group: " + Id);
-                }
-
-                // add missing prominences that have values greater than MinPolityProminenceValue
-                AddPolityProminence(polity);
+                // We will "transfer" its prominence value to unorganized bands
+                // instead
+                ubProminenceValue += newValue;
             }
-
-#if DEBUG
-            if (newValue <= 0)
-            {
-                Debug.LogWarning("new value less than 0: " + newValue);
-            }
-
-            if (newValue > (totalValue + newValue))
-            {
-                Debug.LogWarning("new total value less than new value. prev total value: "
-                    + totalValue + ", new value: " + newValue);
-            }
-#endif
-
-            SetPolityProminenceValue(polity, newValue);
-            totalValue += newValue;
         }
 
         // add in the prominence value of unorganized bands
@@ -2801,9 +2968,10 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <returns>'false' if the polity prominence can't be removed</returns>
     public bool SetPolityProminenceToRemove(
         Polity polity,
-        bool throwIfNotPresent = true)
+        bool throwIfNotPresent = true,
+        bool forceCoreRemoval = true)
     {
-        return SetPolityProminenceToRemove(polity.Id, throwIfNotPresent);
+        return SetPolityProminenceToRemove(polity.Id, throwIfNotPresent, forceCoreRemoval);
     }
 
     /// <summary>
@@ -2814,7 +2982,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <returns>'false' if the polity prominence can't be removed</returns>
     public bool SetPolityProminenceToRemove(
         Identifier polityId,
-        bool throwIfNotPresent = true)
+        bool throwIfNotPresent = true,
+        bool forceCoreRemoval = true)
     {
         if (!_polityProminences.ContainsKey(polityId))
         {
@@ -2846,8 +3015,54 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             return false;
         }
 
+        var prominence = GetPolityProminence(polityId);
+
+        if (!forceCoreRemoval)
+        {
+            foreach (var pair in FactionCores)
+            {
+                Faction faction = pair.Value;
+
+                if (faction.PolityId == prominence.PolityId)
+                {
+                    if (!faction.BeingRemoved)
+                    {
+                        Debug.LogWarning(
+                            $"Group has valid faction core, group: {Id}" +
+                            $", faction: {faction.Id}" +
+                            $", polity: {polityId}" +
+                            $", date: {World.CurrentDate}");
+                    }
+
+                    return false;
+                }
+            }
+        }
+        
         _polityProminencesToRemove.Add(polityId);
         return true;
+    }
+
+    public void OnPolityCountChange() 
+    {
+        foreach (IWorldEventGenerator generator in OnPolityCountChangeEventGenerators)
+        {
+            if (generator is ICellGroupEventGenerator gGenerator)
+            {
+                AddGeneratorToTestAssignmentFor(gGenerator);
+            }
+        }
+    }
+
+    public void OnCoreCountChange()
+    {
+        foreach (IWorldEventGenerator generator in OnCoreCountChangeEventGenerators)
+        {
+            if (generator is ICellGroupEventGenerator gGenerator)
+            {
+                AddGeneratorToTestAssignmentFor(gGenerator);
+            }
+        }
     }
 
     /// <summary>
@@ -2892,6 +3107,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         }
 
         World.AddPromToCalculateCoreDistFor(polityProminence);
+        World.AddGroupWithPolityCountChange(this);
     }
 
     /// <summary>
@@ -2947,9 +3163,14 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 SetPolityUpdate(polityProminence, true);
             }
 
-            polityProminence.ResetNeighborCoreDistances();
+            polityProminence.Destroy();
 
             _hasRemovedProminences = true;
+        }
+
+        if (_hasRemovedProminences)
+        {
+            World.AddGroupWithPolityCountChange(this);
         }
 
         _polityProminencesToRemove.Clear();
@@ -3060,6 +3281,31 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public void AddPropertyToLose(string property)
     {
         _propertiesToLose.Add(property);
+    }
+
+    public Polity GetRandomPolity(int rngOffset, PolityType type)
+    {
+        if (_polityProminences.Count < 1)
+            return null;
+
+        int selectionValue = GetNextLocalRandomInt(rngOffset, _polityProminences.Count);
+
+        int count = 0;
+        foreach (var prominence in _polityProminences.Values)
+        {
+            if ((type != PolityType.Any) && (prominence.Polity.Type != type))
+                continue;
+
+            if (_polityProminencesToRemove.Contains(prominence.PolityId))
+                continue;
+
+            if (count == selectionValue)
+                return prominence.Polity;
+
+            count++;
+        }
+
+        return null;
     }
 
     public void Synchronize()

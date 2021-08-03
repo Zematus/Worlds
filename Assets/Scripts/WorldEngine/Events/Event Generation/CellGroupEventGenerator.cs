@@ -27,6 +27,16 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         // can be assigned by other events by default
     }
 
+    public override void SetToAssignOnPolityCountChange()
+    {
+        CellGroup.OnPolityCountChangeEventGenerators.Add(this);
+    }
+
+    public override void SetToAssignOnCoreCountChange()
+    {
+        CellGroup.OnCoreCountChangeEventGenerators.Add(this);
+    }
+
     public override void SetToAssignOnStatusChange()
     {
         throw new System.InvalidOperationException(
@@ -55,6 +65,12 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
     {
         throw new System.InvalidOperationException(
             "OnAssign does not support 'guide_switch' for Cell Groups");
+    }
+
+    public override void SetToAssignOnCoreGroupProminenceValueBelow(string valueStr)
+    {
+        throw new System.InvalidOperationException(
+            "OnAssign does not support 'core_group_prominence_value_below' for Cell Groups");
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)
@@ -103,5 +119,11 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         }
 
         return TryGenerateEventAndAssign(modEvent.Group, modEvent, true);
+    }
+
+    protected override void AddTargetDebugOutput()
+    {
+        AddDebugOutput(
+            $"\tTarget Group: {_target.Group.Id}");
     }
 }

@@ -42,7 +42,6 @@ public enum CellUpdateSubType
     Membership = 0x10,
     Core = 0x20,
     CoreDistance = 0x40,
-    AdminCost = 0x80,
     All = 0xFF,
     AllButTerrain = All & ~Terrain,
     PopulationAndCulture = Population | Culture,
@@ -51,6 +50,13 @@ public enum CellUpdateSubType
 
 public class TerrainCell
 {
+    public enum FilterType
+    {
+        None,
+        Core,
+        Selectable
+    }
+
 #if DEBUG
     public delegate void GetNextLocalRandomCalledDelegate(string callerMethod);
 
@@ -210,6 +216,8 @@ public class TerrainCell
 
     public bool IsSelected = false;
     public bool IsHovered = false;
+
+    public FilterType AssignedFilterType = FilterType.None;
 
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
 
@@ -480,7 +488,7 @@ public class TerrainCell
         float aggrDiff = Culture.CalculateAggressionDiff(cultureA, cultureB);
 
         float scaleConst = 1000;
-        float aggrFactor = 1;
+        float aggrFactor;
 
         if (aggrDiff >= 0)
         {
@@ -575,15 +583,15 @@ public class TerrainCell
 
         if (ubPopulation > 0)
         {
-            float ubAggrFactor = 1;
+            float ubAggrFactor;
 
             if (isPolity)
             {
-                CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture);
+                ubAggrFactor = CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture);
             }
             else
             {
-                CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture, 0.25f);
+                ubAggrFactor = CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture, 0.25f);
             }
 
             float ubEffectivePopulation =

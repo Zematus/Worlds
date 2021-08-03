@@ -18,7 +18,7 @@ public abstract class Polity : ISynchronizable
     public const float CoreDistanceEffectConstant = 10000;
     public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
 
-    public const float MaxAdminCost = 1000000000;
+    public const float MaxAdminCost = 1000000000000;
 
     public static List<IWorldEventGenerator> OnPolityContactChangeEventGenerators;
     public static List<IWorldEventGenerator> OnRegionAccessibilityUpdateEventGenerators;
@@ -121,7 +121,10 @@ public abstract class Polity : ISynchronizable
     public Identifier Id => Info.Id;
 
     [XmlIgnore]
-    public string Type => Info.Type;
+    public string TypeStr => Info.TypeStr;
+
+    [XmlIgnore]
+    public PolityType Type => Info.Type;
 
     [XmlIgnore]
     public Name Name => Info.Name;
@@ -442,17 +445,20 @@ public abstract class Polity : ISynchronizable
 
     public void Split(string polityType, Faction splittingFaction)
     {
-        Polity newPolity = null;
+//#if DEBUG
+//        Manager.Debug_PauseSimRequested = true;
+//#endif
+
+        Polity newPolity;
 
         switch (polityType)
         {
             case Tribe.PolityTypeStr:
-                Tribe newTribe = new Tribe(splittingFaction as Clan, this as Tribe);
-                newPolity = newTribe;
+                newPolity = new Tribe(splittingFaction as Clan, this as Tribe);
 
                 AddEventMessage(new TribeSplitEventMessage(
                     splittingFaction as Clan,
-                    this as Tribe, newTribe, World.CurrentDate));
+                    this as Tribe, newPolity as Tribe, World.CurrentDate));
                 break;
 
             default:
@@ -515,15 +521,7 @@ public abstract class Polity : ISynchronizable
 
             if (resetCoreDistances)
             {
-                PolityProminence prom = CoreGroup.GetPolityProminence(Id);
-
-                if (prom == null)
-                {
-                    throw new System.Exception(
-                        $"Unable to find prominence with Id {Id} in group {CoreGroup.Id}");
-                }
-
-                prom.ResetCoreDistances(addToRecalcs: true);
+                CoreGroup.ResetCoreDistances(Id, true);
             }
         }
 
@@ -535,14 +533,7 @@ public abstract class Polity : ISynchronizable
 
         if (resetCoreDistances)
         {
-            PolityProminence prom = CoreGroup.GetPolityProminence(Id);
-
-            if (prom == null)
-            {
-                throw new System.Exception("Unable to find prominence with Id " + Id + " in group " + CoreGroup.Id);
-            }
-
-            prom.ResetCoreDistances(addToRecalcs: true);
+            CoreGroup.ResetCoreDistances(Id, true);
         }
     }
 
@@ -670,6 +661,34 @@ public abstract class Polity : ISynchronizable
         if (!World.PolitiesHaveBeenUpdated)
         {
             World.AddPolityToUpdate(this);
+        }
+    }
+
+    protected void TransferGroups(
+        Polity sourcePolity,
+        Dictionary<CellGroup, float> groupsToTransfer)
+    {
+        foreach (var pair in groupsToTransfer)
+        {
+            CellGroup group = pair.Key;
+            float value = pair.Value;
+
+            float oldPromVal = group.GetPolityProminenceValue(sourcePolity);
+
+            bool removed = !group.SetPolityProminenceValue(
+                sourcePolity, oldPromVal - value);
+
+            if (removed)
+            {
+                // the old prominence was completely removed, so we transfer its
+                // full value to the new prominence
+                value = oldPromVal;
+            }
+
+            group.AddPolityProminence(this, value);
+            group.FindHighestPolityProminence();
+
+            World.AddGroupToUpdate(group);
         }
     }
 
@@ -962,10 +981,8 @@ public abstract class Polity : ISynchronizable
                 cluster.RunCensus();
             }
 
-            if (cluster.TotalAdministrativeCost < float.MaxValue)
-                TotalAdministrativeCost_Internal += cluster.TotalAdministrativeCost;
-            else
-                TotalAdministrativeCost_Internal = float.MaxValue;
+            TotalAdministrativeCost_Internal = 
+                Mathf.Min(TotalAdministrativeCost_Internal + cluster.TotalAdministrativeCost, MaxAdminCost);
 
             TotalPopulation_Internal += cluster.TotalPopulation;
 
@@ -1781,8 +1798,6 @@ public abstract class Polity : ISynchronizable
         }
 
         float administrativeLoad = TotalAdministrativeCost / socialOrganizationValue;
-
-        administrativeLoad = Mathf.Pow(administrativeLoad, 2);
 
         if (administrativeLoad < 0)
         {

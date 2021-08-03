@@ -508,4 +508,105 @@ public static class MathUtility
 
         return default;
     }
+
+    public static int MinWrappedDist(int a, int b, int wrapLength)
+    {
+        int dist1 = Mathf.Abs(a - b);
+        int dist2 = Mathf.Abs(a + wrapLength - b);
+
+        return Mathf.Min(dist1, dist2);
+    }
+
+    public static void Extend(this ref RectInt rect, Vector2Int pos, int mapWidth)
+    {
+        rect.yMin = Mathf.Min(rect.yMin, pos.y);
+        rect.yMax = Mathf.Max(rect.yMax, pos.y);
+
+        // this big if-block will take care of handling the case where the rect
+        // could end up wrapping around the map longitude-wise
+        if (pos.x < rect.xMin)
+        {
+            // if the wrapped around longitude falls inside the rect then
+            // ignore it
+            if ((pos.x + mapWidth) < rect.xMax)
+                return;
+
+            int distLeft = rect.xMin - pos.x;
+            int distRight = (pos.x + mapWidth) - rect.xMax;
+
+            // if the distance between the pos x and the rect max x is less
+            // than the distance between the pos x and the rect min x,
+            // that means we can encompass the pos with a smaller rect by
+            // increasing the rect max x instead of decreasing the rect min x
+            if (distRight < distLeft)
+            {
+                rect.xMax += distRight;
+            }
+            else
+            {
+                rect.xMin -= distLeft;
+            }
+        }
+
+        rect.xMax = Mathf.Max(rect.xMax, pos.x);
+    }
+
+    public static void Extend(this ref RectInt target, RectInt source, int mapWidth)
+    {
+        target.yMin = Mathf.Min(target.yMin, source.yMin);
+        target.yMax = Mathf.Max(target.yMax, source.yMax);
+
+        // we can't have a rect with a width larger than the map length
+        if (target.width == mapWidth)
+            return;
+
+        // this big if-block will take care of handling the case where the target rect
+        // could end up wrapping around the map longitude-wise
+        if (source.xMin < target.xMin)
+        {
+            if (source.xMax > mapWidth)
+            {
+                // this case means that the source rect already wraps around the map
+                // so we don't need to do special calculations
+                target.xMin = Mathf.Min(target.xMin, source.xMin);
+            }
+            else
+            {
+                // with this case we have to be careful because we might need to wrap
+                // the target rect around the map to make it sure it covers the source
+                // rect with the smallest width possible
+                int distLeft = target.xMin - source.xMin;
+                int distRight = Mathf.Max((source.xMax + mapWidth) - target.xMax, 0);
+
+                if (distRight < distLeft)
+                {
+                    target.xMax += distRight;
+                }
+                else
+                {
+                    target.xMin -= distLeft;
+                }
+            }
+        }
+
+        target.xMax = Mathf.Max(target.xMax, source.xMax);
+
+        if (target.width > mapWidth)
+        {
+            // make sure the target rect width doesn't exceed the map width
+            target.xMax = target.xMin + mapWidth;
+        }
+    }
+
+    public static Rect Lerp(Rect a, Rect b, float t)
+    {
+        Rect r = new Rect();
+
+        r.xMin = Mathf.Lerp(a.xMin, b.xMin, t);
+        r.xMax = Mathf.Lerp(a.xMax, b.xMax, t);
+        r.yMin = Mathf.Lerp(a.yMin, b.yMin, t);
+        r.yMax = Mathf.Lerp(a.yMax, b.yMax, t);
+
+        return r;
+    }
 }
