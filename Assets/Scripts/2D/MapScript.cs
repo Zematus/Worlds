@@ -33,7 +33,7 @@ public class MapScript : MonoBehaviour
     private Rect _endUvRect;
     private float _moveAccTime;
     private float _moveTotalTime;
-    private bool _moveToTargetUvRect = false;
+    private bool _movingToTarget = false;
 
     void Start()
     {
@@ -54,7 +54,7 @@ public class MapScript : MonoBehaviour
 
     private void UpdateUvRect()
     {
-        if (!_moveToTargetUvRect)
+        if (!_movingToTarget)
             return;
 
         _moveAccTime += Time.deltaTime;
@@ -62,7 +62,7 @@ public class MapScript : MonoBehaviour
         if (_moveAccTime > _moveTotalTime)
         {
             _moveAccTime = _moveTotalTime;
-            _moveToTargetUvRect = false;
+            _movingToTarget = false;
         }
 
         float percent = Mathf.Clamp01(_moveAccTime/_moveTotalTime);
@@ -221,12 +221,21 @@ public class MapScript : MonoBehaviour
         PointerOverlayImage.uvRect = newUvRect;
     }
 
+    private void StopMovingToTarget()
+    {
+        if (!_movingToTarget)
+            return;
+
+        _movingToTarget = false;
+        SetUvRect(_endUvRect);
+    }
+
     private void BeginDragMap(PointerEventData pointerData)
     {
         if (Manager.EditorBrushIsActive)
             return;
 
-        _moveToTargetUvRect = false;
+        StopMovingToTarget();
 
         _beginDragPosition = pointerData.position;
         _beginDragMapUvRect = MapImage.uvRect;
@@ -412,7 +421,7 @@ public class MapScript : MonoBehaviour
         if (_isDraggingMap || Manager.EditorBrushIsActive)
             return;
 
-        _moveToTargetUvRect = false;
+        StopMovingToTarget();
 
         float oldZoomFactor = _zoomFactor;
         _zoomFactor = Mathf.Clamp(_zoomFactor - delta, _minZoomFactor, _maxZoomFactor);
@@ -444,7 +453,7 @@ public class MapScript : MonoBehaviour
 
         if (timeToMove > 0)
         {
-            _moveToTargetUvRect = true;
+            _movingToTarget = true;
             _moveAccTime = 0;
             _moveTotalTime = timeToMove;
         }
