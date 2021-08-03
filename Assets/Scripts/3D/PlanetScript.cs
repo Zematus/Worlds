@@ -54,9 +54,6 @@ public class PlanetScript : MonoBehaviour
 
     private float _zoomFactor = 1.0f;
 
-    private float _startZoomFactor;
-    private float _endZoomFactor;
-
     private Vector3 _startCameraPos;
     private Vector3 _endCameraPos;
 
@@ -65,7 +62,7 @@ public class PlanetScript : MonoBehaviour
 
     private float _moveAccTime;
     private float _moveTotalTime;
-    private bool _moveToTarget = false;
+    private bool _movingToTarget = false;
 
     private SphereRotationType _rotationType = SphereRotationType.Auto;
     private SphereLightingType _lightingType = SphereLightingType.SunLight;
@@ -90,7 +87,7 @@ public class PlanetScript : MonoBehaviour
 
     private void UpdateCamera()
     {
-        if (!_moveToTarget)
+        if (!_movingToTarget)
             return;
 
         _moveAccTime += Time.deltaTime;
@@ -98,12 +95,11 @@ public class PlanetScript : MonoBehaviour
         if (_moveAccTime > _moveTotalTime)
         {
             _moveAccTime = _moveTotalTime;
-            _moveToTarget = false;
+            _movingToTarget = false;
         }
 
         float percent = Mathf.Clamp01(_moveAccTime / _moveTotalTime);
 
-        _zoomFactor = Mathf.Lerp(_startZoomFactor, _endZoomFactor, percent);
         Vector3 cameraPos = Vector3.Lerp(_startCameraPos, _endCameraPos, percent);
         Vector2 mapPos = Vector2.Lerp(_startMapPos, _endMapPos, percent);
 
@@ -256,12 +252,23 @@ public class PlanetScript : MonoBehaviour
         ZoomCamera(zoomDelta);
     }
 
+    private void StopMovingToTarget()
+    {
+        if (!_movingToTarget)
+            return;
+
+        _movingToTarget = false;
+
+        Camera.transform.localPosition = _endCameraPos;
+        CenterCameraOnPosition(_endMapPos);
+    }
+
     public void ZoomCamera(float delta)
     {
         if (_isDraggingSurface)
             return;
 
-        _moveToTarget = false;
+        StopMovingToTarget();
 
         _zoomFactor = Mathf.Clamp(_zoomFactor - delta, _minZoomFactor, _maxZoomFactor);
 
@@ -444,13 +451,12 @@ public class PlanetScript : MonoBehaviour
 
         if (timeToMove > 0)
         {
-            _moveToTarget = true;
+            _movingToTarget = true;
             _moveAccTime = 0;
             _moveTotalTime = timeToMove;
         }
         else
         {
-            _zoomFactor = _endZoomFactor;
             Camera.transform.localPosition = _endCameraPos;
             CenterCameraOnPosition(_endMapPos);
         }
@@ -460,11 +466,10 @@ public class PlanetScript : MonoBehaviour
     {
         _startCameraPos = Camera.transform.localPosition;
 
-        _startZoomFactor = _zoomFactor;
-        _endZoomFactor = scale;
+        _zoomFactor = scale;
 
         _endCameraPos = _startCameraPos;
-        _endCameraPos.z = Mathf.Lerp(_minCameraDistance, _maxCameraDistance, scale);
+        _endCameraPos.z = Mathf.Lerp(_minCameraDistance, _maxCameraDistance, _zoomFactor);
     }
 
     private void CenterCameraOnPosition(Vector2 mapPosition)
@@ -499,7 +504,7 @@ public class PlanetScript : MonoBehaviour
 
     public void BeginDrag(BaseEventData data)
     {
-        _moveToTarget = false;
+        StopMovingToTarget();
 
         PointerEventData pointerData = data as PointerEventData;
 
