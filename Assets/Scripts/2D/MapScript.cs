@@ -29,9 +29,6 @@ public class MapScript : MonoBehaviour
 
     private float _zoomFactor = 1.0f;
 
-    private float _startZoomFactor;
-    private float _endZoomFactor;
-
     private Rect _startUvRect;
     private Rect _endUvRect;
     private float _moveAccTime;
@@ -70,7 +67,6 @@ public class MapScript : MonoBehaviour
 
         float percent = Mathf.Clamp01(_moveAccTime/_moveTotalTime);
 
-        _zoomFactor = Mathf.Lerp(_startZoomFactor, _endZoomFactor, percent);
         Rect uvRect = MathUtility.Lerp(_startUvRect, _endUvRect, percent);
 
         SetUvRect(uvRect);
@@ -454,18 +450,16 @@ public class MapScript : MonoBehaviour
         }
         else
         {
-            _zoomFactor = _endZoomFactor;
             SetUvRect(_endUvRect);
         }
     }
 
     private void ZoomMapToScale(float scale, ref Rect targetUvRect)
     {
-        _startZoomFactor = _zoomFactor;
-        _endZoomFactor = scale;
+        _zoomFactor = scale;
 
-        targetUvRect.width = scale;
-        targetUvRect.height = scale;
+        targetUvRect.width = _zoomFactor;
+        targetUvRect.height = _zoomFactor;
     }
 
     private void ShiftMapToPosition(WorldPosition mapPosition, ref Rect targetUvRect)
