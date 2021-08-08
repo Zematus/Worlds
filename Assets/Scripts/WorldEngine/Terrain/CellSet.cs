@@ -30,7 +30,8 @@ public class CellSet : ICellCollectionGetter
     {
         CellArea area = new CellArea()
         {
-            World = World
+            World = World,
+            Cells = Cells
         };
 
         return area;

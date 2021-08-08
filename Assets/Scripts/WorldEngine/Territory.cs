@@ -139,10 +139,7 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     private bool HasThisHighestPolityProminence(TerrainCell cell)
     {
-        return
-            (cell.Group != null) &&
-            (cell.Group.HighestPolityProminence != null) &&
-            (cell.Group.HighestPolityProminence.Polity == Polity);
+        return cell.Group?.HighestPolityProminence?.Polity == Polity;
     }
 
     private void TestOuterBorderCell(TerrainCell cell)
@@ -151,21 +148,7 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         {
             InvalidateEnclosedArea(cell);
 
-//#if DEBUG
-//            if (cell.Position.Equals(395, 134))
-//            {
-//                //if (debugCounter2 >= 90)
-//                //{
-//                    Debug.LogWarning("Debugging TestOuterBorderCell on cell " + cell.Position +
-//                        ", attempt: " + debugCounter2);
-//                //}
-
-//                debugCounter2++;
-//            }
-//#endif
-
             _outerBorderCellsToValidate.Add(cell);
-            return;
         }
     }
 
@@ -265,7 +248,12 @@ public class Territory : ISynchronizable, ICellCollectionGetter
     {
         foreach (TerrainCell cell in _cellsToRemove)
         {
+            // Test to invalidate any enclosed area it might 
+            // have been part of
             TestOuterBorderCell(cell);
+
+            // Also test neighbors
+            TestNeighborsForBorders(cell);
 
             _enclosedCells.Remove(cell);
 
@@ -277,6 +265,9 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     public bool IsPartOfOuterBorder(TerrainCell cell)
     {
+        if (HasThisHighestPolityProminence(cell))
+            return false;
+
         foreach (TerrainCell nCell in cell.NeighborList)
         {
             if (HasThisHighestPolityProminence(nCell))
@@ -287,11 +278,6 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
         return false;
     }
-
-//#if DEBUG
-//    private int debugCounter1 = 1;
-//    private int debugCounter2 = 1;
-//#endif
 
     public Border BuildOuterBorder(TerrainCell startCell)
     {
@@ -305,19 +291,6 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         while (cellsToExplore.Count > 0)
         {
             TerrainCell cell = cellsToExplore.Dequeue();
-
-//#if DEBUG
-//            if (cell.Position.Equals(395, 134))
-//            {
-//                if (debugCounter1 >= 90)
-//                {
-//                    Debug.LogWarning("Debugging BuildOuterBorder on cell " + cell.Position +
-//                        ", attempt: " + debugCounter1);
-//                }
-
-//                debugCounter1++;
-//            }
-//#endif
 
             foreach (TerrainCell nCell in cell.NonDiagonalNeighbors.Values)
             {
