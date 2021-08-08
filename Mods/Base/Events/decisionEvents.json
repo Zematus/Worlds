@@ -96,7 +96,7 @@
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
-        { "id": "relationship_factor", "value": "max(0, ((1 - relationship_value) * 2) - 1)" },
+        { "id": "relationship_factor", "value": "max(0, 0.29 - relationship_value)" },
         { "id": "influence_delta", "value": "dominant_faction.influence - target.influence" },
         { "id": "influence_factor", "value": "1 - influence_delta" },
         { "id": "chance_of_making_attempt", "value": "clamp(influence_factor * relationship_factor * (1 - target.preferences.cohesion), 0, 1)" }
