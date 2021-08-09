@@ -622,6 +622,14 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         }
     }
 
+    public bool HasContactWith(Polity polity)
+    {
+        if (polity == null)
+            throw new ArgumentNullException("HasContactWith: polity can't be null");
+
+        return false;
+    }
+
     public virtual void Synchronize()
     {
         Flags = new List<string>(_flags);

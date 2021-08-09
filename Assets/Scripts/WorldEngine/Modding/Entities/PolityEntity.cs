@@ -19,6 +19,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string AccessibleNeighborRegionsAttributeId = "accessible_neighbor_regions";
     public const string AddCoreRegionAttributeId = "add_core_region";
     public const string CoreRegionSaturationAttributeId = "core_region_saturation";
+    public const string GetFactionsAttributeId = "get_factions";
 
     public virtual Polity Polity
     {
@@ -40,6 +41,11 @@ public class PolityEntity : DelayedSetEntity<Polity>
     private FactionEntity _dominantFactionEntity = null;
 
     private RegionCollectionEntity _accessibleNeighborRegionsEntity = null;
+
+    private int _factionCollectionIndex = 0;
+
+    private List<FactionCollectionEntity> _factionCollectionEntitiesToSet =
+        new List<FactionCollectionEntity>();
 
     private readonly List<GroupEntity>
         _groupEntitiesToSet = new List<GroupEntity>();
@@ -162,7 +168,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 GetContactAttributeId + ": number of arguments given less than 1");
         }
 
-        IValueExpression<IEntity> polityArgument =
+        var polityArgument =
             ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
 
         int index = _contactIndex++;
@@ -194,6 +200,43 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public ICollection<Region> GetAccessibleNeighborRegions() => Polity.AccessibleNeighborRegions;
 
     public Agent GetLeader() => Polity.CurrentLeader;
+
+    public ParametricSubcontext BuildGetFactionsAttributeSubcontext(
+        Context parentContext,
+        string[] paramIds)
+    {
+        int index = _factionCollectionIndex;
+
+        if ((paramIds == null) || (paramIds.Length < 1))
+        {
+            throw new System.ArgumentException(
+                $"{GetFactionsAttributeId}: expected at least one parameter identifier");
+        }
+
+        var factionEntity = new FactionEntity(Context, paramIds[0]);
+
+        var subcontext =
+            new ParametricSubcontext(
+                $"{GetFactionsAttributeId}_{index}",
+                parentContext);
+        subcontext.AddEntity(factionEntity);
+
+        return subcontext;
+    }
+
+    public override ParametricSubcontext BuildParametricSubcontext(
+        Context parentContext,
+        string attributeId,
+        string[] paramIds)
+    {
+        switch (attributeId)
+        {
+            case GetFactionsAttributeId:
+                return BuildGetFactionsAttributeSubcontext(parentContext, paramIds);
+        }
+
+        return base.BuildParametricSubcontext(parentContext, attributeId, paramIds);
+    }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {

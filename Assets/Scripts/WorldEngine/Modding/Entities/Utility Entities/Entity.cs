@@ -104,7 +104,8 @@ public abstract class Entity : IEntity
         string attributeId,
         string[] paramIds)
     {
-        throw new NotImplementedException($"Entity of type {GetType()} does not support building parametric subcontexts");
+        throw new System.ArgumentException(
+            $"Faction: Unable to build parametric subcontext for attribute: {attributeId} in entity of type {GetType()}");
     }
 
     public virtual EntityAttribute GetThisEntityAttribute(Entity parent)

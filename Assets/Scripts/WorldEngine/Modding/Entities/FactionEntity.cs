@@ -16,7 +16,8 @@ public class FactionEntity : DelayedSetEntity<Faction>
     public const string GuideAttributeId = "guide";
     public const string GetRelationshipAttributeId = "get_relationship";
     public const string SetRelationshipAttributeId = "set_relationship";
-    public const string GetGroupsWithConditionAttributeId = "get_groups_with_condition";
+    public const string GetGroupsAttributeId = "get_groups";
+    public const string HasContactWithAttributeId = "has_contact_with";
 
     public virtual Faction Faction
     {
@@ -59,6 +60,12 @@ public class FactionEntity : DelayedSetEntity<Faction>
     public FactionEntity(
         ValueGetterMethod<Faction> getterMethod, Context c, string id)
         : base(getterMethod, c, id)
+    {
+    }
+
+    public FactionEntity(
+        TryRequestGenMethod<Faction> tryRequestGenMethod, Context c, string id)
+        : base(tryRequestGenMethod, c, id)
     {
     }
 
@@ -129,7 +136,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
         var entityExp = 
             ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
 
-        EffectEntityAttribute attribute =
+        var attribute =
             new EffectApplierEntityAttribute(
                 MigrateCoreToGroupAttributeId,
                 this,
@@ -139,7 +146,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
                     if (groupEntity == null)
                     {
                         throw new System.ArgumentException(
-                            $"{MigrateCoreToGroupAttributeId}: invalid faction to set relationship to:" +
+                            $"{MigrateCoreToGroupAttributeId}: invalid group:" +
                             $"\n - expression: {ToString()}" +
                             $"\n - group: {entityExp.ToPartiallyEvaluatedString()}");
                     }
@@ -151,10 +158,40 @@ public class FactionEntity : DelayedSetEntity<Faction>
         return attribute;
     }
 
+    private ValueGetterEntityAttribute<bool> GenerateHasContactWithAttribute(IExpression[] arguments)
+    {
+        IValueExpression<string> argumentExp = null;
+        if (arguments.Length > 0)
+            argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
+
+        var entityExp =
+            ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
+
+        var attribute =
+            new ValueGetterEntityAttribute<bool>(
+                HasContactWithAttributeId,
+                this,
+                () => {
+                    PolityEntity polityEntity = entityExp.Value as PolityEntity;
+
+                    if (polityEntity == null)
+                    {
+                        throw new System.ArgumentException(
+                            $"{MigrateCoreToGroupAttributeId}: invalid polity:" +
+                            $"\n - expression: {ToString()}" +
+                            $"\n - polity: {entityExp.ToPartiallyEvaluatedString()}");
+                    }
+
+                    return Faction.HasContactWith(polityEntity.Polity);
+                });
+
+        return attribute;
+    }
+
     public string GetGuide() =>
         Faction.IsUnderPlayerGuidance ? "player" : "simulation";
 
-    public ParametricSubcontext BuildGroupsWithConditionAttributeSubcontext(
+    public ParametricSubcontext BuildGetGroupsAttributeSubcontext(
         Context parentContext,
         string[] paramIds)
     {
@@ -163,21 +200,21 @@ public class FactionEntity : DelayedSetEntity<Faction>
         if ((paramIds == null) || (paramIds.Length < 1))
         {
             throw new System.ArgumentException(
-                $"{GetGroupsWithConditionAttributeId}: expected at least one parameter identifier");
+                $"{GetGroupsAttributeId}: expected at least one parameter identifier");
         }
 
         var groupEntity = new GroupEntity(Context, paramIds[0]);
 
         var subcontext = 
             new ParametricSubcontext(
-                $"{GetGroupsWithConditionAttributeId}_{index}", 
+                $"{GetGroupsAttributeId}_{index}", 
                 parentContext);
         subcontext.AddEntity(groupEntity);
 
         return subcontext;
     }
 
-    public EntityAttribute GetGroupsWithConditionAttribute(
+    public EntityAttribute GetGroupsAttribute(
         ParametricSubcontext subcontext, 
         string[] paramIds, 
         IExpression[] arguments)
@@ -187,7 +224,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
         if ((paramIds == null) || (paramIds.Length < 1))
         {
             throw new System.ArgumentException(
-                GetGroupsWithConditionAttributeId + ": expected one parameter identifier");
+                GetGroupsAttributeId + ": expected one parameter identifier");
         }
 
         GroupEntity paramGroupEntity = subcontext.GetEntity(paramIds[0]) as GroupEntity;
@@ -195,7 +232,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
         if ((arguments == null) || (arguments.Length < 1))
         {
             throw new System.ArgumentException(
-                GetGroupsWithConditionAttributeId + ": expected one condition argument");
+                GetGroupsAttributeId + ": expected one condition argument");
         }
 
         var conditionExp = ValueExpressionBuilder.ValidateValueExpression<bool>(arguments[0]);
@@ -232,12 +269,11 @@ public class FactionEntity : DelayedSetEntity<Faction>
     {
         switch (attributeId)
         {
-            case GetGroupsWithConditionAttributeId:
-                return BuildGroupsWithConditionAttributeSubcontext(parentContext, paramIds);
+            case GetGroupsAttributeId:
+                return BuildGetGroupsAttributeSubcontext(parentContext, paramIds);
         }
 
-        throw new System.ArgumentException(
-            $"Faction: Unable to build parametric subcontext for attribute: {attributeId}");
+        return base.BuildParametricSubcontext(parentContext, attributeId, paramIds);
     }
 
     public override EntityAttribute GetParametricAttribute(
@@ -248,8 +284,8 @@ public class FactionEntity : DelayedSetEntity<Faction>
     {
         switch (attributeId)
         {
-            case GetGroupsWithConditionAttributeId:
-                return GetGroupsWithConditionAttribute(subcontext, paramIds, arguments);
+            case GetGroupsAttributeId:
+                return GetGroupsAttribute(subcontext, paramIds, arguments);
         }
 
         throw new System.ArgumentException("Faction: Unable to find parametric attribute: " + attributeId);
@@ -313,7 +349,10 @@ public class FactionEntity : DelayedSetEntity<Faction>
             case MigrateCoreToGroupAttributeId:
                 return GetMigrateCoreToGroupAttribute(arguments);
 
-            case GetGroupsWithConditionAttributeId:
+            case HasContactWithAttributeId:
+                return GenerateHasContactWithAttribute(arguments);
+
+            case GetGroupsAttributeId:
                 throw new System.ArgumentException($"Faction: '{attributeId}' is a parametric attribute");
         }
 

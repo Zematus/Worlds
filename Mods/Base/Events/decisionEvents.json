@@ -164,7 +164,7 @@
       "assignOn": ["core_group_prominence_value_below:0.4"],
       "properties": [
         { "id": "core_prominence_value", "value": "target.core_group.prominence_value(target.polity)" },
-        { "id": "valid_groups", "value": "target.get_groups_with_condition[group](group.prominence_value(target.polity) >= 0.6)" }
+        { "id": "valid_groups", "value": "target.get_groups[group](group.prominence_value(target.polity) >= 0.6)" }
       ],
       "assignmentConditions": [
         "target.type == clan"
@@ -177,6 +177,36 @@
       "effects": [
         "target.trigger_decision(event_prio, clan_migration, valid_groups)"
       ]
+    },
+    {
+      "id": "improve_relationship_with_neighbors_clan",
+      "name": "improve relationship with neighbor's clan",
+      "target": "faction",
+      "assignOn": ["spawn", "status_change", "contact_change", "guide_switch"],
+      "properties": [
+        { "id": "target_isolation", "value": "target.preferences.isolation" },
+        { "id": "target_aggression", "value": "target.preferences.aggression" },
+        { "id": "contact", "value": "target.polity.get_random_contact()" },
+        { "id": "contact_close_factions", "value": "contact.polity.get_factions[faction](faction.has_contact_with(target))" },
+        { "id": "selected_close_faction", "value": "contact_close_factions.select_random()" },
+        { "id": "relationship_value", "value": "target.get_relationship(selected_close_faction)" },
+        { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * (contact.strength * 5) * max(0.75 - target_isolation, 0) * max(0.75 - target_aggression, 0)" }
+      ],
+      "assignmentConditions": [
+        "target.guide == simulation",
+        "target == target.polity.dominant_faction",
+        "target.polity.type == tribe",
+        "target.polity.contact_count > 0"
+      ],
+      "triggerConditions": [
+        "chance_of_making_attempt > 0"
+      ],
+      "timeToTrigger": "9125 + random(91250 * max(0, 1 - chance_of_making_attempt))",
+      "effects": [
+        "target.trigger_decision(event_prio, decide_improve_relationship_with_neighbors_clan, chance_of_making_attempt)"
+      ],
+      "repeatable": true,
+      "enableDebugLog": true
     },
     {
       "id": "expand_toward_region",

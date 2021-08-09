@@ -132,7 +132,7 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
         }
 
-        ValueGetterEntityAttribute<bool> attribute =
+        var attribute =
             new ValueGetterEntityAttribute<bool>(
                 HasPolityOfTypeAttributeId, 
                 this, 
@@ -155,7 +155,7 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             throw new System.ArgumentException("get_faction: missing 'polity' argument");
         }
 
-        IValueExpression<IEntity> argumentExp = 
+        var argumentExp = 
             ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
 
         FactionEntity entity = new FactionEntity(
