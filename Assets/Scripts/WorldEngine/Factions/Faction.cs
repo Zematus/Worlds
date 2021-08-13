@@ -137,6 +137,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlIgnore]
     public HashSet<CellGroup> InnerGroups = new HashSet<CellGroup>();
 
+    [XmlIgnore]
+    public Dictionary<Polity, int> OverlapingPolities = new Dictionary<Polity, int>();
+
     protected Dictionary<Identifier, FactionRelationship> _relationships =
         new Dictionary<Identifier, FactionRelationship>();
 
@@ -277,14 +280,47 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         StillPresent = false;
     }
 
+    public void AddOverlappingPolity(Polity polity)
+    {
+        if (OverlapingPolities.ContainsKey(polity))
+            OverlapingPolities[polity]++;
+        else
+            OverlapingPolities.Add(polity, 1);
+    }
+
+    public void RemoveOverlappingPolity(Polity polity)
+    {
+        if (OverlapingPolities.ContainsKey(polity))
+        {
+            OverlapingPolities[polity]--;
+
+            if (OverlapingPolities[polity] <= 0)
+                OverlapingPolities.Remove(polity);
+        }
+        else
+            throw new System.Exception("removing polity that was not part of overlaping polities");
+    }
+
     public void AddInnerGroup(CellGroup group)
     {
-        InnerGroups.Add(group);
+        if (!InnerGroups.Add(group))
+            return;
+
+        foreach (var p in group.GetPolityProminences())
+        {
+            AddOverlappingPolity(p.Polity);
+        }
     }
 
     public void RemoveInnerGroup(CellGroup group)
     {
-        InnerGroups.Remove(group);
+        if (!InnerGroups.Remove(group))
+            return;
+
+        foreach (var p in group.GetPolityProminences())
+        {
+            RemoveOverlappingPolity(p.Polity);
+        }
     }
 
     /// <summary>
@@ -627,7 +663,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if (polity == null)
             throw new ArgumentNullException("HasContactWith: polity can't be null");
 
-        return false;
+        return OverlapingPolities.ContainsKey(polity);
     }
 
     public virtual void Synchronize()

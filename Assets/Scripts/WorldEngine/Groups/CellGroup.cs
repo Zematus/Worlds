@@ -3083,6 +3083,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         foreach (PolityProminence otherProminence in _polityProminences.Values)
         {
             Polity.IncreaseContactGroupCount(polity, otherProminence.Polity);
+
+            otherProminence.ClosestFaction?.AddOverlappingPolity(polityProminence.Polity);
         }
 
         if ((HighestPolityProminence != null) &&
@@ -3118,6 +3120,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     private void RemovePolityProminences(bool updatePolity = true)
     {
         bool removeHighestPolityProminence = false;
+
+        // destroy the prominence object before removing it
+        foreach (Identifier polityId in _polityProminencesToRemove)
+        {
+            _polityProminences[polityId].Destroy();
+        }
 
         foreach (Identifier polityId in _polityProminencesToRemove)
         {
@@ -3155,6 +3163,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 }
             }
 
+            // Decrease overlap with factions
+            foreach (PolityProminence epi in _polityProminences.Values)
+            {
+                epi.ClosestFaction?.RemoveOverlappingPolity(polityProminence.Polity);
+            }
+
             polityProminence.Polity.RemoveGroup(polityProminence);
 
             if (updatePolity)
@@ -3162,8 +3176,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 // We want to update the polity if a group is removed.
                 SetPolityUpdate(polityProminence, true);
             }
-
-            polityProminence.Destroy();
 
             _hasRemovedProminences = true;
         }
