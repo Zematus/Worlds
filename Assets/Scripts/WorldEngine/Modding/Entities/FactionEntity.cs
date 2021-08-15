@@ -160,9 +160,11 @@ public class FactionEntity : DelayedSetEntity<Faction>
 
     private ValueGetterEntityAttribute<bool> GenerateHasContactWithAttribute(IExpression[] arguments)
     {
-        IValueExpression<string> argumentExp = null;
-        if (arguments.Length > 0)
-            argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
+        if ((arguments == null) || (arguments.Length < 1))
+        {
+            throw new System.ArgumentException(
+                $"{HasContactWithAttributeId}: expected one argument");
+        }
 
         var entityExp =
             ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
@@ -203,12 +205,12 @@ public class FactionEntity : DelayedSetEntity<Faction>
                 $"{GetGroupsAttributeId}: expected at least one parameter identifier");
         }
 
-        var groupEntity = new GroupEntity(Context, paramIds[0]);
-
-        var subcontext = 
+        var subcontext =
             new ParametricSubcontext(
-                $"{GetGroupsAttributeId}_{index}", 
+                $"{GetGroupsAttributeId}_{index}",
                 parentContext);
+
+        var groupEntity = new GroupEntity(subcontext, paramIds[0]);
         subcontext.AddEntity(groupEntity);
 
         return subcontext;
@@ -288,7 +290,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
                 return GetGroupsAttribute(subcontext, paramIds, arguments);
         }
 
-        throw new System.ArgumentException("Faction: Unable to find parametric attribute: " + attributeId);
+        return base.GetParametricAttribute(attributeId, subcontext, paramIds, arguments);
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)

@@ -14,7 +14,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public const string AssignOnSpawn = "spawn";
     public const string AssignOnEvent = "event";
     public const string AssignOnStatusChange = "status_change";
-    public const string AssignOnPolityContactChange = "polity_contact_change";
+    public const string AssignOnContactChange = "contact_change";
     public const string AssignOnCoreHighestProminenceChange = "core_highest_prominence_change";
     public const string AssignOnRegionAccessibilityUpdate = "region_accessibility_update";
     public const string AssignOnGuideSwitch = "guide_switch";
@@ -113,7 +113,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public abstract void SetToAssignOnSpawn();
     public abstract void SetToAssignOnEvent();
     public abstract void SetToAssignOnStatusChange();
-    public abstract void SetToAssignOnPolityContactChange();
+    public abstract void SetToAssignOnContactChange();
     public abstract void SetToAssignOnCoreHighestProminenceChange();
     public abstract void SetToAssignOnRegionAccessibilityUpdate();
     public abstract void SetToAssignOnGuideSwitch();
@@ -166,8 +166,8 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
                     SetToAssignOnStatusChange();
                     break;
 
-                case AssignOnPolityContactChange:
-                    SetToAssignOnPolityContactChange();
+                case AssignOnContactChange:
+                    SetToAssignOnContactChange();
                     break;
 
                 case AssignOnCoreHighestProminenceChange:

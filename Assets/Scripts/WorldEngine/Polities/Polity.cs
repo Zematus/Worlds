@@ -20,7 +20,7 @@ public abstract class Polity : ISynchronizable
 
     public const float MaxAdminCost = 1000000000000;
 
-    public static List<IWorldEventGenerator> OnPolityContactChangeEventGenerators;
+    public static List<IWorldEventGenerator> OnContactChangeEventGenerators;
     public static List<IWorldEventGenerator> OnRegionAccessibilityUpdateEventGenerators;
 
     [XmlAttribute("AC")]
@@ -242,7 +242,7 @@ public abstract class Polity : ISynchronizable
     /// </summary>
     public static void ResetEventGenerators()
     {
-        OnPolityContactChangeEventGenerators = new List<IWorldEventGenerator>();
+        OnContactChangeEventGenerators = new List<IWorldEventGenerator>();
         OnRegionAccessibilityUpdateEventGenerators = new List<IWorldEventGenerator>();
     }
 
@@ -1698,7 +1698,7 @@ public abstract class Polity : ISynchronizable
     /// </summary>
     public void ApplyPolityContactChange()
     {
-        foreach (IWorldEventGenerator generator in OnPolityContactChangeEventGenerators)
+        foreach (IWorldEventGenerator generator in OnContactChangeEventGenerators)
         {
             if (generator is IFactionEventGenerator fGenerator)
             {

@@ -66,7 +66,7 @@
       "id": "tribe_decide_fostering_relationship",
       "name": "tribe decide fostering relationship",
       "target": "faction",
-      "assignOn": ["spawn", "status_change", "polity_contact_change"],
+      "assignOn": ["spawn", "status_change", "contact_change"],
       "properties": [
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "contact", "value": "target.polity.get_random_contact()" },
@@ -120,7 +120,7 @@
       "id": "tribe_decide_merge",
       "name": "tribe decide merge",
       "target": "faction",
-      "assignOn": ["spawn", "status_change", "polity_contact_change"],
+      "assignOn": ["spawn", "status_change", "contact_change"],
       "properties": [
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "contact", "value": "target.polity.get_random_contact()" },
@@ -187,9 +187,9 @@
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "target_aggression", "value": "target.preferences.aggression" },
         { "id": "contact", "value": "target.polity.get_random_contact()" },
-        { "id": "contact_close_factions", "value": "contact.polity.get_factions[faction](faction.has_contact_with(target))" },
-        { "id": "selected_close_faction", "value": "contact_close_factions.select_random()" },
-        { "id": "relationship_value", "value": "target.get_relationship(selected_close_faction)" },
+        { "id": "contact_near_factions", "value": "contact.polity.get_factions[faction](faction.has_contact_with(target.polity))" },
+        { "id": "selected_faction", "value": "contact_near_factions.select_random()" },
+        { "id": "relationship_value", "value": "target.get_relationship(selected_faction)" },
         { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * (contact.strength * 5) * max(0.75 - target_isolation, 0) * max(0.75 - target_aggression, 0)" }
       ],
       "assignmentConditions": [
@@ -203,7 +203,7 @@
       ],
       "timeToTrigger": "9125 + random(91250 * max(0, 1 - chance_of_making_attempt))",
       "effects": [
-        "target.trigger_decision(event_prio, decide_improve_relationship_with_neighbors_clan, chance_of_making_attempt)"
+        "target.trigger_decision(event_prio, decide_improve_relationship_with_neighbors_clan, chance_of_making_attempt, selected_faction)"
       ],
       "repeatable": true,
       "enableDebugLog": true

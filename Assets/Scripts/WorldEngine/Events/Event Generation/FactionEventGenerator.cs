@@ -30,9 +30,9 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         Faction.OnStatusChangeEventGenerators.Add(this);
     }
 
-    public override void SetToAssignOnPolityContactChange()
+    public override void SetToAssignOnContactChange()
     {
-        Polity.OnPolityContactChangeEventGenerators.Add(this);
+        Polity.OnContactChangeEventGenerators.Add(this);
     }
 
     public override void SetToAssignOnCoreHighestProminenceChange()
