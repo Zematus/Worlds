@@ -1837,6 +1837,19 @@ public class World : ISynchronizable, IWorldDateGetter
 
     public void AddPromToCalculateCoreDistFor(PolityProminence prominence)
     {
+        if ((prominence == null) || !prominence.StillPresent)
+        {
+            throw new System.ArgumentException("prominence is null or no longer present");
+        }
+
+#if DEBUG
+        if ((prominence.PolityId == "111360937:7506671916495135240") && // polity Id
+            (prominence.Id == "20082422:7275972323423306556")) // group Id
+        {
+            Debug.LogWarning($"Debugging AddPromToCalculateCoreDistFor");
+        }
+#endif
+
         _promsWithCoreDistToCalculate.Add(prominence);
     }
 

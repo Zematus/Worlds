@@ -3077,6 +3077,14 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float initialValue = 0,
         bool modifyTotalValue = false)
     {
+#if DEBUG
+        if ((polity.Id == "111360937:7506671916495135240") && // polity Id
+            (Id == "20082422:7275972323423306556")) // group Id
+        {
+            Debug.LogWarning($"AddPolityProminence");
+        }
+#endif
+
         PolityProminence polityProminence = new PolityProminence(this, polity, initialValue);
 
         // Increase polity contacts
@@ -3084,7 +3092,17 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         {
             Polity.IncreaseContactGroupCount(polity, otherProminence.Polity);
 
-            otherProminence.ClosestFaction?.AddOverlappingPolity(polityProminence.Polity);
+#if DEBUG
+            if ((otherProminence.ClosestFaction != null) &&
+                (otherProminence.ClosestFaction.Id == "117835104:7437957795015320696") && // faction Id
+                (polityProminence.PolityId == "111360937:7506671916495135240") && // polity Id
+                (Id == "20082422:7275972323423306556")) // group Id
+            {
+                Debug.LogWarning($"Debugging AddPolityProminence, {otherProminence.ClosestFaction?.Id}");
+            }
+#endif
+
+            otherProminence.ClosestFaction?.AddOverlappingPolity(polityProminence);
         }
 
         if ((HighestPolityProminence != null) &&
@@ -3124,7 +3142,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         // destroy the prominence object before removing it
         foreach (Identifier polityId in _polityProminencesToRemove)
         {
-            _polityProminences[polityId].Destroy();
+            _polityProminences[polityId].InitDestruction();
         }
 
         foreach (Identifier polityId in _polityProminencesToRemove)
@@ -3166,7 +3184,17 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             // Decrease overlap with factions
             foreach (PolityProminence epi in _polityProminences.Values)
             {
-                epi.ClosestFaction?.RemoveOverlappingPolity(polityProminence.Polity);
+#if DEBUG
+                if ((epi.ClosestFaction != null) &&
+                    (epi.ClosestFaction.Id == "117835104:7437957795015320696") && // faction Id
+                    (polityProminence.PolityId == "111360937:7506671916495135240") && // polity Id
+                    (Id == "20082422:7275972323423306556")) // group Id
+                {
+                    Debug.LogWarning($"Debugging RemovePolityProminences, {epi.ClosestFaction?.Id}");
+                }
+#endif
+
+                epi.ClosestFaction?.RemoveOverlappingPolity(polityProminence);
             }
 
             polityProminence.Polity.RemoveGroup(polityProminence);
@@ -3176,6 +3204,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 // We want to update the polity if a group is removed.
                 SetPolityUpdate(polityProminence, true);
             }
+
+            polityProminence.FinishDestruction();
 
             _hasRemovedProminences = true;
         }

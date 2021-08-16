@@ -19,6 +19,9 @@ public class PolityProminence // : IKeyedValue<Identifier>
     [XmlAttribute("PD")]
     public float PolityCoreDistance = -1;
 
+    [XmlAttribute("P")]
+    public bool StillPresent = true;
+
     #region ClosestFactionId
     [XmlAttribute("CFId")]
     public string ClosestFactionIdStr
@@ -127,8 +130,19 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
     public void Destroy()
     {
-        ClosestFaction?.RemoveInnerGroup(Group);
+        InitDestruction();
+        FinishDestruction();
+    }
 
+    public void InitDestruction()
+    {
+        StillPresent = false;
+
+        ClosestFaction?.RemoveInnerGroup(Group);
+    }
+
+    public void FinishDestruction()
+    {
         ResetNeighborCoreDistances();
     }
 
@@ -136,6 +150,15 @@ public class PolityProminence // : IKeyedValue<Identifier>
     {
         if (ClosestFaction == faction)
             return;
+
+#if DEBUG
+        if ((faction.Id == "117835104:7437957795015320696") && // faction Id
+            (PolityId == "111360937:7506671916495135240") && // polity Id
+            (Id == "20082422:7275972323423306556")) // group Id
+        {
+            Debug.LogWarning($"Debugging SetClosestFaction");
+        }
+#endif
 
         ClosestFaction?.RemoveInnerGroup(Group);
 
