@@ -3078,8 +3078,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         bool modifyTotalValue = false)
     {
 #if DEBUG
-        if ((polity.Id == "111360937:7506671916495135240") && // polity Id
-            (Id == "20082422:7275972323423306556")) // group Id
+        if ((polity.Id == Manager.Debug_IdentifierOfInterest2) && // polity Id
+            (Id == Manager.Debug_IdentifierOfInterest)) // group Id
         {
             Debug.LogWarning($"AddPolityProminence");
         }
@@ -3094,9 +3094,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
 #if DEBUG
             if ((otherProminence.ClosestFaction != null) &&
-                (otherProminence.ClosestFaction.Id == "117835104:7437957795015320696") && // faction Id
-                (polityProminence.PolityId == "111360937:7506671916495135240") && // polity Id
-                (Id == "20082422:7275972323423306556")) // group Id
+                (otherProminence.ClosestFaction.Id == Manager.Debug_IdentifierOfInterest3) && // faction Id
+                (polityProminence.PolityId == Manager.Debug_IdentifierOfInterest2) && // polity Id
+                (Id == Manager.Debug_IdentifierOfInterest)) // group Id
             {
                 Debug.LogWarning($"Debugging AddPolityProminence, {otherProminence.ClosestFaction?.Id}");
             }
@@ -3186,9 +3186,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             {
 #if DEBUG
                 if ((epi.ClosestFaction != null) &&
-                    (epi.ClosestFaction.Id == "117835104:7437957795015320696") && // faction Id
-                    (polityProminence.PolityId == "111360937:7506671916495135240") && // polity Id
-                    (Id == "20082422:7275972323423306556")) // group Id
+                    (epi.ClosestFaction.Id == Manager.Debug_IdentifierOfInterest3) && // faction Id
+                    (polityProminence.PolityId == Manager.Debug_IdentifierOfInterest2) && // polity Id
+                    (Id == Manager.Debug_IdentifierOfInterest)) // group Id
                 {
                     Debug.LogWarning($"Debugging RemovePolityProminences, {epi.ClosestFaction?.Id}");
                 }

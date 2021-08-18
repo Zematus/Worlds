@@ -1843,8 +1843,8 @@ public class World : ISynchronizable, IWorldDateGetter
         }
 
 #if DEBUG
-        if ((prominence.PolityId == "111360937:7506671916495135240") && // polity Id
-            (prominence.Id == "20082422:7275972323423306556")) // group Id
+        if ((prominence.PolityId == Manager.Debug_IdentifierOfInterest2) && // polity Id
+            (prominence.Id == Manager.Debug_IdentifierOfInterest)) // group Id
         {
             Debug.LogWarning($"Debugging AddPromToCalculateCoreDistFor");
         }

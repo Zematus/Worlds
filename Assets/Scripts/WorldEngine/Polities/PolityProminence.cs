@@ -152,9 +152,9 @@ public class PolityProminence // : IKeyedValue<Identifier>
             return;
 
 #if DEBUG
-        if ((faction.Id == "117835104:7437957795015320696") && // faction Id
-            (PolityId == "111360937:7506671916495135240") && // polity Id
-            (Id == "20082422:7275972323423306556")) // group Id
+        if ((faction.Id == Manager.Debug_IdentifierOfInterest3) && // faction Id
+            (PolityId == Manager.Debug_IdentifierOfInterest2) && // polity Id
+            (Id == Manager.Debug_IdentifierOfInterest)) // group Id
         {
             Debug.LogWarning($"Debugging SetClosestFaction");
         }

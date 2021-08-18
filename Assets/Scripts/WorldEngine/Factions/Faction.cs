@@ -328,9 +328,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         foreach (var p in group.GetPolityProminences())
         {
 #if DEBUG
-            if ((Id == "117835104:7437957795015320696") && // faction Id
-                (p.PolityId == "111360937:7506671916495135240") && // polity Id
-                (group.Id == "20082422:7275972323423306556")) // group Id
+            if ((Id == Manager.Debug_IdentifierOfInterest3) && // faction Id
+                (p.PolityId == Manager.Debug_IdentifierOfInterest2) && // polity Id
+                (group.Id == Manager.Debug_IdentifierOfInterest)) // group Id
             {
                 Debug.LogWarning($"Debugging AddInnerGroup");
             }
@@ -348,9 +348,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         foreach (var p in group.GetPolityProminences())
         {
 #if DEBUG
-            if ((Id == "117835104:7437957795015320696") && // faction Id
-                (p.PolityId == "111360937:7506671916495135240") && // polity Id
-                (group.Id == "20082422:7275972323423306556")) // group Id
+            if ((Id == Manager.Debug_IdentifierOfInterest3) && // faction Id
+                (p.PolityId == Manager.Debug_IdentifierOfInterest2) && // polity Id
+                (group.Id == Manager.Debug_IdentifierOfInterest)) // group Id
             {
                 Debug.LogWarning($"Debugging RemoveInnerGroup");
             }
