@@ -1006,7 +1006,7 @@ public class World : ISynchronizable, IWorldDateGetter
 
         foreach (PolityProminence polityProminence in _promsWithCoreDistToCalculate)
         {
-            if (!polityProminence.Group.StillPresent)
+            if (!polityProminence.StillPresent)
                 continue;
 
             promsToCalculate.Enqueue(polityProminence);
@@ -1841,14 +1841,6 @@ public class World : ISynchronizable, IWorldDateGetter
         {
             throw new System.ArgumentException("prominence is null or no longer present");
         }
-
-#if DEBUG
-        if ((prominence.PolityId == Manager.Debug_IdentifierOfInterest2) && // polity Id
-            (prominence.Id == Manager.Debug_IdentifierOfInterest)) // group Id
-        {
-            Debug.LogWarning($"Debugging AddPromToCalculateCoreDistFor");
-        }
-#endif
 
         _promsWithCoreDistToCalculate.Add(prominence);
     }

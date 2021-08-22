@@ -327,15 +327,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         foreach (var p in group.GetPolityProminences())
         {
-#if DEBUG
-            if ((Id == Manager.Debug_IdentifierOfInterest3) && // faction Id
-                (p.PolityId == Manager.Debug_IdentifierOfInterest2) && // polity Id
-                (group.Id == Manager.Debug_IdentifierOfInterest)) // group Id
-            {
-                Debug.LogWarning($"Debugging AddInnerGroup");
-            }
-#endif
-
             AddOverlappingPolity(p);
         }
     }
@@ -347,15 +338,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         foreach (var p in group.GetPolityProminences())
         {
-#if DEBUG
-            if ((Id == Manager.Debug_IdentifierOfInterest3) && // faction Id
-                (p.PolityId == Manager.Debug_IdentifierOfInterest2) && // polity Id
-                (group.Id == Manager.Debug_IdentifierOfInterest)) // group Id
-            {
-                Debug.LogWarning($"Debugging RemoveInnerGroup");
-            }
-#endif
-
             RemoveOverlappingPolity(p);
         }
     }

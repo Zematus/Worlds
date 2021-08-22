@@ -3077,30 +3077,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float initialValue = 0,
         bool modifyTotalValue = false)
     {
-#if DEBUG
-        if ((polity.Id == Manager.Debug_IdentifierOfInterest2) && // polity Id
-            (Id == Manager.Debug_IdentifierOfInterest)) // group Id
-        {
-            Debug.LogWarning($"AddPolityProminence");
-        }
-#endif
-
         PolityProminence polityProminence = new PolityProminence(this, polity, initialValue);
 
         // Increase polity contacts
         foreach (PolityProminence otherProminence in _polityProminences.Values)
         {
             Polity.IncreaseContactGroupCount(polity, otherProminence.Polity);
-
-#if DEBUG
-            if ((otherProminence.ClosestFaction != null) &&
-                (otherProminence.ClosestFaction.Id == Manager.Debug_IdentifierOfInterest3) && // faction Id
-                (polityProminence.PolityId == Manager.Debug_IdentifierOfInterest2) && // polity Id
-                (Id == Manager.Debug_IdentifierOfInterest)) // group Id
-            {
-                Debug.LogWarning($"Debugging AddPolityProminence, {otherProminence.ClosestFaction?.Id}");
-            }
-#endif
 
             otherProminence.ClosestFaction?.AddOverlappingPolity(polityProminence);
         }
@@ -3184,16 +3166,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             // Decrease overlap with factions
             foreach (PolityProminence epi in _polityProminences.Values)
             {
-#if DEBUG
-                if ((epi.ClosestFaction != null) &&
-                    (epi.ClosestFaction.Id == Manager.Debug_IdentifierOfInterest3) && // faction Id
-                    (polityProminence.PolityId == Manager.Debug_IdentifierOfInterest2) && // polity Id
-                    (Id == Manager.Debug_IdentifierOfInterest)) // group Id
-                {
-                    Debug.LogWarning($"Debugging RemovePolityProminences, {epi.ClosestFaction?.Id}");
-                }
-#endif
-
                 epi.ClosestFaction?.RemoveOverlappingPolity(polityProminence);
             }
 

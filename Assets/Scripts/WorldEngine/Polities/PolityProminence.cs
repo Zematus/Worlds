@@ -151,15 +151,6 @@ public class PolityProminence // : IKeyedValue<Identifier>
         if (ClosestFaction == faction)
             return;
 
-#if DEBUG
-        if ((faction.Id == Manager.Debug_IdentifierOfInterest3) && // faction Id
-            (PolityId == Manager.Debug_IdentifierOfInterest2) && // polity Id
-            (Id == Manager.Debug_IdentifierOfInterest)) // group Id
-        {
-            Debug.LogWarning($"Debugging SetClosestFaction");
-        }
-#endif
-
         ClosestFaction?.RemoveInnerGroup(Group);
 
         ClosestFaction = faction;
@@ -425,13 +416,9 @@ public class PolityProminence // : IKeyedValue<Identifier>
             {
                 PolityProminence nProm = pair.Value;
 
-                if (nProm.ClosestFactionId != idFactionBeingReset)
-                {
-                    isExpansionLimit = true;
-                    continue;
-                }
-
-                if (nProm.FactionCoreDistance < minFactionDistance)
+                if (!nProm.StillPresent ||
+                    (nProm.ClosestFactionId != idFactionBeingReset) || 
+                    (nProm.FactionCoreDistance < minFactionDistance))
                 {
                     isExpansionLimit = true;
                     continue;
