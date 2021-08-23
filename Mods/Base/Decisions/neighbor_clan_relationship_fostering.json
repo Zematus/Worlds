@@ -153,7 +153,7 @@
             {
               "id": "notify",
               "text": "The current leader of the <<attempting_polity>> tribe will be notified of our decision...",
-              "result": "attempting_polity.dominant_faction.trigger_decision(decision_prio, tribe_accepted_attempt_foster_relationship, target)"
+              "result": "attempting_polity.dominant_faction.trigger_decision(decision_prio, clan_accepted_attempt_foster_relationship, target)"
             }
           ]
         }
@@ -169,7 +169,7 @@
       "description": [
         {
           "id": "description",
-          "text": "The leader of clan <<accepting_clan>>, <<accepting_tribe.leader>>, has embraced our attempt to improve the relationship between our clans."
+          "text": "The leader of clan <<accepting_clan>>, <<accepting_clan.leader>>, has embraced our attempt to improve the relationship between our clans."
         }
       ],
       "options": [
@@ -189,7 +189,7 @@
       "description": [
         {
           "id": "description",
-          "text": "The leader of clan <<accepting_clan>>, <<rejecting_tribe.leader>>, has rejected our attempt to improve the relationship between our clans."
+          "text": "The leader of clan <<rejecting_clan>>, <<rejecting_clan.leader>>, has rejected our attempt to improve the relationship between our clans."
         }
       ],
       "options": [
