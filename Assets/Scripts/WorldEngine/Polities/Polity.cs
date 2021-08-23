@@ -703,28 +703,31 @@ public abstract class Polity : ISynchronizable
         Manager.AddUpdatedCells(polity, CellUpdateType.Territory, CellUpdateSubType.Relationship);
     }
 
+    private void AddContactInternal(Polity polity, int initialGroupCount = 0)
+    {
+        PolityContact contact = new PolityContact(World, this, polity, initialGroupCount);
+
+        _contacts.Add(polity.Id, contact);
+
+        if (!DominantFaction.HasRelationship(polity.DominantFaction))
+        {
+            DominantFaction.SetRelationship(polity.DominantFaction, 0.5f);
+        }
+
+        ApplyPolityContactChange();
+    }
+
     public void AddContact(Polity polity, int initialGroupCount)
     {
-        if (!_contacts.ContainsKey(polity.Id))
-        {
-            PolityContact contact = new PolityContact(World, this, polity, initialGroupCount);
-
-            _contacts.Add(polity.Id, contact);
-
-            if (!DominantFaction.HasRelationship(polity.DominantFaction))
-            {
-                DominantFaction.SetRelationship(polity.DominantFaction, 0.5f);
-            }
-
-            SetContactUpdatedCells(polity);
-        }
-        else
+        if (_contacts.ContainsKey(polity.Id))
         {
             throw new System.Exception("Unable to modify existing polity contact. polityA: " +
                 Id + ", polityB: " + polity.Id);
         }
 
-        ApplyPolityContactChange();
+        AddContactInternal(polity, initialGroupCount);
+
+        SetContactUpdatedCells(polity);
     }
 
     public static void RemoveContact(Polity polityA, Polity polityB)
@@ -733,18 +736,21 @@ public abstract class Polity : ISynchronizable
         polityB.RemoveContact(polityA);
     }
 
+    private void RemoveContactInternal(Polity polity)
+    {
+        _contacts.Remove(polity.Id);
+
+        ApplyPolityContactChange();
+    }
+
     public void RemoveContact(Polity polity)
     {
         if (!_contacts.ContainsKey(polity.Id))
             return;
 
-        PolityContact contact = _contacts[polity.Id];
-
-        _contacts.Remove(polity.Id);
+        RemoveContactInternal(polity);
 
         SetContactUpdatedCells(polity);
-
-        ApplyPolityContactChange();
     }
 
     public ICollection<PolityContact> GetContacts()
@@ -780,14 +786,7 @@ public abstract class Polity : ISynchronizable
     {
         if (!_contacts.ContainsKey(polity.Id))
         {
-            PolityContact contact = new PolityContact(World, this, polity);
-
-            _contacts.Add(polity.Id, contact);
-
-            if (!DominantFaction.HasRelationship(polity.DominantFaction))
-            {
-                DominantFaction.SetRelationship(polity.DominantFaction, 0.5f);
-            }
+            AddContactInternal(polity);
         }
 
         _contacts[polity.Id].GroupCount++;
@@ -811,7 +810,7 @@ public abstract class Polity : ISynchronizable
 
         if (contact.GroupCount <= 0)
         {
-            _contacts.Remove(polity.Id);
+            RemoveContactInternal(polity);
         }
 
         SetContactUpdatedCells(polity);
@@ -1700,11 +1699,16 @@ public abstract class Polity : ISynchronizable
     {
         foreach (IWorldEventGenerator generator in OnContactChangeEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"Polity.ApplyPolityContactChange: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
                 foreach (Faction faction in _factions.Values)
                 {
-                    fGenerator.TryGenerateEventAndAssign(faction);
+                    faction.AddGeneratorToTestAssignmentFor(fGenerator);
                 }
             }
         }
@@ -1717,11 +1721,16 @@ public abstract class Polity : ISynchronizable
     {
         foreach (IWorldEventGenerator generator in OnRegionAccessibilityUpdateEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"Polity.ApplyRegionAccessibilityUpdate: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
                 foreach (Faction faction in _factions.Values)
                 {
-                    fGenerator.TryGenerateEventAndAssign(faction);
+                    faction.AddGeneratorToTestAssignmentFor(fGenerator);
                 }
             }
         }

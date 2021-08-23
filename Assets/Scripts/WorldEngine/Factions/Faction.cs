@@ -880,6 +880,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     {
         foreach (var generator in OnSpawnEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"Faction.InitializeOnSpawnEvents: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
                 AddGeneratorToTestAssignmentFor(fGenerator);
@@ -902,6 +907,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     {
         foreach (var generator in OnStatusChangeEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"Faction.ApplyStatusChange: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
                 AddGeneratorToTestAssignmentFor(fGenerator);
@@ -921,6 +931,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     {
         foreach (var generator in OnGuideSwitchEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"Faction.GenerateGuideSwitchEvents: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
                 AddGeneratorToTestAssignmentFor(fGenerator);

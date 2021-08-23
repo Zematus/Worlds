@@ -671,8 +671,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     private void InitializeOnSpawnEvents()
     {
-        foreach (IWorldEventGenerator generator in OnSpawnEventGenerators)
+        foreach (var generator in OnSpawnEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"CellGroup.InitializeOnSpawnEvents: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is ICellGroupEventGenerator gGenerator)
             {
                 AddGeneratorToTestAssignmentFor(gGenerator);
@@ -685,8 +690,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// </summary>
     public void ApplyCoreHighestProminenceChange()
     {
-        foreach (IWorldEventGenerator generator in OnCoreHighestProminenceChangeEventGenerators)
+        foreach (var generator in OnCoreHighestProminenceChangeEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"CellGroup.ApplyCoreHighestProminenceChange: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
                 foreach (Faction faction in FactionCores.Values)
@@ -3045,9 +3055,14 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     public void OnPolityCountChange() 
     {
-        foreach (IWorldEventGenerator generator in OnPolityCountChangeEventGenerators)
+        foreach (var generator in OnPolityCountChangeEventGenerators)
         {
-            if (generator is ICellGroupEventGenerator gGenerator)
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"CellGroup.OnPolityCountChangeEventGenerators: adding '{context.Id}' to list of events to try to assign");
+            }
+
+            if (generator is CellGroupEventGenerator gGenerator)
             {
                 AddGeneratorToTestAssignmentFor(gGenerator);
             }
@@ -3056,9 +3071,14 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     public void OnCoreCountChange()
     {
-        foreach (IWorldEventGenerator generator in OnCoreCountChangeEventGenerators)
+        foreach (var generator in OnCoreCountChangeEventGenerators)
         {
-            if (generator is ICellGroupEventGenerator gGenerator)
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"CellGroup.OnCoreCountChange: adding '{context.Id}' to list of events to try to assign");
+            }
+
+            if (generator is CellGroupEventGenerator gGenerator)
             {
                 AddGeneratorToTestAssignmentFor(gGenerator);
             }

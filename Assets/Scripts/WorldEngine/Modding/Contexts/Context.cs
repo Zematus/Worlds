@@ -21,7 +21,7 @@ public abstract class Context : IDebugLogger
 
     public string Id;
 
-    protected bool DebugLogEnabled
+    public bool DebugLogEnabled
     {
         get
         {

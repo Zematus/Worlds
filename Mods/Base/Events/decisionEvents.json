@@ -63,32 +63,6 @@
       "repeatable": true
     },
     {
-      "id": "tribe_decide_fostering_relationship",
-      "name": "tribe decide fostering relationship",
-      "target": "faction",
-      "assignOn": ["spawn", "status_change", "contact_change"],
-      "properties": [
-        { "id": "target_isolation", "value": "target.preferences.isolation" },
-        { "id": "contact", "value": "target.polity.get_random_contact()" },
-        { "id": "contact_dominant_faction", "value": "contact.polity.dominant_faction" },
-        { "id": "relationship_value", "value": "target.get_relationship(contact_dominant_faction)" },
-        { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * (contact.strength * 3) * (1 - target_isolation)" }
-      ],
-      "assignmentConditions": [
-        "target == target.polity.dominant_faction",
-        "target.polity.type == tribe",
-        "target.polity.contact_count >= 1"
-      ],
-      "triggerConditions": [
-        "chance_of_making_attempt > 0"
-      ],
-      "timeToTrigger": "9125 + random(91250 * target_isolation)",
-      "effects": [
-        "target.trigger_decision(event_prio, tribe_decide_fostering_relationship, contact.polity, chance_of_making_attempt)"
-      ],
-      "repeatable": true
-    },
-    {
       "id": "clan_decide_form_new_tribe",
       "name": "clan decide form new tribe",
       "target": "faction",
@@ -203,7 +177,7 @@
       ],
       "timeToTrigger": "9125 + random(91250 * max(0, 1 - chance_of_making_attempt))",
       "effects": [
-        "target.trigger_decision(event_prio, decide_improve_relationship_with_neighbors_clan, chance_of_making_attempt, selected_faction)"
+        "target.trigger_decision(event_prio, improve_relationship_with_neighbors_clan, selected_faction, chance_of_making_attempt)"
       ],
       "repeatable": true,
       "enableDebugLog": true
