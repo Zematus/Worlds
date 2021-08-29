@@ -159,12 +159,11 @@
       "assignOn": ["spawn", "status_change", "contact_change", "guide_switch"],
       "properties": [
         { "id": "target_isolation", "value": "target.preferences.isolation" },
-        { "id": "target_aggression", "value": "target.preferences.aggression" },
         { "id": "contact", "value": "target.polity.get_random_contact()" },
         { "id": "contact_near_factions", "value": "contact.polity.get_factions[faction](faction.has_contact_with(target.polity))" },
         { "id": "selected_faction", "value": "contact_near_factions.select_random()" },
         { "id": "relationship_value", "value": "target.get_relationship(selected_faction)" },
-        { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * (contact.strength * 5) * max(0.75 - target_isolation, 0) * max(0.75 - target_aggression, 0)" }
+        { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * (contact.strength * 5) * max(0.75 - target_isolation, 0)" }
       ],
       "assignmentConditions": [
         "target.guide == simulation",
@@ -175,9 +174,38 @@
       "triggerConditions": [
         "chance_of_making_attempt > 0"
       ],
-      "timeToTrigger": "9125 + random(91250 * max(0, 1 - chance_of_making_attempt))",
+      "timeToTrigger": "1825 + random(91250 * max(0, 1.01 - chance_of_making_attempt))",
       "effects": [
         "target.trigger_decision(event_prio, improve_relationship_with_neighbors_clan, selected_faction, chance_of_making_attempt)"
+      ],
+      "repeatable": true
+    },
+    {
+      "id": "tribe_invites_clan_join",
+      "name": "tribe invites clan to join",
+      "target": "faction",
+      "assignOn": ["spawn", "status_change", "contact_change", "guide_switch"],
+      "properties": [
+        { "id": "target_isolation", "value": "target.preferences.isolation" },
+        { "id": "contact", "value": "target.polity.get_random_contact()" },
+        { "id": "contact_near_factions", "value": "contact.polity.get_factions[faction](faction.has_contact_with(target.polity) && (faction != faction.polity.dominant_faction))" },
+        { "id": "selected_faction", "value": "contact_near_factions.select_random()" },
+        { "id": "relationship_value", "value": "target.get_relationship(selected_faction)" },
+        { "id": "chance_of_making_attempt", "value": "relationship_value * (contact.strength * 3) * max(0.5 - target_isolation, 0)" }
+      ],
+      "assignmentConditions": [
+        "target.guide == simulation",
+        "target == target.polity.dominant_faction",
+        "target.polity.type == tribe",
+        "target.polity.contact_count > 0"
+      ],
+      "triggerConditions": [
+        "contact_near_factions.count > 0",
+        "chance_of_making_attempt > 0"
+      ],
+      "timeToTrigger": "9125 + random(456250 * max(0, 1.01 - chance_of_making_attempt))",
+      "effects": [
+        "target.trigger_decision(event_prio, tribe_invites_clan_join, selected_faction, chance_of_making_attempt)"
       ],
       "repeatable": true,
       "enableDebugLog": true
