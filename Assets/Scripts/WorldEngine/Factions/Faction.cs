@@ -807,7 +807,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         GenerateGuideSwitchEvents();
     }
 
-    public void ChangePolity(Polity targetPolity, float targetInfluence)
+    public void ChangePolity(Polity targetPolity, float targetInfluence, bool transferGroups = true)
     {
         if ((targetPolity == null) || (!targetPolity.StillPresent))
             throw new System.Exception("target Polity is null or not Present");

@@ -10,12 +10,19 @@
       ],
       "properties": [
         { "id": "target_isolation", "value": "target.preferences.isolation" },
-        { "id": "target_aggression", "value": "target.preferences.aggression" }
+        { "id": "target_aggression", "value": "target.preferences.aggression" },
+        { "id": "contact_polity", "value": "contact_faction.polity" },
+        { "id": "contact_polity_fac", "value": "contact_faction.polity" }
       ],
       "description": [
         {
           "id": "description_intro",
-          "text": "Should our clan, <<target>>, invite clan <<contact_faction>> to leave their tribe, <<contact_faction.polity>>, to join the <<target.polity>> tribe?"
+          "text": "Should our clan, <<target>>, invite clan <<contact_faction>> to leave their tribe, <<contact_polity>>, to join the <<target.polity>> tribe?"
+        },
+        {
+          "id": "description_polity_will_dissapear",
+          "text": "\nThe <<contact_polity>> tribe will dissapear if they accept.",
+          "conditions": [ "contact_polity.faction_count < 2" ]
         }
       ],
       "options": [
@@ -69,6 +76,7 @@
       "properties": [
         { "id": "attempting_faction", "value": "attempting_polity.dominant_faction" },
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
+        { "id": "target_is_dominant", "value": "target == target.polity.dominant_faction" },
         { "id": "attempter_relationship_value", "value": "target.get_relationship(attempting_faction)" },
         { "id": "dominant_relationship_value", "value": "target.get_relationship(dominant_faction)" },
         { "id": "target_isolation", "value": "target.preferences.isolation" },
@@ -95,8 +103,8 @@
               "id": "decrease_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
-                { "id": "relationship_min", "value": "lerp(relationship_value, 0, (0.2 * charisma_factor))" },
-                { "id": "relationship_max", "value": "lerp(relationship_value, 0, (0.1 * charisma_factor))" }
+                { "id": "relationship_min", "value": "lerp(attempter_relationship_value, 0, (0.2 * charisma_factor))" },
+                { "id": "relationship_max", "value": "lerp(attempter_relationship_value, 0, (0.1 * charisma_factor))" }
               ],
               "text": "<<target>>: relationship with <<attempting_faction>>, dominant clan of the <<attempting_polity>> tribe, decreases from <<attempter_relationship_value>> to a value between <<relationship_min>> and <<relationship_max>>",
               "result": "target.set_relationship(attempting_faction, random(relationship_min, relationship_max))"
@@ -109,8 +117,9 @@
           ]
         },
         {
-          "id": "accept_offer",
+          "id": "accept_offer_is_not_dominant",
           "text": "Accept offer from <<attempting_polity>>...",
+          "conditions": ["!target_is_dominant"],
           "weight": "1 - clamp(chance_of_rejecting_attempt, 0, 1)",
           "effects": [
             {
@@ -127,8 +136,8 @@
               "id": "decrease_relation_former_tribe",
               "properties": [
                 { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
-                { "id": "relationship_min", "value": "lerp(relationship_value, 0, (0.4 * charisma_factor))" },
-                { "id": "relationship_max", "value": "lerp(relationship_value, 0, (0.2 * charisma_factor))" }
+                { "id": "relationship_min", "value": "lerp(dominant_relationship_value, 0, (0.4 * charisma_factor))" },
+                { "id": "relationship_max", "value": "lerp(dominant_relationship_value, 0, (0.2 * charisma_factor))" }
               ],
               "text": "<<target>>: relationship with <<dominant_faction>>, dominant clan of the <<target.polity>> tribe, decreases from <<dominant_relationship_value>> to a value between <<relationship_min>> and <<relationship_max>>",
               "result": "target.set_relationship(dominant_faction, random(relationship_min, relationship_max))"
@@ -137,8 +146,8 @@
               "id": "increase_relation_new_tribe",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
-                { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
-                { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
+                { "id": "relationship_min", "value": "lerp(attempter_relationship_value, 1, (0.1 * charisma_factor))" },
+                { "id": "relationship_max", "value": "lerp(attempter_relationship_value, 1, (0.2 * charisma_factor))" }
               ],
               "text": "<<target>>: relationship with <<attempting_faction>>, dominant clan of the <<attempting_polity>> tribe, increases from <<attempter_relationship_value>> to a value between <<relationship_min>> and <<relationship_max>>",
               "result": "target.set_relationship(attempting_faction, random(relationship_min, relationship_max))"
@@ -146,17 +155,60 @@
             {
               "id": "join_tribe",
               "properties": [
-                { "id": "influence_charisma_factor", "value": "2 - attempting_leader_charisma" },
+                { "id": "influence_charisma_factor", "value": "1.5 - attempting_leader_charisma" },
                 { "id": "min_inf_percent_to_transfer", "value": "0.1 * influence_charisma_factor" },
                 { "id": "max_inf_percent_to_transfer", "value": "0.2 * influence_charisma_factor" }
               ],
               "text": "<<target>> leaves <<target.polity>> and joins <<attempting_polity>> taking from <<percent(min_inf_percent_to_transfer)>> to <<percent(max_inf_percent_to_transfer)>> of its influence from clan <<attempting_faction>>",
-              "result": "target.join_tribe(attempting_polity, random(min_inf_percent_to_transfer, max_inf_percent_to_transfer))"
+              "result": "target.join(attempting_polity, random(min_inf_percent_to_transfer, max_inf_percent_to_transfer))"
             },
             {
               "id": "notify_dominant",
               "text": "The current leader of the <<target.polity>> tribe will be notified of our decision...",
               "result": "dominant_faction.trigger_decision(decision_prio, clan_leaves_tribe_for_another, target, attempting_polity)"
+            },
+            {
+              "id": "notify_attempter",
+              "text": "The current leader of the <<attempting_polity>> tribe will be notified of our decision...",
+              "result": "attempting_faction.trigger_decision(decision_prio, clan_accepted_join_tribe_offer, target)"
+            }
+          ]
+        },
+        {
+          "id": "accept_offer_is_dominant",
+          "text": "Accept offer from <<attempting_polity>>...",
+          "conditions": ["target_is_dominant"],
+          "weight": "1 - clamp(chance_of_rejecting_attempt, 0, 1)",
+          "effects": [
+            {
+              "id": "decrease_isolation",
+              "properties": [
+                { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
+                { "id": "isolation_min", "value": "lerp(target_isolation, 0, (0.4 * wisdom_factor))" },
+                { "id": "isolation_max", "value": "lerp(target_isolation, 0, (0.2 * wisdom_factor))" }
+              ],
+              "text": "<<target>>: isolation preference (<<target_isolation>>) decreases to a value between <<isolation_min>> and <<isolation_max>>",
+              "result": "target.preferences.isolation = random(isolation_min, isolation_max)"
+            },
+            {
+              "id": "increase_relation_new_tribe",
+              "properties": [
+                { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
+                { "id": "relationship_min", "value": "lerp(attempter_relationship_value, 1, (0.1 * charisma_factor))" },
+                { "id": "relationship_max", "value": "lerp(attempter_relationship_value, 1, (0.2 * charisma_factor))" }
+              ],
+              "text": "<<target>>: relationship with <<attempting_faction>>, dominant clan of the <<attempting_polity>> tribe, increases from <<attempter_relationship_value>> to a value between <<relationship_min>> and <<relationship_max>>",
+              "result": "target.set_relationship(attempting_faction, random(relationship_min, relationship_max))"
+            },
+            {
+              "id": "join_tribe",
+              "properties": [
+                { "id": "influence_charisma_factor", "value": "1.5 - attempting_leader_charisma" },
+                { "id": "min_inf_percent_to_transfer", "value": "0.1 * influence_charisma_factor" },
+                { "id": "max_inf_percent_to_transfer", "value": "0.2 * influence_charisma_factor" }
+              ],
+              "text": "<<target>> leaves <<target.polity>> and joins <<attempting_polity>> taking from <<percent(min_inf_percent_to_transfer)>> to <<percent(max_inf_percent_to_transfer)>> of its influence from clan <<attempting_faction>>",
+              "result": "target.join(attempting_polity, random(min_inf_percent_to_transfer, max_inf_percent_to_transfer))"
             },
             {
               "id": "notify_attempter",

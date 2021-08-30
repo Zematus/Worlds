@@ -1774,7 +1774,7 @@ public abstract class Polity : ISynchronizable
 
         foreach (Faction faction in factionsToMove)
         {
-            faction.ChangePolity(this, faction.Influence * populationFactor);
+            faction.ChangePolity(this, faction.Influence * populationFactor, false);
 
             faction.SetToUpdate();
         }

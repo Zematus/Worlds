@@ -18,6 +18,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
     public const string SetRelationshipAttributeId = "set_relationship";
     public const string GetGroupsAttributeId = "get_groups";
     public const string HasContactWithAttributeId = "has_contact_with";
+    public const string JoinAttributeId = "join";
 
     public virtual Faction Faction
     {
@@ -152,6 +153,41 @@ public class FactionEntity : DelayedSetEntity<Faction>
                     }
 
                     Faction.MigrateCoreToGroup(groupEntity.Group);
+                },
+                arguments);
+
+        return attribute;
+    }
+
+    public EffectEntityAttribute GenerateJoinAttribute(IExpression[] arguments)
+    {
+        if ((arguments == null) || (arguments.Length < 2))
+        {
+            throw new System.ArgumentException(
+                $"{JoinAttributeId}: expected two arguments");
+        }
+
+        var polityEntityExp =
+            ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
+        var influenceValExp =
+            ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
+
+        var attribute =
+            new EffectApplierEntityAttribute(
+                JoinAttributeId,
+                this,
+                () => {
+                    PolityEntity polityEntity = polityEntityExp.Value as PolityEntity;
+
+                    if (polityEntity == null)
+                    {
+                        throw new System.ArgumentException(
+                            $"{JoinAttributeId}: invalid polity:" +
+                            $"\n - expression: {ToString()}" +
+                            $"\n - polity: {polityEntityExp.ToPartiallyEvaluatedString()}");
+                    }
+
+                    Faction.ChangePolity(polityEntity.Polity, influenceValExp.Value);
                 },
                 arguments);
 
@@ -332,6 +368,9 @@ public class FactionEntity : DelayedSetEntity<Faction>
 
             case RemoveAttributeId:
                 return GenerateRemoveAttribute();
+
+            case JoinAttributeId:
+                return GenerateJoinAttribute(arguments);
 
             case GetRelationshipAttributeId:
                 return new GetRelationshipAttribute(this, arguments);
