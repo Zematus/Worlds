@@ -47,7 +47,7 @@
             {
               "id": "attempt",
               "text": "The current leader of <<contact_faction>> will ponder the attempt from clan <<target>> to improve their relationship",
-              "result": "contact_faction.trigger_decision(decision_prio, faction_decide_on_relationship_fostering_offer, target.polity, target.leader.charisma)"
+              "result": "contact_faction.trigger_decision(decision_prio, faction_decide_on_relationship_fostering_attempt, target.polity, target.leader.charisma)"
             }
           ]
         },

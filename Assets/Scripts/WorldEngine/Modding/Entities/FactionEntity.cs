@@ -18,7 +18,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
     public const string SetRelationshipAttributeId = "set_relationship";
     public const string GetGroupsAttributeId = "get_groups";
     public const string HasContactWithAttributeId = "has_contact_with";
-    public const string JoinAttributeId = "join";
+    public const string ChangePolityAttributeId = "change_polity";
 
     public virtual Faction Faction
     {
@@ -159,12 +159,12 @@ public class FactionEntity : DelayedSetEntity<Faction>
         return attribute;
     }
 
-    public EffectEntityAttribute GenerateJoinAttribute(IExpression[] arguments)
+    public EffectEntityAttribute GenerateChangePolityAttribute(IExpression[] arguments)
     {
         if ((arguments == null) || (arguments.Length < 2))
         {
             throw new System.ArgumentException(
-                $"{JoinAttributeId}: expected two arguments");
+                $"{ChangePolityAttributeId}: expected two arguments");
         }
 
         var polityEntityExp =
@@ -174,7 +174,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
 
         var attribute =
             new EffectApplierEntityAttribute(
-                JoinAttributeId,
+                ChangePolityAttributeId,
                 this,
                 () => {
                     PolityEntity polityEntity = polityEntityExp.Value as PolityEntity;
@@ -182,7 +182,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
                     if (polityEntity == null)
                     {
                         throw new System.ArgumentException(
-                            $"{JoinAttributeId}: invalid polity:" +
+                            $"{ChangePolityAttributeId}: invalid polity:" +
                             $"\n - expression: {ToString()}" +
                             $"\n - polity: {polityEntityExp.ToPartiallyEvaluatedString()}");
                     }
@@ -280,13 +280,13 @@ public class FactionEntity : DelayedSetEntity<Faction>
             {
                 var selectedGroups = new HashSet<CellGroup>();
 
-                foreach (var group in Faction.InnerGroups)
+                foreach (var prominence in Faction.Prominences)
                 {
-                    paramGroupEntity.Set(group);
+                    paramGroupEntity.Set(prominence.Group);
 
                     if (conditionExp.Value)
                     {
-                        selectedGroups.Add(group);
+                        selectedGroups.Add(prominence.Group);
                     }
                 }
 
@@ -369,8 +369,8 @@ public class FactionEntity : DelayedSetEntity<Faction>
             case RemoveAttributeId:
                 return GenerateRemoveAttribute();
 
-            case JoinAttributeId:
-                return GenerateJoinAttribute(arguments);
+            case ChangePolityAttributeId:
+                return GenerateChangePolityAttribute(arguments);
 
             case GetRelationshipAttributeId:
                 return new GetRelationshipAttribute(this, arguments);

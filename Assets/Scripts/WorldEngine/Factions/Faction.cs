@@ -135,14 +135,14 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public long CurrentDate => World.CurrentDate;
 
     [XmlIgnore]
-    public HashSet<CellGroup> InnerGroups = new HashSet<CellGroup>();
+    public HashSet<PolityProminence> Prominences = new HashSet<PolityProminence>();
 
     [XmlIgnore]
     public Dictionary<Polity, int> OverlapingPolities = new Dictionary<Polity, int>();
 
 #if DEBUG
     [XmlIgnore]
-    public HashSet<PolityProminence> _prominences = new HashSet<PolityProminence>();
+    public HashSet<PolityProminence> _overlappingProminences = new HashSet<PolityProminence>();
 #endif
 
     protected Dictionary<Identifier, FactionRelationship> _relationships =
@@ -288,7 +288,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public void AddOverlappingPolity(PolityProminence prominence)
     {
 #if DEBUG
-        if (!_prominences.Add(prominence))
+        if (!_overlappingProminences.Add(prominence))
         {
             throw new System.Exception($"Tried adding same prominence twice, group: {prominence.Id}, polity: {prominence.PolityId}");
         }
@@ -303,7 +303,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public void RemoveOverlappingPolity(PolityProminence prominence)
     {
 #if DEBUG
-        if (!_prominences.Remove(prominence))
+        if (!_overlappingProminences.Remove(prominence))
         {
             throw new System.Exception($"Tried removing same prominence twice, group: {prominence.Id}, polity: {prominence.PolityId}");
         }
@@ -320,23 +320,23 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
             throw new System.Exception("removing polity that was not part of overlaping polities");
     }
 
-    public void AddInnerGroup(CellGroup group)
+    public void AddProminence(PolityProminence prominence)
     {
-        if (!InnerGroups.Add(group))
+        if (!Prominences.Add(prominence))
             return;
 
-        foreach (var p in group.GetPolityProminences())
+        foreach (var p in prominence.Group.GetPolityProminences())
         {
             AddOverlappingPolity(p);
         }
     }
 
-    public void RemoveInnerGroup(CellGroup group)
+    public void RemoveProminence(PolityProminence prominence)
     {
-        if (!InnerGroups.Remove(group))
+        if (!Prominences.Remove(prominence))
             return;
 
-        foreach (var p in group.GetPolityProminences())
+        foreach (var p in prominence.Group.GetPolityProminences())
         {
             RemoveOverlappingPolity(p);
         }
@@ -807,6 +807,20 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         GenerateGuideSwitchEvents();
     }
 
+    public Dictionary<CellGroup, float> GetGroupsAndPromValues(float percentProminence = 1f)
+    {
+        var groupsToTransfer = new Dictionary<CellGroup, float>();
+
+        foreach (var prominence in Prominences)
+        {
+            float sourceProminenceValueDelta = prominence.Value * percentProminence;
+
+            groupsToTransfer.Add(prominence.Group, sourceProminenceValueDelta);
+        }
+
+        return groupsToTransfer;
+    }
+
     public void ChangePolity(Polity targetPolity, float targetInfluence, bool transferGroups = true)
     {
         if ((targetPolity == null) || (!targetPolity.StillPresent))
@@ -815,6 +829,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         Polity.RemoveFaction(this);
 
         CoreGroup.ResetCoreDistances(PolityId, true);
+
+        if (transferGroups)
+        {
+            targetPolity.TransferGroups(Polity, GetGroupsAndPromValues());
+        }
 
         Polity = targetPolity;
         PolityId = Polity.Id;

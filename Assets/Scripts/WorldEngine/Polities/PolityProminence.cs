@@ -138,7 +138,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
     {
         StillPresent = false;
 
-        ClosestFaction?.RemoveInnerGroup(Group);
+        ClosestFaction?.RemoveProminence(this);
     }
 
     public void FinishDestruction()
@@ -151,12 +151,12 @@ public class PolityProminence // : IKeyedValue<Identifier>
         if (ClosestFaction == faction)
             return;
 
-        ClosestFaction?.RemoveInnerGroup(Group);
+        ClosestFaction?.RemoveProminence(this);
 
         ClosestFaction = faction;
         ClosestFactionId = faction?.Id;
 
-        faction?.AddInnerGroup(Group);
+        faction?.AddProminence(this);
     }
 
     /// <summary>

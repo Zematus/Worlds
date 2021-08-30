@@ -664,9 +664,9 @@ public abstract class Polity : ISynchronizable
         }
     }
 
-    protected void TransferGroups(
+    public void TransferGroups(
         Polity sourcePolity,
-        Dictionary<CellGroup, float> groupsToTransfer)
+        Dictionary<CellGroup, float> groupsToTransfer, bool newPolity = false)
     {
         foreach (var pair in groupsToTransfer)
         {
@@ -685,8 +685,15 @@ public abstract class Polity : ISynchronizable
                 value = oldPromVal;
             }
 
-            group.AddPolityProminence(this, value);
-            group.FindHighestPolityProminence();
+            if (newPolity)
+            {
+                group.AddPolityProminence(this, value);
+                group.FindHighestPolityProminence();
+            }
+            else
+            {
+                group.AddPolityProminenceValueDelta(this, value, true);
+            }
 
             World.AddGroupToUpdate(group);
         }

@@ -85,7 +85,9 @@
         { "id": "contact_strength_factor", "value": "2 - (contact_strength * 3)" },
         { "id": "isolation_factor", "value": "target_isolation * 2" },
         { "id": "attempting_leader_charisma_factor", "value": "2 - attempting_leader_charisma" },
-        { "id": "chance_of_rejecting_attempt", "value": "(1 + dominant_relationship_value - attempter_relationship_value) * contact_strength_factor * isolation_factor * attempting_leader_charisma_factor" }
+        { "id": "chance_of_rejecting_common_factors", "value": "contact_strength_factor * isolation_factor * attempting_leader_charisma_factor" },
+        { "id": "chance_of_rejecting_attempt_not_dominant", "value": "(1 + dominant_relationship_value - attempter_relationship_value) * chance_of_rejecting_common_factors" },
+        { "id": "chance_of_rejecting_attempt_dominant", "value": "(2 - attempter_relationship_value) * chance_of_rejecting_common_factors" }
       ],
       "description": [
         {
@@ -95,9 +97,10 @@
       ],
       "options": [
         {
-          "id": "reject_offer",
+          "id": "reject_offer_not_dominant",
           "text": "Reject offer from <<attempting_polity>>...",
-          "weight": "clamp(chance_of_rejecting_attempt, 0, 1)",
+          "conditions": ["!target_is_dominant"],
+          "weight": "clamp(chance_of_rejecting_attempt_not_dominant, 0, 1)",
           "effects": [
             {
               "id": "decrease_relation",
@@ -117,10 +120,33 @@
           ]
         },
         {
-          "id": "accept_offer_is_not_dominant",
+          "id": "reject_offer_dominant",
+          "text": "Reject offer from <<attempting_polity>>...",
+          "conditions": ["target_is_dominant"],
+          "weight": "clamp(chance_of_rejecting_attempt_dominant, 0, 1)",
+          "effects": [
+            {
+              "id": "decrease_relation",
+              "properties": [
+                { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
+                { "id": "relationship_min", "value": "lerp(attempter_relationship_value, 0, (0.2 * charisma_factor))" },
+                { "id": "relationship_max", "value": "lerp(attempter_relationship_value, 0, (0.1 * charisma_factor))" }
+              ],
+              "text": "<<target>>: relationship with <<attempting_faction>>, dominant clan of the <<attempting_polity>> tribe, decreases from <<attempter_relationship_value>> to a value between <<relationship_min>> and <<relationship_max>>",
+              "result": "target.set_relationship(attempting_faction, random(relationship_min, relationship_max))"
+            },
+            {
+              "id": "notify",
+              "text": "<<attempting_polity.leader>> will be notified of our decision...",
+              "result": "attempting_polity.dominant_faction.trigger_decision(decision_prio, clan_rejected_join_tribe_offer, target)"
+            }
+          ]
+        },
+        {
+          "id": "accept_offer_not_dominant",
           "text": "Accept offer from <<attempting_polity>>...",
           "conditions": ["!target_is_dominant"],
-          "weight": "1 - clamp(chance_of_rejecting_attempt, 0, 1)",
+          "weight": "1 - clamp(chance_of_rejecting_attempt_not_dominant, 0, 1)",
           "effects": [
             {
               "id": "decrease_isolation",
@@ -160,7 +186,7 @@
                 { "id": "max_inf_percent_to_transfer", "value": "0.2 * influence_charisma_factor" }
               ],
               "text": "<<target>> leaves <<target.polity>> and joins <<attempting_polity>> taking from <<percent(min_inf_percent_to_transfer)>> to <<percent(max_inf_percent_to_transfer)>> of its influence from clan <<attempting_faction>>",
-              "result": "target.join(attempting_polity, random(min_inf_percent_to_transfer, max_inf_percent_to_transfer))"
+              "result": "target.change_polity(attempting_polity, random(min_inf_percent_to_transfer, max_inf_percent_to_transfer))"
             },
             {
               "id": "notify_dominant",
@@ -175,10 +201,10 @@
           ]
         },
         {
-          "id": "accept_offer_is_dominant",
+          "id": "accept_offer_dominant",
           "text": "Accept offer from <<attempting_polity>>...",
           "conditions": ["target_is_dominant"],
-          "weight": "1 - clamp(chance_of_rejecting_attempt, 0, 1)",
+          "weight": "1 - clamp(chance_of_rejecting_attempt_dominant, 0, 1)",
           "effects": [
             {
               "id": "decrease_isolation",
@@ -208,7 +234,7 @@
                 { "id": "max_inf_percent_to_transfer", "value": "0.2 * influence_charisma_factor" }
               ],
               "text": "<<target>> leaves <<target.polity>> and joins <<attempting_polity>> taking from <<percent(min_inf_percent_to_transfer)>> to <<percent(max_inf_percent_to_transfer)>> of its influence from clan <<attempting_faction>>",
-              "result": "target.join(attempting_polity, random(min_inf_percent_to_transfer, max_inf_percent_to_transfer))"
+              "result": "target.change_polity(attempting_polity, random(min_inf_percent_to_transfer, max_inf_percent_to_transfer))"
             },
             {
               "id": "notify_attempter",
