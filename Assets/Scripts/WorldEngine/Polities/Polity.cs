@@ -454,7 +454,7 @@ public abstract class Polity : ISynchronizable
         switch (polityType)
         {
             case Tribe.PolityTypeStr:
-                newPolity = new Tribe(splittingFaction as Clan, this as Tribe);
+                newPolity = new Tribe(splittingFaction as Clan);
 
                 AddEventMessage(new TribeSplitEventMessage(
                     splittingFaction as Clan,
@@ -666,34 +666,20 @@ public abstract class Polity : ISynchronizable
 
     public void TransferGroups(
         Polity sourcePolity,
-        Dictionary<CellGroup, float> groupsToTransfer, bool newPolity = false)
+        ICollection<CellGroup> groupsToTransfer)
     {
-        foreach (var pair in groupsToTransfer)
+        foreach (var group in groupsToTransfer)
         {
-            CellGroup group = pair.Key;
-            float value = pair.Value;
+            float value = group.GetPolityProminenceValue(sourcePolity);
 
-            float oldPromVal = group.GetPolityProminenceValue(sourcePolity);
+            group.SetPolityProminenceToRemove(sourcePolity, forceCoreRemoval: false);
 
-            bool removed = !group.SetPolityProminenceValue(
-                sourcePolity, oldPromVal - value);
+            var prominence = group.AddPolityProminenceValue(this, value);
 
-            if (removed)
-            {
-                // the old prominence was completely removed, so we transfer its
-                // full value to the new prominence
-                value = oldPromVal;
-            }
+            World.AddPromToCalculateCoreDistFor(prominence);
+            World.AddGroupWithPolityCountChange(group);
 
-            if (newPolity)
-            {
-                group.AddPolityProminence(this, value);
-                group.FindHighestPolityProminence();
-            }
-            else
-            {
-                group.AddPolityProminenceValueDelta(this, value, true);
-            }
+            group.FindHighestPolityProminence();
 
             World.AddGroupToUpdate(group);
         }
@@ -1743,6 +1729,23 @@ public abstract class Polity : ISynchronizable
         }
     }
 
+    public Dictionary<CellGroup, float> GetGroupsAndPromValues(float percentProminence = 1f)
+    {
+        var groupsToTransfer = new Dictionary<CellGroup, float>();
+
+        foreach (var cluster in ProminenceClusters)
+        {
+            foreach (var prominence in cluster.GetPolityProminences())
+            {
+                float sourceProminenceValueDelta = prominence.Value * percentProminence;
+
+                groupsToTransfer.Add(prominence.Group, sourceProminenceValueDelta);
+            }
+        }
+
+        return groupsToTransfer;
+    }
+
     public void MergePolity(Polity polity)
     {
 //#if DEBUG
@@ -1781,19 +1784,9 @@ public abstract class Polity : ISynchronizable
 
         foreach (Faction faction in factionsToMove)
         {
-            faction.ChangePolity(this, faction.Influence * populationFactor, false);
+            faction.ChangePolity(this, faction.Influence * populationFactor);
 
             faction.SetToUpdate();
-        }
-
-        foreach (CellGroup group in polity.Groups.Values)
-        {
-            float ppValue = group.GetPolityProminenceValue(polity);
-
-            group.SetPolityProminenceToRemove(polity);
-            group.AddPolityProminenceValueDelta(this, ppValue);
-
-            World.AddGroupToUpdate(group);
         }
 
         foreach (Region region in polity.CoreRegions)

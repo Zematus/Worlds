@@ -60,15 +60,11 @@ public class Tribe : Polity
         GenerateName();
     }
 
-    public Tribe(Clan triggerClan, Polity parentPolity) :
+    public Tribe(Clan triggerClan) :
         base(PolityTypeStr, triggerClan.CoreGroup, triggerClan.GetHashCode())
     {
-        var groupsToTransfer = triggerClan.GetGroupsAndPromValues();
-
-        triggerClan.ChangePolity(this, triggerClan.Influence, false);
+        triggerClan.ChangePolity(this, triggerClan.Influence);
         SetDominantFaction(triggerClan, false);
-
-        TransferGroups(parentPolity, groupsToTransfer, true);
 
         GenerateName();
     }

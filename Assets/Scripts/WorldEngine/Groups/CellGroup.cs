@@ -2812,7 +2812,16 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return offset;
     }
 
-    public bool SetPolityProminenceValue(
+    public PolityProminence AddPolityProminenceValue(
+        Polity polity,
+        float toAdd)
+    {
+        float value = GetPolityProminenceValue(polity);
+
+        return SetPolityProminenceValue(polity, value + toAdd);
+    }
+
+    public PolityProminence SetPolityProminenceValue(
         Polity polity,
         float newValue,
         bool afterPolityUpdates = false,
@@ -2837,7 +2846,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             }
             else
             {
-                return false;
+                return null;
             }
         }
 
@@ -2853,9 +2862,11 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             AddPolityProminence(polity);
         }
 
-        _polityProminences[polity.Id].Value = newValue;
+        var prominence = _polityProminences[polity.Id];
 
-        return true;
+        prominence.Value = newValue;
+
+        return prominence;
     }
 
     private float UpdateProminenceValuesWithDeltas(
@@ -2872,8 +2883,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
             newValue -= promDeltaOffset;
 
-            if (SetPolityProminenceValue(
-                polity, newValue, afterPolityUpdates, false))
+            if (SetPolityProminenceValue(polity, newValue, afterPolityUpdates, false) != null)
             {
                 totalValue += newValue;
             }

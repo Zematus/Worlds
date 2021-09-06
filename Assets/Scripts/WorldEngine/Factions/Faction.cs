@@ -807,18 +807,16 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         GenerateGuideSwitchEvents();
     }
 
-    public Dictionary<CellGroup, float> GetGroupsAndPromValues(float percentProminence = 1f)
+    public List<CellGroup> GetGroups()
     {
-        var groupsToTransfer = new Dictionary<CellGroup, float>();
+        var groups = new List<CellGroup>();
 
         foreach (var prominence in Prominences)
         {
-            float sourceProminenceValueDelta = prominence.Value * percentProminence;
-
-            groupsToTransfer.Add(prominence.Group, sourceProminenceValueDelta);
+            groups.Add(prominence.Group);
         }
 
-        return groupsToTransfer;
+        return groups;
     }
 
     public void ChangePolity(Polity targetPolity, float targetInfluence, bool transferGroups = true)
@@ -832,7 +830,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         if (transferGroups)
         {
-            targetPolity.TransferGroups(Polity, GetGroupsAndPromValues());
+            targetPolity.TransferGroups(Polity, GetGroups());
         }
 
         Polity = targetPolity;
