@@ -290,7 +290,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 #if DEBUG
         if (!_overlappingProminences.Add(prominence))
         {
-            throw new System.Exception($"Tried adding same prominence twice, group: {prominence.Id}, polity: {prominence.PolityId}");
+            throw new System.Exception(
+                $"Tried adding same prominence twice, " +
+                $"group: {prominence.Id}, " +
+                $"polity: {prominence.PolityId}, " +
+                $"faction's polity: {Polity.Id}");
         }
 #endif
 
@@ -821,12 +825,18 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public void ChangePolity(Polity targetPolity, float targetInfluence, bool transferGroups = true)
     {
+#if DEBUG
+        if ((Id == "157631653:6751738913384527844") &&
+            (Polity.Id == "121293588:6751162454526272988") && 
+            (targetPolity.Id == "152872884:6565772676585493116"))
+        {
+            Debug.LogWarning("Debugging ChangePolity");
+        }
+#endif
         if ((targetPolity == null) || (!targetPolity.StillPresent))
             throw new System.Exception("target Polity is null or not Present");
 
         Polity.RemoveFaction(this);
-
-        CoreGroup.ResetCoreDistances(PolityId, true);
 
         if (transferGroups)
         {

@@ -63,8 +63,13 @@ public class Tribe : Polity
     public Tribe(Clan triggerClan) :
         base(PolityTypeStr, triggerClan.CoreGroup, triggerClan.GetHashCode())
     {
-        triggerClan.ChangePolity(this, triggerClan.Influence);
+        var sourcePolity = triggerClan.Polity;
+        var groups = triggerClan.GetGroups();
+
+        triggerClan.ChangePolity(this, triggerClan.Influence, false);
+
         SetDominantFaction(triggerClan, false);
+        TransferGroups(sourcePolity, groups);
 
         GenerateName();
     }

@@ -672,15 +672,15 @@ public abstract class Polity : ISynchronizable
         {
             float value = group.GetPolityProminenceValue(sourcePolity);
 
-            group.SetPolityProminenceToRemove(sourcePolity, forceCoreRemoval: false);
+            group.SetPolityProminenceToRemove(sourcePolity, ignoreFactionCores: true);
 
-            var prominence = group.AddPolityProminenceValue(this, value);
+            var prominence = group.IncreasePolityProminenceValue(this, value);
 
-            World.AddPromToCalculateCoreDistFor(prominence);
-            World.AddGroupWithPolityCountChange(group);
+            prominence.ResetCoreDistances(addToRecalcs: true);
 
             group.FindHighestPolityProminence();
 
+            World.AddGroupWithPolityCountChange(group);
             World.AddGroupToUpdate(group);
         }
     }
@@ -701,6 +701,16 @@ public abstract class Polity : ISynchronizable
         PolityContact contact = new PolityContact(World, this, polity, initialGroupCount);
 
         _contacts.Add(polity.Id, contact);
+
+        if (DominantFaction == null)
+        {
+            throw new System.Exception($"Dominant faction is null, polity: {Id}");
+        }
+
+        if (polity == null)
+        {
+            throw new System.Exception($"Contact polity is null, polity: {Id}");
+        }
 
         if (!DominantFaction.HasRelationship(polity.DominantFaction))
         {
@@ -1401,7 +1411,7 @@ public abstract class Polity : ISynchronizable
 
         if (!group.HasProperty(CanFormPolityAttribute + "tribe"))
         {
-            group.SetPolityProminenceToRemove(Id);
+            group.SetPolityProminenceToRemove(this);
 
             return;
         }

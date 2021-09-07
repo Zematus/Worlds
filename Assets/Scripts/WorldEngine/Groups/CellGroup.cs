@@ -713,6 +713,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     public void AddFactionCore(Faction faction)
     {
+#if DEBUG
+        if ((Id == "9372019:6751738915278576408") &&
+            (faction.Id == "157631653:6751738913384527844"))
+        {
+            Debug.LogWarning("Debugging AddFactionCore");
+        }
+#endif
         if (!FactionCores.ContainsKey(faction.Id))
         {
             FactionCores.Add(faction.Id, faction);
@@ -2656,8 +2663,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         {
             if (float.IsNaN(prominence.Value))
             {
-                throw new System.Exception("Prominence value is Nan. Group: " + Id +
-                    ", Polity: " + prominence.PolityId);
+                throw new System.Exception(
+                    $"Prominence value is Nan. Group: {Id}, Polity: {prominence.PolityId}");
             }
 
             TotalPolityProminenceValue += prominence.Value;
@@ -2666,14 +2673,14 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 #if DEBUG
         if ((_polityProminences.Count > 0) && (TotalPolityProminenceValue <= 0))
         {
-            throw new System.Exception("Invalid state. Group: " + Id);
+            throw new System.Exception($"Invalid state. Group: {Id}");
         }
 #endif
 
         if (TotalPolityProminenceValue > 1.0)
         {
-            Debug.LogWarning("Total Polity Prominence Value greater than 1: " +
-                TotalPolityProminenceValue + ", Group: " + Id);
+            Debug.LogWarning(
+                $"Total Polity Prominence Value greater than 1: {TotalPolityProminenceValue}, Group: {Id}");
         }
 
         if (TotalPolityProminenceValue <= 0)
@@ -2683,8 +2690,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 if (!faction.BeingRemoved)
                 {
                     throw new System.Exception(
-                        "Group with no polity prominence has cores for factions " +
-                        "not being removed. Group: " + Id + ", Faction: " + faction.Id);
+                        $"Group with no polity prominence has cores for factions " +
+                        $"not being removed. Group: {Id}, Faction: {faction.Id}");
                 }
             }
         }
@@ -2812,7 +2819,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return offset;
     }
 
-    public PolityProminence AddPolityProminenceValue(
+    public PolityProminence IncreasePolityProminenceValue(
         Polity polity,
         float toAdd)
     {
@@ -2989,77 +2996,67 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public bool SetPolityProminenceToRemove(
         Polity polity,
         bool throwIfNotPresent = true,
-        bool forceCoreRemoval = true)
+        bool forceCoreRemoval = true,
+        bool ignoreFactionCores = false)
     {
-        return SetPolityProminenceToRemove(polity.Id, throwIfNotPresent, forceCoreRemoval);
-    }
-
-    /// <summary>
-    /// add a polity prominence to remove
-    /// </summary>
-    /// <param name="polityId">id of polity to which the prominence belongs</param>
-    /// <param name="throwIfNotPresent">throw if prominence is not present</param>
-    /// <returns>'false' if the polity prominence can't be removed</returns>
-    public bool SetPolityProminenceToRemove(
-        Identifier polityId,
-        bool throwIfNotPresent = true,
-        bool forceCoreRemoval = true)
-    {
-        if (!_polityProminences.ContainsKey(polityId))
+        if (!_polityProminences.ContainsKey(polity.Id))
         {
             if (throwIfNotPresent)
             {
                 throw new System.ArgumentException(
-                    "Prominence of polity " + polityId +
-                    " not present in " + Id);
+                    $"Prominence of polity {polity.Id}" +
+                    $" not present in {Id}");
             }
 
             return true;
         }
 
-        if (_polityProminencesToRemove.Contains(polityId))
+        if (_polityProminencesToRemove.Contains(polity.Id))
         {
             return true;
         }
 
-        // throw warning if this groups was set to become a faction core
-        // even if the polity is about to be removed (even more so)
-        if ((WillBecomeCoreOfFaction != null) &&
-            (WillBecomeCoreOfFaction.PolityId == polityId))
+        if (!ignoreFactionCores)
         {
-            Debug.LogWarning(
-                "Group is set to become a faction core - group: " + Id +
-                " - faction: " + WillBecomeCoreOfFaction.Id +
-                " - polity: " + polityId + " - Date:" + World.CurrentDate);
-
-            return false;
-        }
-
-        var prominence = GetPolityProminence(polityId);
-
-        if (!forceCoreRemoval)
-        {
-            foreach (var pair in FactionCores)
+            // throw warning if this groups was set to become a faction core
+            // even if the polity is about to be removed (even more so)
+            if ((WillBecomeCoreOfFaction != null) &&
+                (WillBecomeCoreOfFaction.PolityId == polity.Id))
             {
-                Faction faction = pair.Value;
+                Debug.LogWarning(
+                    $"Group is set to become a faction core - group: {Id}" +
+                    $" - faction: {WillBecomeCoreOfFaction.Id}" +
+                    $" - polity: {polity.Id} - Date: {World.CurrentDate}");
 
-                if (faction.PolityId == prominence.PolityId)
+                return false;
+            }
+
+            if (!forceCoreRemoval)
+            {
+                var prominence = GetPolityProminence(polity.Id);
+
+                foreach (var pair in FactionCores)
                 {
-                    if (!faction.BeingRemoved)
-                    {
-                        Debug.LogWarning(
-                            $"Group has valid faction core, group: {Id}" +
-                            $", faction: {faction.Id}" +
-                            $", polity: {polityId}" +
-                            $", date: {World.CurrentDate}");
-                    }
+                    Faction faction = pair.Value;
 
-                    return false;
+                    if (faction.PolityId == prominence.PolityId)
+                    {
+                        if (!faction.BeingRemoved)
+                        {
+                            Debug.LogWarning(
+                                $"Group has valid faction core, group: {Id}" +
+                                $", faction: {faction.Id}" +
+                                $", polity: {polity.Id}" +
+                                $", date: {World.CurrentDate}");
+                        }
+
+                        return false;
+                    }
                 }
             }
         }
-        
-        _polityProminencesToRemove.Add(polityId);
+
+        _polityProminencesToRemove.Add(polity.Id);
         return true;
     }
 
@@ -3159,6 +3156,14 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         foreach (Identifier polityId in _polityProminencesToRemove)
         {
+#if DEBUG
+            if ((Id == "9372019:6751738915278576408") &&
+                (polityId == "152872884:6565772676585493116"))
+            {
+                Debug.LogWarning("Debugging RemovePolityProminences");
+            }
+#endif
+
             PolityProminence polityProminence = _polityProminences[polityId];
 
             // Remove all polity faction cores from group
@@ -3174,6 +3179,14 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                     faction.SetToRemove();
                 }
             }
+
+#if DEBUG
+            if ((Id == "9372019:6751738915278576408") &&
+                (_polityProminences.Count == 1))
+            {
+                Debug.LogWarning("Debugging RemovePolityProminences");
+            }
+#endif
 
             _polityProminences.Remove(polityProminence.PolityId);
             Cell.SetGroupPolityProminenceListToReset();
