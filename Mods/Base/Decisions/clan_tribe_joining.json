@@ -63,8 +63,7 @@
           "text": "No, we rather not...",
           "weight": "1 - clamp(chance_of_making_attempt, 0, 1)"
         }
-      ],
-      "enableDebugLog": true
+      ]
     },
     {
       "id": "faction_decide_on_join_tribe_offer",
@@ -83,7 +82,7 @@
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "target_aggression", "value": "target.preferences.aggression" },
         { "id": "contact_strength", "value": "target.polity.get_contact(attempting_polity).strength" },
-        { "id": "contact_strength_factor", "value": "2 - (contact_strength * 3)" },
+        { "id": "contact_strength_factor", "value": "2 - (contact_strength * 30)" },
         { "id": "isolation_factor", "value": "target_isolation * 2" },
         { "id": "attempting_leader_charisma_factor", "value": "2 - attempting_leader_charisma" },
         { "id": "chance_of_rejecting_common_factors", "value": "contact_strength_factor * isolation_factor * attempting_leader_charisma_factor" },
@@ -295,7 +294,7 @@
       "target": "faction",
       "parameters": [
         { "id": "leaving_clan", "type": "faction" },
-        { "id": "other_tribe", "type": "faction" }
+        { "id": "other_tribe", "type": "polity" }
       ],
       "description": [
         {

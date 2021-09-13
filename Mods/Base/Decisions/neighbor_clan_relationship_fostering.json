@@ -72,7 +72,7 @@
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "target_aggression", "value": "target.preferences.aggression" },
         { "id": "contact_strength", "value": "target.polity.get_contact(attempting_polity).strength" },
-        { "id": "contact_strength_factor", "value": "2 - (contact_strength * 5)" },
+        { "id": "contact_strength_factor", "value": "2 - (contact_strength * 50)" },
         { "id": "attempting_leader_charisma_factor", "value": "1.5 - attempting_leader_charisma" },
         { "id": "chance_of_rejecting_attempt", "value": "relationship_value * contact_strength_factor * target_isolation * attempting_leader_charisma_factor" }
       ],

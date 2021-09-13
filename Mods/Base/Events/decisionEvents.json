@@ -101,7 +101,7 @@
         { "id": "contact_dominant_faction", "value": "contact.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.get_relationship(contact_dominant_faction)" },
         { "id": "relationship_factor", "value": "max(0, (relationship_value * 2) - 1)" },
-        { "id": "chance_of_making_attempt", "value": "relationship_factor * (contact.strength * 3) * (1 - target_isolation)" }
+        { "id": "chance_of_making_attempt", "value": "relationship_factor * (contact.strength * 5) * (1 - target_isolation)" }
       ],
       "assignmentConditions": [
         "target == target.polity.dominant_faction",
@@ -163,7 +163,7 @@
         { "id": "contact_near_factions", "value": "contact.polity.get_factions[faction](faction.has_contact_with(target.polity))" },
         { "id": "selected_faction", "value": "contact_near_factions.select_random()" },
         { "id": "relationship_value", "value": "target.get_relationship(selected_faction)" },
-        { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * (contact.strength * 5) * max(0.75 - target_isolation, 0)" }
+        { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * (contact.strength * 50) * max(0.75 - target_isolation, 0)" }
       ],
       "assignmentConditions": [
         "target.guide == simulation",
@@ -191,7 +191,7 @@
         { "id": "contact_near_factions", "value": "contact.polity.get_factions[faction](faction.has_contact_with(target.polity))" },
         { "id": "selected_faction", "value": "contact_near_factions.select_random()" },
         { "id": "relationship_value", "value": "target.get_relationship(selected_faction)" },
-        { "id": "chance_of_making_attempt", "value": "relationship_value * (contact.strength * 3) * max(0.5 - target_isolation, 0)" }
+        { "id": "chance_of_making_attempt", "value": "relationship_value * (contact.strength * 30) * max(0.5 - target_isolation, 0)" }
       ],
       "assignmentConditions": [
         "target.guide == simulation",
