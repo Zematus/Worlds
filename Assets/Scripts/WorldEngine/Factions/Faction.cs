@@ -831,6 +831,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         Polity.RemoveFaction(this);
 
+        if (IsDominant)
+        {
+            Polity.CoreGroupIsValid = false;
+        }
+
         if (transferGroups)
         {
             targetPolity.TransferGroups(Polity, GetGroups());

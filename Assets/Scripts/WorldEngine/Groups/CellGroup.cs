@@ -2740,15 +2740,22 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         if (_polityProminencesToRemove.Contains(polity.Id))
         {
-            if (ignoreRemoval && (delta > 0))
+            if (delta > 0)
             {
-                // prevent removal if delta is positive
-                _polityProminencesToRemove.Remove(polity.Id);
+                if (ignoreRemoval)
+                {
+                    // prevent removal as long as delta is positive
+                    _polityProminencesToRemove.Remove(polity.Id);
+                }
+                else
+                {
+                    // This is a situation that shouldn't happen but is not critical...
+                    Debug.LogWarning($"Trying to add value delta to prominence that will be removed...");
+                    return;
+                }
             }
             else
             {
-                Debug.LogWarning("Trying to add value delta to prominence " +
-                    "that will be removed...");
                 return;
             }
         }
