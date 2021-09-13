@@ -670,11 +670,12 @@ public abstract class Polity : ISynchronizable
     {
         foreach (var group in groupsToTransfer)
         {
-            float value = group.GetPolityProminenceValue(sourcePolity);
+            var origProminence = group.GetPolityProminence(sourcePolity);
+            float origValue = origProminence.Value;
 
-            group.SetPolityProminenceToRemove(sourcePolity, ignoreFactionCores: true);
+            group.RemovePolityProminence(origProminence, false);
 
-            var prominence = group.IncreasePolityProminenceValue(this, value);
+            var prominence = group.IncreasePolityProminenceValue(this, origValue);
 
             prominence.ResetCoreDistances(addToRecalcs: true);
 
