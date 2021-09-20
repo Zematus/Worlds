@@ -134,8 +134,18 @@ public class PolityProminence // : IKeyedValue<Identifier>
         FinishDestruction();
     }
 
-    public void InitDestruction()
+    public void InitDestruction(bool validateFaction = true)
     {
+        if (validateFaction && (ClosestFaction.PolityId != PolityId))
+        {
+            throw new System.Exception(
+                $"Closest faction doesn't belong to same polity as prominence, " +
+                $"group: {Id}, " +
+                $"faction: {ClosestFaction.Id}, " +
+                $"faction's polity: {ClosestFaction.PolityId}, " +
+                $"prom's polity: {PolityId}");
+        }
+
         StillPresent = false;
 
         ClosestFaction?.RemoveProminence(this);

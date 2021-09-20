@@ -243,8 +243,7 @@
             }
           ]
         }
-      ],
-      "enableDebugLog": true
+      ]
     },
     {
       "id": "clan_accepted_join_tribe_offer",
@@ -264,8 +263,7 @@
           "id": "acknowledge",
           "text": "Wise choice..."
         }
-      ],
-      "enableDebugLog": true
+      ]
     },
     {
       "id": "clan_rejected_join_tribe_offer",
@@ -285,8 +283,7 @@
           "id": "acknowledge",
           "text": "Too bad..."
         }
-      ],
-      "enableDebugLog": true
+      ]
     },
     {
       "id": "clan_leaves_tribe_for_another",
@@ -307,8 +304,7 @@
           "id": "acknowledge",
           "text": "How dare they..."
         }
-      ],
-      "enableDebugLog": true
+      ]
     }
   ]
 }

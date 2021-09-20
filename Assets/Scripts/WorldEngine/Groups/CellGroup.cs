@@ -3171,7 +3171,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         ValidateProminenceRemoval(polityProminence.Polity, ignoreFactionCores: !removeFactionCores);
 
-        polityProminence.InitDestruction();
+        polityProminence.InitDestruction(removeFactionCores);
 
         FinishRemovingPolityProminence(polityProminence, removeFactionCores: removeFactionCores);
 
@@ -3220,7 +3220,10 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         // Decrease overlap with factions
         foreach (PolityProminence epi in _polityProminences.Values)
         {
-            epi.ClosestFaction?.RemoveOverlappingPolity(polityProminence);
+            if (!_polityProminencesToRemove.Contains(epi.PolityId))
+            {
+                epi.ClosestFaction?.RemoveOverlappingPolity(polityProminence);
+            }
         }
 
         polityProminence.Polity.RemoveGroup(polityProminence);

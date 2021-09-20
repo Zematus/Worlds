@@ -310,7 +310,12 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 #if DEBUG
         if (!_overlappingProminences.Remove(prominence))
         {
-            throw new System.Exception($"Tried removing same prominence twice, group: {prominence.Id}, polity: {prominence.PolityId}");
+            throw new System.Exception(
+                $"Tried removing same prominence twice, " +
+                $"group: {prominence.Id}, " +
+                $"faction: {Id}, " +
+                $"polity: {prominence.PolityId}, " +
+                $"faction's polity: {PolityId}");
         }
 #endif
 
