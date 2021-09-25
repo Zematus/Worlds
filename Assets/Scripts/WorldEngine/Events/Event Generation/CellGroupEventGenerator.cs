@@ -43,10 +43,10 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
             "OnAssign does not support 'status_change' for Cell Groups");
     }
 
-    public override void SetToAssignOnPolityContactChange()
+    public override void SetToAssignOnContactChange()
     {
         throw new System.InvalidOperationException(
-            "OnAssign does not support 'polity_contact_change' for Cell Groups");
+            "OnAssign does not support 'contact_change' for Cell Groups");
     }
 
     public override void SetToAssignOnCoreHighestProminenceChange()

@@ -671,8 +671,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     private void InitializeOnSpawnEvents()
     {
-        foreach (IWorldEventGenerator generator in OnSpawnEventGenerators)
+        foreach (var generator in OnSpawnEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"CellGroup.InitializeOnSpawnEvents: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is ICellGroupEventGenerator gGenerator)
             {
                 AddGeneratorToTestAssignmentFor(gGenerator);
@@ -685,8 +690,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// </summary>
     public void ApplyCoreHighestProminenceChange()
     {
-        foreach (IWorldEventGenerator generator in OnCoreHighestProminenceChangeEventGenerators)
+        foreach (var generator in OnCoreHighestProminenceChangeEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"CellGroup.ApplyCoreHighestProminenceChange: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
                 foreach (Faction faction in FactionCores.Values)
@@ -2443,6 +2453,19 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return 0;
     }
 
+    public IEnumerable<PolityProminence> GetPolityProminencesNotBeingRemoved()
+    {
+        foreach (var prominence in _polityProminences.Values)
+        {
+            if (_polityProminencesToRemove.Contains(prominence.PolityId))
+            {
+                continue;
+            }
+
+            yield return prominence;
+        }
+    }
+
     public ICollection<PolityProminence> GetPolityProminences()
     {
         return _polityProminences.Values;
@@ -2646,8 +2669,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         {
             if (float.IsNaN(prominence.Value))
             {
-                throw new System.Exception("Prominence value is Nan. Group: " + Id +
-                    ", Polity: " + prominence.PolityId);
+                throw new System.Exception(
+                    $"Prominence value is Nan. Group: {Id}, Polity: {prominence.PolityId}");
             }
 
             TotalPolityProminenceValue += prominence.Value;
@@ -2656,14 +2679,14 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 #if DEBUG
         if ((_polityProminences.Count > 0) && (TotalPolityProminenceValue <= 0))
         {
-            throw new System.Exception("Invalid state. Group: " + Id);
+            throw new System.Exception($"Invalid state. Group: {Id}");
         }
 #endif
 
         if (TotalPolityProminenceValue > 1.0)
         {
-            Debug.LogWarning("Total Polity Prominence Value greater than 1: " +
-                TotalPolityProminenceValue + ", Group: " + Id);
+            Debug.LogWarning(
+                $"Total Polity Prominence Value greater than 1: {TotalPolityProminenceValue}, Group: {Id}");
         }
 
         if (TotalPolityProminenceValue <= 0)
@@ -2673,8 +2696,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 if (!faction.BeingRemoved)
                 {
                     throw new System.Exception(
-                        "Group with no polity prominence has cores for factions " +
-                        "not being removed. Group: " + Id + ", Faction: " + faction.Id);
+                        $"Group with no polity prominence has cores for factions " +
+                        $"not being removed. Group: {Id}, Faction: {faction.Id}");
                 }
             }
         }
@@ -2717,15 +2740,22 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         if (_polityProminencesToRemove.Contains(polity.Id))
         {
-            if (ignoreRemoval && (delta > 0))
+            if (delta > 0)
             {
-                // prevent removal if delta is positive
-                _polityProminencesToRemove.Remove(polity.Id);
+                if (ignoreRemoval)
+                {
+                    // prevent removal as long as delta is positive
+                    _polityProminencesToRemove.Remove(polity.Id);
+                }
+                else
+                {
+                    // This is a situation that shouldn't happen but is not critical...
+                    Debug.LogWarning($"Trying to add value delta to prominence that will be removed...");
+                    return;
+                }
             }
             else
             {
-                Debug.LogWarning("Trying to add value delta to prominence " +
-                    "that will be removed...");
                 return;
             }
         }
@@ -2802,7 +2832,16 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return offset;
     }
 
-    public bool SetPolityProminenceValue(
+    public PolityProminence IncreasePolityProminenceValue(
+        Polity polity,
+        float toAdd)
+    {
+        float value = GetPolityProminenceValue(polity);
+
+        return SetPolityProminenceValue(polity, value + toAdd);
+    }
+
+    public PolityProminence SetPolityProminenceValue(
         Polity polity,
         float newValue,
         bool afterPolityUpdates = false,
@@ -2827,7 +2866,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             }
             else
             {
-                return false;
+                return null;
             }
         }
 
@@ -2843,9 +2882,11 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             AddPolityProminence(polity);
         }
 
-        _polityProminences[polity.Id].Value = newValue;
+        var prominence = _polityProminences[polity.Id];
 
-        return true;
+        prominence.Value = newValue;
+
+        return prominence;
     }
 
     private float UpdateProminenceValuesWithDeltas(
@@ -2862,8 +2903,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
             newValue -= promDeltaOffset;
 
-            if (SetPolityProminenceValue(
-                polity, newValue, afterPolityUpdates, false))
+            if (SetPolityProminenceValue(polity, newValue, afterPolityUpdates, false) != null)
             {
                 totalValue += newValue;
             }
@@ -2960,44 +3000,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return true;
     }
 
-    /// <summary>
-    /// add a polity prominence to remove
-    /// </summary>
-    /// <param name="polity">the polity to which the prominence belongs</param>
-    /// <param name="throwIfNotPresent">throw if prominence is not present</param>
-    /// <returns>'false' if the polity prominence can't be removed</returns>
-    public bool SetPolityProminenceToRemove(
+    private bool ValidateProminenceRemoval(
         Polity polity,
-        bool throwIfNotPresent = true,
-        bool forceCoreRemoval = true)
+        bool forcedCoreRemoval = true,
+        bool ignoreFactionCores = false)
     {
-        return SetPolityProminenceToRemove(polity.Id, throwIfNotPresent, forceCoreRemoval);
-    }
-
-    /// <summary>
-    /// add a polity prominence to remove
-    /// </summary>
-    /// <param name="polityId">id of polity to which the prominence belongs</param>
-    /// <param name="throwIfNotPresent">throw if prominence is not present</param>
-    /// <returns>'false' if the polity prominence can't be removed</returns>
-    public bool SetPolityProminenceToRemove(
-        Identifier polityId,
-        bool throwIfNotPresent = true,
-        bool forceCoreRemoval = true)
-    {
-        if (!_polityProminences.ContainsKey(polityId))
-        {
-            if (throwIfNotPresent)
-            {
-                throw new System.ArgumentException(
-                    "Prominence of polity " + polityId +
-                    " not present in " + Id);
-            }
-
-            return true;
-        }
-
-        if (_polityProminencesToRemove.Contains(polityId))
+        if (ignoreFactionCores)
         {
             return true;
         }
@@ -3005,20 +3013,20 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         // throw warning if this groups was set to become a faction core
         // even if the polity is about to be removed (even more so)
         if ((WillBecomeCoreOfFaction != null) &&
-            (WillBecomeCoreOfFaction.PolityId == polityId))
+            (WillBecomeCoreOfFaction.PolityId == polity.Id))
         {
             Debug.LogWarning(
-                "Group is set to become a faction core - group: " + Id +
-                " - faction: " + WillBecomeCoreOfFaction.Id +
-                " - polity: " + polityId + " - Date:" + World.CurrentDate);
+                $"Group is set to become a faction core - group: {Id}" +
+                $" - faction: {WillBecomeCoreOfFaction.Id}" +
+                $" - polity: {polity.Id} - Date: {World.CurrentDate}");
 
             return false;
         }
 
-        var prominence = GetPolityProminence(polityId);
-
-        if (!forceCoreRemoval)
+        if (!forcedCoreRemoval)
         {
+            var prominence = GetPolityProminence(polity.Id);
+
             foreach (var pair in FactionCores)
             {
                 Faction faction = pair.Value;
@@ -3030,7 +3038,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                         Debug.LogWarning(
                             $"Group has valid faction core, group: {Id}" +
                             $", faction: {faction.Id}" +
-                            $", polity: {polityId}" +
+                            $", polity: {polity.Id}" +
                             $", date: {World.CurrentDate}");
                     }
 
@@ -3038,16 +3046,58 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 }
             }
         }
-        
-        _polityProminencesToRemove.Add(polityId);
+
+        return true;
+    }
+
+    /// <summary>
+    /// add a polity prominence to remove
+    /// </summary>
+    /// <param name="polity">the polity to which the prominence belongs</param>
+    /// <param name="throwIfNotPresent">throw if prominence is not present</param>
+    /// <returns>'false' if the polity prominence can't be removed</returns>
+    public bool SetPolityProminenceToRemove(
+        Polity polity,
+        bool throwIfNotPresent = true,
+        bool forcedCoreRemoval = true,
+        bool ignoreFactionCores = false)
+    {
+        if (!_polityProminences.ContainsKey(polity.Id))
+        {
+            if (throwIfNotPresent)
+            {
+                throw new System.ArgumentException(
+                    $"Prominence of polity {polity.Id}" +
+                    $" not present in {Id}");
+            }
+
+            return true;
+        }
+
+        if (_polityProminencesToRemove.Contains(polity.Id))
+        {
+            return true;
+        }
+
+        if (!ValidateProminenceRemoval(polity, forcedCoreRemoval, ignoreFactionCores))
+        {
+            return false;
+        }
+
+        _polityProminencesToRemove.Add(polity.Id);
         return true;
     }
 
     public void OnPolityCountChange() 
     {
-        foreach (IWorldEventGenerator generator in OnPolityCountChangeEventGenerators)
+        foreach (var generator in OnPolityCountChangeEventGenerators)
         {
-            if (generator is ICellGroupEventGenerator gGenerator)
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"CellGroup.OnPolityCountChangeEventGenerators: adding '{context.Id}' to list of events to try to assign");
+            }
+
+            if (generator is CellGroupEventGenerator gGenerator)
             {
                 AddGeneratorToTestAssignmentFor(gGenerator);
             }
@@ -3056,9 +3106,14 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     public void OnCoreCountChange()
     {
-        foreach (IWorldEventGenerator generator in OnCoreCountChangeEventGenerators)
+        foreach (var generator in OnCoreCountChangeEventGenerators)
         {
-            if (generator is ICellGroupEventGenerator gGenerator)
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"CellGroup.OnCoreCountChange: adding '{context.Id}' to list of events to try to assign");
+            }
+
+            if (generator is CellGroupEventGenerator gGenerator)
             {
                 AddGeneratorToTestAssignmentFor(gGenerator);
             }
@@ -3083,6 +3138,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         foreach (PolityProminence otherProminence in _polityProminences.Values)
         {
             Polity.IncreaseContactGroupCount(polity, otherProminence.Polity);
+
+            otherProminence.ClosestFaction?.AddOverlappingPolity(polityProminence);
         }
 
         if ((HighestPolityProminence != null) &&
@@ -3110,6 +3167,81 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         World.AddGroupWithPolityCountChange(this);
     }
 
+    public void RemovePolityProminence(PolityProminence polityProminence, bool removeFactionCores = true)
+    {
+        ValidateProminenceRemoval(polityProminence.Polity, ignoreFactionCores: !removeFactionCores);
+
+        polityProminence.InitDestruction(removeFactionCores);
+
+        FinishRemovingPolityProminence(polityProminence, removeFactionCores: removeFactionCores);
+
+        if (HighestPolityProminence == polityProminence)
+        {
+            FindHighestPolityProminence();
+        }
+    }
+
+    private void FinishRemovingPolityProminence(
+        PolityProminence polityProminence, 
+        bool updatePolity = true, 
+        bool removeFromSetToRemove = true,
+        bool removeFactionCores = true)
+    {
+        if (removeFactionCores)
+        {
+            // Remove any faction that belongs to the same polity and has it's core in this group
+            foreach (Faction faction in GetFactionCores())
+            {
+                if (faction.PolityId == polityProminence.PolityId)
+                {
+                    Debug.LogWarning(
+                        $"Removing polity prominence of faction that had core in group {Id}" +
+                        $", removing faction {faction.Id}" +
+                        $" - polity: {polityProminence.PolityId} - Date: { World.CurrentDate}");
+
+                    faction.SetToRemove();
+                }
+            }
+        }
+
+        _polityProminences.Remove(polityProminence.PolityId);
+        Cell.SetGroupPolityProminenceListToReset();
+
+        // If the polity is no longer present, then the contacts would have already been removed
+        if (polityProminence.Polity.StillPresent)
+        {
+            // Decrease polity contacts
+            foreach (PolityProminence epi in _polityProminences.Values)
+            {
+                Polity.DecreaseContactGroupCount(polityProminence.Polity, epi.Polity);
+            }
+        }
+
+        // Decrease overlap with factions
+        foreach (PolityProminence epi in _polityProminences.Values)
+        {
+            if (!_polityProminencesToRemove.Contains(epi.PolityId))
+            {
+                epi.ClosestFaction?.RemoveOverlappingPolity(polityProminence);
+            }
+        }
+
+        polityProminence.Polity.RemoveGroup(polityProminence);
+
+        if (updatePolity)
+        {
+            // We want to update the polity if a group is removed.
+            SetPolityUpdate(polityProminence, true);
+        }
+
+        polityProminence.FinishDestruction();
+
+        if (removeFromSetToRemove)
+        {
+            _polityProminencesToRemove.Remove(polityProminence.PolityId);
+        }
+    }
+
     /// <summary>
     /// Remove all polities that where set to be removed
     /// </summary>
@@ -3117,53 +3249,24 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// Set to false if there's no need to update the removed polities after calling this</param>
     private void RemovePolityProminences(bool updatePolity = true)
     {
-        bool removeHighestPolityProminence = false;
+        bool removedHighestPolityProminence = false;
+
+        // destroy the prominence object before removing it
+        foreach (Identifier polityId in _polityProminencesToRemove)
+        {
+            _polityProminences[polityId].InitDestruction();
+        }
 
         foreach (Identifier polityId in _polityProminencesToRemove)
         {
-            PolityProminence polityProminence = _polityProminences[polityId];
+            var polityProminence = _polityProminences[polityId];
 
-            // Remove all polity faction cores from group
-            foreach (Faction faction in GetFactionCores())
-            {
-                if (faction.PolityId == polityProminence.PolityId)
-                {
-                    Debug.LogWarning(
-                        "Removing polity prominence of faction that had core in group " + Id +
-                        ", removing faction " + faction.Id +
-                        " - polity: " + polityId + " - Date:" + World.CurrentDate);
-
-                    faction.SetToRemove();
-                }
-            }
-
-            _polityProminences.Remove(polityProminence.PolityId);
-            Cell.SetGroupPolityProminenceListToReset();
+            FinishRemovingPolityProminence(polityProminence, updatePolity, false);
 
             if (HighestPolityProminence == polityProminence)
             {
-                removeHighestPolityProminence = true;
+                removedHighestPolityProminence = true;
             }
-
-            // If the polity is no longer present, then the contacts would have already been removed
-            if (polityProminence.Polity.StillPresent)
-            {
-                // Decrease polity contacts
-                foreach (PolityProminence epi in _polityProminences.Values)
-                {
-                    Polity.DecreaseContactGroupCount(polityProminence.Polity, epi.Polity);
-                }
-            }
-
-            polityProminence.Polity.RemoveGroup(polityProminence);
-
-            if (updatePolity)
-            {
-                // We want to update the polity if a group is removed.
-                SetPolityUpdate(polityProminence, true);
-            }
-
-            polityProminence.Destroy();
 
             _hasRemovedProminences = true;
         }
@@ -3180,7 +3283,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         // CAUTION: We should make sure we find the new highest polity prominence
         // afterwards. We don't do it right away because normally we would add prominences
         // after calling this function and then we do a find highest.
-        if (removeHighestPolityProminence)
+        if (removedHighestPolityProminence)
         {
             SetHighestPolityProminence(null);
         }

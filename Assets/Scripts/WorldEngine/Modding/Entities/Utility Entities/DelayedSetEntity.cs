@@ -108,9 +108,8 @@ public abstract class DelayedSetEntity<T> : Entity
         }
         else
         {
-            throw new System.ArgumentException("Unexpected entity value type: " +
-                o.GetType() + "\nVerify that the value passed to '" + Id + "' is properly " +
-                "defined when calling " + Context.DebugType + " '" + Context.Id + "'");
+            throw new System.ArgumentException($"Unexpected entity value type: {o.GetType()}, expected type: {typeof(T)}" +
+                $"\nVerify that the value passed to '{Id}' is properly defined when calling {Context.DebugType} '{Context.Id}'");
         }
     }
 

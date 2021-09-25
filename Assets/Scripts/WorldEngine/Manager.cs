@@ -265,9 +265,9 @@ public class Manager
 #if DEBUG
     public static bool Debug_PauseSimRequested = false;
     public static bool Debug_BreakRequested = false;
-    public static Identifier Debug_IdentifierOfInterest;
-    public static Identifier Debug_IdentifierOfInterest2;
-    public static Identifier Debug_IdentifierOfInterest3;
+    public static Identifier Debug_IdentifierOfInterest = "147918939:7115485649982034428";
+    public static Identifier Debug_IdentifierOfInterest2 = "97371564:7301682472976039088";
+    public static Identifier Debug_IdentifierOfInterest3 = "111147064:7417435791841258610";
     public static Identifier Debug_IdentifierOfInterest4;
 
     public static bool Debug_Flag1 = false;

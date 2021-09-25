@@ -21,7 +21,7 @@ public abstract class Context : IDebugLogger
 
     public string Id;
 
-    protected bool DebugLogEnabled
+    public bool DebugLogEnabled
     {
         get
         {
@@ -175,11 +175,11 @@ public abstract class Context : IDebugLogger
 
     private string ExplodedPartiallyEvaluatedExpression(IExpression exp)
     {
-        string output = "";
+        List<string> partEvals = new List<string>();
 
         int depth = 0;
         string partEval = exp.ToPartiallyEvaluatedString(depth);
-        output += $"\n\t - Partial eval (depth {depth}): {partEval}";
+        partEvals.Add(partEval);
 
         while (true)
         {
@@ -188,8 +188,15 @@ public abstract class Context : IDebugLogger
             if (nextPartEval.Equals(partEval))
                 break;
 
-            output += $"\n\t - Partial eval (depth {depth}): {nextPartEval}";
             partEval = nextPartEval;
+            partEvals.Add(partEval);
+        }
+
+        string output = "";
+
+        for (int i = partEvals.Count - 1; i >= 0; i--)
+        {
+            output += $"\n\t - Partial eval (depth {i}): {partEvals[i]}";
         }
 
         return output;

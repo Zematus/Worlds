@@ -19,6 +19,9 @@ public class PolityProminence // : IKeyedValue<Identifier>
     [XmlAttribute("PD")]
     public float PolityCoreDistance = -1;
 
+    [XmlAttribute("P")]
+    public bool StillPresent = true;
+
     #region ClosestFactionId
     [XmlAttribute("CFId")]
     public string ClosestFactionIdStr
@@ -127,8 +130,29 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
     public void Destroy()
     {
-        ClosestFaction?.RemoveInnerGroup(Group);
+        InitDestruction();
+        FinishDestruction();
+    }
 
+    public void InitDestruction(bool validateFaction = true)
+    {
+        if (validateFaction && (ClosestFaction.PolityId != PolityId))
+        {
+            throw new System.Exception(
+                $"Closest faction doesn't belong to same polity as prominence, " +
+                $"group: {Id}, " +
+                $"faction: {ClosestFaction.Id}, " +
+                $"faction's polity: {ClosestFaction.PolityId}, " +
+                $"prom's polity: {PolityId}");
+        }
+
+        StillPresent = false;
+
+        ClosestFaction?.RemoveProminence(this);
+    }
+
+    public void FinishDestruction()
+    {
         ResetNeighborCoreDistances();
     }
 
@@ -137,12 +161,12 @@ public class PolityProminence // : IKeyedValue<Identifier>
         if (ClosestFaction == faction)
             return;
 
-        ClosestFaction?.RemoveInnerGroup(Group);
+        ClosestFaction?.RemoveProminence(this);
 
         ClosestFaction = faction;
         ClosestFactionId = faction?.Id;
 
-        faction?.AddInnerGroup(Group);
+        faction?.AddProminence(this);
     }
 
     /// <summary>
@@ -402,13 +426,9 @@ public class PolityProminence // : IKeyedValue<Identifier>
             {
                 PolityProminence nProm = pair.Value;
 
-                if (nProm.ClosestFactionId != idFactionBeingReset)
-                {
-                    isExpansionLimit = true;
-                    continue;
-                }
-
-                if (nProm.FactionCoreDistance < minFactionDistance)
+                if (!nProm.StillPresent ||
+                    (nProm.ClosestFactionId != idFactionBeingReset) || 
+                    (nProm.FactionCoreDistance < minFactionDistance))
                 {
                     isExpansionLimit = true;
                     continue;

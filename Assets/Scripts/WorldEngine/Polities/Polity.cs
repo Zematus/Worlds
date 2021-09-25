@@ -20,7 +20,7 @@ public abstract class Polity : ISynchronizable
 
     public const float MaxAdminCost = 1000000000000;
 
-    public static List<IWorldEventGenerator> OnPolityContactChangeEventGenerators;
+    public static List<IWorldEventGenerator> OnContactChangeEventGenerators;
     public static List<IWorldEventGenerator> OnRegionAccessibilityUpdateEventGenerators;
 
     [XmlAttribute("AC")]
@@ -242,7 +242,7 @@ public abstract class Polity : ISynchronizable
     /// </summary>
     public static void ResetEventGenerators()
     {
-        OnPolityContactChangeEventGenerators = new List<IWorldEventGenerator>();
+        OnContactChangeEventGenerators = new List<IWorldEventGenerator>();
         OnRegionAccessibilityUpdateEventGenerators = new List<IWorldEventGenerator>();
     }
 
@@ -454,7 +454,7 @@ public abstract class Polity : ISynchronizable
         switch (polityType)
         {
             case Tribe.PolityTypeStr:
-                newPolity = new Tribe(splittingFaction as Clan, this as Tribe);
+                newPolity = new Tribe(splittingFaction as Clan);
 
                 AddEventMessage(new TribeSplitEventMessage(
                     splittingFaction as Clan,
@@ -664,30 +664,24 @@ public abstract class Polity : ISynchronizable
         }
     }
 
-    protected void TransferGroups(
+    public void TransferGroups(
         Polity sourcePolity,
-        Dictionary<CellGroup, float> groupsToTransfer)
+        ICollection<CellGroup> groupsToTransfer)
     {
-        foreach (var pair in groupsToTransfer)
+        foreach (var group in groupsToTransfer)
         {
-            CellGroup group = pair.Key;
-            float value = pair.Value;
+            var origProminence = group.GetPolityProminence(sourcePolity);
+            float origValue = origProminence.Value;
 
-            float oldPromVal = group.GetPolityProminenceValue(sourcePolity);
+            group.RemovePolityProminence(origProminence, false);
 
-            bool removed = !group.SetPolityProminenceValue(
-                sourcePolity, oldPromVal - value);
+            var prominence = group.IncreasePolityProminenceValue(this, origValue);
 
-            if (removed)
-            {
-                // the old prominence was completely removed, so we transfer its
-                // full value to the new prominence
-                value = oldPromVal;
-            }
+            prominence.ResetCoreDistances(addToRecalcs: true);
 
-            group.AddPolityProminence(this, value);
             group.FindHighestPolityProminence();
 
+            World.AddGroupWithPolityCountChange(group);
             World.AddGroupToUpdate(group);
         }
     }
@@ -703,28 +697,41 @@ public abstract class Polity : ISynchronizable
         Manager.AddUpdatedCells(polity, CellUpdateType.Territory, CellUpdateSubType.Relationship);
     }
 
+    private void AddContactInternal(Polity polity, int initialGroupCount = 0)
+    {
+        PolityContact contact = new PolityContact(World, this, polity, initialGroupCount);
+
+        _contacts.Add(polity.Id, contact);
+
+        if (DominantFaction == null)
+        {
+            throw new System.Exception($"Dominant faction is null, polity: {Id}");
+        }
+
+        if (polity == null)
+        {
+            throw new System.Exception($"Contact polity is null, polity: {Id}");
+        }
+
+        if (!DominantFaction.HasRelationship(polity.DominantFaction))
+        {
+            DominantFaction.SetRelationship(polity.DominantFaction, 0.5f);
+        }
+
+        ApplyPolityContactChange();
+    }
+
     public void AddContact(Polity polity, int initialGroupCount)
     {
-        if (!_contacts.ContainsKey(polity.Id))
-        {
-            PolityContact contact = new PolityContact(World, this, polity, initialGroupCount);
-
-            _contacts.Add(polity.Id, contact);
-
-            if (!DominantFaction.HasRelationship(polity.DominantFaction))
-            {
-                DominantFaction.SetRelationship(polity.DominantFaction, 0.5f);
-            }
-
-            SetContactUpdatedCells(polity);
-        }
-        else
+        if (_contacts.ContainsKey(polity.Id))
         {
             throw new System.Exception("Unable to modify existing polity contact. polityA: " +
                 Id + ", polityB: " + polity.Id);
         }
 
-        ApplyPolityContactChange();
+        AddContactInternal(polity, initialGroupCount);
+
+        SetContactUpdatedCells(polity);
     }
 
     public static void RemoveContact(Polity polityA, Polity polityB)
@@ -733,18 +740,21 @@ public abstract class Polity : ISynchronizable
         polityB.RemoveContact(polityA);
     }
 
+    private void RemoveContactInternal(Polity polity)
+    {
+        _contacts.Remove(polity.Id);
+
+        ApplyPolityContactChange();
+    }
+
     public void RemoveContact(Polity polity)
     {
         if (!_contacts.ContainsKey(polity.Id))
             return;
 
-        PolityContact contact = _contacts[polity.Id];
-
-        _contacts.Remove(polity.Id);
+        RemoveContactInternal(polity);
 
         SetContactUpdatedCells(polity);
-
-        ApplyPolityContactChange();
     }
 
     public ICollection<PolityContact> GetContacts()
@@ -780,14 +790,7 @@ public abstract class Polity : ISynchronizable
     {
         if (!_contacts.ContainsKey(polity.Id))
         {
-            PolityContact contact = new PolityContact(World, this, polity);
-
-            _contacts.Add(polity.Id, contact);
-
-            if (!DominantFaction.HasRelationship(polity.DominantFaction))
-            {
-                DominantFaction.SetRelationship(polity.DominantFaction, 0.5f);
-            }
+            AddContactInternal(polity);
         }
 
         _contacts[polity.Id].GroupCount++;
@@ -811,7 +814,7 @@ public abstract class Polity : ISynchronizable
 
         if (contact.GroupCount <= 0)
         {
-            _contacts.Remove(polity.Id);
+            RemoveContactInternal(polity);
         }
 
         SetContactUpdatedCells(polity);
@@ -1409,7 +1412,7 @@ public abstract class Polity : ISynchronizable
 
         if (!group.HasProperty(CanFormPolityAttribute + "tribe"))
         {
-            group.SetPolityProminenceToRemove(Id);
+            group.SetPolityProminenceToRemove(this);
 
             return;
         }
@@ -1698,13 +1701,18 @@ public abstract class Polity : ISynchronizable
     /// </summary>
     public void ApplyPolityContactChange()
     {
-        foreach (IWorldEventGenerator generator in OnPolityContactChangeEventGenerators)
+        foreach (IWorldEventGenerator generator in OnContactChangeEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"Polity.ApplyPolityContactChange: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
                 foreach (Faction faction in _factions.Values)
                 {
-                    fGenerator.TryGenerateEventAndAssign(faction);
+                    faction.AddGeneratorToTestAssignmentFor(fGenerator);
                 }
             }
         }
@@ -1717,14 +1725,36 @@ public abstract class Polity : ISynchronizable
     {
         foreach (IWorldEventGenerator generator in OnRegionAccessibilityUpdateEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"Polity.ApplyRegionAccessibilityUpdate: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
                 foreach (Faction faction in _factions.Values)
                 {
-                    fGenerator.TryGenerateEventAndAssign(faction);
+                    faction.AddGeneratorToTestAssignmentFor(fGenerator);
                 }
             }
         }
+    }
+
+    public Dictionary<CellGroup, float> GetGroupsAndPromValues(float percentProminence = 1f)
+    {
+        var groupsToTransfer = new Dictionary<CellGroup, float>();
+
+        foreach (var cluster in ProminenceClusters)
+        {
+            foreach (var prominence in cluster.GetPolityProminences())
+            {
+                float sourceProminenceValueDelta = prominence.Value * percentProminence;
+
+                groupsToTransfer.Add(prominence.Group, sourceProminenceValueDelta);
+            }
+        }
+
+        return groupsToTransfer;
     }
 
     public void MergePolity(Polity polity)
@@ -1768,16 +1798,6 @@ public abstract class Polity : ISynchronizable
             faction.ChangePolity(this, faction.Influence * populationFactor);
 
             faction.SetToUpdate();
-        }
-
-        foreach (CellGroup group in polity.Groups.Values)
-        {
-            float ppValue = group.GetPolityProminenceValue(polity);
-
-            group.SetPolityProminenceToRemove(polity);
-            group.AddPolityProminenceValueDelta(this, ppValue);
-
-            World.AddGroupToUpdate(group);
         }
 
         foreach (Region region in polity.CoreRegions)

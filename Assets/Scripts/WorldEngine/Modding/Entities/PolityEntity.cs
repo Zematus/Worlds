@@ -19,6 +19,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string AccessibleNeighborRegionsAttributeId = "accessible_neighbor_regions";
     public const string AddCoreRegionAttributeId = "add_core_region";
     public const string CoreRegionSaturationAttributeId = "core_region_saturation";
+    public const string GetFactionsAttributeId = "get_factions";
 
     public virtual Polity Polity
     {
@@ -40,6 +41,11 @@ public class PolityEntity : DelayedSetEntity<Polity>
     private FactionEntity _dominantFactionEntity = null;
 
     private RegionCollectionEntity _accessibleNeighborRegionsEntity = null;
+
+    private int _factionCollectionIndex = 0;
+
+    private List<FactionCollectionEntity> _factionCollectionEntitiesToSet =
+        new List<FactionCollectionEntity>();
 
     private readonly List<GroupEntity>
         _groupEntitiesToSet = new List<GroupEntity>();
@@ -162,7 +168,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 GetContactAttributeId + ": number of arguments given less than 1");
         }
 
-        IValueExpression<IEntity> polityArgument =
+        var polityArgument =
             ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
 
         int index = _contactIndex++;
@@ -194,6 +200,106 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public ICollection<Region> GetAccessibleNeighborRegions() => Polity.AccessibleNeighborRegions;
 
     public Agent GetLeader() => Polity.CurrentLeader;
+
+    public ParametricSubcontext BuildGetFactionsAttributeSubcontext(
+        Context parentContext,
+        string[] paramIds)
+    {
+        int index = _factionCollectionIndex;
+
+        if ((paramIds == null) || (paramIds.Length < 1))
+        {
+            throw new System.ArgumentException(
+                $"{GetFactionsAttributeId}: expected at least one parameter identifier");
+        }
+
+        var subcontext =
+            new ParametricSubcontext(
+                $"{GetFactionsAttributeId}_{index}",
+                parentContext);
+
+        var factionEntity = new FactionEntity(subcontext, paramIds[0]);
+        subcontext.AddEntity(factionEntity);
+
+        return subcontext;
+    }
+
+    public override ParametricSubcontext BuildParametricSubcontext(
+        Context parentContext,
+        string attributeId,
+        string[] paramIds)
+    {
+        switch (attributeId)
+        {
+            case GetFactionsAttributeId:
+                return BuildGetFactionsAttributeSubcontext(parentContext, paramIds);
+        }
+
+        return base.BuildParametricSubcontext(parentContext, attributeId, paramIds);
+    }
+
+    public EntityAttribute GetFactionAttribute(
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments)
+    {
+        int index = _factionCollectionIndex++;
+
+        if ((paramIds == null) || (paramIds.Length < 1))
+        {
+            throw new System.ArgumentException(
+                GetFactionsAttributeId + ": expected one parameter identifier");
+        }
+
+        var paramEntity = subcontext.GetEntity(paramIds[0]) as FactionEntity;
+
+        if ((arguments == null) || (arguments.Length < 1))
+        {
+            throw new System.ArgumentException(
+                GetFactionsAttributeId + ": expected one condition argument");
+        }
+
+        var conditionExp = ValueExpressionBuilder.ValidateValueExpression<bool>(arguments[0]);
+
+        var collectionEntity = new FactionCollectionEntity(
+            () =>
+            {
+                var selectedFactions = new HashSet<Faction>();
+
+                foreach (var faction in Polity.GetFactions())
+                {
+                    paramEntity.Set(faction);
+
+                    if (conditionExp.Value)
+                    {
+                        selectedFactions.Add(faction);
+                    }
+                }
+
+                return selectedFactions;
+            },
+            Context,
+            BuildAttributeId($"factions_collection_{index}"));
+
+        _factionCollectionEntitiesToSet.Add(collectionEntity);
+
+        return collectionEntity.GetThisEntityAttribute(this);
+    }
+
+    public override EntityAttribute GetParametricAttribute(
+        string attributeId,
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments)
+    {
+        switch (attributeId)
+        {
+            case GetFactionsAttributeId:
+                return GetFactionAttribute(subcontext, paramIds, arguments);
+        }
+
+        return base.GetParametricAttribute(attributeId, subcontext, paramIds, arguments);
+    }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
@@ -269,6 +375,11 @@ public class PolityEntity : DelayedSetEntity<Polity>
         foreach (ContactEntity contactEntity in _contactEntitiesToSet)
         {
             contactEntity.Reset();
+        }
+
+        foreach (var entity in _factionCollectionEntitiesToSet)
+        {
+            entity.Reset();
         }
 
         _leaderEntity?.Reset();

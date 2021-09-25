@@ -135,7 +135,15 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public long CurrentDate => World.CurrentDate;
 
     [XmlIgnore]
-    public HashSet<CellGroup> InnerGroups = new HashSet<CellGroup>();
+    public HashSet<PolityProminence> Prominences = new HashSet<PolityProminence>();
+
+    [XmlIgnore]
+    public Dictionary<Polity, int> OverlapingPolities = new Dictionary<Polity, int>();
+
+#if DEBUG
+    [XmlIgnore]
+    public HashSet<PolityProminence> _overlappingProminences = new HashSet<PolityProminence>();
+#endif
 
     protected Dictionary<Identifier, FactionRelationship> _relationships =
         new Dictionary<Identifier, FactionRelationship>();
@@ -277,14 +285,71 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         StillPresent = false;
     }
 
-    public void AddInnerGroup(CellGroup group)
+    public void AddOverlappingPolity(PolityProminence prominence)
     {
-        InnerGroups.Add(group);
+#if DEBUG
+        if (!_overlappingProminences.Add(prominence))
+        {
+            throw new System.Exception(
+                $"Tried adding same prominence twice, " +
+                $"group: {prominence.Id}, " +
+                $"polity: {prominence.PolityId}, " +
+                $"faction: {Id}, " +
+                $"faction's polity: {Polity.Id}");
+        }
+#endif
+
+        if (OverlapingPolities.ContainsKey(prominence.Polity))
+            OverlapingPolities[prominence.Polity]++;
+        else
+            OverlapingPolities.Add(prominence.Polity, 1);
     }
 
-    public void RemoveInnerGroup(CellGroup group)
+    public void RemoveOverlappingPolity(PolityProminence prominence)
     {
-        InnerGroups.Remove(group);
+#if DEBUG
+        if (!_overlappingProminences.Remove(prominence))
+        {
+            throw new System.Exception(
+                $"Tried removing same prominence twice, " +
+                $"group: {prominence.Id}, " +
+                $"faction: {Id}, " +
+                $"polity: {prominence.PolityId}, " +
+                $"faction's polity: {PolityId}");
+        }
+#endif
+
+        if (OverlapingPolities.ContainsKey(prominence.Polity))
+        {
+            OverlapingPolities[prominence.Polity]--;
+
+            if (OverlapingPolities[prominence.Polity] <= 0)
+                OverlapingPolities.Remove(prominence.Polity);
+        }
+        else
+            throw new System.Exception("removing polity that was not part of overlaping polities");
+    }
+
+    public void AddProminence(PolityProminence prominence)
+    {
+        if (!Prominences.Add(prominence))
+            return;
+
+        foreach (var p in prominence.Group.GetPolityProminences())
+        {
+            AddOverlappingPolity(p);
+        }
+    }
+
+    public void RemoveProminence(PolityProminence prominence)
+    {
+        if (!Prominences.Remove(prominence))
+            return;
+
+        foreach (var p in prominence.Group.GetPolityProminences())
+        {
+            RemoveOverlappingPolity(p);
+        }
     }
 
     /// <summary>
@@ -622,6 +687,14 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         }
     }
 
+    public bool HasContactWith(Polity polity)
+    {
+        if (polity == null)
+            throw new ArgumentNullException("HasContactWith: polity can't be null");
+
+        return OverlapingPolities.ContainsKey(polity);
+    }
+
     public virtual void Synchronize()
     {
         Flags = new List<string>(_flags);
@@ -744,14 +817,34 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         GenerateGuideSwitchEvents();
     }
 
-    public void ChangePolity(Polity targetPolity, float targetInfluence)
+    public List<CellGroup> GetGroups()
+    {
+        var groups = new List<CellGroup>();
+
+        foreach (var prominence in Prominences)
+        {
+            groups.Add(prominence.Group);
+        }
+
+        return groups;
+    }
+
+    public void ChangePolity(Polity targetPolity, float targetInfluence, bool transferGroups = true)
     {
         if ((targetPolity == null) || (!targetPolity.StillPresent))
             throw new System.Exception("target Polity is null or not Present");
 
         Polity.RemoveFaction(this);
 
-        CoreGroup.ResetCoreDistances(PolityId, true);
+        if (IsDominant)
+        {
+            Polity.CoreGroupIsValid = false;
+        }
+
+        if (transferGroups)
+        {
+            targetPolity.TransferGroups(Polity, GetGroups());
+        }
 
         Polity = targetPolity;
         PolityId = Polity.Id;
@@ -817,6 +910,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     {
         foreach (var generator in OnSpawnEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"Faction.InitializeOnSpawnEvents: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
                 AddGeneratorToTestAssignmentFor(fGenerator);
@@ -839,6 +937,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     {
         foreach (var generator in OnStatusChangeEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"Faction.ApplyStatusChange: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
                 AddGeneratorToTestAssignmentFor(fGenerator);
@@ -858,6 +961,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     {
         foreach (var generator in OnGuideSwitchEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"Faction.GenerateGuideSwitchEvents: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
                 AddGeneratorToTestAssignmentFor(fGenerator);

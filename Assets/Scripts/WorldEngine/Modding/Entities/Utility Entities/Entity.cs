@@ -38,7 +38,8 @@ public abstract class Entity : IEntity
         string[] paramIds,
         IExpression[] arguments)
     {
-        throw new NotImplementedException($"Entity of type {GetType()} does not support attributes with parametric subcontexts");
+        throw new System.ArgumentException(
+            $"{Id}: Unable to get parametric attribute {attributeId} from entity of type {GetType()}");
     }
 
     public abstract EntityAttribute GetAttribute(
@@ -104,7 +105,8 @@ public abstract class Entity : IEntity
         string attributeId,
         string[] paramIds)
     {
-        throw new NotImplementedException($"Entity of type {GetType()} does not support building parametric subcontexts");
+        throw new System.ArgumentException(
+            $"{Id}: Unable to build parametric subcontext for attribute: {attributeId} in entity of type {GetType()}");
     }
 
     public virtual EntityAttribute GetThisEntityAttribute(Entity parent)

@@ -60,19 +60,18 @@ public class Tribe : Polity
         GenerateName();
     }
 
-    public Tribe(Clan triggerClan, Polity parentPolity) :
+    public Tribe(Clan triggerClan) :
         base(PolityTypeStr, triggerClan.CoreGroup, triggerClan.GetHashCode())
     {
-        var groupsToTransfer = FindGroupsToTransfer(parentPolity, triggerClan);
+        var sourcePolity = triggerClan.Polity;
+        var groups = triggerClan.GetGroups();
 
-        triggerClan.ChangePolity(this, triggerClan.Influence);
+        triggerClan.ChangePolity(this, triggerClan.Influence, false);
+
         SetDominantFaction(triggerClan, false);
-
-        TransferGroups(parentPolity, groupsToTransfer);
+        TransferGroups(sourcePolity, groups);
 
         GenerateName();
-
-        //		Debug.Log ("New tribe '" + Name + "' from tribe '" + parentPolity.Name + "' with total transfered influence = " + transferedInfluence);
     }
 
     public static void GenerateTribeNounVariations()

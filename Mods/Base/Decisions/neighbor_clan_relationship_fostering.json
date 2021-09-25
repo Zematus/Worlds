@@ -1,0 +1,203 @@
+{
+  "decisions": [
+    {
+      "id": "improve_relationship_with_neighbors_clan",
+      "name": "improve relationship with neighbor's clan",
+      "target": "faction",
+      "parameters": [
+        { "id": "contact_faction", "type": "faction" },
+        { "id": "chance_of_making_attempt", "type": "number" }
+      ],
+      "properties": [
+        { "id": "target_isolation", "value": "target.preferences.isolation" },
+        { "id": "target_aggression", "value": "target.preferences.aggression" }
+      ],
+      "description": [
+        {
+          "id": "description_intro",
+          "text": "Should our clan, <<target>>, make an attempt to improve the relationship with clan <<contact_faction>> of the <<contact_faction.polity>> tribe?"
+        }
+      ],
+      "options": [
+        {
+          "id": "make_attempt",
+          "text": "Attempt to improve relationship with clan <<contact_faction>>...",
+          "weight": "clamp(chance_of_making_attempt, 0, 1)",
+          "effects": [
+            {
+              "id": "decrease_isolation",
+              "properties": [
+                { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
+                { "id": "isolation_min", "value": "lerp(target_isolation, 0, (0.07 * wisdom_factor))" },
+                { "id": "isolation_max", "value": "lerp(target_isolation, 0, (0.035 * wisdom_factor))" }
+              ],
+              "text": "<<target>>: isolation preference (<<target_isolation>>) decreases to a value between <<isolation_min>> and <<isolation_max>>",
+              "result": "target.preferences.isolation = random(isolation_min, isolation_max)"
+            },
+            {
+              "id": "decrease_aggression",
+              "properties": [
+                { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
+                { "id": "aggression_min", "value": "lerp(target_aggression, 0, (0.07 * wisdom_factor))" },
+                { "id": "aggression_max", "value": "lerp(target_aggression, 0, (0.035 * wisdom_factor))" }
+              ],
+              "text": "<<target>>: aggression preference (<<target_aggression>>) decreases to a value between <<aggression_min>> and <<aggression_max>>",
+              "result": "target.preferences.aggression = random(aggression_min, aggression_max)"
+            },
+            {
+              "id": "attempt",
+              "text": "The current leader of <<contact_faction>> will ponder the attempt from clan <<target>> to improve their relationship",
+              "result": "contact_faction.trigger_decision(decision_prio, faction_decide_on_relationship_fostering_attempt, target.polity, target.leader.charisma)"
+            }
+          ]
+        },
+        {
+          "id": "dont_make_attempt",
+          "text": "No, we rather not...",
+          "weight": "1 - clamp(chance_of_making_attempt, 0, 1)"
+        }
+      ]
+    },
+    {
+      "id": "faction_decide_on_relationship_fostering_attempt",
+      "name": "faction decide on attempt to foster relationship",
+      "target": "faction",
+      "parameters": [
+        { "id": "attempting_polity", "type": "polity" },
+        { "id": "attempting_leader_charisma", "type": "number" }
+      ],
+      "properties": [
+        { "id": "attempting_faction", "value": "attempting_polity.dominant_faction" },
+        { "id": "relationship_value", "value": "target.get_relationship(attempting_faction)" },
+        { "id": "target_isolation", "value": "target.preferences.isolation" },
+        { "id": "target_aggression", "value": "target.preferences.aggression" },
+        { "id": "contact_strength", "value": "target.polity.get_contact(attempting_polity).strength" },
+        { "id": "contact_strength_factor", "value": "2 - (contact_strength * 50)" },
+        { "id": "attempting_leader_charisma_factor", "value": "1.5 - attempting_leader_charisma" },
+        { "id": "chance_of_rejecting_attempt", "value": "relationship_value * contact_strength_factor * target_isolation * attempting_leader_charisma_factor" }
+      ],
+      "description": [
+        {
+          "id": "description_intro",
+          "text": "<<attempting_polity.leader>>, leader of the <<attempting_polity>> tribe, is attempting to improve the relationship with our clan.\n\nShould <<target.leader>> reject the attempt?"
+        }
+      ],
+      "options": [
+        {
+          "id": "reject_attempt",
+          "text": "Reject attempt from <<attempting_polity>>...",
+          "weight": "clamp(chance_of_rejecting_attempt, 0, 1)",
+          "effects": [
+            {
+              "id": "increase_isolation",
+              "properties": [
+                { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
+                { "id": "isolation_min", "value": "lerp(target_isolation, 1, (0.1 * wisdom_factor))" },
+                { "id": "isolation_max", "value": "lerp(target_isolation, 1, (0.2 * wisdom_factor))" }
+              ],
+              "text": "<<target>>: isolation preference (<<target_isolation>>) increases to a value between <<isolation_min>> and <<isolation_max>>",
+              "result": "target.preferences.isolation = random(isolation_min, isolation_max)"
+            },
+            {
+              "id": "decrease_relation",
+              "properties": [
+                { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
+                { "id": "relationship_min", "value": "lerp(relationship_value, 0, (0.1 * charisma_factor))" },
+                { "id": "relationship_max", "value": "lerp(relationship_value, 0, (0.05 * charisma_factor))" }
+              ],
+              "text": "<<target>>: relationship with <<attempting_faction>>, dominant clan of the <<attempting_polity>> tribe, decreases from <<relationship_value>> to a value between <<relationship_min>> and <<relationship_max>>",
+              "result": "target.set_relationship(attempting_faction, random(relationship_min, relationship_max))"
+            },
+            {
+              "id": "notify",
+              "text": "<<attempting_polity.leader>> will be notified of our decision...",
+              "result": "attempting_polity.dominant_faction.trigger_decision(decision_prio, clan_rejected_attempt_foster_relationship, target)"
+            }
+          ]
+        },
+        {
+          "id": "foster_relationship",
+          "text": "Foster relationship with <<attempting_polity>>...",
+          "weight": "1 - clamp(chance_of_rejecting_attempt, 0, 1)",
+          "effects": [
+            {
+              "id": "decrease_isolation",
+              "properties": [
+                { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
+                { "id": "isolation_min", "value": "lerp(target_isolation, 0, (0.2 * wisdom_factor))" },
+                { "id": "isolation_max", "value": "lerp(target_isolation, 0, (0.1 * wisdom_factor))" }
+              ],
+              "text": "<<target>>: isolation preference (<<target_isolation>>) decreases to a value between <<isolation_min>> and <<isolation_max>>",
+              "result": "target.preferences.isolation = random(isolation_min, isolation_max)"
+            },
+            {
+              "id": "decrease_aggression",
+              "properties": [
+                { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
+                { "id": "aggression_min", "value": "lerp(target_aggression, 0, (0.2 * wisdom_factor))" },
+                { "id": "aggression_max", "value": "lerp(target_aggression, 0, (0.1 * wisdom_factor))" }
+              ],
+              "text": "<<target>>: aggression preference (<<target_aggression>>) decreases to a value between <<aggression_min>> and <<aggression_max>>",
+              "result": "target.preferences.aggression = random(aggression_min, aggression_max)"
+            },
+            {
+              "id": "increase_relation",
+              "properties": [
+                { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
+                { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
+                { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
+              ],
+              "text": "<<target>>: relationship with <<attempting_faction>>, dominant clan of the <<attempting_polity>> tribe, increases from <<relationship_value>> to a value between <<relationship_min>> and <<relationship_max>>",
+              "result": "target.set_relationship(attempting_faction, random(relationship_min, relationship_max))"
+            },
+            {
+              "id": "notify",
+              "text": "The current leader of the <<attempting_polity>> tribe will be notified of our decision...",
+              "result": "attempting_faction.trigger_decision(decision_prio, clan_accepted_attempt_foster_relationship, target)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "clan_accepted_attempt_foster_relationship",
+      "name": "clan accepted attempt to foster relationship",
+      "target": "faction",
+      "parameters": [
+        { "id": "accepting_clan", "type": "faction" }
+      ],
+      "description": [
+        {
+          "id": "description",
+          "text": "The leader of clan <<accepting_clan>>, <<accepting_clan.leader>>, has embraced our attempt to improve the relationship between our clans."
+        }
+      ],
+      "options": [
+        {
+          "id": "acknowledge",
+          "text": "Perfect..."
+        }
+      ]
+    },
+    {
+      "id": "clan_rejected_attempt_foster_relationship",
+      "name": "clan rejected attempt to foster relationship",
+      "target": "faction",
+      "parameters": [
+        { "id": "rejecting_clan", "type": "faction" }
+      ],
+      "description": [
+        {
+          "id": "description",
+          "text": "The leader of clan <<rejecting_clan>>, <<rejecting_clan.leader>>, has rejected our attempt to improve the relationship between our clans."
+        }
+      ],
+      "options": [
+        {
+          "id": "acknowledge",
+          "text": "Another time, then..."
+        }
+      ]
+    }
+  ]
+}

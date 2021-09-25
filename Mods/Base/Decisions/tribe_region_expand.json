@@ -14,7 +14,7 @@
       "description": [
         {
           "id": "description_intro",
-          "text": "Should the <<target.polity>> expand into the <<selected_region>> region?"
+          "text": "Should the <<target.polity>> tribe expand into the <<selected_region>> region?"
         }
       ],
       "options": [
@@ -33,7 +33,7 @@
         {
           "id": "option_prevent_expansion",
           "text": "Prevent tribe from expanding...",
-          "weight": "1 - chance_of_making_attempt"
+          "weight": "1 - min(1, chance_of_making_attempt)"
         }
       ]
     }
