@@ -26,7 +26,7 @@
             {
               "id": "attempt",
               "text": "The current leader of <<contact_polity>> will receive an offer from tribe <<target.polity>>",
-              "result": "contact_polity.dominant_faction.trigger_decision(decision_prio, tribe_decide_merge_offer, target.polity)"
+              "result": "contact_polity.dominant_faction.trigger_decision(tribe_decide_merge_offer, target.polity)"
             }
           ]
         },
@@ -98,7 +98,7 @@
             {
               "id": "notify",
               "text": "The current leader of the <<attempting_polity>> tribe will be notified of our decision...",
-              "result": "attempting_polity.dominant_faction.trigger_decision(decision_prio, tribe_rejected_tribe_merge, target.polity)"
+              "result": "attempting_polity.dominant_faction.trigger_decision(tribe_rejected_tribe_merge, target.polity)"
             }
           ]
         },
@@ -120,7 +120,7 @@
             {
               "id": "notify",
               "text": "The current leader of the <<attempting_polity>> tribe will be notified of our decision...",
-              "result": "attempting_polity.dominant_faction.trigger_decision(decision_prio, tribe_accepted_tribe_merge, target.polity)"
+              "result": "attempting_polity.dominant_faction.trigger_decision(tribe_accepted_tribe_merge, target.polity)"
             },
             {
               "id": "merge_tribe",

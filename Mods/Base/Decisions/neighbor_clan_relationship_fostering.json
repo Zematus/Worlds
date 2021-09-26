@@ -47,7 +47,7 @@
             {
               "id": "attempt",
               "text": "The current leader of <<contact_faction>> will ponder the attempt from clan <<target>> to improve their relationship",
-              "result": "contact_faction.trigger_decision(decision_prio, faction_decide_on_relationship_fostering_attempt, target.polity, target.leader.charisma)"
+              "result": "contact_faction.trigger_decision(faction_decide_on_relationship_fostering_attempt, target.polity, target.leader.charisma)"
             }
           ]
         },
@@ -111,7 +111,7 @@
             {
               "id": "notify",
               "text": "<<attempting_polity.leader>> will be notified of our decision...",
-              "result": "attempting_polity.dominant_faction.trigger_decision(decision_prio, clan_rejected_attempt_foster_relationship, target)"
+              "result": "attempting_polity.dominant_faction.trigger_decision(clan_rejected_attempt_foster_relationship, target)"
             }
           ]
         },
@@ -153,7 +153,7 @@
             {
               "id": "notify",
               "text": "The current leader of the <<attempting_polity>> tribe will be notified of our decision...",
-              "result": "attempting_faction.trigger_decision(decision_prio, clan_accepted_attempt_foster_relationship, target)"
+              "result": "attempting_faction.trigger_decision(clan_accepted_attempt_foster_relationship, target)"
             }
           ]
         }

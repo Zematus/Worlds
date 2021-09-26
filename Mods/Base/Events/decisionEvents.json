@@ -10,7 +10,7 @@
         { "id": "faction", "value": "target.get_faction(polity)" },
         { "id": "faction_core_distance", "value": "target.get_faction_core_distance(polity)" },
         { "id": "polity_prominence_value", "value": "target.prominence_value(polity)" },
-        { "id": "core_distance_factor", "value": "100 / (faction_core_distance + 100)" }
+        { "id": "core_distance_factor", "value": "500 / (faction_core_distance + 500)" }
       ],
       "assignmentConditions": [
         "target.has_polity_of_type(tribe)",
@@ -18,22 +18,22 @@
       ],
       "triggerConditions": [
         "faction.type == clan",
-        "faction_core_distance > 500",
+        "faction_core_distance > 1000",
         "faction.administrative_load > 500",
         "faction.preferences.cohesion < 0.65",
         "target.polity_with_highest_prominence_value == polity",
         "polity_prominence_value > 0.6",
         "target.knowledges.social_organization >= 6"
       ],
-      "timeToTrigger": "18250 + random(14600000 * (1 - saturation(faction.administrative_load, 10000)) * faction.preferences.cohesion * core_distance_factor)",
+      "timeToTrigger": "73000 + random(29200000 * (1 - saturation(faction.administrative_load, 20000)) * faction.preferences.cohesion * core_distance_factor)",
       "effects": [
-        "faction.trigger_decision(event_prio, clan_decide_split, target)"
+        "faction.trigger_decision(clan_decide_split, target)"
       ],
       "repeatable": true
     },
     {
-      "id": "clan_decide_performing_influence_demand",
-      "name": "clan decide performing influence demand",
+      "id": "clan_perform_influence_demand",
+      "name": "clan perform influence demand",
       "target": "faction",
       "assignOn": ["spawn", "status_change"],
       "properties": [
@@ -56,9 +56,9 @@
         "chance_of_making_demand > 0",
         "(target_authority > dominant_faction.preferences.authority) || (dominant_faction.administrative_load > 100000)"
       ],
-      "timeToTrigger": "9125 + random(91250 * (1 - saturation(target.administrative_load, 20000)) * target_authority)",
+      "timeToTrigger": "9125 + random(912500 * (1 - saturation(target.administrative_load, 40000)) * target_authority)",
       "effects": [
-        "target.trigger_decision(event_prio, clan_decide_performing_influence_demand, dominant_faction, chance_of_making_demand)"
+        "target.trigger_decision(clan_decide_performing_influence_demand, dominant_faction, chance_of_making_demand)"
       ],
       "repeatable": true
     },
@@ -86,7 +86,7 @@
       ],
       "timeToTrigger": "73000 + random(182500 * (1 - chance_of_making_attempt))",
       "effects": [
-        "target.trigger_decision(event_prio, clan_decide_form_new_tribe, chance_of_making_attempt)"
+        "target.trigger_decision(clan_decide_form_new_tribe, chance_of_making_attempt)"
       ],
       "repeatable": true
     },
@@ -114,7 +114,7 @@
       ],
       "timeToTrigger": "9125 + random(27375000 * target_isolation)",
       "effects": [
-        "target.trigger_decision(event_prio, tribe_decide_merge, contact.polity, chance_of_making_attempt)"
+        "target.trigger_decision(tribe_decide_merge, contact.polity, chance_of_making_attempt)"
       ],
       "repeatable": true
     },
@@ -128,7 +128,7 @@
       ],
       "timeToTrigger": "5",
       "effects": [
-        "target.trigger_decision(event_prio, clan_collapse)"
+        "target.trigger_decision(clan_collapse)"
       ]
     },
     {
@@ -149,7 +149,7 @@
       ],
       "timeToTrigger": "15 + random(1825 * core_prominence_value)",
       "effects": [
-        "target.trigger_decision(event_prio, clan_migration, valid_groups)"
+        "target.trigger_decision(clan_migration, valid_groups)"
       ]
     },
     {
@@ -176,7 +176,7 @@
       ],
       "timeToTrigger": "1825 + random(91250 * max(0, 1.01 - chance_of_making_attempt))",
       "effects": [
-        "target.trigger_decision(event_prio, improve_relationship_with_neighbors_clan, selected_faction, chance_of_making_attempt)"
+        "target.trigger_decision(improve_relationship_with_neighbors_clan, selected_faction, chance_of_making_attempt)"
       ],
       "repeatable": true
     },
@@ -204,7 +204,7 @@
       ],
       "timeToTrigger": "9125 + random(456250 * max(0, 1.01 - chance_of_making_attempt))",
       "effects": [
-        "target.trigger_decision(event_prio, tribe_invites_clan_join, selected_faction, chance_of_making_attempt)"
+        "target.trigger_decision(tribe_invites_clan_join, selected_faction, chance_of_making_attempt)"
       ],
       "repeatable": true
     },
@@ -232,7 +232,7 @@
       ],
       "timeToTrigger": "9125 + random(9125000 * cohesion_preference * max(0, 1 - core_saturation))",
       "effects": [
-        "target.trigger_decision(event_prio, tribe_decide_expand_toward_region, selected_region, chance_of_making_attempt)"
+        "target.trigger_decision(tribe_decide_expand_toward_region, selected_region, chance_of_making_attempt)"
       ],
       "repeatable": true
     }
