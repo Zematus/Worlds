@@ -276,6 +276,22 @@ public abstract class Context : IDebugLogger
         }
     }
 
+    public void AddValueDebugOutput<T>(
+        string label, T value)
+    {
+        if (_parentContext != null)
+        {
+            _parentContext.AddValueDebugOutput(label, value);
+            return;
+        }
+
+        if (DebugLogEnabled)
+        {
+            AddDebugOutput(
+                $"\t{label} Value: {value}");
+        }
+    }
+
     public void AddDebugOutput(string message)
     {
         if (_parentContext != null)

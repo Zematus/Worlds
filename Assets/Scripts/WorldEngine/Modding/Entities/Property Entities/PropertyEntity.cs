@@ -39,7 +39,7 @@ public class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
         _id = id;
         _idHash = id.GetHashCode();
 
-        _partialEvalStringConverter = ToPartiallyEvaluatedString;
+        PartialEvalStringConverter = ToPartiallyEvaluatedString;
 
         _valExpression = ValueExpressionBuilder.ValidateValueExpression<T>(exp);
 

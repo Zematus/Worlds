@@ -6,7 +6,7 @@
       "target": "faction",
       "parameters": [
         { "id": "dominant_faction", "type": "faction" },
-        { "id": "chance_of_making_demand", "type": "number" }
+        { "id": "chance_of_making_demand", "type": "number", "defaultValue": "1" }
       ],
       "properties": [
         { "id": "is_part_of_polity", "value": "target.polity == dominant_faction.polity" }

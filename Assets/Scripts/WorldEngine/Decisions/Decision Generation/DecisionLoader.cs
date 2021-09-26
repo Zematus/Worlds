@@ -22,6 +22,7 @@ public class DecisionLoader
         {
             public string id;
             public string type;
+            public string defaultValue;
         }
 
         [Serializable]
@@ -231,43 +232,96 @@ public class DecisionLoader
 
     private static Entity CreateParameterEntity(Context c, LoadedDecision.LoadedParameter p)
     {
+        string dvExceptionMsg = $"'defaultValue' not supported for type: {p.type}";
+
         switch (p.type)
         {
             case "group":
+                if (p.defaultValue != null) 
+                    throw new Exception(dvExceptionMsg);
+
                 return new GroupEntity(c, p.id);
 
             case "group_collection":
+                if (p.defaultValue != null)
+                    throw new Exception(dvExceptionMsg);
+
                 return new GroupCollectionEntity(c, p.id);
 
             case "faction":
+                if (p.defaultValue != null)
+                    throw new Exception(dvExceptionMsg);
+
                 return new FactionEntity(c, p.id);
 
             case "polity":
+                if (p.defaultValue != null)
+                    throw new Exception(dvExceptionMsg);
+
                 return new PolityEntity(c, p.id);
 
             case "cell":
+                if (p.defaultValue != null)
+                    throw new Exception(dvExceptionMsg);
+
                 return new CellEntity(c, p.id);
 
             case "agent":
+                if (p.defaultValue != null)
+                    throw new Exception(dvExceptionMsg);
+
                 return new AgentEntity(c, p.id);
 
             case "region":
+                if (p.defaultValue != null)
+                    throw new Exception(dvExceptionMsg);
+
                 return new RegionEntity(c, p.id);
 
             case "string":
+                if (p.defaultValue != null)
+                {
+                    return new ValueEntity<string>(c, p.id, p.defaultValue);
+                }
+
                 return new ValueEntity<string>(c, p.id);
 
             case "text":
+                if (p.defaultValue != null)
+                {
+                    return new ValueEntity<string>(c, p.id, p.defaultValue);
+                }
+
                 return new ValueEntity<string>(c, p.id);
 
             case "number":
+                if (p.defaultValue != null)
+                {
+                    if (!MathUtility.TryParseCultureInvariant(p.defaultValue, out float defaultValue))
+                    {
+                        throw new Exception($"Unable to parse 'defaultValue' as a valid number: {p.defaultValue}");
+                    }
+
+                    return new ValueEntity<float>(c, p.id, defaultValue);
+                }
+
                 return new ValueEntity<float>(c, p.id);
 
             case "boolean":
+                if (p.defaultValue != null)
+                {
+                    if (!bool.TryParse(p.defaultValue, out bool defaultValue))
+                    {
+                        throw new Exception($"Unable to parse 'defaultValue' as a valid boolean value: {p.defaultValue}");
+                    }
+
+                    return new ValueEntity<bool>(c, p.id, defaultValue);
+                }
+
                 return new ValueEntity<bool>(c, p.id);
 
             default:
-                throw new Exception("Unhandled parameter type: " + p.type);
+                throw new Exception($"Unhandled parameter type: {p.type}");
         }
     }
 

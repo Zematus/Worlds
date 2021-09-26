@@ -150,29 +150,36 @@ public class ModDecision : Context
         }
 
         var parameterValues = initializer.ParameterValues;
-
-        if (parameterValues == null)
-        {
-            throw new System.Exception(
-                "No parameters given to decision '" + Id + "' when expected " + _parameterEntities.Length);
-        }
-
-        if (parameterValues.Length < _parameterEntities.Length)
-        {
-            throw new System.Exception(
-                "Number of parameters given to decision '" + Id +
-                "', " + parameterValues.Length + ", below minimum expected " + _parameterEntities.Length);
-        }
+        int valueCount = (parameterValues != null) ? parameterValues.Length : 0;
 
         OpenDebugOutput("Setting Decision Parameters:");
 
         for (int i = 0; i < _parameterEntities.Length; i++)
         {
-            AddExpDebugOutput("Parameter '" + _parameterEntities[i].Id + "'", parameterValues[i]);
+            var entity = _parameterEntities[i];
 
-            _parameterEntities[i].Set(
-                parameterValues[i].ValueObject,
-                parameterValues[i].ToPartiallyEvaluatedString);
+            if (i >= valueCount)
+            {
+                if (!entity.HasDefaultValue)
+                {
+                    throw new System.Exception(
+                        $"Parameter '{entity.Id}' is not set and has no default value");
+                }
+
+                AddValueDebugOutput($"Parameter '{entity.Id}'", entity.GetDefaultValue());
+
+                entity.UseDefaultValue();
+
+                continue;
+            }
+
+            var valueExp = parameterValues[i];
+
+            AddExpDebugOutput($"Parameter '{entity.Id}'", valueExp);
+
+            entity.Set(
+                valueExp.ValueObject,
+                valueExp.ToPartiallyEvaluatedString);
         }
 
         CloseDebugOutput();

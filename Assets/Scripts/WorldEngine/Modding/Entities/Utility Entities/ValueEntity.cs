@@ -9,13 +9,20 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
 
     protected ValueGetterEntityAttribute<T> _valueAttribute;
 
-    protected PartiallyEvaluatedStringConverter _partialEvalStringConverter { private get; set; }
+    protected PartiallyEvaluatedStringConverter PartialEvalStringConverter { private get; set; }
 
     public virtual T Value { get; protected set; }
 
     protected override object _reference => Value;
 
     private IValueExpression<T> _valGetterExpression = null;
+
+    private T _defaultValue;
+
+    public ValueEntity(Context c, string id, T defaultValue) : base(c, id, true)
+    {
+        _defaultValue = defaultValue;
+    }
 
     public ValueEntity(Context c, string id) : base(c, id)
     {
@@ -28,7 +35,7 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
             case ValueAttributeId:
                 _valueAttribute =
                     _valueAttribute ?? new ValueGetterEntityAttribute<T>(
-                        ValueAttributeId, this, GetValue, _partialEvalStringConverter);
+                        ValueAttributeId, this, GetValue, PartialEvalStringConverter);
                 return _valueAttribute;
         }
 
@@ -51,11 +58,15 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
         }
     }
 
+    public override void UseDefaultValue() => Set(_defaultValue);
+
+    public override object GetDefaultValue() => _defaultValue;
+
     public override void Set(
         object o,
         PartiallyEvaluatedStringConverter converter)
     {
-        _partialEvalStringConverter = converter;
+        PartialEvalStringConverter = converter;
 
         Set(o);
     }
@@ -70,7 +81,7 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
         {
             _valGetterExpression = _valGetterExpression ??
                 new ValueGetterExpression<T>(
-                    Id, GetValue, _partialEvalStringConverter);
+                    Id, GetValue, PartialEvalStringConverter);
 
             return _valGetterExpression;
         }

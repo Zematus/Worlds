@@ -15,7 +15,9 @@ public abstract class Entity : IEntity
 
     public virtual bool RequiresInput => false;
 
-    public Entity(Context context, string id)
+    public bool HasDefaultValue { get; private set; }
+
+    public Entity(Context context, string id, bool hasDefaultValue = false)
     {
         if (string.IsNullOrEmpty(id))
         {
@@ -25,6 +27,8 @@ public abstract class Entity : IEntity
         Id = id;
 
         Context = context;
+
+        HasDefaultValue = hasDefaultValue;
     }
 
     public string BuildAttributeId(string attrId)
@@ -92,6 +96,16 @@ public abstract class Entity : IEntity
     }
 
     public abstract void Set(object o);
+
+    public virtual void UseDefaultValue()
+    {
+        throw new NotImplementedException($"Entity type {GetType()} does not support default values");
+    }
+
+    public virtual object GetDefaultValue()
+    {
+        throw new NotImplementedException($"Entity type {GetType()} does not support default values");
+    }
 
     public virtual void Set(
         object o,
