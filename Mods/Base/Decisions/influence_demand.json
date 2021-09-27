@@ -42,7 +42,7 @@
                 { "id": "authority_min", "value": "lerp(target_authority, 1, (0.1 * wisdom_factor))" },
                 { "id": "authority_max", "value": "lerp(target_authority, 1, (0.2 * wisdom_factor))" }
               ],
-              "text": "Clan <<target>>: authority preference (<<target_authority>>) increases to: <<authority_min>> - <<authority_max>>",
+              "text": "Clan <<target>>: authority preference (<<target_authority>>) increases to a value between <<authority_min>> and <<authority_max>>",
               "result": "target.preferences.authority = random(authority_min, authority_max)"
             },
             {
@@ -55,32 +55,8 @@
         {
           "id": "dont_make_demand",
           "text": "Avoid making any demands at this time...",
-          "conditions": ["is_part_of_polity"],
           "weight": "1 - min(1, chance_of_making_demand)",
-          "effects": [
-            {
-              "id": "decrease_authority",
-              "properties": [
-                { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
-                { "id": "target_authority", "value": "target.preferences.authority" },
-                { "id": "authority_min", "value": "lerp(target_authority, 0, (0.2 * wisdom_factor))" },
-                { "id": "authority_max", "value": "lerp(target_authority, 0, (0.1 * wisdom_factor))" }
-              ],
-              "text": "Clan <<target>>: authority preference (<<target_authority>>) decreases to: <<authority_min>> - <<authority_max>>",
-              "result": "target.preferences.authority = random(authority_min, authority_max)"
-            },
-            {
-              "id": "increase_relation",
-              "properties": [
-                { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
-                { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
-                { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
-              ],
-              "text": "Clan <<target>>: relationship with <<dominant_faction>> increases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
-              "result": "target.set_relationship(dominant_faction, random(relationship_min, relationship_max))"
-            }
-          ]
+          "conditions": ["is_part_of_polity"]
         },
         {
           "id": "cant_make_demand",

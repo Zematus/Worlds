@@ -35,7 +35,7 @@
       "id": "clan_perform_influence_demand",
       "name": "clan perform influence demand",
       "target": "faction",
-      "assignOn": ["spawn", "status_change"],
+      "assignOn": ["spawn", "status_change", "guide_switch"],
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
@@ -47,6 +47,7 @@
         { "id": "chance_of_making_demand", "value": "(1 - normalize(target.administrative_load, min_admin_load, max_admin_load) * target_authority * 2)" }
       ],
       "assignmentConditions": [
+        "target.guide == simulation",
         "target.type == clan",
         "target.polity.type == tribe",
         "dominant_faction.type == clan",

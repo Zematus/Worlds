@@ -25,7 +25,7 @@
       "id": "perform_influence_demand",
       "name": "Perform Influence Demand",
       "target": "faction",
-      "category": "territory",
+      "category": "diplomacy",
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" }
       ],
