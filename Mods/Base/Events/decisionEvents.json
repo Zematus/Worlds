@@ -25,7 +25,7 @@
         "polity_prominence_value > 0.6",
         "target.knowledges.social_organization >= 6"
       ],
-      "timeToTrigger": "73000 + random(29200000 * (1 - saturation(faction.administrative_load, 20000)) * faction.preferences.cohesion * core_distance_factor)",
+      "timeToTrigger": "73000 + random(29200000 * (1 - saturation(faction.administrative_load, 160000)) * faction.preferences.cohesion * core_distance_factor)",
       "effects": [
         "faction.trigger_decision(clan_decide_split, target)"
       ],
@@ -56,7 +56,7 @@
         "chance_of_making_demand > 0",
         "(target_authority > dominant_faction.preferences.authority) || (dominant_faction.administrative_load > 100000)"
       ],
-      "timeToTrigger": "9125 + random(912500 * (1 - saturation(target.administrative_load, 40000)) * target_authority)",
+      "timeToTrigger": "36500 + random(2920000 * (1 - saturation(target.administrative_load, 80000)) * target_authority)",
       "effects": [
         "target.trigger_decision(clan_decide_performing_influence_demand, dominant_faction, chance_of_making_demand)"
       ],
