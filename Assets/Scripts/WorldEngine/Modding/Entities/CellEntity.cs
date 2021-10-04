@@ -65,6 +65,6 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
 
     public override string GetFormattedString()
     {
-        return Cell.Position.ToString().ToBoldFormat();
+        return Cell.Position.ToBoldString();
     }
 }

@@ -16,7 +16,7 @@ public abstract class FunctionExpressionWithOutput<T> :
 
     public object ValueObject => Value;
 
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
+    public string GetFormattedString() => Value.ToFormattedString();
 
     public override string ToPartiallyEvaluatedString(int depth = -1)
     {

@@ -319,6 +319,8 @@ public static class ExpressionBuilder
                 return new MinFunctionExpression(context, argExpressions);
             case ClampFunctionExpression.FunctionId:
                 return new ClampFunctionExpression(context, argExpressions);
+            case GetProbabilityAdjectiveFunctionExpression.FunctionId:
+                return new GetProbabilityAdjectiveFunctionExpression(context, argExpressions);
         }
 
         if (string.IsNullOrWhiteSpace(arguments))

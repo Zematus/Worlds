@@ -72,8 +72,8 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
     }
 
     public override string GetDebugString() => Value.ToString();
-
-    public override string GetFormattedString() => Value.ToString().ToBoldFormat();
+    
+    public override string GetFormattedString() => Value.ToFormattedString();
 
     public IValueExpression<T> ValueExpression
     {

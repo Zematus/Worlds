@@ -31,7 +31,7 @@ public class ValueGetterExpression<T> : IValueExpression<T>
             return generator.GetFormattedString();
         }
 
-        return Value.ToString().ToBoldFormat();
+        return Value.ToFormattedString();
     }
 
     public ValueGetterExpression(

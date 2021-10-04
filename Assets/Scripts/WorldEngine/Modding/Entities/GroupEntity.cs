@@ -237,7 +237,7 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
 
     public override string GetFormattedString()
     {
-        return Group.Cell.Position.ToString().ToBoldFormat();
+        return Group.Cell.Position.ToBoldString();
     }
 
     protected override void ResetInternal()

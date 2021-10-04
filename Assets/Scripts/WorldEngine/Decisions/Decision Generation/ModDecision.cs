@@ -127,7 +127,7 @@ public class ModDecision : Context
     public void InitEvaluation(ModDecisionData initializer)
     {
 //#if DEBUG
-//        if (Id == "clan_decide_split")
+//        if (Id == "influence_demanded_from_clan")
 //        {
 //            // This line will force the decision dialog to be displayed and
 //            // evaluated by the player when debugging

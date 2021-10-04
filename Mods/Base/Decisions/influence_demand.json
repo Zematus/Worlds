@@ -5,32 +5,30 @@
       "name": "clan decide performing influence demand",
       "target": "faction",
       "parameters": [
-        { "id": "dominant_faction", "type": "faction" },
+        { "id": "demanded_faction", "type": "faction" },
         { "id": "chance_of_making_demand", "type": "number", "defaultValue": "1" }
       ],
       "properties": [
-        { "id": "is_part_of_polity", "value": "target.polity == dominant_faction.polity" }
+        { "id": "is_part_of_polity", "value": "target.polity == demanded_faction.polity" },
+        { "id": "relationship_value", "value": "target.get_relationship(demanded_faction)" },
+        { "id": "influence_delta", "value": "max(0, demanded_faction.influence - target.influence)" },
+        { "id": "demanded_authority", "value": "demanded_faction.preferences.authority" },
+        { "id": "admin_factors", "value": "0.01 + relationship_value * influence_delta * demanded_authority" },
+        { "id": "min_admin_load", "value": "0 * admin_factors" },
+        { "id": "max_admin_load", "value": "3000000 * admin_factors" },
+        { "id": "chance_of_demanded_rejecting_demand", "value": "(1 - normalize(demanded_faction.administrative_load, min_admin_load, max_admin_load) * 2)" },
+        { "id": "probability_adjective", "value": "get_probability_adjective(chance_of_demanded_rejecting_demand)" }
       ],
       "description": [
         {
           "id": "description_intro",
-          "text": "Members of clan <<target>> have suggested for the clan leader, <<target.leader>>, to demand more influence within the <<target.polity>> tribe from the current dominant clan, <<dominant_faction>>.\n"
-        },
-        {
-          "id": "description_can_make_demand",
-          "text": "Should <<target.leader>> make the demand?",
-          "conditions": [ "is_part_of_polity" ]
-        },
-        {
-          "id": "description_cant_make_demand",
-          "text": "Unfortunately, clan <<dominant_faction>> is no longer part of the tribe",
-          "conditions": [ "!is_part_of_polity" ]
+          "text": "Should the leader of clan <<target>>, <<target.leader>>, demand more influence of <<target.polity>> from clan, <<demanded_faction>>?\n\nIt's <<probability_adjective>> that the leader of clan <<demanded_faction>>, <<demanded_faction.leader>>, will reject our demand..."
         }
       ],
       "options": [
         {
           "id": "make_demand",
-          "text": "Demand more influence from <<dominant_faction>>...",
+          "text": "Demand more influence from <<demanded_faction>>...",
           "conditions": ["is_part_of_polity"],
           "weight": "max(0, chance_of_making_demand)",
           "effects": [
@@ -47,8 +45,8 @@
             },
             {
               "id": "demand",
-              "text": "The current leader of clan <<dominant_faction>> will receive a demand for infuence from clan <<target>>",
-              "result": "dominant_faction.trigger_decision(influence_demanded_from_clan, target)"
+              "text": "The current leader of clan <<demanded_faction>> will receive a demand for infuence from clan <<target>>",
+              "result": "demanded_faction.trigger_decision(influence_demanded_from_clan, target)"
             }
           ]
         },
@@ -79,7 +77,7 @@
         { "id": "admin_factors", "value": "0.01 + relationship_value * influence_delta * target_authority" },
         { "id": "min_admin_load", "value": "0 * admin_factors" },
         { "id": "max_admin_load", "value": "3000000 * admin_factors" },
-        { "id": "chance_of_rejecting_demand", "value": "(1 - normalize(target.administrative_load, min_admin_load, max_admin_load) * target_authority * 2)" }
+        { "id": "chance_of_rejecting_demand", "value": "(1 - normalize(target.administrative_load, min_admin_load, max_admin_load) * 2)" }
       ],
       "description": [
         {
@@ -129,7 +127,7 @@
             {
               "id": "notify",
               "text": "The current leader of clan <<demanding_faction>> will be notified of our decision...",
-              "result": "demanding_faction.trigger_decision(faction_accede_demand)"
+              "result": "demanding_faction.trigger_decision(faction_refuse_demand, target)"
             }
           ]
         },
@@ -174,7 +172,7 @@
             {
               "id": "notify",
               "text": "The current leader of clan <<demanding_faction>> will be notified of our decision...",
-              "result": "demanding_faction.trigger_decision(faction_refuse_demand)"
+              "result": "demanding_faction.trigger_decision(faction_accede_demand, target)"
             }
           ]
         },
@@ -218,7 +216,7 @@
             {
               "id": "notify",
               "text": "The current leader of clan <<demanding_faction>> will be notified of our decision...",
-              "result": "demanding_faction.trigger_decision(faction_refuse_demand)"
+              "result": "demanding_faction.trigger_decision(faction_accede_demand, target)"
             }
           ]
         }
@@ -228,10 +226,13 @@
       "id": "faction_accede_demand",
       "name": "faction accede to demand",
       "target": "faction",
+      "parameters": [
+        { "id": "demanded_faction", "type": "faction" }
+      ],
       "description": [
         {
           "id": "description",
-          "text": "The leader of clan <<target.polity.dominant_faction>>, <<target.polity.dominant_faction.leader>>, has acceded to our demand for more influence on the <<target.polity>> tribe."
+          "text": "The leader of clan <<demanded_faction>>, <<demanded_faction.leader>>, has acceded to our demand for more influence on the <<target.polity>> tribe."
         }
       ],
       "options": [
@@ -245,10 +246,13 @@
       "id": "faction_refuse_demand",
       "name": "faction refuse demand",
       "target": "faction",
+      "parameters": [
+        { "id": "demanded_faction", "type": "faction" }
+      ],
       "description": [
         {
           "id": "description",
-          "text": "The leader of clan <<target.polity.dominant_faction>>, <<target.polity.dominant_faction.leader>>, has refused our demand for more influence on the <<target.polity>> tribe."
+          "text": "The leader of clan <<demanded_faction>>, <<demanded_faction.leader>>, has refused our demand for more influence on the <<target.polity>> tribe."
         }
       ],
       "options": [
