@@ -41,10 +41,10 @@
         { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
         { "id": "influence_delta", "value": "max(0, dominant_faction.influence - target.influence)" },
         { "id": "target_authority", "value": "target.preferences.authority" },
-        { "id": "admin_factors", "value": "0.01 + relationship_value * influence_delta * target.preferences.authority" },
-        { "id": "min_admin_load", "value": "100000 * admin_factors" },
-        { "id": "max_admin_load", "value": "5000000 * admin_factors" },
-        { "id": "chance_of_making_demand", "value": "(1 - normalize(target.administrative_load, min_admin_load, max_admin_load) * target_authority * 2)" }
+        { "id": "admin_factors", "value": "clamp(1 - (relationship_value * influence_delta * target_authority * 4), 0, 1)" },
+        { "id": "min_admin_load", "value": "100 * admin_factors" },
+        { "id": "max_admin_load", "value": "5000 * admin_factors" },
+        { "id": "chance_of_making_demand", "value": "normalize(target.administrative_load, min_admin_load, max_admin_load)" }
       ],
       "assignmentConditions": [
         "target.guide == simulation",

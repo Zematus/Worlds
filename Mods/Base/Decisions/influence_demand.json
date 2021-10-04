@@ -12,17 +12,17 @@
         { "id": "is_part_of_polity", "value": "target.polity == demanded_faction.polity" },
         { "id": "relationship_value", "value": "target.get_relationship(demanded_faction)" },
         { "id": "influence_delta", "value": "max(0, demanded_faction.influence - target.influence)" },
-        { "id": "demanded_authority", "value": "demanded_faction.preferences.authority" },
-        { "id": "admin_factors", "value": "0.01 + relationship_value * influence_delta * demanded_authority" },
-        { "id": "min_admin_load", "value": "0 * admin_factors" },
-        { "id": "max_admin_load", "value": "3000000 * admin_factors" },
-        { "id": "chance_of_demanded_rejecting_demand", "value": "(1 - normalize(demanded_faction.administrative_load, min_admin_load, max_admin_load) * 2)" },
+        { "id": "demanded_faction_authority", "value": "demanded_faction.preferences.authority" },
+        { "id": "admin_factors", "value": "clamp(1 - (relationship_value * influence_delta * demanded_faction_authority * 4), 0, 1)" },
+        { "id": "min_admin_load", "value": "0" },
+        { "id": "max_admin_load", "value": "3000 * admin_factors" },
+        { "id": "chance_of_demanded_rejecting_demand", "value": "(1 - normalize(demanded_faction.administrative_load, min_admin_load, max_admin_load))" },
         { "id": "probability_adjective", "value": "get_probability_adjective(chance_of_demanded_rejecting_demand)" }
       ],
       "description": [
         {
           "id": "description_intro",
-          "text": "Should the leader of clan <<target>>, <<target.leader>>, demand more influence of <<target.polity>> from clan, <<demanded_faction>>?\n\nIt's <<probability_adjective>> that the leader of clan <<demanded_faction>>, <<demanded_faction.leader>>, will reject our demand..."
+          "text": "Should the leader of clan <<target>>, <<target.leader>>, demand more influence of the <<target.polity>> tribes from clan, <<demanded_faction>>?\n\nIt's <<probability_adjective>> that the leader of clan <<demanded_faction>>, <<demanded_faction.leader>>, will reject our demand..."
         }
       ],
       "options": [
@@ -45,8 +45,8 @@
             },
             {
               "id": "demand",
-              "text": "The current leader of clan <<demanded_faction>> will receive a demand for infuence from clan <<target>>",
-              "result": "demanded_faction.trigger_decision(influence_demanded_from_clan, target)"
+              "text": "The current leader of clan <<demanded_faction>> will receive a demand for influence from clan <<target>>",
+              "result": "demanded_faction.trigger_decision(influence_demanded_from_clan, target, chance_of_demanded_rejecting_demand)"
             }
           ]
         },
@@ -61,23 +61,20 @@
           "text": "That's unfortunate...",
           "conditions": ["!is_part_of_polity"]
         }
-      ]
+      ],
+      "enableDebugLog": true
     },
     {
       "id": "influence_demanded_from_clan",
       "name": "influence demanded from clan",
       "target": "faction",
       "parameters": [
-        { "id": "demanding_faction", "type": "faction" }
+        { "id": "demanding_faction", "type": "faction" },
+        { "id": "chance_of_rejecting_demand", "type": "number" }
       ],
       "properties": [
         { "id": "relationship_value", "value": "target.get_relationship(demanding_faction)" },
-        { "id": "influence_delta", "value": "max(0, target.influence - demanding_faction.influence)" },
-        { "id": "target_authority", "value": "target.preferences.authority" },
-        { "id": "admin_factors", "value": "0.01 + relationship_value * influence_delta * target_authority" },
-        { "id": "min_admin_load", "value": "0 * admin_factors" },
-        { "id": "max_admin_load", "value": "3000000 * admin_factors" },
-        { "id": "chance_of_rejecting_demand", "value": "(1 - normalize(target.administrative_load, min_admin_load, max_admin_load) * 2)" }
+        { "id": "target_authority", "value": "target.preferences.authority" }
       ],
       "description": [
         {
@@ -106,7 +103,6 @@
               "id": "increase_authority",
               "properties": [
                 { "id": "wisdom_factor", "value": "0.5 + target.leader.wisdom" },
-                { "id": "target_authority", "value": "target.preferences.authority" },
                 { "id": "authority_min", "value": "lerp(target_authority, 1, (0.1 * wisdom_factor))" },
                 { "id": "authority_max", "value": "lerp(target_authority, 1, (0.2 * wisdom_factor))" }
               ],
@@ -117,7 +113,6 @@
               "id": "decrease_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.get_relationship(demanding_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 0, (0.2 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 0, (0.1 * charisma_factor))" }
               ],
@@ -151,7 +146,6 @@
               "id": "decrease_authority",
               "properties": [
                 { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
-                { "id": "target_authority", "value": "target.preferences.authority" },
                 { "id": "authority_min", "value": "lerp(target_authority, 0, (0.2 * wisdom_factor))" },
                 { "id": "authority_max", "value": "lerp(target_authority, 0, (0.1 * wisdom_factor))" }
               ],
@@ -162,7 +156,6 @@
               "id": "increase_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.get_relationship(demanding_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
               ],
@@ -195,7 +188,6 @@
               "id": "decrease_authority",
               "properties": [
                 { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
-                { "id": "target_authority", "value": "target.preferences.authority" },
                 { "id": "authority_min", "value": "lerp(target_authority, 0, (0.2 * wisdom_factor))" },
                 { "id": "authority_max", "value": "lerp(target_authority, 0, (0.1 * wisdom_factor))" }
               ],
@@ -206,7 +198,6 @@
               "id": "increase_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.get_relationship(demanding_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
               ],
