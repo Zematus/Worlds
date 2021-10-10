@@ -13,7 +13,7 @@
         { "id": "relationship_value", "value": "target.get_relationship(demanded_faction)" },
         { "id": "influence_delta", "value": "max(0, demanded_faction.influence - target.influence)" },
         { "id": "demanded_faction_authority", "value": "demanded_faction.preferences.authority" },
-        { "id": "admin_factors", "value": "clamp(1 - (relationship_value * influence_delta * demanded_faction_authority * 4), 0, 1)" },
+        { "id": "admin_factors", "value": "clamp(1 - (relationship_value * influence_delta * demanded_faction_authority * 4), 0.01, 1)" },
         { "id": "min_admin_load", "value": "0" },
         { "id": "max_admin_load", "value": "3000 * admin_factors" },
         { "id": "chance_of_demanded_rejecting_demand", "value": "(1 - normalize(demanded_faction.administrative_load, min_admin_load, max_admin_load))" },
@@ -61,8 +61,7 @@
           "text": "That's unfortunate...",
           "conditions": ["!is_part_of_polity"]
         }
-      ],
-      "enableDebugLog": true
+      ]
     },
     {
       "id": "influence_demanded_from_clan",

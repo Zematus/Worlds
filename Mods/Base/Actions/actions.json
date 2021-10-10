@@ -30,11 +30,24 @@
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" }
       ],
       "accessConditions": [
-        "target != target.polity.dominant_faction",
+        "target != dominant_faction",
         "target.polity.type == tribe"
       ],
       "effects": [
         "target.trigger_decision(clan_decide_performing_influence_demand, dominant_faction)"
+      ]
+    },
+    {
+      "id": "form_new_tribe",
+      "name": "Form New Tribe",
+      "target": "faction",
+      "category": "diplomacy",
+      "accessConditions": [
+        "target != target.polity.dominant_faction",
+        "target.polity.type == tribe"
+      ],
+      "effects": [
+        "target.trigger_decision(clan_decide_form_new_tribe)"
       ]
     }
   ]

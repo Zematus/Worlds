@@ -30,7 +30,7 @@ public abstract class Context : IDebugLogger
                 return _parentContext.DebugLogEnabled;
             }
 
-            return (Manager.CurrentDevMode == DevMode.Advanced) && _enableDebugLog;
+            return (Manager.CurrentDevMode == DevMode.Advanced) && _debugLogEnabled;
         }
     }
 
@@ -38,7 +38,7 @@ public abstract class Context : IDebugLogger
 
     protected Context _parentContext = null;
 
-    protected bool _enableDebugLog = false;
+    protected bool _debugLogEnabled = false;
 
     private string _dbgStr = null;
     private int _dbgTabCount = -1;
@@ -93,7 +93,12 @@ public abstract class Context : IDebugLogger
             }
         }
 
-        _enableDebugLog = c.enableDebugLog;
+        _debugLogEnabled = c.enableDebugLog;
+    }
+
+    public void EnableDebugLog(bool state)
+    {
+        _debugLogEnabled = state;
     }
 
     private void AddPropertyEntity(LoadedContext.LoadedProperty p)

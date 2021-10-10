@@ -1,8 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-
+﻿
 public class NormalizeFunctionExpression : FunctionExpressionWithOutput<float>
 {
     public const string FunctionId = "normalize";
@@ -30,6 +26,13 @@ public class NormalizeFunctionExpression : FunctionExpressionWithOutput<float>
                 string inputValueStr = _valueArg.ToPartiallyEvaluatedString();
                 string minValueStr = _minArg.ToPartiallyEvaluatedString();
                 string maxValueStr = _maxArg.ToPartiallyEvaluatedString();
+
+                _context.EnableDebugLog(true);
+                _context.OpenDebugOutput("Expanding exception arguments:");
+                _context.AddExpDebugOutput("input", _valueArg);
+                _context.AddExpDebugOutput("min", _minArg);
+                _context.AddExpDebugOutput("max", _maxArg);
+                _context.CloseDebugOutput();
 
                 throw new System.ArgumentException(
                     _context.Id + " - " +

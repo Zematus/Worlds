@@ -227,7 +227,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
     }
 
     public string GetGuide() =>
-        Faction.IsUnderPlayerGuidance ? "player" : "simulation";
+        Faction.IsUnderPlayerGuidance ? Context.Guide_Player : Context.Guide_Simulation;
 
     public ParametricSubcontext BuildGetGroupsAttributeSubcontext(
         Context parentContext,

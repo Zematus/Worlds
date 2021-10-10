@@ -32,7 +32,7 @@
       "repeatable": true
     },
     {
-      "id": "clan_perform_influence_demand",
+      "id": "clan_decide_performing_influence_demand",
       "name": "clan perform influence demand",
       "target": "faction",
       "assignOn": ["spawn", "status_change", "guide_switch"],
@@ -41,7 +41,7 @@
         { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
         { "id": "influence_delta", "value": "max(0, dominant_faction.influence - target.influence)" },
         { "id": "target_authority", "value": "target.preferences.authority" },
-        { "id": "admin_factors", "value": "clamp(1 - (relationship_value * influence_delta * target_authority * 4), 0, 1)" },
+        { "id": "admin_factors", "value": "clamp(1 - (relationship_value * influence_delta * target_authority * 4), 0.01, 1)" },
         { "id": "min_admin_load", "value": "100 * admin_factors" },
         { "id": "max_admin_load", "value": "5000 * admin_factors" },
         { "id": "chance_of_making_demand", "value": "normalize(target.administrative_load, min_admin_load, max_admin_load)" }
@@ -67,16 +67,18 @@
       "id": "clan_decide_form_new_tribe",
       "name": "clan decide form new tribe",
       "target": "faction",
-      "assignOn": ["spawn", "status_change"],
+      "assignOn": ["spawn", "status_change", "guide_switch"],
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
-        { "id": "relationship_factor", "value": "max(0, 0.29 - relationship_value)" },
+        { "id": "relationship_factor", "value": "max(0, 0.3 - relationship_value)" },
         { "id": "influence_delta", "value": "dominant_faction.influence - target.influence" },
         { "id": "influence_factor", "value": "1 - influence_delta" },
-        { "id": "chance_of_making_attempt", "value": "clamp(influence_factor * relationship_factor * (1 - target.preferences.cohesion), 0, 1)" }
+        { "id": "cohesion_factor", "value": "max(0, 0.5 - target.preferences.cohesion)" },
+        { "id": "chance_of_making_attempt", "value": "clamp(influence_factor * relationship_factor * cohesion_factor, 0, 1)" }
       ],
       "assignmentConditions": [
+        "target.guide == simulation",
         "target.type == clan",
         "target.polity.type == tribe",
         "target != dominant_faction"
