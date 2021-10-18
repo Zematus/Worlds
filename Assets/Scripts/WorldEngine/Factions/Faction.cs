@@ -154,7 +154,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     private DatedValue<float> _administrativeLoad;
     private DatedValue<Agent> _currentLeader;
 
-    private HashSet<string> _flags = new HashSet<string>();
+    private readonly HashSet<string> _flags = new HashSet<string>();
 
     private bool _preupdated = false;
 
@@ -285,12 +285,12 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         StillPresent = false;
     }
 
-    public void AddOverlappingPolity(PolityProminence prominence)
+    public void AddOverlappingPolity(PolityProminence prominence, bool wasSwap = false)
     {
 #if DEBUG
         if (!_overlappingProminences.Add(prominence))
         {
-            throw new System.Exception(
+            throw new Exception(
                 $"Tried adding same prominence twice, " +
                 $"group: {prominence.Id}, " +
                 $"polity: {prominence.PolityId}, " +
@@ -300,12 +300,23 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 #endif
 
         if (OverlapingPolities.ContainsKey(prominence.Polity))
+        {
             OverlapingPolities[prominence.Polity]++;
+        }
         else
+        {
+#if DEBUG
+            if ((PolityId == "241717118:3381057604410018984") && (prominence.PolityId == "304232964:3217919211508151124"))
+            {
+                Debug.LogWarning($"Adding overlapping polity, wasSwap: {wasSwap}, faction: {Id}, faction's polity: {PolityId}, added polity: {prominence.PolityId}");
+            }
+#endif
+
             OverlapingPolities.Add(prominence.Polity, 1);
+        }
     }
 
-    public void RemoveOverlappingPolity(PolityProminence prominence)
+    public void RemoveOverlappingPolity(PolityProminence prominence, bool wasSwap = false)
     {
 #if DEBUG
         if (!_overlappingProminences.Remove(prominence))
@@ -324,31 +335,40 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
             OverlapingPolities[prominence.Polity]--;
 
             if (OverlapingPolities[prominence.Polity] <= 0)
+            {
+#if DEBUG
+                if ((PolityId == "241717118:3381057604410018984") && (prominence.PolityId == "304232964:3217919211508151124"))
+                {
+                    Debug.LogWarning($"Removing overlapping polity, wasSwap: {wasSwap}, faction: {Id}, faction's polity: {PolityId}, removed polity: {prominence.PolityId}");
+                }
+#endif
+
                 OverlapingPolities.Remove(prominence.Polity);
+            }
         }
         else
             throw new System.Exception("removing polity that was not part of overlaping polities");
     }
 
-    public void AddProminence(PolityProminence prominence)
+    public void AddProminence(PolityProminence prominence, bool wasSwap = false)
     {
         if (!Prominences.Add(prominence))
             return;
 
         foreach (var p in prominence.Group.GetPolityProminences())
         {
-            AddOverlappingPolity(p);
+            AddOverlappingPolity(p, wasSwap);
         }
     }
 
-    public void RemoveProminence(PolityProminence prominence)
+    public void RemoveProminence(PolityProminence prominence, bool wasSwap = false)
     {
         if (!Prominences.Remove(prominence))
             return;
 
         foreach (var p in prominence.Group.GetPolityProminences())
         {
-            RemoveOverlappingPolity(p);
+            RemoveOverlappingPolity(p, wasSwap);
         }
     }
 
@@ -408,10 +428,15 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public float GetRelationshipValue(Faction faction)
     {
+        if (faction == null)
+        {
+            throw new ArgumentNullException("faction is null");
+        }
+
         // Set a default neutral relationship
         if (!_relationships.ContainsKey(faction.Id))
         {
-            Faction.SetRelationship(this, faction, 0.5f);
+            SetRelationship(this, faction, 0.5f);
         }
 
         return _relationships[faction.Id].Value;

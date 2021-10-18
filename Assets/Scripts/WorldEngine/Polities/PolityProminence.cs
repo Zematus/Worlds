@@ -161,12 +161,14 @@ public class PolityProminence // : IKeyedValue<Identifier>
         if (ClosestFaction == faction)
             return;
 
-        ClosestFaction?.RemoveProminence(this);
+        bool swap = (ClosestFaction != null) && (faction != null);
+
+        ClosestFaction?.RemoveProminence(this, swap);
 
         ClosestFaction = faction;
         ClosestFactionId = faction?.Id;
 
-        faction?.AddProminence(this);
+        faction?.AddProminence(this, swap);
     }
 
     /// <summary>

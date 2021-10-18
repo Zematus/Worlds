@@ -701,6 +701,18 @@ public abstract class Polity : ISynchronizable
     {
         PolityContact contact = new PolityContact(World, this, polity, initialGroupCount);
 
+#if DEBUG
+        if ((Id == "241717118:3381057604410018984") && (polity.Id == "304232964:3217919211508151124"))
+        {
+            Debug.LogWarning($"Adding CONTACT polity, polity: {Id}, added polity: {polity.Id}");
+
+            if (World.CurrentDate == 493615383)
+            {
+                Debug.LogWarning("Debugging AddContactInternal");
+            }
+        }
+#endif
+
         _contacts.Add(polity.Id, contact);
 
         if (DominantFaction == null)
@@ -742,6 +754,13 @@ public abstract class Polity : ISynchronizable
 
     private void RemoveContactInternal(Polity polity)
     {
+#if DEBUG
+        if ((Id == "241717118:3381057604410018984") && (polity.Id == "304232964:3217919211508151124"))
+        {
+            Debug.LogWarning($"Removing CONTACT polity, polity: {Id}, removed polity: {polity.Id}");
+        }
+#endif
+
         _contacts.Remove(polity.Id);
 
         ApplyPolityContactChange();

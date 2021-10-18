@@ -89,6 +89,13 @@ public abstract class DelayedSetEntity<T> : Entity
         {
             if (_isReset && (_getterMethod != null))
             {
+#if DEBUG
+                if (Id.Contains("selected_faction_") && (Manager.CurrentWorld.CurrentDate >= 506695214))
+                {
+                    Debug.LogWarning("Debugging DelayedSetEntity.Setable.get");
+                }
+#endif
+
                 Set(_getterMethod());
             }
 
