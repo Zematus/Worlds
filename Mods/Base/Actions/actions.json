@@ -42,9 +42,28 @@
       "name": "Form New Tribe",
       "target": "faction",
       "category": "diplomacy",
+      "properties": [
+        { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
+        { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
+        { "id": "cohesion_preference", "value": "target.preferences.cohesion" }
+      ],
       "accessConditions": [
-        "target != target.polity.dominant_faction",
+        "target != dominant_faction",
         "target.polity.type == tribe"
+      ],
+      "executeConditions": [
+        "relationship_value < 0.6",
+        "cohesion_preference < 0.6"
+      ],
+      "executeConditions_version2": [
+        {
+          "condition": "relationship_value < 0.4",
+          "justification": "relationship value with dominant clan must be below 0.4. Currently <<relationship_value>>"
+        },
+        {
+          "condition": "cohesion_preference < 0.5",
+          "justification": "cohesion preference must be below 0.5. Currently <<cohesion_preference>>"
+        }
       ],
       "effects": [
         "target.trigger_decision(clan_decide_form_new_tribe)"

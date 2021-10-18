@@ -36,8 +36,7 @@
           "text": "Do not split from <<target.polity>>...",
           "weight": "clamp(1 - chance_of_making_attempt, 0, 1)"
         }
-      ],
-      "enableDebugLog": true
+      ]
     },
     {
       "id": "tribe_split_occurs",

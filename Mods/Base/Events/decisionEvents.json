@@ -70,8 +70,7 @@
       "assignOn": ["spawn", "status_change", "guide_switch"],
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
-        { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
-        { "id": "relationship_factor", "value": "max(0, 0.3 - relationship_value)" },
+        { "id": "relationship_factor", "value": "max(0, 0.3 - target.get_relationship(dominant_faction))" },
         { "id": "influence_delta", "value": "dominant_faction.influence - target.influence" },
         { "id": "influence_factor", "value": "1 - influence_delta" },
         { "id": "cohesion_factor", "value": "max(0, 0.5 - target.preferences.cohesion)" },

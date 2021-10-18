@@ -33,9 +33,9 @@ public class GetRelationshipAttribute : ValueEntityAttribute<float>
             }
 
             throw new System.Exception(
-                "Input parameter is not of a valid faction entity: " + _argumentExp.Value.GetType() +
-                "\n - expression: " + _argumentExp.ToString() +
-                "\n - value: " + _argumentExp.ToPartiallyEvaluatedString());
+                $"Input parameter is not of a valid faction entity: {_argumentExp.Value.GetType()}" +
+                $"\n - expression: {_argumentExp.ToString()}" +
+                $"\n - value: {_argumentExp.ToPartiallyEvaluatedString()}");
         }
     }
 }
