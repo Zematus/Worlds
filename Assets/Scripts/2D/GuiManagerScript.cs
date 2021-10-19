@@ -217,7 +217,7 @@ public class GuiManagerScript : MonoBehaviour
     private Stack<string> _tempOverlaySubtypeStack =
         new Stack<string>();
 
-    private string _planetOverlaySubtype = "None";
+    private string _planetOverlaySubtype = Manager.NoOverlaySubtype;
 
     private List<PlanetOverlay> _popOverlays = new List<PlanetOverlay>()
     {
@@ -3170,7 +3170,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         if (!_planetOverlaySubtypeCache.TryGetValue(overlay, out string currentOverlaySubtype))
         {
-            currentOverlaySubtype = "None";
+            currentOverlaySubtype = Manager.NoOverlaySubtype;
         }
 
         ChangePlanetOverlay(overlay, currentOverlaySubtype, invokeEvent, temporary);

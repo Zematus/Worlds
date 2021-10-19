@@ -302,7 +302,7 @@ public class Manager
 
     private static PlanetView _planetView = PlanetView.Biomes;
     private static PlanetOverlay _planetOverlay = PlanetOverlay.None;
-    private static string _planetOverlaySubtype = "None";
+    private static string _planetOverlaySubtype = NoOverlaySubtype;
 
     private static HighlightMode _highlightMode = HighlightMode.None;
 
@@ -310,9 +310,9 @@ public class Manager
 
     private static FilterCollectionDelegate _filterHighlightCollection = null;
 
-    private static List<Color> _biomePalette = new List<Color>();
-    private static List<Color> _mapPalette = new List<Color>();
-    private static List<Color> _overlayPalette = new List<Color>();
+    private static readonly List<Color> _biomePalette = new List<Color>();
+    private static readonly List<Color> _mapPalette = new List<Color>();
+    private static readonly List<Color> _overlayPalette = new List<Color>();
 
     private static int _totalLoadTicks = 0;
     private static int _loadTicks = 0;
@@ -1673,7 +1673,7 @@ public class Manager
         _progressCastMethod?.Invoke(Mathf.Min(1, value));
     }
 
-    private static void SetObservableUpdateTypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
+    private static void SetObservableUpdateTypes(PlanetOverlay overlay, string planetOverlaySubtype = NoOverlaySubtype)
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
@@ -1726,7 +1726,7 @@ public class Manager
         }
     }
 
-    private static void SetObservableUpdateSubtypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
+    private static void SetObservableUpdateSubtypes(PlanetOverlay overlay, string planetOverlaySubtype = NoOverlaySubtype)
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
@@ -4236,7 +4236,7 @@ public class Manager
 
     private static Color SetPopCulturalPreferenceOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         if (cell.Group != null)
@@ -4253,7 +4253,7 @@ public class Manager
 
     private static Color SetPolityCulturalPreferenceOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
         {
             if (cell.Group == null)
                 return color;
@@ -4319,7 +4319,7 @@ public class Manager
 
     private static Color SetPopCulturalActivityOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         if (cell.Group != null)
@@ -4339,7 +4339,7 @@ public class Manager
 
     private static Color SetPolityCulturalActivityOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
         {
             if (cell.Group == null)
                 return color;
@@ -4369,7 +4369,7 @@ public class Manager
 
     private static Color SetPopCulturalSkillOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         if (cell.Group != null)
@@ -4389,7 +4389,7 @@ public class Manager
 
     private static Color SetPolityCulturalSkillOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
         {
             if (cell.Group == null)
                 return color;
@@ -4419,7 +4419,7 @@ public class Manager
 
     private static Color SetPopCulturalKnowledgeOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         if (cell.Group != null)
@@ -4446,7 +4446,7 @@ public class Manager
 
     private static Color SetPolityCulturalKnowledgeOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
         {
             if (cell.Group == null)
                 return color;
@@ -4485,7 +4485,7 @@ public class Manager
 
     private static Color SetPopCulturalDiscoveryOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         if (cell.Group != null)
@@ -4501,7 +4501,7 @@ public class Manager
 
     private static Color SetPolityCulturalDiscoveryOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
         {
             if (cell.Group == null)
                 return color;
@@ -4590,7 +4590,7 @@ public class Manager
 
     private static Color SetBiomeTraitPresenceOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         color = GetLowMedHighColor(cell.GetBiomeTraitPresence(_planetOverlaySubtype) * (1 - cell.FarmlandPercentage));
@@ -4622,7 +4622,7 @@ public class Manager
         color = Color.black;
         color.a = baseAlpha;
 
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         Layer layer = Layer.Layers[_planetOverlaySubtype];
