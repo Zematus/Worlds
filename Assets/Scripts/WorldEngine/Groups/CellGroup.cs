@@ -1007,14 +1007,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// all step 2 group post updates are performed
     public void PostUpdate_BeforePolityUpdates_Step1()
     {
-//#if DEBUG
-//        if ((World.CurrentDate >= Manager.GetDateNumber(2488878, 219)) &&
-//            (Id == "0000000000908440689:5109863400567975564"))
-//        {
-//            Debug.LogWarning("PostUpdate_BeforePolityUpdates_Step1: Debugging group: " + Id);
-//        }
-//#endif
-
         _alreadyUpdated = false;
 
         if (Population < 2)

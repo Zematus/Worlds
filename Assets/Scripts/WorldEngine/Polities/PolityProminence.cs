@@ -136,7 +136,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
     public void InitDestruction(bool validateFaction = true)
     {
-        if (validateFaction && (ClosestFaction.PolityId != PolityId))
+        if (validateFaction && (ClosestFaction != null) && (ClosestFaction.PolityId != PolityId))
         {
             throw new System.Exception(
                 $"Closest faction doesn't belong to same polity as prominence, " +
@@ -364,23 +364,6 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
             prom.ResetCoreDistances(idFactionBeingReset, minFactionDistance);
         }
-
-//#if DEBUG
-        //if (Group.Position.Equals(7, 144))
-        //{
-        //    string list = "\n";
-
-        //    foreach (KeyValuePair<Direction, PolityProminence> pair in NeighborProminences)
-        //    {
-        //        list += pair.Value.Group.Cell.Position + ", Id: " +
-        //            pair.Value.Group.Id + "\n";
-        //    }
-
-        //    Debug.LogWarning("DEBUG: ResetNeighborCoreDistances: " + Group.Position
-        //        + "\n\n-- list -- " + list
-        //        + "\nstack: " + new System.Diagnostics.StackTrace() + "\n");
-        //}
-//#endif
     }
 
     /// <summary>
@@ -416,7 +399,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
             prom.FactionCoreDistance = MaxCoreDistance;
             prom.PolityCoreDistance = MaxCoreDistance;
 
-            prom.SetClosestFaction(Polity.DominantFaction);
+            prom.SetClosestFaction(null);
 
 #if DEBUG
             prom.LastCoreDistanceReset = Manager.CurrentWorld.CurrentDate;

@@ -572,18 +572,11 @@ public abstract class Polity : ISynchronizable
 
         if (_factions.Count <= 0)
         {
-            //#if DEBUG
-            //Debug.Log ("Polity will be removed due to losing all factions. faction id: " + faction.Id + ", polity id:" + Id);
-            //#endif
-
             PrepareToRemoveFromWorld();
             return;
         }
 
         World.AddPolityToUpdate(this);
-
-        // There's no point in calling this here as this happens after factions have already been updated or after the polity was destroyed
-        //World.AddFactionToUpdate(faction);
 
         FactionCount--;
     }

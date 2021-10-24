@@ -17,6 +17,7 @@
         "target.faction_cores_count == 0"
       ],
       "triggerConditions": [
+        "target.has_faction(polity)",
         "faction.type == clan",
         "faction_core_distance > 1000",
         "faction.administrative_load > 500",
@@ -25,7 +26,7 @@
         "polity_prominence_value > 0.6",
         "target.knowledges.social_organization >= 6"
       ],
-      "timeToTrigger": "73000 + random(29200000 * (1 - saturation(faction.administrative_load, 160000)) * faction.preferences.cohesion * core_distance_factor)",
+      "timeToTrigger": "73000 + random(29200000 * core_distance_factor)",
       "effects": [
         "faction.trigger_decision(clan_decide_split, target)"
       ],

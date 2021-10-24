@@ -8,6 +8,7 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
     public const string CellAttributeId = "cell";
     public const string ProminenceValueAttributeId = "prominence_value";
     public const string FactionCoresCountAttributeId = "faction_cores_count";
+    public const string HasFactionAttributeId = "has_faction";
     public const string GetFactionAttributeId = "get_faction";
     public const string GetFactionCoreDistanceAttributeId = "get_faction_core_distance";
     public const string PreferencesAttributeId = "preferences";
@@ -145,6 +146,35 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
         return attribute;
     }
 
+    private ValueGetterEntityAttribute<bool> GenerateHasFactionAttribute(IExpression[] arguments)
+    {
+        if (arguments.Length < 1)
+        {
+            throw new System.ArgumentException("get_faction: missing 'polity' argument");
+        }
+
+        var argumentExp =
+            ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
+
+        var attribute =
+            new ValueGetterEntityAttribute<bool>(
+                HasFactionAttributeId,
+                this,
+                () => {
+                    if (argumentExp.Value is PolityEntity pEntity)
+                    {
+                        return Group.GetFaction(pEntity.Polity) != null;
+                    }
+
+                    throw new System.Exception(
+                        $"Input parameter is not of a valid polity entity: {argumentExp.Value.GetType()}" +
+                        $"\n - expression: {argumentExp}" +
+                        $"\n - value: {argumentExp.ToPartiallyEvaluatedString()}");
+                });
+
+        return attribute;
+    }
+
     private EntityAttribute GenerateGetFactionEntityAttribute(IExpression[] arguments)
     {
         int index = _factionIndex++;
@@ -167,8 +197,10 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
                     if (faction == null)
                     {
                         throw new System.Exception(
-                            $"Closest faction not found. Validate if polity '{pEntity.Polity.Name.Text}' " +
-                            $"is present in Group {Group.Id} first");
+                            $"Faction not found. Validate if polity '{pEntity.Polity.Name.Text}' " +
+                            $"is present in Group first, and then validate if the group is part of " +
+                            $"a faction using 'has_faction' property." +
+                            $"\n - {Context.DebugType}: {Context.Id}");
                     }
 
                     return faction;
@@ -222,6 +254,9 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
 
             case HasPolityOfTypeAttributeId:
                 return GenerateHasPolityOfTypeAttribute(arguments);
+
+            case HasFactionAttributeId:
+                return GenerateHasFactionAttribute(arguments);
 
             case GetFactionAttributeId:
                 return GenerateGetFactionEntityAttribute(arguments);

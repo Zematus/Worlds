@@ -20,6 +20,12 @@ public class GetRelationshipAttribute : ValueEntityAttribute<float>
         {
             if (_argumentExp.Value is FactionEntity fEntity)
             {
+                if (fEntity.Faction == null)
+                {
+                    throw new System.Exception(
+                        $"faction entity is null. {_factionEntity.Context.DebugType}: {_factionEntity.Context.Id}");
+                }
+
                 float value = _factionEntity.Faction.GetRelationshipValue(fEntity.Faction);
 
 #if DEBUG
