@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public delegate bool CanAddCellDelegate(TerrainCell cell);
 
-public class CellSet : ICellCollectionGetter
+public class CellSet : ICellSet
 {
     public World World;
 
@@ -388,5 +388,21 @@ public class CellSet : ICellCollectionGetter
     public ICollection<TerrainCell> GetCells()
     {
         return Cells;
+    }
+
+    public RectInt GetBoundingRectangle()
+    {
+        int xMin = Left.Longitude;
+        int xMax = Right.Longitude;
+        int yMin = Bottom.Latitude;
+        int yMax = Top.Latitude;
+
+        // this makes sure the rectagle can correctly wrap around the vertical edges of the map if needed
+        if (xMax < xMin)
+        {
+            xMax += World.Width;
+        }
+
+        return new RectInt(xMin, yMin, xMax - xMin, yMax - yMin);
     }
 }

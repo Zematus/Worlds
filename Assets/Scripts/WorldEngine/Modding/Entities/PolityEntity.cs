@@ -8,6 +8,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string GetRandomGroupAttributeId = "get_random_group";
     public const string GetRandomContactAttributeId = "get_random_contact";
     public const string GetContactAttributeId = "get_contact";
+    public const string ContactsAttributeId = "contacts";
     public const string DominantFactionAttributeId = "dominant_faction";
     public const string TransferInfluenceAttributeId = "transfer_influence";
     public const string TypeAttributeId = "type";
@@ -16,7 +17,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string FactionCountAttributeId = "faction_count";
     public const string SplitAttributeId = "split";
     public const string MergeAttributeId = "merge";
-    public const string AccessibleNeighborRegionsAttributeId = "accessible_neighbor_regions";
+    public const string NeighborRegionsAttributeId = "neighbor_regions";
     public const string AddCoreRegionAttributeId = "add_core_region";
     public const string CoreRegionSaturationAttributeId = "core_region_saturation";
     public const string GetFactionsAttributeId = "get_factions";
@@ -40,7 +41,9 @@ public class PolityEntity : DelayedSetEntity<Polity>
     private AgentEntity _leaderEntity = null;
     private FactionEntity _dominantFactionEntity = null;
 
-    private RegionCollectionEntity _accessibleNeighborRegionsEntity = null;
+    private RegionCollectionEntity _neighborRegionsEntity = null;
+
+    private ContactCollectionEntity _contactsEntity = null;
 
     private int _factionCollectionIndex = 0;
 
@@ -84,15 +87,26 @@ public class PolityEntity : DelayedSetEntity<Polity>
         return _dominantFactionEntity.GetThisEntityAttribute(this);
     }
 
-    public EntityAttribute GetAccessibleNeighborRegionsAttribute()
+    public EntityAttribute GetNeighborRegionsAttribute()
     {
-        _accessibleNeighborRegionsEntity =
-            _accessibleNeighborRegionsEntity ?? new RegionCollectionEntity(
-            GetAccessibleNeighborRegions,
+        _neighborRegionsEntity =
+            _neighborRegionsEntity ?? new RegionCollectionEntity(
+            GetNeighborRegions,
             Context,
-            BuildAttributeId(AccessibleNeighborRegionsAttributeId));
+            BuildAttributeId(NeighborRegionsAttributeId));
 
-        return _accessibleNeighborRegionsEntity.GetThisEntityAttribute(this);
+        return _neighborRegionsEntity.GetThisEntityAttribute(this);
+    }
+
+    public EntityAttribute GetContactsAttribute()
+    {
+        _contactsEntity =
+            _contactsEntity ?? new ContactCollectionEntity(
+            GetContacts,
+            Context,
+            BuildAttributeId(ContactCountAttributeId));
+
+        return _contactsEntity.GetThisEntityAttribute(this);
     }
 
     public EntityAttribute GetLeaderAttribute()
@@ -197,7 +211,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
     public Faction GetDominantFaction() => Polity.DominantFaction;
 
-    public ICollection<Region> GetAccessibleNeighborRegions() => Polity.AccessibleNeighborRegions;
+    public ICollection<Region> GetNeighborRegions() => Polity.NeighborRegions;
 
     public Agent GetLeader() => Polity.CurrentLeader;
 
@@ -347,8 +361,11 @@ public class PolityEntity : DelayedSetEntity<Polity>
             case MergeAttributeId:
                 return new MergePolityAttribute(this, arguments);
 
-            case AccessibleNeighborRegionsAttributeId:
-                return GetAccessibleNeighborRegionsAttribute();
+            case NeighborRegionsAttributeId:
+                return GetNeighborRegionsAttribute();
+
+            case ContactsAttributeId:
+                return GetContactsAttribute();
 
             case AddCoreRegionAttributeId:
                 return new AddCoreRegionAttribute(this, arguments);
@@ -384,6 +401,6 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
         _leaderEntity?.Reset();
         _dominantFactionEntity?.Reset();
-        _accessibleNeighborRegionsEntity?.Reset();
+        _neighborRegionsEntity?.Reset();
     }
 }

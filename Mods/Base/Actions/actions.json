@@ -2,11 +2,11 @@
   "actions": [
     {
       "id": "expand_toward_region",
-      "name": "Expand Toward Region",
+      "name": "Expand toward region",
       "target": "faction",
       "category": "territory",
       "properties": [
-        { "id": "neighbor_regions", "value": "target.polity.accessible_neighbor_regions" },
+        { "id": "neighbor_regions", "value": "target.polity.neighbor_regions" },
         { "id": "rs_description", "value": "''Select the region the <<target.polity>> tribe should expand to...''" },
         { "id": "selected_region", "value": "neighbor_regions.request_selection(rs_description)" }
       ],
@@ -23,7 +23,7 @@
     },
     {
       "id": "perform_influence_demand",
-      "name": "Perform Influence Demand",
+      "name": "Perform influence demand",
       "target": "faction",
       "category": "diplomacy",
       "properties": [
@@ -39,7 +39,7 @@
     },
     {
       "id": "form_new_tribe",
-      "name": "Form New Tribe",
+      "name": "Form new tribe",
       "target": "faction",
       "category": "diplomacy",
       "properties": [
@@ -67,6 +67,30 @@
       ],
       "effects": [
         "target.trigger_decision(clan_decide_form_new_tribe)"
+      ]
+    },
+    {
+      "id": "improve_relationship_with_neighbors_clan",
+      "name": "Improve relationship with neighbor's clan",
+      "target": "faction",
+      "category": "diplomacy",
+      "properties": [
+        { "id": "contacts", "value": "target.polity.contacts" },
+        { "id": "rs_description_tribe", "value": "''Select a neighboring tribe...''" },
+        { "id": "selected_tribe", "value": "neighbor_clans.request_selection(rs_description_tribe).tribe" },
+        { "id": "neighbor_clans", "value": "selected_tribe.get_factions[faction](faction.has_contact_with(target.polity))" },
+        { "id": "rs_description_clan", "value": "''Select the clan within the <<selected_tribe>> tribe the <<target.polity>> tribe should improve relations with...''" },
+        { "id": "selected_clan", "value": "neighbor_clans.request_selection(rs_description_clan)" }
+      ],
+      "accessConditions": [
+        "target == target.polity.dominant_faction",
+        "target.polity.type == tribe"
+      ],
+      "executeConditions": [
+        "contacts.count > 0"
+      ],
+      "effects": [
+        "target.trigger_decision(tribe_decide_expand_toward_region, selected_region)"
       ]
     }
   ]

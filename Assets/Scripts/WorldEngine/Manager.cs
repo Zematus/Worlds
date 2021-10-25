@@ -306,7 +306,7 @@ public class Manager
 
     private static HighlightMode _highlightMode = HighlightMode.None;
 
-    private delegate bool FilterCollectionDelegate(ICellCollectionGetter getter);
+    private delegate bool FilterCollectionDelegate(ICellSet getter);
 
     private static FilterCollectionDelegate _filterHighlightCollection = null;
 
@@ -1207,7 +1207,7 @@ public class Manager
     /// <param name="cellsGetter">the cell collection getter</param>
     /// <param name="updateType">the type of update on which to highlight the cells</param>
     private static void AddSelectedCellsToHighlight(
-        ICellCollectionGetter cellsGetter, CellUpdateType updateType)
+        ICellSet cellsGetter, CellUpdateType updateType)
     {
         if ((_highlightMode & HighlightMode.OnSelectedCollection) != HighlightMode.OnSelectedCollection)
             return;
@@ -1232,7 +1232,7 @@ public class Manager
     /// <param name="cellsGetter">the cell collection getter</param>
     /// <param name="updateType">the type of update on which to highlight the cells</param>
     private static void AddHoveredCellsToHighlight(
-        ICellCollectionGetter cellsGetter, CellUpdateType updateType)
+        ICellSet cellsGetter, CellUpdateType updateType)
     {
         if ((_highlightMode & HighlightMode.OnHoveredCollection) != HighlightMode.OnHoveredCollection)
             return;
@@ -1780,7 +1780,7 @@ public class Manager
         }
     }
 
-    private static bool FilterSelectableRegion(ICellCollectionGetter getter)
+    private static bool FilterSelectableRegion(ICellSet getter)
     {
         if ((getter is Region region) &&
             (region.AssignedFilterType == Region.FilterType.Selectable))

@@ -164,22 +164,22 @@ public abstract class Polity : ISynchronizable
     }
 
     [XmlIgnore]
-    public HashSet<Region> AccessibleNeighborRegions
+    public HashSet<Region> NeighborRegions
     {
         get
         {
-            if (_needsToFindAccessibleRegions)
+            if (_needsToFindNeighborRegions)
             {
-                FindAccessibleNeighborRegions();
+                FindNeighborRegions();
             }
 
-            return _accessibleNeighborRegions;
+            return _neighborRegions;
         }
     }
 
-    private void FindAccessibleNeighborRegions()
+    private void FindNeighborRegions()
     {
-        _accessibleNeighborRegions = new HashSet<Region>();
+        _neighborRegions = new HashSet<Region>();
 
         if (Territory == null)
             throw new System.Exception("Territory is null. Polity: " + Id);
@@ -189,15 +189,15 @@ public abstract class Polity : ISynchronizable
             if (CoreRegions.Contains(region))
                 continue;
 
-            _accessibleNeighborRegions.Add(region);
+            _neighborRegions.Add(region);
         }
 
-        _needsToFindAccessibleRegions = false;
+        _needsToFindNeighborRegions = false;
     }
 
     public void AccessibleRegionsUpdate()
     {
-        _needsToFindAccessibleRegions = true;
+        _needsToFindNeighborRegions = true;
 
         ApplyRegionAccessibilityUpdate();
     }
@@ -213,7 +213,7 @@ public abstract class Polity : ISynchronizable
 
         CoreRegionIds.Add(region.Id);
 
-        _needsToFindAccessibleRegions = true;
+        _needsToFindNeighborRegions = true;
 
         NeedsNewCensus = true;
 
@@ -230,7 +230,7 @@ public abstract class Polity : ISynchronizable
 
         CoreRegionIds.Remove(region.Id);
 
-        _needsToFindAccessibleRegions = true;
+        _needsToFindNeighborRegions = true;
 
         NeedsNewCensus = true;
 
@@ -307,8 +307,8 @@ public abstract class Polity : ISynchronizable
     private Dictionary<Identifier, PolityContact> _contacts =
         new Dictionary<Identifier, PolityContact>();
 
-    private bool _needsToFindAccessibleRegions = true;
-    private HashSet<Region> _accessibleNeighborRegions;
+    private bool _needsToFindNeighborRegions = true;
+    private HashSet<Region> _neighborRegions;
 
     public Polity()
     {
@@ -1820,9 +1820,7 @@ public abstract class Polity : ISynchronizable
 
     public float CalculateAdministrativeLoad()
     {
-        int socialOrganizationValue = 0;
-
-        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out socialOrganizationValue);
+        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int socialOrganizationValue);
 
         if (socialOrganizationValue <= 0)
         {
@@ -1839,5 +1837,10 @@ public abstract class Polity : ISynchronizable
         }
 
         return administrativeLoad;
+    }
+
+    public RectInt GetRectangle()
+    {
+        return _rect;
     }
 }

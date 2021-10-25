@@ -24,6 +24,12 @@ public class ContactEntity : DelayedSetEntity<PolityContact>
     {
     }
 
+    public ContactEntity(
+        TryRequestGenMethod<PolityContact> tryRequestGenMethod, Context c, string id)
+        : base(tryRequestGenMethod, c, id)
+    {
+    }
+
     public EntityAttribute GetPolityAttribute()
     {
         _polityEntity =

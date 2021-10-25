@@ -379,7 +379,7 @@ public class CellRegion : Region
         return cell.Region == this;
     }
 
-    public override RectInt GetRectangle()
+    public override RectInt GetBoundingRectangle()
     {
         return _rect;
     }

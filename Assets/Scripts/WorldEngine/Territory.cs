@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class Territory : ISynchronizable, ICellCollectionGetter
+public class Territory : ISynchronizable, ICellSet
 {
     public List<WorldPosition> CellPositions;
     public List<CellArea> EnclosedAreas;
@@ -603,5 +603,59 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         }
 
         _regionAccesses[region].Count--;
+    }
+
+    public RectInt GetBoundingRectangle()
+    {
+        if (_cells.Count == 0)
+        {
+            return default;
+        }
+
+        bool first = true;
+        int xMin = 0;
+        int xMax = 0;
+        int yMin = 0;
+        int yMax = 0;
+
+        foreach (TerrainCell cell in _cells)
+        {
+            if (first)
+            {
+                xMin = cell.Longitude;
+                xMax = cell.Longitude;
+                yMin = cell.Latitude;
+                yMax = cell.Latitude;
+
+                first = false;
+                continue;
+            }
+
+            int longitude = cell.Longitude;
+
+            // this will make sure that we get the smallest rect that encompasses the territory
+            // regardless of the territory wrapping around the horizontal edges of the map
+            if (longitude < xMax)
+            {
+                if ((longitude + World.Width - xMax) < (xMax - longitude))
+                {
+                    longitude += World.Width;
+                }
+            }
+            else
+            {
+                if ((xMax + World.Width - longitude) < (longitude - xMax))
+                {
+                    xMax += World.Width;
+                }
+            }
+
+            xMin = Mathf.Min(longitude, xMin);
+            xMax = Mathf.Max(longitude, xMax);
+            yMin = Mathf.Min(cell.Latitude, yMin);
+            yMax = Mathf.Max(cell.Latitude, yMax);
+        }
+
+        return new RectInt(xMin, yMin, xMax - xMin, yMax - yMin);
     }
 }

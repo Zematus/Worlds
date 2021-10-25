@@ -65,7 +65,7 @@ public class RegionSelectionRequest : EntitySelectionRequest<Region>, IMapEntity
         bool first = true;
         foreach (Region region in _involvedRegions)
         {
-            RectInt rRect = region.GetRectangle();
+            RectInt rRect = region.GetBoundingRectangle();
 
             if (first)
             {
