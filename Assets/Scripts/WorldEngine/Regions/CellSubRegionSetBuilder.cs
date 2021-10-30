@@ -37,7 +37,6 @@ public static class CellSubRegionSetBuilder
         foreach (CellSet subset in CellSet.SplitIntoSubsets(
             startingSet, MaxMajorLength, MinMajorLength, MaxScaleDiff, MinRectAreaPercent))
         {
-            //startCells.Add(subset.Cells.RandomSelect(GetRandomInt));
             startCells.Add(subset.GetMostCenteredCell());
         }
 

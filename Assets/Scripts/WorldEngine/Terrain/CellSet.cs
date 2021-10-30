@@ -202,11 +202,6 @@ public class CellSet : ICellSet
         float maxScaleDiff,
         float minRectAreaPercent)
     {
-//#if DEBUG
-//        Debug.Log("Spliting set with area: " + cellSet.Area + ", width: " +
-//            cellSet.RectWidth + ", height: " + cellSet.RectHeight);
-//#endif
-
         int majorLength = Mathf.Max(cellSet.RectHeight, cellSet.RectWidth);
         int minorLength = Mathf.Min(cellSet.RectHeight, cellSet.RectWidth);
         float scaleDiff = majorLength / (float)minorLength;
@@ -221,10 +216,6 @@ public class CellSet : ICellSet
 
         if (noNeedToSplit)
         {
-//#if DEBUG
-//            Debug.Log("Returning set with area: " + cellSet.Area);
-//#endif
-
             yield return cellSet;
         }
         else if (majorLength == cellSet.RectHeight)
@@ -244,11 +235,6 @@ public class CellSet : ICellSet
 
             topCellSet.Update();
             bottomCellSet.Update();
-
-//#if DEBUG
-//            Debug.Log("topCellSet area: " + topCellSet.Area);
-//            Debug.Log("bottomCellSet area: " + bottomCellSet.Area);
-//#endif
 
             foreach (CellSet subset in SplitIntoSubsets(
                 topCellSet, maxMajorLength, minMajorLength, maxScaleDiff, minRectAreaPercent))
@@ -279,11 +265,6 @@ public class CellSet : ICellSet
 
             leftCellSet.Update();
             rightCellSet.Update();
-
-//#if DEBUG
-//            Debug.Log("leftCellSet area: " + leftCellSet.Area);
-//            Debug.Log("rightCellSet area: " + rightCellSet.Area);
-//#endif
 
             foreach (CellSet subset in SplitIntoSubsets(
                 leftCellSet, maxMajorLength, minMajorLength, maxScaleDiff, minRectAreaPercent))
