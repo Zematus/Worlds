@@ -5,12 +5,10 @@ public class GroupSelectionRequest : EntitySelectionRequest<CellGroup>, IMapEnti
 {
     private readonly HashSet<CellGroup> _involvedGroups = null;
 
-    public ModText Text { get; private set; }
-
     public GroupSelectionRequest(
         ICollection<CellGroup> collection,
         ModText text) :
-        base(collection)
+        base(collection, text)
     {
         Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
 
@@ -18,8 +16,6 @@ public class GroupSelectionRequest : EntitySelectionRequest<CellGroup>, IMapEnti
         {
             throw new System.Exception("Can't create request without an active guided faction");
         }
-
-        Text = text;
 
         _involvedGroups = new HashSet<CellGroup>(collection);
         _involvedGroups.Add(guidedFaction.CoreGroup);

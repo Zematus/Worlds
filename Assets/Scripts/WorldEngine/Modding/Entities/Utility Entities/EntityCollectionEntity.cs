@@ -7,6 +7,11 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
     private readonly List<DelayedSetEntity<T>>
         _entitiesToSet = new List<DelayedSetEntity<T>>();
 
+    public EntityCollectionEntity(Context c, string id)
+        : base(c, id)
+    {
+    }
+
     public EntityCollectionEntity(
         CollectionGetterMethod<T> getterMethod, Context c, string id)
         : base(getterMethod, c, id)

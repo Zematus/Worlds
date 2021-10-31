@@ -1,19 +1,17 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class FactionSelectionRequest : EntitySelectionRequest<Faction>
+public class FactionSelectionRequest : EntitySelectionRequest<Faction>, IMapEntitySelectionRequest
 {
-    public ModText Text { get; private set; }
-
     public FactionSelectionRequest(
-        ICollection<Faction> collection) :
-        base(collection)
+        ICollection<Faction> collection,
+        ModText text) :
+        base(collection, text)
     {
-        Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
+    }
 
-        if (guidedFaction == null)
-        {
-            throw new System.Exception("Can't create request without an active guided faction");
-        }
+    public RectInt GetEncompassingRectangle()
+    {
+        throw new System.NotImplementedException();
     }
 }

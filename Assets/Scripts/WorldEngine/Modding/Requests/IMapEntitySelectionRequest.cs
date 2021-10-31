@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 
-public interface IMapEntitySelectionRequest
+public interface IMapEntitySelectionRequest : IEntitySelectionRequest
 {
-    ModText Text { get; }
-
     RectInt GetEncompassingRectangle();
 }
