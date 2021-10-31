@@ -104,7 +104,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
             _contactsEntity ?? new ContactCollectionEntity(
             GetContacts,
             Context,
-            BuildAttributeId(ContactCountAttributeId));
+            BuildAttributeId(ContactsAttributeId));
 
         return _contactsEntity.GetThisEntityAttribute(this);
     }
@@ -212,6 +212,8 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public Faction GetDominantFaction() => Polity.DominantFaction;
 
     public ICollection<Region> GetNeighborRegions() => Polity.NeighborRegions;
+
+    public ICollection<PolityContact> GetContacts() => Polity.GetContacts();
 
     public Agent GetLeader() => Polity.CurrentLeader;
 

@@ -58,32 +58,45 @@ public class CellSet : ICellSet
             return;
         }
 
-        if ((cell.Longitude - Left.Longitude) == -1)
+        int diffLeft = cell.Longitude - Left.Longitude;
+        int diffRight = cell.Longitude - Right.Longitude;
+
+        if (diffLeft < 0)
         {
-            Left = cell;
-        }
-        else if ((cell.Longitude - Left.Longitude - Manager.WorldWidth) == -1)
-        {
-            Left = cell;
-            WrapsAround = true;
+            if ((diffRight + diffLeft + Manager.WorldWidth) < 0)
+            {
+                // Wrapped around, the cell would be closer to the 
+                // rightmost cell and would be even more rightmost
+                Right = cell;
+                WrapsAround = true;
+            }
+            else
+            {
+                Left = cell;
+            }
         }
 
-        if ((cell.Longitude - Right.Longitude) == 1)
+        if (diffRight > 0)
         {
-            Right = cell;
-        }
-        else if ((cell.Longitude - Right.Longitude + Manager.WorldWidth) == 1)
-        {
-            Right = cell;
-            WrapsAround = true;
+            if ((diffRight + diffLeft - Manager.WorldWidth) > 0)
+            {
+                // Wrapped around, the cell would be closer to the 
+                // leftmost cell and would be even more leftmost
+                Left = cell;
+                WrapsAround = true;
+            }
+            else
+            {
+                Right = cell;
+            }
         }
 
-        if ((cell.Latitude - Top.Latitude) == 1)
+        if ((cell.Latitude - Top.Latitude) > 0)
         {
             Top = cell;
         }
 
-        if ((cell.Latitude - Bottom.Latitude) == -1)
+        if ((cell.Latitude - Bottom.Latitude) < 0)
         {
             Bottom = cell;
         }

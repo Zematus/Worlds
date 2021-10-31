@@ -1838,9 +1838,4 @@ public abstract class Polity : ISynchronizable
 
         return administrativeLoad;
     }
-
-    public RectInt GetRectangle()
-    {
-        return _rect;
-    }
 }
