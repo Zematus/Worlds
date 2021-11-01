@@ -2,7 +2,7 @@
 
 public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
 {
-    private int _selectedItemIndex = 0;
+    private int _selectedEntityIndex = 0;
 
     private readonly List<DelayedSetEntity<T>>
         _entitiesToSet = new List<DelayedSetEntity<T>>();
@@ -29,7 +29,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
 
     protected override EntityAttribute GenerateRequestSelectionAttribute(IExpression[] arguments)
     {
-        int index = _selectedItemIndex++;
+        int index = _selectedEntityIndex++;
         int iterOffset = Context.GetNextIterOffset() + index;
 
         if ((arguments == null) && (arguments.Length < 1))
@@ -49,7 +49,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
                 return true;
             },
             Context,
-            BuildAttributeId("selected_item_" + index));
+            BuildAttributeId("selected_entity_" + index));
 
         _entitiesToSet.Add(entity);
 
@@ -58,7 +58,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
 
     protected override EntityAttribute GenerateSelectRandomAttribute()
     {
-        int index = _selectedItemIndex++;
+        int index = _selectedEntityIndex++;
         int iterOffset = Context.GetNextIterOffset() + index;
 
         DelayedSetEntity<T> entity = ConstructEntity(
@@ -67,7 +67,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
                 return Collection.RandomSelect(Context.GetNextRandomInt, offset);
             },
             Context,
-            BuildAttributeId("selected_item_" + index));
+            BuildAttributeId("selected_entity_" + index));
 
         _entitiesToSet.Add(entity);
 

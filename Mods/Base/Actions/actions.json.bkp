@@ -68,6 +68,30 @@
       "effects": [
         "target.trigger_decision(clan_decide_form_new_tribe)"
       ]
+    },
+    {
+      "id": "improve_relationship_with_neighbors_clan",
+      "name": "Improve relationship with neighbor's clan",
+      "target": "faction",
+      "category": "diplomacy",
+      "properties": [
+        { "id": "contacts", "value": "target.polity.contacts" },
+        { "id": "rs_description_tribe", "value": "''Select a neighboring tribe...''" },
+        { "id": "selected_tribe", "value": "contacts.request_selection(rs_description_tribe).tribe" },
+        { "id": "neighbor_clans", "value": "selected_tribe.get_factions[faction](faction.has_contact_with(target.polity))" },
+        { "id": "rs_description_clan", "value": "''Select the clan within the <<selected_tribe>> tribe the <<target.polity>> tribe should improve relations with...''" },
+        { "id": "selected_clan", "value": "neighbor_clans.request_selection(rs_description_clan)" }
+      ],
+      "accessConditions": [
+        "target == target.polity.dominant_faction",
+        "target.polity.type == tribe"
+      ],
+      "executeConditions": [
+        "contacts.count > 0"
+      ],
+      "effects": [
+        "target.trigger_decision(tribe_decide_expand_toward_region, selected_region)"
+      ]
     }
   ]
 }

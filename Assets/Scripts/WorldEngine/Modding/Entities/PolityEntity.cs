@@ -404,5 +404,6 @@ public class PolityEntity : DelayedSetEntity<Polity>
         _leaderEntity?.Reset();
         _dominantFactionEntity?.Reset();
         _neighborRegionsEntity?.Reset();
+        _contactsEntity?.Reset();
     }
 }
