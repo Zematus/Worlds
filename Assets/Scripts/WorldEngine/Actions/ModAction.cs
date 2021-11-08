@@ -48,7 +48,7 @@ public class ModAction : Context, IDebugLogger, IEffectTrigger
     /// <summary>
     /// Conditions that decide if this action can be used with the target
     /// </summary>
-    public IValueExpression<bool>[] ExecuteConditions;
+    public JustifiedCondition[] ExecuteConditions;
 
     /// <summary>
     /// Effects to occur after the action triggers
@@ -141,26 +141,26 @@ public class ModAction : Context, IDebugLogger, IEffectTrigger
 
     public bool CanExecute()
     {
-        OpenDebugOutput("Evaluating Use Conditions:");
+        OpenDebugOutput("Evaluating Execute Conditions:");
 
         // Always check that the target is still valid
         if (!CanAccess())
         {
-            CloseDebugOutput("Use Result: False");
+            CloseDebugOutput("Execute Result: False");
             return false;
         }
 
         if (ExecuteConditions != null)
         {
-            foreach (IValueExpression<bool> exp in ExecuteConditions)
+            foreach (var exp in ExecuteConditions)
             {
-                bool value = exp.Value;
+                bool value = exp.Condition.Value;
 
-                AddExpDebugOutput("Condition", exp);
+                AddExpDebugOutput("Condition", exp.Condition);
 
                 if (!value)
                 {
-                    CloseDebugOutput("Use Result: False");
+                    CloseDebugOutput("Execute Result: False");
                     return false;
                 }
             }
@@ -168,6 +168,35 @@ public class ModAction : Context, IDebugLogger, IEffectTrigger
 
         CloseDebugOutput("Use Result: True");
         return true;
+    }
+
+    public string BuildExecuteInfoText()
+    {
+        string text = string.Empty;
+
+        // Always check that the target is still valid
+        if (!CanAccess())
+        {
+            return text;
+        }
+
+        bool first = true;
+        if (ExecuteConditions != null)
+        {
+            foreach (var exp in ExecuteConditions)
+            {
+                if (first)
+                {
+                    text = $"• {exp.Info.GetFormattedString()}";
+                    first = false;
+                    continue;
+                }
+
+                text += $"\n• {exp.Info.GetFormattedString()}";
+            }
+        }
+
+        return text;
     }
 
     public void SetEffectsToResolve()

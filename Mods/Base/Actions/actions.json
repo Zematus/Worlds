@@ -15,7 +15,10 @@
         "target.polity.type == tribe"
       ],
       "executeConditions": [
-        "neighbor_regions.count > 0"
+        {
+          "condition": "neighbor_regions.count > 0",
+          "info": "Number of neighbor regions must be greater than 0. Currently, <<neighbor_regions.count>>"
+        }
       ],
       "effects": [
         "target.trigger_decision(tribe_decide_expand_toward_region, selected_region)"
@@ -52,21 +55,44 @@
         "target.polity.type == tribe"
       ],
       "executeConditions": [
-        "relationship_value < 0.6",
-        "cohesion_preference < 0.6"
-      ],
-      "executeConditions_version2": [
         {
           "condition": "relationship_value < 0.4",
-          "justification": "relationship value with dominant clan must be below 0.4. Currently <<relationship_value>>"
+          "info": "Relationship value with dominant clan must be below 0.4. Currently, <<relationship_value>>"
         },
         {
           "condition": "cohesion_preference < 0.5",
-          "justification": "cohesion preference must be below 0.5. Currently <<cohesion_preference>>"
+          "info": "Cohesion preference must be below 0.5. Currently, <<cohesion_preference>>"
         }
       ],
       "effects": [
         "target.trigger_decision(clan_decide_form_new_tribe)"
+      ]
+    },
+    {
+      "id": "improve_relationship_with_neighbors_clan",
+      "name": "Improve relationship with neighbor's clan",
+      "target": "faction",
+      "category": "diplomacy",
+      "properties": [
+        { "id": "contacts", "value": "target.polity.contacts" },
+        { "id": "rs_description_tribe", "value": "''Select a neighboring tribe...''" },
+        { "id": "selected_tribe", "value": "contacts.request_selection(rs_description_tribe).polity" },
+        { "id": "neighbor_clans", "value": "selected_tribe.get_factions[faction](faction.has_contact_with(target.polity))" },
+        { "id": "rs_description_clan", "value": "''Select the clan within the <<selected_tribe>> tribe the <<target.polity>> tribe should improve relations with...''" },
+        { "id": "selected_clan", "value": "neighbor_clans.request_selection(rs_description_clan)" }
+      ],
+      "accessConditions": [
+        "target == target.polity.dominant_faction",
+        "target.polity.type == tribe"
+      ],
+      "executeConditions": [
+        {
+          "condition": "contacts.count > 0",
+          "info": "Number of neighbor tribes must be greater than 0. Currently, <<contacts.count>>"
+        }
+      ],
+      "effects": [
+        "target.trigger_decision(tribe_decide_expand_toward_region, selected_region)"
       ]
     }
   ]
