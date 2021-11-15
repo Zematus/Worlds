@@ -140,11 +140,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlIgnore]
     public Dictionary<Polity, int> OverlapingPolities = new Dictionary<Polity, int>();
 
-#if DEBUG
-    [XmlIgnore]
-    public HashSet<PolityProminence> _overlappingProminences = new HashSet<PolityProminence>();
-#endif
-
     protected Dictionary<Identifier, FactionRelationship> _relationships =
         new Dictionary<Identifier, FactionRelationship>();
 
@@ -285,69 +280,31 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         StillPresent = false;
     }
 
-    public void AddOverlappingPolity(PolityProminence prominence, bool wasSwap = false)
+    public void AddOverlappingPolity(Polity polity)
     {
-#if DEBUG
-        if (!_overlappingProminences.Add(prominence))
+        if (OverlapingPolities.ContainsKey(polity))
         {
-            throw new Exception(
-                $"Tried adding same prominence twice, " +
-                $"group: {prominence.Id}, " +
-                $"polity: {prominence.PolityId}, " +
-                $"faction: {Id}, " +
-                $"faction's polity: {Polity.Id}");
-        }
-#endif
-
-        if (OverlapingPolities.ContainsKey(prominence.Polity))
-        {
-            OverlapingPolities[prominence.Polity]++;
+            OverlapingPolities[polity]++;
         }
         else
         {
-#if DEBUG
-            if ((PolityId == "241717118:3381057604410018984") && (prominence.PolityId == "304232964:3217919211508151124"))
-            {
-                Debug.LogWarning($"Adding overlapping polity, wasSwap: {wasSwap}, faction: {Id}, faction's polity: {PolityId}, added polity: {prominence.PolityId}");
-            }
-#endif
-
-            OverlapingPolities.Add(prominence.Polity, 1);
+            OverlapingPolities.Add(polity, 1);
         }
     }
 
-    public void RemoveOverlappingPolity(PolityProminence prominence, bool wasSwap = false)
+    public void RemoveOverlappingPolity(Polity polity)
     {
-#if DEBUG
-        if (!_overlappingProminences.Remove(prominence))
+        if (OverlapingPolities.ContainsKey(polity))
         {
-            throw new System.Exception(
-                $"Tried removing same prominence twice, " +
-                $"group: {prominence.Id}, " +
-                $"faction: {Id}, " +
-                $"polity: {prominence.PolityId}, " +
-                $"faction's polity: {PolityId}");
-        }
-#endif
+            OverlapingPolities[polity]--;
 
-        if (OverlapingPolities.ContainsKey(prominence.Polity))
-        {
-            OverlapingPolities[prominence.Polity]--;
-
-            if (OverlapingPolities[prominence.Polity] <= 0)
+            if (OverlapingPolities[polity] <= 0)
             {
-#if DEBUG
-                if ((PolityId == "241717118:3381057604410018984") && (prominence.PolityId == "304232964:3217919211508151124"))
-                {
-                    Debug.LogWarning($"Removing overlapping polity, wasSwap: {wasSwap}, faction: {Id}, faction's polity: {PolityId}, removed polity: {prominence.PolityId}");
-                }
-#endif
-
-                OverlapingPolities.Remove(prominence.Polity);
+                OverlapingPolities.Remove(polity);
             }
         }
         else
-            throw new System.Exception("removing polity that was not part of overlaping polities");
+            throw new Exception("Removing polity that was not part of overlaping polities");
     }
 
     public void AddProminence(PolityProminence prominence, bool wasSwap = false)
@@ -355,10 +312,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if (!Prominences.Add(prominence))
             return;
 
-        foreach (var p in prominence.Group.GetPolityProminences())
-        {
-            AddOverlappingPolity(p, wasSwap);
-        }
+        prominence.Group.IncreaseOverlapWithNeighborPolities(this);
     }
 
     public void RemoveProminence(PolityProminence prominence, bool wasSwap = false)
@@ -366,10 +320,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if (!Prominences.Remove(prominence))
             return;
 
-        foreach (var p in prominence.Group.GetPolityProminences())
-        {
-            RemoveOverlappingPolity(p, wasSwap);
-        }
+        prominence.Group.DecreaseOverlapWithNeighborPolities(this);
     }
 
     /// <summary>

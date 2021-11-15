@@ -81,8 +81,6 @@ public abstract class Polity : ISynchronizable
 
     public List<long> EventMessageIds;
 
-    public List<PolityContact> Contacts = null;
-
     public List<PolityEventData> EventDataList = new List<PolityEventData>();
 
     [XmlIgnore]
@@ -694,18 +692,6 @@ public abstract class Polity : ISynchronizable
     {
         PolityContact contact = new PolityContact(World, this, polity, initialGroupCount);
 
-#if DEBUG
-        if ((Id == "241717118:3381057604410018984") && (polity.Id == "304232964:3217919211508151124"))
-        {
-            Debug.LogWarning($"Adding CONTACT polity, polity: {Id}, added polity: {polity.Id}");
-
-            if (World.CurrentDate == 493615383)
-            {
-                Debug.LogWarning("Debugging AddContactInternal");
-            }
-        }
-#endif
-
         _contacts.Add(polity.Id, contact);
 
         if (DominantFaction == null)
@@ -747,13 +733,6 @@ public abstract class Polity : ISynchronizable
 
     private void RemoveContactInternal(Polity polity)
     {
-#if DEBUG
-        if ((Id == "241717118:3381057604410018984") && (polity.Id == "304232964:3217919211508151124"))
-        {
-            Debug.LogWarning($"Removing CONTACT polity, polity: {Id}, removed polity: {polity.Id}");
-        }
-#endif
-
         _contacts.Remove(polity.Id);
 
         ApplyPolityContactChange();
@@ -1249,12 +1228,6 @@ public abstract class Polity : ISynchronizable
 
         Name.Synchronize();
 
-        Contacts = new List<PolityContact>(_contacts.Values);
-
-        // Reload contacts to ensure order is equal to that in the save file
-        _contacts.Clear();
-        LoadContacts();
-
         FactionIds = new List<Identifier>(_factions.Keys);
 
         // Reload factions to ensure order is equal to that in the save file
@@ -1290,14 +1263,6 @@ public abstract class Polity : ISynchronizable
         return faction;
     }
 
-    private void LoadContacts()
-    {
-        foreach (PolityContact contact in Contacts)
-        {
-            _contacts.Add(contact.Id, contact);
-        }
-    }
-
     public void LoadFactions()
     {
         foreach (Identifier id in FactionIds)
@@ -1309,13 +1274,6 @@ public abstract class Polity : ISynchronizable
     public virtual void FinalizeLoad()
     {
         LoadFactions();
-        LoadContacts();
-
-        foreach (var contact in Contacts)
-        {
-            contact.World = World;
-            contact.FinalizeLoad();
-        }
 
         foreach (long messageId in EventMessageIds)
         {
