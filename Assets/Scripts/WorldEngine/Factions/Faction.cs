@@ -312,7 +312,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if (!Prominences.Add(prominence))
             return;
 
-        prominence.Group.IncreaseOverlapWithNeighborPolities(this);
+        prominence.IncreaseOverlapWithNeighborPolities(this);
     }
 
     public void RemoveProminence(PolityProminence prominence, bool wasSwap = false)
@@ -320,7 +320,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if (!Prominences.Remove(prominence))
             return;
 
-        prominence.Group.DecreaseOverlapWithNeighborPolities(this);
+        prominence.DecreaseOverlapWithNeighborPolities(this);
     }
 
     /// <summary>

@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class PolityProminence // : IKeyedValue<Identifier>
+public class PolityProminence
 {
     public const float MaxCoreDistance = 1000000000000f;
 
@@ -87,6 +87,8 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
     private bool _adminCostUpdateNeeded = true;
     private float _adminCost = 0;
+
+    private readonly Dictionary<Polity, int> _neighborPolities = new Dictionary<Polity, int>();
 
     /// <summary>
     /// Constructs a new polity prominence object (only used by XML deserializer)
@@ -463,8 +465,60 @@ public class PolityProminence // : IKeyedValue<Identifier>
         }
     }
 
-    //public Identifier GetKey()
-    //{
-    //    return PolityId;
-    //}
+    public void AddNeighborPolity(Polity polity)
+    {
+        if (polity == Polity)
+            return;
+
+        if (!_neighborPolities.ContainsKey(polity))
+        {
+            Polity.IncreaseContactGroupCount(polity, Polity);
+
+            ClosestFaction?.AddOverlappingPolity(polity);
+
+            _neighborPolities.Add(polity, 0);
+        }
+
+        _neighborPolities[polity]++;
+    }
+
+    public void RemoveNeighborPolity(Polity polity)
+    {
+        if (polity == Polity)
+            return;
+
+        if (!_neighborPolities.ContainsKey(polity))
+        {
+            throw new System.Exception($"Polity {polity.Id} not a neighbor of group {Id}");
+        }
+
+        if (_neighborPolities[polity] > 1)
+        {
+            _neighborPolities[polity]--;
+        }
+        else
+        {
+            _neighborPolities.Remove(polity);
+
+            ClosestFaction?.RemoveOverlappingPolity(polity);
+
+            Polity.DecreaseContactGroupCount(polity, Polity);
+        }
+    }
+
+    public void IncreaseOverlapWithNeighborPolities(Faction faction)
+    {
+        foreach (var polity in _neighborPolities.Keys)
+        {
+            faction.AddOverlappingPolity(polity);
+        }
+    }
+
+    public void DecreaseOverlapWithNeighborPolities(Faction faction)
+    {
+        foreach (var polity in _neighborPolities.Keys)
+        {
+            faction.RemoveOverlappingPolity(polity);
+        }
+    }
 }

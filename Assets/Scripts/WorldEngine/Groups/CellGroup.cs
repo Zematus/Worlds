@@ -3119,21 +3119,14 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         }
     }
 
-    private readonly Dictionary<Polity, int> _neighborPolities = new Dictionary<Polity, int>();
-
     private static void SyncAddNeighborPolities(CellGroup groupA, CellGroup groupB)
     {
         groupB.SyncAddNeighborPolities(groupA);
         groupA.SyncAddNeighborPolities(groupB);
     }
 
-    private void SyncAddNeighborPolities(CellGroup group = null)
+    private void SyncAddNeighborPolities(CellGroup group)
     {
-        if (group == null)
-        {
-            group = this;
-        }
-
         foreach (var prominence in group._polityProminences.Values)
         {
             AddNeighborPolity(prominence.Polity);
@@ -3146,13 +3139,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         groupA.SyncRemoveNeighborPolities(groupB);
     }
 
-    private void SyncRemoveNeighborPolities(CellGroup group = null)
+    private void SyncRemoveNeighborPolities(CellGroup group)
     {
-        if (group == null)
-        {
-            group = this;
-        }
-
         foreach (var prominence in group._polityProminences.Values)
         {
             RemoveNeighborPolity(prominence.Polity);
@@ -3181,90 +3169,17 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     private void AddNeighborPolity(Polity polity)
     {
-        if (!_neighborPolities.ContainsKey(polity))
+        foreach (var prominence in _polityProminences.Values)
         {
-            IncreaseContactWithNeighborPolities(polity);
-
-            IncreaseOverlapWithFactions(polity);
-
-            _neighborPolities.Add(polity, 0);
+            prominence.AddNeighborPolity(polity);
         }
-
-        _neighborPolities[polity]++;
     }
 
     private void RemoveNeighborPolity(Polity polity)
     {
-        if (!_neighborPolities.ContainsKey(polity))
-        {
-            throw new System.Exception($"Polity {polity.Id} not a neighbor of group {Id}");
-        }
-
-        if (_neighborPolities[polity] > 1)
-        {
-            _neighborPolities[polity]--;
-        }
-        else
-        {
-            _neighborPolities.Remove(polity);
-
-            DecreaseOverlapWithFactions(polity);
-
-            DecreaseContactWithNeighborPolities(polity);
-        }
-    }
-
-    private void IncreaseContactWithNeighborPolities(Polity polity)
-    {
-        foreach (var nPolity in _neighborPolities.Keys)
-        {
-            if (nPolity == polity)
-                continue;
-
-            Polity.IncreaseContactGroupCount(polity, nPolity);
-        }
-    }
-
-    private void DecreaseContactWithNeighborPolities(Polity polity)
-    {
-        foreach (var nPolity in _neighborPolities.Keys)
-        {
-            if (nPolity == polity)
-                continue;
-
-            Polity.DecreaseContactGroupCount(polity, nPolity);
-        }
-    }
-
-    private void IncreaseOverlapWithFactions(Polity polity)
-    {
         foreach (var prominence in _polityProminences.Values)
         {
-            prominence.ClosestFaction?.AddOverlappingPolity(polity);
-        }
-    }
-
-    private void DecreaseOverlapWithFactions(Polity polity)
-    {
-        foreach (var prominence in _polityProminences.Values)
-        {
-            prominence.ClosestFaction?.RemoveOverlappingPolity(polity);
-        }
-    }
-
-    public void IncreaseOverlapWithNeighborPolities(Faction faction)
-    {
-        foreach (var polity in _neighborPolities.Keys)
-        {
-            faction.AddOverlappingPolity(polity);
-        }
-    }
-
-    public void DecreaseOverlapWithNeighborPolities(Faction faction)
-    {
-        foreach (var polity in _neighborPolities.Keys)
-        {
-            faction.RemoveOverlappingPolity(polity);
+            prominence.RemoveNeighborPolity(polity);
         }
     }
 
@@ -3623,7 +3538,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         Neighbors = new Dictionary<Direction, CellGroup>(8);
 
-        SyncAddNeighborPolities();
+        SyncAddNeighborPolities(this);
 
         foreach (KeyValuePair<Direction, TerrainCell> pair in Cell.Neighbors)
         {
