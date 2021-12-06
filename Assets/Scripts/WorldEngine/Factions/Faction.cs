@@ -280,34 +280,90 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         StillPresent = false;
     }
 
-    public void AddOverlappingPolity(Polity polity)
+//#if DEBUG
+//    static Dictionary<PolityProminence, int> _debug_polityProminences = new Dictionary<PolityProminence, int>();
+//#endif
+
+    public void AddOverlappingPolity(PolityProminence prominence, PolityProminence prominence2)
     {
-        if (OverlapingPolities.ContainsKey(polity))
+//#if DEBUG
+//        if ((Id == "97371564:7301682472976039088") && (prominence.Polity.Id == "97371564:7301682472976039088"))
+//        {
+//            if ((prominence2.Group.Position.Equals(315, 131) && (prominence.Group.Position.Equals(315, 130) || prominence.Group.Position.Equals(316, 131) || prominence.Group.Position.Equals(316, 132))) ||
+//                (prominence2.Group.Position.Equals(315, 130) && prominence.Group.Position.Equals(315, 131)) ||
+//                (prominence2.Group.Position.Equals(316, 131) && prominence.Group.Position.Equals(315, 131)) ||
+//                (prominence2.Group.Position.Equals(316, 132) && prominence.Group.Position.Equals(315, 131)))
+//            {
+//                var stackTrace = new System.Diagnostics.StackTrace();
+//                Debug.LogWarning($"Adding prominence: {prominence.Group.Position}, prominence2: {prominence2.Group.Position}, caller: {stackTrace.GetFrame(1).GetMethod().Name}");
+//            }
+
+//            if (!_debug_polityProminences.ContainsKey(prominence))
+//            {
+//                _debug_polityProminences.Add(prominence, 1);
+//            }
+//            else
+//            {
+//                _debug_polityProminences[prominence]++;
+//            }
+//        }
+//#endif
+
+        if (OverlapingPolities.ContainsKey(prominence.Polity))
         {
-            OverlapingPolities[polity]++;
+            OverlapingPolities[prominence.Polity]++;
         }
         else
         {
-            OverlapingPolities.Add(polity, 1);
+            OverlapingPolities.Add(prominence.Polity, 1);
         }
     }
 
-    public void RemoveOverlappingPolity(Polity polity)
+    public void RemoveOverlappingPolity(PolityProminence prominence, PolityProminence prominence2)
     {
-        if (OverlapingPolities.ContainsKey(polity))
-        {
-            OverlapingPolities[polity]--;
+//#if DEBUG
+//        if ((Id == "97371564:7301682472976039088") && (prominence.Polity.Id == "97371564:7301682472976039088"))
+//        {
+//            //if (prominence.Group.Position.Equals(315, 130)
+//            if ((prominence2.Group.Position.Equals(315, 131) && (prominence.Group.Position.Equals(315, 130) || prominence.Group.Position.Equals(316, 131) || prominence.Group.Position.Equals(316, 132))) ||
+//                (prominence2.Group.Position.Equals(315, 130) && prominence.Group.Position.Equals(315, 131)) ||
+//                (prominence2.Group.Position.Equals(316, 131) && prominence.Group.Position.Equals(315, 131)) ||
+//                (prominence2.Group.Position.Equals(316, 132) && prominence.Group.Position.Equals(315, 131)))
+//            {
+//                var stackTrace = new System.Diagnostics.StackTrace();
+//                Debug.LogWarning($"Removing prominence: {prominence.Group.Position}, prominence2: {prominence2.Group.Position}, caller: {stackTrace.GetFrame(1).GetMethod().Name}");
+//            }
 
-            if (OverlapingPolities[polity] <= 0)
+//            if (!_debug_polityProminences.ContainsKey(prominence))
+//            {
+//                //throw new Exception($"Tried to remove prominence not present. prominence: {prominence.Group.Position}, prominence2: {prominence2.Group.Position}");
+//            }
+//            else
+//            {
+//                _debug_polityProminences[prominence]--;
+
+//                if (_debug_polityProminences[prominence] == 0)
+//                {
+//                    _debug_polityProminences.Remove(prominence);
+//                }
+//            }
+//        }
+//#endif
+
+        if (OverlapingPolities.ContainsKey(prominence.Polity))
+        {
+            OverlapingPolities[prominence.Polity]--;
+
+            if (OverlapingPolities[prominence.Polity] <= 0)
             {
-                OverlapingPolities.Remove(polity);
+                OverlapingPolities.Remove(prominence.Polity);
             }
         }
         else
-            throw new Exception("Removing polity that was not part of overlaping polities");
+            throw new Exception($"Removing polity that was not part of overlaping polities. faction: {Id}, polity: {prominence.Polity.Id}");
     }
 
-    public void AddProminence(PolityProminence prominence, bool wasSwap = false)
+    public void AddProminence(PolityProminence prominence)
     {
         if (!Prominences.Add(prominence))
             return;
@@ -315,12 +371,15 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         prominence.IncreaseOverlapWithNeighborPolities(this);
     }
 
-    public void RemoveProminence(PolityProminence prominence, bool wasSwap = false)
+    public void RemoveProminence(PolityProminence prominence, bool decreaseOverlap = true)
     {
         if (!Prominences.Remove(prominence))
             return;
 
-        prominence.DecreaseOverlapWithNeighborPolities(this);
+        if (decreaseOverlap)
+        {
+            prominence.DecreaseOverlapWithNeighborPolities(this);
+        }
     }
 
     /// <summary>

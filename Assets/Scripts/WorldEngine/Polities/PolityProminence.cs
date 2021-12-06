@@ -150,7 +150,7 @@ public class PolityProminence
 
         StillPresent = false;
 
-        ClosestFaction?.RemoveProminence(this);
+        ClosestFaction?.RemoveProminence(this, false);
     }
 
     public void FinishDestruction()
@@ -163,14 +163,12 @@ public class PolityProminence
         if (ClosestFaction == faction)
             return;
 
-        bool swap = (ClosestFaction != null) && (faction != null);
-
-        ClosestFaction?.RemoveProminence(this, swap);
+        ClosestFaction?.RemoveProminence(this);
 
         ClosestFaction = faction;
         ClosestFactionId = faction?.Id;
 
-        faction?.AddProminence(this, swap);
+        faction?.AddProminence(this);
     }
 
     /// <summary>
@@ -465,60 +463,78 @@ public class PolityProminence
         }
     }
 
-    public void AddNeighborPolity(Polity polity)
+    HashSet<PolityProminence> _neighborProminences = new HashSet<PolityProminence>();
+
+    public void AddNeighborPolity(PolityProminence prominence)
     {
-        if (polity == Polity)
+        if (prominence == this)
             return;
 
-        if (!_neighborPolities.ContainsKey(polity))
+        if (!_neighborProminences.Add(prominence))
         {
-            Polity.IncreaseContactGroupCount(polity, Polity);
-
-            ClosestFaction?.AddOverlappingPolity(polity);
-
-            _neighborPolities.Add(polity, 0);
+            Debug.LogError($"Prominence {prominence.Id} was already added as neighbor of prominence {Id}");
         }
 
-        _neighborPolities[polity]++;
+        ClosestFaction?.AddOverlappingPolity(prominence, this);
+
+        if (prominence.Polity == Polity)
+            return;
+
+        if (!_neighborPolities.ContainsKey(prominence.Polity))
+        {
+            Polity.IncreaseContactGroupCount(prominence.Polity, Polity);
+
+            _neighborPolities.Add(prominence.Polity, 0);
+        }
+
+        _neighborPolities[prominence.Polity]++;
     }
 
-    public void RemoveNeighborPolity(Polity polity)
+    public void RemoveNeighborPolity(PolityProminence prominence)
     {
-        if (polity == Polity)
+        if (prominence == this)
             return;
 
-        if (!_neighborPolities.ContainsKey(polity))
+        if (!_neighborProminences.Remove(prominence))
         {
-            throw new System.Exception($"Polity {polity.Id} not a neighbor of group {Id}");
+            Debug.LogError($"Prominence {prominence.Id} was not a neighbor of prominence {Id}");
         }
 
-        if (_neighborPolities[polity] > 1)
+        ClosestFaction?.RemoveOverlappingPolity(prominence, this);
+
+        if (prominence.Polity == Polity)
+            return;
+
+        if (!_neighborPolities.ContainsKey(prominence.Polity))
         {
-            _neighborPolities[polity]--;
+            throw new System.Exception($"Polity {prominence.Polity.Id} not a neighbor of group {Id}");
+        }
+
+        if (_neighborPolities[prominence.Polity] > 1)
+        {
+            _neighborPolities[prominence.Polity]--;
         }
         else
         {
-            _neighborPolities.Remove(polity);
+            _neighborPolities.Remove(prominence.Polity);
 
-            ClosestFaction?.RemoveOverlappingPolity(polity);
-
-            Polity.DecreaseContactGroupCount(polity, Polity);
+            Polity.DecreaseContactGroupCount(prominence.Polity, Polity);
         }
     }
 
     public void IncreaseOverlapWithNeighborPolities(Faction faction)
     {
-        foreach (var polity in _neighborPolities.Keys)
+        foreach (var prominence in _neighborProminences)
         {
-            faction.AddOverlappingPolity(polity);
+            faction.AddOverlappingPolity(prominence, this);
         }
     }
 
     public void DecreaseOverlapWithNeighborPolities(Faction faction)
     {
-        foreach (var polity in _neighborPolities.Keys)
+        foreach (var prominence in _neighborProminences)
         {
-            faction.RemoveOverlappingPolity(polity);
+            faction.RemoveOverlappingPolity(prominence, this);
         }
     }
 }

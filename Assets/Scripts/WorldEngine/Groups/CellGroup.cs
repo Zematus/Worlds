@@ -3159,8 +3159,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         foreach (var gProminence in _polityProminences.Values)
         {
-            prominence.AddNeighborPolity(gProminence.Polity);
-            gProminence.AddNeighborPolity(prominence.Polity);
+            prominence.AddNeighborPolity(gProminence);
+            gProminence.AddNeighborPolity(prominence);
         }
     }
 
@@ -3168,8 +3168,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         foreach (var gProminence in _polityProminences.Values)
         {
-            prominence.RemoveNeighborPolity(gProminence.Polity);
-            gProminence.RemoveNeighborPolity(prominence.Polity);
+            prominence.RemoveNeighborPolity(gProminence);
+            gProminence.RemoveNeighborPolity(prominence);
         }
     }
 
