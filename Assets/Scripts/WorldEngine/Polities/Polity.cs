@@ -630,6 +630,18 @@ public abstract class Polity : ISynchronizable
         if (faction.Polity != this)
             throw new System.Exception("Faction is not part of polity");
 
+//#if DEBUG
+//        if ((Id == "176743860:7489493386076493324") || (Id == "215624940:7812196115215947840"))
+//        {
+//            Debug.LogWarning($"DEBUG: changing dominant faction of polity {Id}, DominantFaction: {DominantFaction?.Id}, faction: {faction?.Id}");
+
+//            if (World.CurrentDate == 215643192)
+//            {
+//                Debug.LogWarning($"Debugging SetDominantFaction");
+//            }
+//        }
+//#endif
+
         DominantFaction = faction;
 
         if (faction != null)
@@ -868,8 +880,8 @@ public abstract class Polity : ISynchronizable
         // Can only tranfer influence between factions belonging to the same polity
 
         if (sourceFaction.PolityId != targetFaction.PolityId)
-            throw new System.Exception("Source faction and target faction do not belong to same polity. " +
-                "source's Polity: " + sourceFaction.PolityId + ", target's polity: " + targetFaction.PolityId);
+            throw new System.Exception($"Source faction and target faction do not belong to same polity. " +
+                $"source's Polity: {sourceFaction.PolityId}, target's polity: {targetFaction.PolityId}");
 
         // Always reduce influence of source faction and increase promience of target faction
 
@@ -892,12 +904,20 @@ public abstract class Polity : ISynchronizable
         _willBeRemoved = true;
     }
 
+    public void NormalizeAndUpdateDominantFaction()
+    {
+        if (_willBeRemoved) 
+            return;
+
+        NormalizeFactionInfluences();
+
+        UpdateDominantFaction();
+    }
+
     public void Update()
     {
-        if (_willBeRemoved)
-        {
+        if (_willBeRemoved) 
             return;
-        }
 
         if (!StillPresent)
         {
@@ -932,9 +952,7 @@ public abstract class Polity : ISynchronizable
 
         IsBeingUpdated = true;
 
-        NormalizeFactionInfluences();
-
-        UpdateDominantFaction();
+        NormalizeAndUpdateDominantFaction();
 
         Culture.Update();
 

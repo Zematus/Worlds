@@ -138,6 +138,18 @@ public class PolityProminence
 
     public void InitDestruction(bool validateFaction = true)
     {
+//#if DEBUG
+//        if ((PolityId == "176743860:7489493386076493324") && (Id == "17140236:7904199251283573672"))
+//        {
+//            Debug.LogWarning($"DEBUG: Removing prominence {PolityId}, group {Id}");
+
+//            if (World.CurrentDate == 215652318)
+//            {
+//                Debug.LogWarning($"Debugging InitDestruction: faction count: {Polity.FactionCount}");
+//            }
+//        }
+//#endif
+
         if (validateFaction && (ClosestFaction != null) && (ClosestFaction.PolityId != PolityId))
         {
             throw new System.Exception(

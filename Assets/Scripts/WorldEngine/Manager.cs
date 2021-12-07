@@ -678,7 +678,7 @@ public class Manager
 
         if (CurrentWorld != null)
         {
-            worldInfoStr += "[Date: " + GetDateString(CurrentWorld.CurrentDate) + "] - ";
+            worldInfoStr += $"[Date: {CurrentWorld.CurrentDate}] - ";
         }
 
         logString = logString.Replace("\n", "\n\t");

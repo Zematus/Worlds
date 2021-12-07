@@ -840,6 +840,18 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public virtual void SetDominant(bool state)
     {
+//#if DEBUG
+//        if (Id == "179615149:7788330637982280827")
+//        {
+//            Debug.LogWarning($"DEBUG: Setting faction dominant state to: {state}, faction: {Id}, polity: {Polity.Id}");
+
+//            if (World.CurrentDate == 215643192)
+//            {
+//                Debug.LogWarning($"Debugging SetDominant");
+//            }
+//        }
+//#endif
+
         IsDominant = state;
 
         SetStatusChange();
@@ -869,11 +881,24 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if ((targetPolity == null) || (!targetPolity.StillPresent))
             throw new System.Exception("target Polity is null or not Present");
 
+//#if DEBUG
+//        if (Id == "179615149:7788330637982280827")
+//        {
+//            Debug.LogWarning($"DEBUG: changing polity of faction {Id}, Polity: {Polity.Id}, targetPolity: {targetPolity.Id}");
+
+//            if (World.CurrentDate == 215643192)
+//            {
+//                Debug.LogWarning($"Debugging ChangePolity");
+//            }
+//        }
+//#endif
+
         Polity.RemoveFaction(this);
 
         if (IsDominant)
         {
             Polity.CoreGroupIsValid = false;
+            Polity.NormalizeAndUpdateDominantFaction();
         }
 
         if (transferGroups)
