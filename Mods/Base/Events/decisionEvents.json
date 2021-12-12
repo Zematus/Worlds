@@ -139,7 +139,8 @@
         { "id": "near_factions", "value": "contact.polity.get_factions[faction](faction.has_contact_with(target.polity))" },
         { "id": "selected_faction", "value": "near_factions.select_random()" },
         { "id": "relationship_value", "value": "target.get_relationship(selected_faction)" },
-        { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * (contact.strength * 50) * max(0.75 - target_isolation, 0)" }
+        { "id": "contact_strength_factor", "value": "clamp(contact.strength * 5, 0, 1)" },
+        { "id": "chance_of_making_attempt", "value": "(1 - relationship_value) * contact_strength_factor * max(0.75 - target_isolation, 0)" }
       ],
       "assignmentConditions": [
         "target.guide == simulation",
@@ -168,7 +169,8 @@
         { "id": "near_factions", "value": "contact.polity.get_factions[faction](faction.has_contact_with(target.polity))" },
         { "id": "selected_faction", "value": "near_factions.select_random()" },
         { "id": "relationship_value", "value": "target.get_relationship(selected_faction)" },
-        { "id": "chance_of_making_attempt", "value": "relationship_value * (contact.strength * 30) * max(0.5 - target_isolation, 0)" }
+        { "id": "contact_strength_factor", "value": "clamp(contact.strength * 5, 0, 1)" },
+        { "id": "chance_of_making_attempt", "value": "relationship_value * contact_strength_factor * max(0.5 - target_isolation, 0)" }
       ],
       "assignmentConditions": [
         "target.guide == simulation",
