@@ -6,7 +6,7 @@
       "target": "faction",
       "parameters": [
         { "id": "contact_faction", "type": "faction" },
-        { "id": "chance_of_making_attempt", "type": "number" }
+        { "id": "chance_of_making_attempt", "type": "number", "defaultValue": "1" }
       ],
       "properties": [
         { "id": "target_isolation", "value": "target.preferences.isolation" },

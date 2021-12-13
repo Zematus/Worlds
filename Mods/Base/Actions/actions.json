@@ -92,7 +92,7 @@
         }
       ],
       "effects": [
-        "target.trigger_decision(tribe_decide_expand_toward_region, selected_region)"
+        "target.trigger_decision(improve_relationship_with_neighbors_clan, selected_clan)"
       ]
     }
   ]
