@@ -5,14 +5,14 @@ using System.Text.RegularExpressions;
 
 public class FactionCollectionEntity : EntityCollectionEntity<Faction>
 {
-    public FactionCollectionEntity(Context c, string id)
-        : base(c, id)
+    public FactionCollectionEntity(Context c, string id, IEntity parent)
+        : base(c, id, parent)
     {
     }
 
     public FactionCollectionEntity(
-        CollectionGetterMethod<Faction> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        CollectionGetterMethod<Faction> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
@@ -22,12 +22,12 @@ public class FactionCollectionEntity : EntityCollectionEntity<Faction>
     }
 
     protected override DelayedSetEntity<Faction> ConstructEntity(
-        ValueGetterMethod<Faction> getterMethod, Context c, string id)
-        => new FactionEntity(getterMethod, c, id);
+        ValueGetterMethod<Faction> getterMethod, Context c, string id, IEntity parent)
+        => new FactionEntity(getterMethod, c, id, parent);
 
     protected override DelayedSetEntity<Faction> ConstructEntity(
-        TryRequestGenMethod<Faction> tryRequestGenMethod, Context c, string id)
-        => new FactionEntity(tryRequestGenMethod, c, id);
+        TryRequestGenMethod<Faction> tryRequestGenMethod, Context c, string id, IEntity parent)
+        => new FactionEntity(tryRequestGenMethod, c, id, parent);
 
     protected override DelayedSetEntityInputRequest<Faction> ConstructInputRequest(
         ICollection<Faction> collection, ModText text)

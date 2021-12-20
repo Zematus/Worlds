@@ -19,12 +19,12 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
 
     private T _defaultValue;
 
-    public ValueEntity(Context c, string id, T defaultValue) : base(c, id, true)
+    public ValueEntity(Context c, string id, IEntity parent, T defaultValue) : base(c, id, parent, true)
     {
         _defaultValue = defaultValue;
     }
 
-    public ValueEntity(Context c, string id) : base(c, id)
+    public ValueEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 

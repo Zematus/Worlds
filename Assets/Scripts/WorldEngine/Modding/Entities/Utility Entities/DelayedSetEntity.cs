@@ -20,27 +20,27 @@ public abstract class DelayedSetEntity<T> : Entity
     private T _requestResult = default;
     private bool _requestSatisfied = false;
 
-    public override bool RequiresInput => _tryRequestGenMethod != null;
+    public override bool RequiresInput => (_tryRequestGenMethod != null) || (Parent?.RequiresInput ?? false);
 
     private bool _needsToSatisfyRequest => _isReset && (!_requestSatisfied);
 
     public DelayedSetEntity(
-        ValueGetterMethod<T> getterMethod, Context c, string id)
-        : base(c, id)
+        ValueGetterMethod<T> getterMethod, Context c, string id, IEntity parent)
+        : base(c, id, parent)
     {
         _getterMethod = getterMethod;
     }
 
     public DelayedSetEntity(
-        TryRequestGenMethod<T> tryRequestGenMethod, Context c, string id)
-        : base(c, id)
+        TryRequestGenMethod<T> tryRequestGenMethod, Context c, string id, IEntity parent)
+        : base(c, id, parent)
     {
         _tryRequestGenMethod = tryRequestGenMethod;
         _getterMethod = RequestResultGetter;
     }
 
-    public DelayedSetEntity(Context c, string id)
-        : base(c, id)
+    public DelayedSetEntity(Context c, string id, IEntity parent)
+        : base(c, id, parent)
     {
         _getterMethod = null;
     }
@@ -57,6 +57,13 @@ public abstract class DelayedSetEntity<T> : Entity
         ResetInternal();
 
         _isReset = true;
+    }
+
+    public virtual void Set(T t, IEntity parent)
+    {
+        Parent = parent;
+
+        Set(t);
     }
 
     public virtual void Set(T t)
@@ -107,7 +114,7 @@ public abstract class DelayedSetEntity<T> : Entity
     {
         if (o is DelayedSetEntity<T> e)
         {
-            Set(e.Setable);
+            Set(e.Setable, e.Parent);
         }
         else if (o is T t)
         {
@@ -122,12 +129,17 @@ public abstract class DelayedSetEntity<T> : Entity
 
     public override bool TryGetRequest(out InputRequest request)
     {
+        request = null;
+
+        if (Parent?.TryGetRequest(out request) ?? false)
+        {
+            return true;
+        }
+
         if ((!RequiresInput) ||
             (!_needsToSatisfyRequest) ||
             (!_tryRequestGenMethod(out DelayedSetEntityInputRequest<T> entityRequest)))
         {
-            request = null;
-
             return false;
         }
 

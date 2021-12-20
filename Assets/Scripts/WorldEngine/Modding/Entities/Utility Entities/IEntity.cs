@@ -5,6 +5,8 @@ public interface IEntity : IComparable<object>, IInputRequester, IFormattedStrin
 {
     string Id { get; }
 
+    IEntity Parent { get; }
+
     EntityAttribute GetParametricAttribute(
         string attributeId,
         ParametricSubcontext subcontext,
@@ -32,7 +34,7 @@ public interface IEntity : IComparable<object>, IInputRequester, IFormattedStrin
 
     void Set(object o, PartiallyEvaluatedStringConverter converter);
 
-    EntityAttribute GetThisEntityAttribute(Entity parent);
+    EntityAttribute GetThisEntityAttribute();
 
     string ToPartiallyEvaluatedString(int depth = -1);
 }

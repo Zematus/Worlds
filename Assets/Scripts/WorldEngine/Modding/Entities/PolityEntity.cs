@@ -66,13 +66,13 @@ public class PolityEntity : DelayedSetEntity<Polity>
         return Polity.Name.BoldText;
     }
 
-    public PolityEntity(Context c, string id) : base(c, id)
+    public PolityEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
     public PolityEntity(
-        ValueGetterMethod<Polity> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        ValueGetterMethod<Polity> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
@@ -82,9 +82,10 @@ public class PolityEntity : DelayedSetEntity<Polity>
             _dominantFactionEntity ?? new FactionEntity(
             GetDominantFaction,
             Context,
-            BuildAttributeId(DominantFactionAttributeId));
+            BuildAttributeId(DominantFactionAttributeId),
+            this);
 
-        return _dominantFactionEntity.GetThisEntityAttribute(this);
+        return _dominantFactionEntity.GetThisEntityAttribute();
     }
 
     public EntityAttribute GetNeighborRegionsAttribute()
@@ -93,9 +94,10 @@ public class PolityEntity : DelayedSetEntity<Polity>
             _neighborRegionsEntity ?? new RegionCollectionEntity(
             GetNeighborRegions,
             Context,
-            BuildAttributeId(NeighborRegionsAttributeId));
+            BuildAttributeId(NeighborRegionsAttributeId), 
+            this);
 
-        return _neighborRegionsEntity.GetThisEntityAttribute(this);
+        return _neighborRegionsEntity.GetThisEntityAttribute();
     }
 
     public EntityAttribute GetContactsAttribute()
@@ -104,9 +106,10 @@ public class PolityEntity : DelayedSetEntity<Polity>
             _contactsEntity ?? new ContactCollectionEntity(
             GetContacts,
             Context,
-            BuildAttributeId(ContactsAttributeId));
+            BuildAttributeId(ContactsAttributeId),
+            this);
 
-        return _contactsEntity.GetThisEntityAttribute(this);
+        return _contactsEntity.GetThisEntityAttribute();
     }
 
     public EntityAttribute GetLeaderAttribute()
@@ -115,9 +118,10 @@ public class PolityEntity : DelayedSetEntity<Polity>
             _leaderEntity ?? new AgentEntity(
                 GetLeader,
                 Context,
-                BuildAttributeId(LeaderAttributeId));
+                BuildAttributeId(LeaderAttributeId),
+                this);
 
-        return _leaderEntity.GetThisEntityAttribute(this);
+        return _leaderEntity.GetThisEntityAttribute();
     }
 
     private EntityAttribute GenerateGetRandomGroupEntityAttribute()
@@ -131,11 +135,12 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 return Polity.GetRandomGroup(offset);
             },
             Context,
-            BuildAttributeId("random_group_" + index));
+            BuildAttributeId("random_group_" + index),
+            this);
 
         _groupEntitiesToSet.Add(entity);
 
-        return entity.GetThisEntityAttribute(this);
+        return entity.GetThisEntityAttribute();
     }
 
     public static PolityType ConvertToType(string typeStr)
@@ -167,11 +172,12 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 return Polity.GetRandomPolityContact(offset);
             },
             Context,
-            BuildAttributeId("random_contact_" + index));
+            BuildAttributeId("random_contact_" + index),
+            this);
 
         _contactEntitiesToSet.Add(entity);
 
-        return entity.GetThisEntityAttribute(this);
+        return entity.GetThisEntityAttribute();
     }
 
     private EntityAttribute GenerateGetContactEntityAttribute(IExpression[] arguments)
@@ -202,11 +208,12 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 return Polity.GetContact(polityEntity.Polity);
             },
             Context,
-            BuildAttributeId("contact_" + index));
+            BuildAttributeId("contact_" + index),
+            this);
 
         _contactEntitiesToSet.Add(entity);
 
-        return entity.GetThisEntityAttribute(this);
+        return entity.GetThisEntityAttribute();
     }
 
     public Faction GetDominantFaction() => Polity.DominantFaction;
@@ -234,7 +241,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 $"{GetFactionsAttributeId}_{index}",
                 parentContext);
 
-        var factionEntity = new FactionEntity(subcontext, paramIds[0]);
+        var factionEntity = new FactionEntity(subcontext, paramIds[0], this);
         subcontext.AddEntity(factionEntity);
 
         return subcontext;
@@ -295,11 +302,12 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 return selectedFactions;
             },
             Context,
-            BuildAttributeId($"factions_collection_{index}"));
+            BuildAttributeId($"factions_collection_{index}"),
+            this);
 
         _factionCollectionEntitiesToSet.Add(collectionEntity);
 
-        return collectionEntity.GetThisEntityAttribute(this);
+        return collectionEntity.GetThisEntityAttribute();
     }
 
     public override EntityAttribute GetParametricAttribute(

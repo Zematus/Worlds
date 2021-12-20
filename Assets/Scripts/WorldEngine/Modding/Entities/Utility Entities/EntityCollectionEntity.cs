@@ -7,22 +7,22 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
     private readonly List<DelayedSetEntity<T>>
         _entitiesToSet = new List<DelayedSetEntity<T>>();
 
-    public EntityCollectionEntity(Context c, string id)
-        : base(c, id)
+    public EntityCollectionEntity(Context c, string id, IEntity parent)
+        : base(c, id, parent)
     {
     }
 
     public EntityCollectionEntity(
-        CollectionGetterMethod<T> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        CollectionGetterMethod<T> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
     protected abstract DelayedSetEntity<T> ConstructEntity(
-        ValueGetterMethod<T> getterMethod, Context c, string id);
+        ValueGetterMethod<T> getterMethod, Context c, string id, IEntity parent);
 
     protected abstract DelayedSetEntity<T> ConstructEntity(
-        TryRequestGenMethod<T> tryRequestGenMethod, Context c, string id);
+        TryRequestGenMethod<T> tryRequestGenMethod, Context c, string id, IEntity parent);
 
     protected abstract DelayedSetEntityInputRequest<T> ConstructInputRequest(
         ICollection<T> collection, ModText text);
@@ -49,11 +49,12 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
                 return true;
             },
             Context,
-            BuildAttributeId("selected_entity_" + index));
+            BuildAttributeId("selected_entity_" + index),
+            this);
 
         _entitiesToSet.Add(entity);
 
-        return entity.GetThisEntityAttribute(this);
+        return entity.GetThisEntityAttribute();
     }
 
     protected override EntityAttribute GenerateSelectRandomAttribute()
@@ -67,11 +68,12 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
                 return Collection.RandomSelect(Context.GetNextRandomInt, offset);
             },
             Context,
-            BuildAttributeId("selected_entity_" + index));
+            BuildAttributeId("selected_entity_" + index),
+            this);
 
         _entitiesToSet.Add(entity);
 
-        return entity.GetThisEntityAttribute(this);
+        return entity.GetThisEntityAttribute();
     }
 
     protected override void ResetInternal()

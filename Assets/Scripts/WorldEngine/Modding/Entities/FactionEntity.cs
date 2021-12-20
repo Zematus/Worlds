@@ -54,19 +54,19 @@ public class FactionEntity : DelayedSetEntity<Faction>
         return Faction.GetNameBold();
     }
 
-    public FactionEntity(Context c, string id) : base(c, id)
+    public FactionEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
     public FactionEntity(
-        ValueGetterMethod<Faction> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        ValueGetterMethod<Faction> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
     public FactionEntity(
-        TryRequestGenMethod<Faction> tryRequestGenMethod, Context c, string id)
-        : base(tryRequestGenMethod, c, id)
+        TryRequestGenMethod<Faction> tryRequestGenMethod, Context c, string id, IEntity parent)
+        : base(tryRequestGenMethod, c, id, parent)
     {
     }
 
@@ -76,9 +76,10 @@ public class FactionEntity : DelayedSetEntity<Faction>
             _preferencesEntity ?? new AssignableCulturalPreferencesEntity(
                 GetCulture,
                 Context,
-                BuildAttributeId(PreferencesAttributeId));
+                BuildAttributeId(PreferencesAttributeId),
+                this);
 
-        return _preferencesEntity.GetThisEntityAttribute(this);
+        return _preferencesEntity.GetThisEntityAttribute();
     }
 
     public EntityAttribute GetLeaderAttribute()
@@ -87,9 +88,10 @@ public class FactionEntity : DelayedSetEntity<Faction>
             _leaderEntity ?? new AgentEntity(
                 GetLeader,
                 Context,
-                BuildAttributeId(LeaderAttributeId));
+                BuildAttributeId(LeaderAttributeId),
+                this);
 
-        return _leaderEntity.GetThisEntityAttribute(this);
+        return _leaderEntity.GetThisEntityAttribute();
     }
 
     public EntityAttribute GetPolityAttribute()
@@ -98,9 +100,10 @@ public class FactionEntity : DelayedSetEntity<Faction>
             _polityEntity ?? new PolityEntity(
                 GetPolity,
                 Context,
-                BuildAttributeId(PolityAttributeId));
+                BuildAttributeId(PolityAttributeId),
+                this);
 
-        return _polityEntity.GetThisEntityAttribute(this);
+        return _polityEntity.GetThisEntityAttribute();
     }
 
     public EntityAttribute GetCoreGroupAttribute()
@@ -109,9 +112,10 @@ public class FactionEntity : DelayedSetEntity<Faction>
             _coreGroupEntity ?? new GroupEntity(
                 GetCoreGroup,
                 Context,
-                BuildAttributeId(CoreGroupAttributeId));
+                BuildAttributeId(CoreGroupAttributeId),
+                this);
 
-        return _coreGroupEntity.GetThisEntityAttribute(this);
+        return _coreGroupEntity.GetThisEntityAttribute();
     }
 
     private EffectEntityAttribute GenerateRemoveAttribute()
@@ -246,7 +250,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
                 $"{GetGroupsAttributeId}_{index}",
                 parentContext);
 
-        var groupEntity = new GroupEntity(subcontext, paramIds[0]);
+        var groupEntity = new GroupEntity(subcontext, paramIds[0], this);
         subcontext.AddEntity(groupEntity);
 
         return subcontext;
@@ -293,11 +297,12 @@ public class FactionEntity : DelayedSetEntity<Faction>
                 return selectedGroups;
             },
             Context,
-            BuildAttributeId($"groups_collection_{index}"));
+            BuildAttributeId($"groups_collection_{index}"),
+            this);
 
         _groupCollectionEntitiesToSet.Add(collectionEntity);
 
-        return collectionEntity.GetThisEntityAttribute(this);
+        return collectionEntity.GetThisEntityAttribute();
     }
 
     public override ParametricSubcontext BuildParametricSubcontext(

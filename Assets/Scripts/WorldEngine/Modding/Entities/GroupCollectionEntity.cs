@@ -5,14 +5,14 @@ using System.Text.RegularExpressions;
 
 public class GroupCollectionEntity : EntityCollectionEntity<CellGroup>
 {
-    public GroupCollectionEntity(Context c, string id)
-        : base(c, id)
+    public GroupCollectionEntity(Context c, string id, IEntity parent)
+        : base(c, id, parent)
     {
     }
 
     public GroupCollectionEntity(
-        CollectionGetterMethod<CellGroup> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        CollectionGetterMethod<CellGroup> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
@@ -22,12 +22,12 @@ public class GroupCollectionEntity : EntityCollectionEntity<CellGroup>
     }
 
     protected override DelayedSetEntity<CellGroup> ConstructEntity(
-        ValueGetterMethod<CellGroup> getterMethod, Context c, string id)
-        => new GroupEntity(getterMethod, c, id);
+        ValueGetterMethod<CellGroup> getterMethod, Context c, string id, IEntity parent)
+        => new GroupEntity(getterMethod, c, id, parent);
 
     protected override DelayedSetEntity<CellGroup> ConstructEntity(
-        TryRequestGenMethod<CellGroup> tryRequestGenMethod, Context c, string id)
-        => new GroupEntity(tryRequestGenMethod, c, id);
+        TryRequestGenMethod<CellGroup> tryRequestGenMethod, Context c, string id, IEntity parent)
+        => new GroupEntity(tryRequestGenMethod, c, id, parent);
 
     protected override DelayedSetEntityInputRequest<CellGroup> ConstructInputRequest(
         ICollection<CellGroup> collection, ModText text)

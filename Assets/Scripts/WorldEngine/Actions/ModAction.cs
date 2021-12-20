@@ -104,7 +104,7 @@ public class ModAction : Context, IDebugLogger, IEffectTrigger
     {
         DebugType = "Action";
 
-        Target = new FactionEntity(this, TargetEntityId);
+        Target = new FactionEntity(this, TargetEntityId, null);
 
         // Add the target to the context's entity map
         AddEntity(Target);

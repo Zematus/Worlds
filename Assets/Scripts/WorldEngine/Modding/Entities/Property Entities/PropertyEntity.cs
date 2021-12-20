@@ -34,7 +34,7 @@ public class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
 
     private T _value = default;
 
-    public PropertyEntity(Context c, string id, IExpression exp) : base(c, id)
+    public PropertyEntity(Context c, string id, IExpression exp) : base(c, id, null)
     {
         _id = id;
         _idHash = id.GetHashCode();

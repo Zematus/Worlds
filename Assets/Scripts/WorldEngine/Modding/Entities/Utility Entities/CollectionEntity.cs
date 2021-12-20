@@ -17,14 +17,14 @@ public abstract class CollectionEntity<T> : Entity
     protected ICollection<T> _collection = null;
     protected bool _isReset = false;
 
-    public CollectionEntity(Context c, string id)
-        : base(c, id)
+    public CollectionEntity(Context c, string id, IEntity parent)
+        : base(c, id, parent)
     {
     }
 
     public CollectionEntity(
-        CollectionGetterMethod<T> getterMethod, Context c, string id)
-        : base(c, id)
+        CollectionGetterMethod<T> getterMethod, Context c, string id, IEntity parent)
+        : base(c, id, parent)
     {
         _getterMethod = getterMethod;
     }
@@ -36,6 +36,13 @@ public abstract class CollectionEntity<T> : Entity
         ResetInternal();
 
         _isReset = true;
+    }
+
+    public virtual void Set(ICollection<T> c, IEntity parent)
+    {
+        Parent = parent;
+
+        Set(c);
     }
 
     public virtual void Set(ICollection<T> c)
@@ -94,7 +101,7 @@ public abstract class CollectionEntity<T> : Entity
     {
         if (o is CollectionEntity<T> e)
         {
-            Set(e.Collection);
+            Set(e.Collection, e.Parent);
         }
         else if (o is ICollection<T> c)
         {

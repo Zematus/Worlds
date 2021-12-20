@@ -8,7 +8,7 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 
     public FactionEventGenerator()
     {
-        Target = new FactionEntity(this, TargetEntityId);
+        Target = new FactionEntity(this, TargetEntityId, null);
 
         // Add the target to the context's entity map
         AddEntity(Target);

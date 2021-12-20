@@ -39,19 +39,19 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
     private readonly List<FactionEntity>
         _factionEntitiesToSet = new List<FactionEntity>();
 
-    public GroupEntity(Context c, string id) : base(c, id)
+    public GroupEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
     public GroupEntity(
-        ValueGetterMethod<CellGroup> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        ValueGetterMethod<CellGroup> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
     public GroupEntity(
-        TryRequestGenMethod<CellGroup> tryRequestGenMethod, Context c, string id)
-        : base(tryRequestGenMethod, c, id)
+        TryRequestGenMethod<CellGroup> tryRequestGenMethod, Context c, string id, IEntity parent)
+        : base(tryRequestGenMethod, c, id, parent)
     {
     }
 
@@ -61,9 +61,10 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             _cellEntity ?? new CellEntity(
                 GetCell,
                 Context,
-                BuildAttributeId(CellAttributeId));
+                BuildAttributeId(CellAttributeId),
+                this);
 
-        return _cellEntity.GetThisEntityAttribute(this);
+        return _cellEntity.GetThisEntityAttribute();
     }
 
     public EntityAttribute GetPolityWithHighestProminenceValueAttribute()
@@ -72,9 +73,10 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             _polityWithHighestProminenceEntity ?? new PolityEntity(
                 GetPolityWithHighestProminenceValue,
                 Context,
-                BuildAttributeId(PolityWithHighestProminenceValueAttributeId));
+                BuildAttributeId(PolityWithHighestProminenceValueAttributeId),
+                this);
 
-        return _polityWithHighestProminenceEntity.GetThisEntityAttribute(this);
+        return _polityWithHighestProminenceEntity.GetThisEntityAttribute();
     }
 
     public EntityAttribute GetPreferencesAttribute()
@@ -83,9 +85,10 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             _preferencesEntity ?? new AssignableCulturalPreferencesEntity(
                 GetCulture,
                 Context,
-                BuildAttributeId(PreferencesAttributeId));
+                BuildAttributeId(PreferencesAttributeId),
+                this);
 
-        return _preferencesEntity.GetThisEntityAttribute(this);
+        return _preferencesEntity.GetThisEntityAttribute();
     }
 
     public EntityAttribute GetKnowledgesAttribute()
@@ -94,9 +97,10 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             _knowledgesEntity ?? new CulturalKnowledgesEntity(
                 GetCulture,
                 Context,
-                BuildAttributeId(KnowledgesAttributeId));
+                BuildAttributeId(KnowledgesAttributeId),
+                this);
 
-        return _knowledgesEntity.GetThisEntityAttribute(this);
+        return _knowledgesEntity.GetThisEntityAttribute();
     }
 
     private EntityAttribute GenerateGetRandomPolityEntityAttribute(IExpression[] arguments)
@@ -118,11 +122,12 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
                 return Group.GetRandomPolity(offset, type);
             },
             Context,
-            BuildAttributeId($"random_polity_{index}"));
+            BuildAttributeId($"random_polity_{index}"),
+            this);
 
         _polityEntitiesToSet.Add(entity);
 
-        return entity.GetThisEntityAttribute(this);
+        return entity.GetThisEntityAttribute();
     }
 
     private ValueGetterEntityAttribute<bool> GenerateHasPolityOfTypeAttribute(IExpression[] arguments)
@@ -212,11 +217,12 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
                     $"\n - value: {argumentExp.ToPartiallyEvaluatedString()}");
             },
             Context,
-            BuildAttributeId($"faction_{index}"));
+            BuildAttributeId($"faction_{index}"),
+            this);
 
         _factionEntitiesToSet.Add(entity);
 
-        return entity.GetThisEntityAttribute(this);
+        return entity.GetThisEntityAttribute();
     }
 
     protected override object _reference => Group;

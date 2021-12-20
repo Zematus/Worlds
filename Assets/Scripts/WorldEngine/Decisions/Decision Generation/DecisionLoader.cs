@@ -240,59 +240,59 @@ public class DecisionLoader
                 if (p.defaultValue != null) 
                     throw new Exception(dvExceptionMsg);
 
-                return new GroupEntity(c, p.id);
+                return new GroupEntity(c, p.id, null);
 
             case "group_collection":
                 if (p.defaultValue != null)
                     throw new Exception(dvExceptionMsg);
 
-                return new GroupCollectionEntity(c, p.id);
+                return new GroupCollectionEntity(c, p.id, null);
 
             case "faction":
                 if (p.defaultValue != null)
                     throw new Exception(dvExceptionMsg);
 
-                return new FactionEntity(c, p.id);
+                return new FactionEntity(c, p.id, null);
 
             case "polity":
                 if (p.defaultValue != null)
                     throw new Exception(dvExceptionMsg);
 
-                return new PolityEntity(c, p.id);
+                return new PolityEntity(c, p.id, null);
 
             case "cell":
                 if (p.defaultValue != null)
                     throw new Exception(dvExceptionMsg);
 
-                return new CellEntity(c, p.id);
+                return new CellEntity(c, p.id, null);
 
             case "agent":
                 if (p.defaultValue != null)
                     throw new Exception(dvExceptionMsg);
 
-                return new AgentEntity(c, p.id);
+                return new AgentEntity(c, p.id, null);
 
             case "region":
                 if (p.defaultValue != null)
                     throw new Exception(dvExceptionMsg);
 
-                return new RegionEntity(c, p.id);
+                return new RegionEntity(c, p.id, null);
 
             case "string":
                 if (p.defaultValue != null)
                 {
-                    return new ValueEntity<string>(c, p.id, p.defaultValue);
+                    return new ValueEntity<string>(c, p.id, null, p.defaultValue);
                 }
 
-                return new ValueEntity<string>(c, p.id);
+                return new ValueEntity<string>(c, p.id, null);
 
             case "text":
                 if (p.defaultValue != null)
                 {
-                    return new ValueEntity<string>(c, p.id, p.defaultValue);
+                    return new ValueEntity<string>(c, p.id, null, p.defaultValue);
                 }
 
-                return new ValueEntity<string>(c, p.id);
+                return new ValueEntity<string>(c, p.id, null);
 
             case "number":
                 if (p.defaultValue != null)
@@ -302,10 +302,10 @@ public class DecisionLoader
                         throw new Exception($"Unable to parse 'defaultValue' as a valid number: {p.defaultValue}");
                     }
 
-                    return new ValueEntity<float>(c, p.id, defaultValue);
+                    return new ValueEntity<float>(c, p.id, null, defaultValue);
                 }
 
-                return new ValueEntity<float>(c, p.id);
+                return new ValueEntity<float>(c, p.id, null);
 
             case "boolean":
                 if (p.defaultValue != null)
@@ -315,10 +315,10 @@ public class DecisionLoader
                         throw new Exception($"Unable to parse 'defaultValue' as a valid boolean value: {p.defaultValue}");
                     }
 
-                    return new ValueEntity<bool>(c, p.id, defaultValue);
+                    return new ValueEntity<bool>(c, p.id, null, defaultValue);
                 }
 
-                return new ValueEntity<bool>(c, p.id);
+                return new ValueEntity<bool>(c, p.id, null);
 
             default:
                 throw new Exception($"Unhandled parameter type: {p.type}");

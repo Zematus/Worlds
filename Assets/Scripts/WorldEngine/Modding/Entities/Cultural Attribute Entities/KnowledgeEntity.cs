@@ -27,12 +27,12 @@ public class KnowledgeEntity : DelayedSetValueEntity<CulturalKnowledge,float>
     }
 
     public KnowledgeEntity(
-        ValueGetterMethod<CulturalKnowledge> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        ValueGetterMethod<CulturalKnowledge> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
-    public KnowledgeEntity(Context c, string id) : base(c, id)
+    public KnowledgeEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 

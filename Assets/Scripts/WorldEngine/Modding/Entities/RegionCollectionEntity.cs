@@ -6,8 +6,8 @@ using System.Text.RegularExpressions;
 public class RegionCollectionEntity : EntityCollectionEntity<Region>
 {
     public RegionCollectionEntity(
-        CollectionGetterMethod<Region> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        CollectionGetterMethod<Region> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
@@ -17,12 +17,12 @@ public class RegionCollectionEntity : EntityCollectionEntity<Region>
     }
 
     protected override DelayedSetEntity<Region> ConstructEntity(
-        ValueGetterMethod<Region> getterMethod, Context c, string id)
-        => new RegionEntity(getterMethod, c, id);
+        ValueGetterMethod<Region> getterMethod, Context c, string id, IEntity parent)
+        => new RegionEntity(getterMethod, c, id, parent);
 
     protected override DelayedSetEntity<Region> ConstructEntity(
-        TryRequestGenMethod<Region> tryRequestGenMethod, Context c, string id)
-        => new RegionEntity(tryRequestGenMethod, c, id);
+        TryRequestGenMethod<Region> tryRequestGenMethod, Context c, string id, IEntity parent)
+        => new RegionEntity(tryRequestGenMethod, c, id, parent);
 
     protected override DelayedSetEntityInputRequest<Region> ConstructInputRequest(
         ICollection<Region> collection, ModText text)

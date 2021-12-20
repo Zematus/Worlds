@@ -6,8 +6,8 @@ using System.Text.RegularExpressions;
 public class ContactCollectionEntity : EntityCollectionEntity<PolityContact>
 {
     public ContactCollectionEntity(
-        CollectionGetterMethod<PolityContact> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        CollectionGetterMethod<PolityContact> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
@@ -17,12 +17,12 @@ public class ContactCollectionEntity : EntityCollectionEntity<PolityContact>
     }
 
     protected override DelayedSetEntity<PolityContact> ConstructEntity(
-        ValueGetterMethod<PolityContact> getterMethod, Context c, string id)
-        => new ContactEntity(getterMethod, c, id);
+        ValueGetterMethod<PolityContact> getterMethod, Context c, string id, IEntity parent)
+        => new ContactEntity(getterMethod, c, id, parent);
 
     protected override DelayedSetEntity<PolityContact> ConstructEntity(
-        TryRequestGenMethod<PolityContact> tryRequestGenMethod, Context c, string id)
-        => new ContactEntity(tryRequestGenMethod, c, id);
+        TryRequestGenMethod<PolityContact> tryRequestGenMethod, Context c, string id, IEntity parent)
+        => new ContactEntity(tryRequestGenMethod, c, id, parent);
 
     protected override DelayedSetEntityInputRequest<PolityContact> ConstructInputRequest(
         ICollection<PolityContact> collection, ModText text)

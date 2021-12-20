@@ -5,6 +5,8 @@ public abstract class Entity : IEntity
 {
     public string Id { get; private set; }
 
+    public IEntity Parent { get; protected set; }
+
     public Context Context { get; private set; }
 
     protected abstract object _reference { get; }
@@ -13,11 +15,11 @@ public abstract class Entity : IEntity
 
     protected EntityAttribute _thisAttribute;
 
-    public virtual bool RequiresInput => false;
+    public virtual bool RequiresInput => Parent?.RequiresInput ?? false;
 
     public bool HasDefaultValue { get; private set; }
 
-    public Entity(Context context, string id, bool hasDefaultValue = false)
+    public Entity(Context context, string id, IEntity parent, bool hasDefaultValue = false)
     {
         if (string.IsNullOrEmpty(id))
         {
@@ -29,6 +31,8 @@ public abstract class Entity : IEntity
         Context = context;
 
         HasDefaultValue = hasDefaultValue;
+
+        Parent = parent;
     }
 
     public string BuildAttributeId(string attrId)
@@ -123,10 +127,10 @@ public abstract class Entity : IEntity
             $"{Id}: Unable to build parametric subcontext for attribute: {attributeId} in entity of type {GetType()}");
     }
 
-    public virtual EntityAttribute GetThisEntityAttribute(Entity parent)
+    public virtual EntityAttribute GetThisEntityAttribute()
     {
         _thisAttribute =
-            _thisAttribute ?? new EntityValueEntityAttribute(this, Id, parent);
+            _thisAttribute ?? new EntityValueEntityAttribute(this, Id, Parent);
 
         return _thisAttribute;
     }
@@ -140,6 +144,6 @@ public abstract class Entity : IEntity
     {
         request = null;
 
-        return false;
+        return Parent?.TryGetRequest(out request) ?? false;
     }
 }

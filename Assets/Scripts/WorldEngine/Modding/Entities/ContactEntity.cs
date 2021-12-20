@@ -14,19 +14,19 @@ public class ContactEntity : DelayedSetEntity<PolityContact>
 
     private PolityEntity _polityEntity = null;
 
-    public ContactEntity(Context c, string id) : base(c, id)
+    public ContactEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
     public ContactEntity(
-        ValueGetterMethod<PolityContact> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        ValueGetterMethod<PolityContact> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
     public ContactEntity(
-        TryRequestGenMethod<PolityContact> tryRequestGenMethod, Context c, string id)
-        : base(tryRequestGenMethod, c, id)
+        TryRequestGenMethod<PolityContact> tryRequestGenMethod, Context c, string id, IEntity parent)
+        : base(tryRequestGenMethod, c, id, parent)
     {
     }
 
@@ -36,9 +36,10 @@ public class ContactEntity : DelayedSetEntity<PolityContact>
             _polityEntity ?? new PolityEntity(
                 GetPolity,
                 Context,
-                BuildAttributeId(PolityAttributeId));
+                BuildAttributeId(PolityAttributeId),
+                this);
 
-        return _polityEntity.GetThisEntityAttribute(this);
+        return _polityEntity.GetThisEntityAttribute();
     }
 
     protected override object _reference => Contact;
