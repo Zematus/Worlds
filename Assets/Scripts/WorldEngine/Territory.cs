@@ -6,6 +6,13 @@ using System.Xml.Serialization;
 
 public class Territory : ISynchronizable, ICellSet
 {
+    public enum FilterType
+    {
+        None,
+        Core,
+        Selectable
+    }
+
     public List<WorldPosition> CellPositions;
     public List<CellArea> EnclosedAreas;
 
@@ -22,6 +29,9 @@ public class Territory : ISynchronizable, ICellSet
 
     [XmlIgnore]
     public Polity Polity;
+
+    [XmlIgnore]
+    public FilterType AssignedFilterType = FilterType.None;
 
     private HashSet<TerrainCell> _cells = new HashSet<TerrainCell>();
 
