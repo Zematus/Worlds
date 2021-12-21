@@ -51,6 +51,7 @@ public enum PlanetOverlay
     PolityCulturalKnowledge,
     PolityCulturalDiscovery,
     PolityAdminCost,
+    PolitySelection,
     Temperature,
     Rainfall,
     DrainageBasins,
@@ -1712,7 +1713,8 @@ public class Manager
             (overlay == PlanetOverlay.PolityCulturalDiscovery) ||
             (overlay == PlanetOverlay.PolityCulturalKnowledge) ||
             (overlay == PlanetOverlay.PolityCulturalSkill) ||
-            (overlay == PlanetOverlay.PolityAdminCost))
+            (overlay == PlanetOverlay.PolityAdminCost) ||
+            (overlay == PlanetOverlay.PolitySelection))
         {
             _observableUpdateTypes = CellUpdateType.Territory;
         }
@@ -1758,7 +1760,9 @@ public class Manager
         {
             _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.CoreDistance;
         }
-        else if (overlay == PlanetOverlay.PolityContacts)
+        else if (
+            (overlay == PlanetOverlay.PolityContacts) ||
+            (overlay == PlanetOverlay.PolitySelection))
         {
             _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.Relationship;
         }
@@ -1791,6 +1795,17 @@ public class Manager
         return false;
     }
 
+    private static bool FilterSelectableTerritory(ICellSet getter)
+    {
+        if ((getter is Territory territory) &&
+            (territory.AssignedFilterType == Territory.FilterType.Selectable))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     private static void SetOverlayHighlightMode(PlanetOverlay overlay)
     {
         _filterHighlightCollection = null;
@@ -1799,6 +1814,11 @@ public class Manager
         {
             _highlightMode = HighlightMode.OnHoveredCollection;
             _filterHighlightCollection = FilterSelectableRegion;
+        }
+        else if (overlay == PlanetOverlay.PolitySelection)
+        {
+            _highlightMode = HighlightMode.OnHoveredCollection;
+            _filterHighlightCollection = FilterSelectableTerritory;
         }
         else if (overlay == PlanetOverlay.CellSelection)
         {
@@ -3225,6 +3245,10 @@ public class Manager
                 color = SetPolityCulturalDiscoveryOverlayColor(cell, color);
                 break;
 
+            case PlanetOverlay.PolitySelection:
+                color = SetPolitySelectionOverlayColor(cell, color);
+                break;
+
             case PlanetOverlay.Temperature:
                 color = SetTemperatureOverlayColor(cell, color);
                 break;
@@ -3532,13 +3556,6 @@ public class Manager
             throw new System.Exception("Can't generate overlay without an active guided faction");
         }
 
-        var request = CurrentInputRequest as RegionSelectionRequest;
-
-        if (request == null)
-        {
-            throw new System.Exception("Can't generate overlay without an region selection request");
-        }
-
         Region region = cell.Region;
 
         if ((region != null) &&
@@ -3568,6 +3585,46 @@ public class Manager
             regionColor.a = 0.5f;
 
             color = regionColor;
+        }
+
+        return color;
+    }
+
+    private static Color SetPolitySelectionOverlayColor(TerrainCell cell, Color color)
+    {
+        Faction guidedFaction = CurrentWorld.GuidedFaction;
+
+        if (guidedFaction == null)
+        {
+            throw new System.Exception("Can't generate overlay without an active guided faction");
+        }
+
+        var territory = cell.EncompassingTerritory;
+
+        if ((territory != null) &&
+            (territory.AssignedFilterType != Territory.FilterType.None))
+        {
+            Color polityColor = GenerateColorFromId(territory.Polity.Id);
+
+            bool isTerritoryBorder = IsTerritoryBorder(territory, cell);
+
+            if (territory.AssignedFilterType == Territory.FilterType.Core)
+            {
+                polityColor = (0.4f * polityColor) + 0.6f * Color.blue;
+            }
+            else if (territory.AssignedFilterType == Territory.FilterType.Selectable)
+            {
+                polityColor = (0.4f * polityColor) + 0.6f * Color.cyan;
+            }
+
+            if (!isTerritoryBorder)
+            {
+                polityColor /= 1.5f;
+            }
+
+            polityColor.a = 0.5f;
+
+            color = polityColor;
         }
 
         return color;

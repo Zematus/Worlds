@@ -1286,7 +1286,8 @@ public class InfoPanelScript : MonoBehaviour
             AddCellDataToInfoPanel_PolityProminence(cell);
         }
 
-        if (Manager.PlanetOverlay == PlanetOverlay.PolityContacts)
+        if ((Manager.PlanetOverlay == PlanetOverlay.PolityContacts) ||
+            (Manager.PlanetOverlay == PlanetOverlay.PolitySelection))
         {
             AddCellDataToInfoPanel_PolityContacts(cell);
         }

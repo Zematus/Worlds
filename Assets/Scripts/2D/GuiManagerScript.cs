@@ -1217,6 +1217,7 @@ public class GuiManagerScript : MonoBehaviour
             (overlay == PlanetOverlay.PolityAdminCost) ||
             (overlay == PlanetOverlay.PolityTerritory) ||
             (overlay == PlanetOverlay.PolityContacts) ||
+            (overlay == PlanetOverlay.PolitySelection) ||
             (overlay == PlanetOverlay.PolityCoreRegions) ||
             (overlay == PlanetOverlay.General);
     }
@@ -1737,6 +1738,11 @@ public class GuiManagerScript : MonoBehaviour
             _doneHandlingRequest = TryCompleteRegionSelectionRequest(rsRequest, clickedCell);
             return;
         }
+        else if (Manager.CurrentInputRequest is ContactSelectionRequest csRequest)
+        {
+            _doneHandlingRequest = TryCompleteContactSelectionRequest(csRequest, clickedCell);
+            return;
+        }
         else if (Manager.CurrentInputRequest is GroupSelectionRequest gsRequest)
         {
             _doneHandlingRequest = TryCompleteGroupSelectionRequest(gsRequest, clickedCell);
@@ -1754,6 +1760,43 @@ public class GuiManagerScript : MonoBehaviour
         RevertTempPlanetOverlay();
 
         _mapLeftClickOp -= ClickOp_SelectRequestTarget;
+    }
+
+    private bool TryCompleteContactSelectionRequest(
+        ContactSelectionRequest request,
+        TerrainCell targetCell)
+    {
+        var guidedFaction = Manager.CurrentWorld.GuidedFaction;
+
+        if (guidedFaction == null)
+        {
+            throw new System.Exception("Can't satisfy request without an active guided faction");
+        }
+
+        var guidedPolity = guidedFaction.Polity;
+
+        var targetTerritory = targetCell.EncompassingTerritory;
+
+        if ((targetTerritory != null) &&
+            (targetTerritory.AssignedFilterType == Territory.FilterType.Selectable))
+        {
+            var targetPolity = targetTerritory.Polity;
+
+            var targetContact = guidedPolity.GetContact(targetPolity);
+
+            if (targetContact == null)
+            {
+                throw new System.Exception($"Unable to find contact between {guidedPolity.Id} and {targetPolity.Id}");
+            }
+
+            request.Set(targetContact);
+            request.Close();
+
+            CompleteSelectRequestTargetOp();
+            return true;
+        }
+
+        return false;
     }
 
     private bool TryCompleteRegionSelectionRequest(
@@ -2042,6 +2085,9 @@ public class GuiManagerScript : MonoBehaviour
                 break;
             case PlanetOverlay.PolityAdminCost:
                 planetOverlayStr = "_polity_admin_cost";
+                break;
+            case PlanetOverlay.PolitySelection:
+                planetOverlayStr = "_polity_select";
                 break;
             case PlanetOverlay.Temperature:
                 planetOverlayStr = "_temperature";
@@ -2658,6 +2704,11 @@ public class GuiManagerScript : MonoBehaviour
                 PlanetOverlay.CellSelection, 
                 Manager.GroupProminenceOverlaySubtype, 
                 temporary: true);
+            return;
+        }
+        else if (request is ContactSelectionRequest csRequest)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PolitySelection, temporary: true);
             return;
         }
 
@@ -3574,6 +3625,9 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.PolityContacts:
                 ShowCellInfoToolTip_PolityContacts(polity, tooltipPos);
                 break;
+            case PlanetOverlay.PolitySelection:
+                ShowCellInfoToolTip_PolityContacts(polity, tooltipPos);
+                break;
             case PlanetOverlay.PolityCulturalPreference:
                 ShowCellInfoToolTip_PolityCulturalPreference(polity, tooltipPos);
                 break;
@@ -3799,13 +3853,6 @@ public class GuiManagerScript : MonoBehaviour
 
         if (cell.Region == _lastHoveredOverRegion)
             return;
-
-        RegionSelectionRequest request = Manager.CurrentInputRequest as RegionSelectionRequest;
-
-        if (request == null)
-        {
-            throw new System.Exception("Can't show tooltip without an region selection request");
-        }
 
         _lastHoveredOverRegion = cell.Region;
 
