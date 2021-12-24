@@ -15,7 +15,9 @@ public abstract class Entity : IEntity
 
     protected EntityAttribute _thisAttribute;
 
-    public virtual bool RequiresInput => Parent?.RequiresInput ?? false;
+    public bool RequiresInput => RequiresInputIgnoreParent || (Parent?.RequiresInput ?? false);
+
+    protected virtual bool RequiresInputIgnoreParent => false;
 
     public bool HasDefaultValue { get; private set; }
 

@@ -12,7 +12,7 @@ public class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
     protected readonly string _id;
     protected readonly int _idHash;
 
-    public override bool RequiresInput => _valExpression.RequiresInput;
+    protected override bool RequiresInputIgnoreParent => _valExpression.RequiresInput;
 
     public override T Value
     {

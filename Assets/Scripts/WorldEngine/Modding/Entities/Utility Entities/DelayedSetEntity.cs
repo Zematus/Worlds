@@ -20,7 +20,7 @@ public abstract class DelayedSetEntity<T> : Entity
     private T _requestResult = default;
     private bool _requestSatisfied = false;
 
-    public override bool RequiresInput => (_tryRequestGenMethod != null) || (Parent?.RequiresInput ?? false);
+    protected override bool RequiresInputIgnoreParent => _tryRequestGenMethod != null;
 
     private bool _needsToSatisfyRequest => _isReset && (!_requestSatisfied);
 
@@ -136,7 +136,7 @@ public abstract class DelayedSetEntity<T> : Entity
             return true;
         }
 
-        if ((!RequiresInput) ||
+        if ((!RequiresInputIgnoreParent) ||
             (!_needsToSatisfyRequest) ||
             (!_tryRequestGenMethod(out DelayedSetEntityInputRequest<T> entityRequest)))
         {
