@@ -7,8 +7,14 @@ using UnityEngine.Profiling;
 using System;
 
 [XmlInclude(typeof(Clan))]
-public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
+public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, ICellSet
 {
+    public enum FilterType
+    {
+        None,
+        Selectable
+    }
+
     private HashSet<IFactionEventGenerator> _generatorsToTestAssignmentFor =
         new HashSet<IFactionEventGenerator>();
 
@@ -82,6 +88,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     [XmlIgnore]
     public bool HasBeenUpdated = false;
+
+    [XmlIgnore]
+    public FilterType AssignedFilterType = FilterType.None;
 
     public List<string> Flags;
 
@@ -1051,5 +1060,95 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public void InitializeDefaultEvents()
     {
         InitializeOnSpawnEvents();
+    }
+
+    public ICollection<TerrainCell> GetCells()
+    {
+        var cells = new List<TerrainCell>();
+
+        foreach (var prominence in Prominences)
+        {
+            cells.Add(prominence.Group.Cell);
+        }
+
+        return cells;
+    }
+
+    public RectInt GetBoundingRectangle()
+    {
+        int xMin = 0;
+        int xMax = 0;
+        int yMin = 0;
+        int yMax = 0;
+        bool first = true;
+
+        foreach (var prominence in Prominences)
+        {
+            var pos = prominence.Group.Position;
+
+            if (first)
+            {
+                xMin = pos.Longitude;
+                xMax = pos.Longitude;
+                yMin = pos.Latitude;
+                yMax = pos.Latitude;
+
+                first = false;
+                continue;
+            }
+
+            if (pos.Longitude < xMin)
+            {
+                int altLong = pos.Longitude + World.Width;
+                int maxAltDiff = Mathf.Abs(xMax - altLong);
+                int minDiff = Mathf.Abs(xMin - pos.Longitude);
+
+                if (maxAltDiff < minDiff)
+                {
+                    if (altLong > xMax)
+                    {
+                        xMax = pos.Longitude;
+                    }
+                }
+                else
+                {
+                    xMin = pos.Longitude;
+                }
+            }
+            if (pos.Longitude > xMax)
+            {
+                int altLong = pos.Longitude - World.Width;
+                int minAltDiff = Mathf.Abs(xMin - altLong);
+                int maxDiff = Mathf.Abs(xMax - pos.Longitude);
+
+                if (minAltDiff < maxDiff)
+                {
+                    if (altLong < xMin)
+                    {
+                        xMin = pos.Longitude;
+                    }
+                }
+                else
+                {
+                    xMax = pos.Longitude;
+                }
+            }
+            if (pos.Latitude < yMin)
+            {
+                yMin = pos.Latitude;
+            }
+            if (pos.Latitude > yMax)
+            {
+                yMax = pos.Latitude;
+            }
+        }
+
+        // this makes sure the rectagle can correctly wrap around the vertical edges of the map if needed
+        if (xMax < xMin)
+        {
+            xMax += World.Width;
+        }
+
+        return new RectInt(xMin, yMin, xMax - xMin, yMax - yMin);
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class ContactSelectionRequest : EntitySelectionRequest<PolityContact>, IMapEntitySelectionRequest
 {
-    private readonly HashSet<Territory> _involvedterritories = null;
+    private readonly HashSet<Territory> _involvedTerritories = null;
 
     public ContactSelectionRequest(
         ICollection<PolityContact> collection,
@@ -19,23 +19,23 @@ public class ContactSelectionRequest : EntitySelectionRequest<PolityContact>, IM
 
         Polity guidedPolity = guidedFaction.Polity;
 
-        _involvedterritories = new HashSet<Territory>();
+        _involvedTerritories = new HashSet<Territory>();
 
-        _involvedterritories.Add(guidedPolity.Territory);
+        _involvedTerritories.Add(guidedPolity.Territory);
         guidedPolity.Territory.AssignedFilterType = Territory.FilterType.Core;
 
         foreach (var contact in collection)
         {
             var territory = contact.NeighborPolity.Territory;
 
-            _involvedterritories.Add(territory);
+            _involvedTerritories.Add(territory);
             territory.AssignedFilterType = Territory.FilterType.Selectable;
         }
     }
 
     public override void Close()
     {
-        foreach (var territory in _involvedterritories)
+        foreach (var territory in _involvedTerritories)
         {
             territory.AssignedFilterType = Territory.FilterType.None;
         }
@@ -50,7 +50,7 @@ public class ContactSelectionRequest : EntitySelectionRequest<PolityContact>, IM
         int worldWidth = Manager.CurrentWorld.Width;
 
         bool first = true;
-        foreach (var territory in _involvedterritories)
+        foreach (var territory in _involvedTerritories)
         {
             RectInt rRect = territory.GetBoundingRectangle();
 
