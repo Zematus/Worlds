@@ -24,7 +24,7 @@ public abstract class Region : ISynchronizable, ICellSet
     public bool IsHovered = false;
 
     [XmlIgnore]
-    public FilterType AssignedFilterType = FilterType.None;
+    public FilterType SelectionFilterType = FilterType.None;
 
     [XmlIgnore]
     public Region Parent = null;

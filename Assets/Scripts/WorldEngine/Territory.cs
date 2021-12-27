@@ -10,7 +10,8 @@ public class Territory : ISynchronizable, ICellSet
     {
         None,
         Core,
-        Selectable
+        Selectable,
+        Involved
     }
 
     public List<WorldPosition> CellPositions;
@@ -31,7 +32,7 @@ public class Territory : ISynchronizable, ICellSet
     public Polity Polity;
 
     [XmlIgnore]
-    public FilterType AssignedFilterType = FilterType.None;
+    public FilterType SelectionFilterType = FilterType.None;
 
     private HashSet<TerrainCell> _cells = new HashSet<TerrainCell>();
 

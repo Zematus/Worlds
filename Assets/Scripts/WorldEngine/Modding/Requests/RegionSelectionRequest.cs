@@ -26,12 +26,12 @@ public class RegionSelectionRequest : EntitySelectionRequest<Region>, IMapEntity
 
         foreach (Region region in guidedPolity.CoreRegions)
         {
-            region.AssignedFilterType = Region.FilterType.Core;
+            region.SelectionFilterType = Region.FilterType.Core;
         }
 
         foreach (Region region in collection)
         {
-            region.AssignedFilterType = Region.FilterType.Selectable;
+            region.SelectionFilterType = Region.FilterType.Selectable;
         }
     }
 
@@ -39,7 +39,7 @@ public class RegionSelectionRequest : EntitySelectionRequest<Region>, IMapEntity
     {
         foreach (Region region in _involvedRegions)
         {
-            region.AssignedFilterType = Region.FilterType.None;
+            region.SelectionFilterType = Region.FilterType.None;
         }
 
         base.Close();

@@ -217,7 +217,7 @@ public class TerrainCell
     public bool IsSelected = false;
     public bool IsHovered = false;
 
-    public FilterType AssignedFilterType = FilterType.None;
+    public FilterType SelectionFilterType = FilterType.None;
 
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
 

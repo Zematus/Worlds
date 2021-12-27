@@ -399,4 +399,82 @@ public class CellSet : ICellSet
 
         return new RectInt(xMin, yMin, xMax - xMin, yMax - yMin);
     }
+
+    public static RectInt GetBoundingRectangle(ICollection<TerrainCell> cells)
+    {
+        int xMin = 0;
+        int xMax = 0;
+        int yMin = 0;
+        int yMax = 0;
+        bool first = true;
+
+        foreach (var cell in cells)
+        {
+            var pos = cell.Position;
+
+            if (first)
+            {
+                xMin = pos.Longitude;
+                xMax = pos.Longitude;
+                yMin = pos.Latitude;
+                yMax = pos.Latitude;
+
+                first = false;
+                continue;
+            }
+
+            if (pos.Longitude < xMin)
+            {
+                int altLong = pos.Longitude + Manager.WorldWidth;
+                int maxAltDiff = Mathf.Abs(xMax - altLong);
+                int minDiff = Mathf.Abs(xMin - pos.Longitude);
+
+                if (maxAltDiff < minDiff)
+                {
+                    if (altLong > xMax)
+                    {
+                        xMax = pos.Longitude;
+                    }
+                }
+                else
+                {
+                    xMin = pos.Longitude;
+                }
+            }
+            if (pos.Longitude > xMax)
+            {
+                int altLong = pos.Longitude - Manager.WorldWidth;
+                int minAltDiff = Mathf.Abs(xMin - altLong);
+                int maxDiff = Mathf.Abs(xMax - pos.Longitude);
+
+                if (minAltDiff < maxDiff)
+                {
+                    if (altLong < xMin)
+                    {
+                        xMin = pos.Longitude;
+                    }
+                }
+                else
+                {
+                    xMax = pos.Longitude;
+                }
+            }
+            if (pos.Latitude < yMin)
+            {
+                yMin = pos.Latitude;
+            }
+            if (pos.Latitude > yMax)
+            {
+                yMax = pos.Latitude;
+            }
+        }
+
+        // this makes sure the rectagle can correctly wrap around the vertical edges of the map if needed
+        if (xMax < xMin)
+        {
+            xMax += Manager.WorldWidth;
+        }
+
+        return new RectInt(xMin, yMin, xMax - xMin, yMax - yMin);
+    }
 }

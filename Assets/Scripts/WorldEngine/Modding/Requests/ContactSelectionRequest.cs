@@ -22,14 +22,14 @@ public class ContactSelectionRequest : EntitySelectionRequest<PolityContact>, IM
         _involvedTerritories = new HashSet<Territory>();
 
         _involvedTerritories.Add(guidedPolity.Territory);
-        guidedPolity.Territory.AssignedFilterType = Territory.FilterType.Core;
+        guidedPolity.Territory.SelectionFilterType = Territory.FilterType.Core;
 
         foreach (var contact in collection)
         {
             var territory = contact.NeighborPolity.Territory;
 
             _involvedTerritories.Add(territory);
-            territory.AssignedFilterType = Territory.FilterType.Selectable;
+            territory.SelectionFilterType = Territory.FilterType.Selectable;
         }
     }
 
@@ -37,7 +37,7 @@ public class ContactSelectionRequest : EntitySelectionRequest<PolityContact>, IM
     {
         foreach (var territory in _involvedTerritories)
         {
-            territory.AssignedFilterType = Territory.FilterType.None;
+            territory.SelectionFilterType = Territory.FilterType.None;
         }
 
         base.Close();
