@@ -44,6 +44,11 @@ public class FactionSelectionRequest : EntitySelectionRequest<Faction>, IMapEnti
 
         foreach (var territory in _involvedTerritories)
         {
+            if (territory.SelectionFilterType != Territory.FilterType.Involved)
+            {
+                continue;
+            }
+
             foreach (var faction in territory.Polity.GetFactions())
             {
                 if (faction.SelectionFilterType == Faction.FilterType.None)

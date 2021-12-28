@@ -3663,8 +3663,9 @@ public class Manager
                 {
                     var faction = prominence.ClosestFaction;
 
-                    if ((faction == null) ||
-                        (faction.SelectionFilterType != Faction.FilterType.Selectable))
+                    if ((faction != null) &&
+                        ((faction.SelectionFilterType == Faction.FilterType.Selectable) ||
+                        (faction.SelectionFilterType == Faction.FilterType.Related)))
                     {
                         foundFaction = faction;
                         break;
