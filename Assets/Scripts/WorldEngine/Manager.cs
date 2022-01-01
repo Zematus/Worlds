@@ -1711,7 +1711,8 @@ public class Manager
             (overlay == PlanetOverlay.PolityCulturalKnowledge) ||
             (overlay == PlanetOverlay.PolityCulturalSkill) ||
             (overlay == PlanetOverlay.PolityAdminCost) ||
-            (overlay == PlanetOverlay.PolitySelection))
+            (overlay == PlanetOverlay.PolitySelection) ||
+            (overlay == PlanetOverlay.FactionSelection))
         {
             _observableUpdateTypes = CellUpdateType.Territory;
         }
@@ -2728,18 +2729,17 @@ public class Manager
             {
                 return true;
             }
-        }
-        
-        var faction = cell.GetMostProminentClosestFaction();
 
-        if (((_observableUpdateTypes & CellUpdateType.Group) == CellUpdateType.Group) &&
-            (faction != null))
-        {
-            if (((_highlightMode & HighlightMode.OnHoveredCollection) ==
-                HighlightMode.OnHoveredCollection) && faction.IsHovered &&
-                (_filterHighlightCollection?.Invoke(faction) ?? true))
+            var faction = cell.GetClosestFaction(cell.EncompassingTerritory.Polity);
+
+            if (faction != null)
             {
-                return true;
+                if (((_highlightMode & HighlightMode.OnHoveredCollection) ==
+                    HighlightMode.OnHoveredCollection) && faction.IsHovered &&
+                    (_filterHighlightCollection?.Invoke(faction) ?? true))
+                {
+                    return true;
+                }
             }
         }
 
@@ -3684,34 +3684,24 @@ public class Manager
         {
             bool isTerritoryBorder = IsTerritoryBorder(territory, cell);
 
-            var group = cell.Group;
+            Faction faction = cell.GetClosestFaction(territory.Polity);
 
-            Faction foundFaction = null;
+            bool isSelectableFaction = false;
 
-            if (group != null)
+            if ((faction != null) && 
+                ((faction.SelectionFilterType == Faction.FilterType.Selectable) ||
+                (faction.SelectionFilterType == Faction.FilterType.Related)))
             {
-                foreach (var faction in group.GetClosestFactions())
-                {
-                    if ((faction.SelectionFilterType == Faction.FilterType.Selectable) ||
-                        (faction.SelectionFilterType == Faction.FilterType.Related))
-                    {
-                        foundFaction = faction;
-                        break;
-                    }
-                }
-            }
+                color = GenerateColorFromId(faction.Id);
 
-            if (foundFaction != null)
-            {
-                color = GenerateColorFromId(foundFaction.Id);
-
-                if (foundFaction.SelectionFilterType == Faction.FilterType.Related)
+                if (faction.SelectionFilterType == Faction.FilterType.Related)
                 {
-                    color = (0.2f * color) + 0.8f * Color.yellow;
+                    color = (0.3f * color) + 0.7f * Color.yellow;
                 }
-                else if (foundFaction.SelectionFilterType == Faction.FilterType.Selectable)
+                else if (faction.SelectionFilterType == Faction.FilterType.Selectable)
                 {
-                    color = (0.2f * color) + 0.8f * Color.cyan;
+                    color = (0.3f * color) + 0.7f * Color.cyan;
+                    isSelectableFaction = true;
                 }
             }
             else
@@ -3720,11 +3710,11 @@ public class Manager
 
                 if (territory.SelectionFilterType == Territory.FilterType.Core)
                 {
-                    color = (0.2f * color) + 0.8f * Color.blue;
+                    color = (0.3f * color) + 0.7f * Color.blue;
                 }
                 else if (territory.SelectionFilterType == Territory.FilterType.Involved)
                 {
-                    color = (0.2f * color) + 0.8f * Color.yellow;
+                    color = (0.3f * color) + 0.7f * Color.yellow;
                 }
             }
 
@@ -3733,7 +3723,14 @@ public class Manager
                 color /= 1.5f;
             }
 
-            color.a = 0.5f;
+            if (isSelectableFaction)
+            {
+                color.a = 0.5f;
+            }
+            else
+            {
+                color.a = 0.2f;
+            }
         }
 
         return color;
