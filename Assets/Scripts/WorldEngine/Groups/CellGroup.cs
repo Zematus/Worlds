@@ -2470,6 +2470,40 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return _polityProminences.Values;
     }
 
+    public IEnumerable<Faction> GetClosestFactions()
+    {
+        foreach (var prominence in _polityProminences.Values)
+        {
+            if (prominence.ClosestFaction == null)
+                continue;
+
+            yield return prominence.ClosestFaction;
+        }
+    }
+
+    public Faction GetClosestFaction(Polity polity)
+    {
+        return GetPolityProminence(polity)?.ClosestFaction;
+    }
+
+    public Faction GetMostProminentClosestFaction()
+    {
+        PolityProminence mostProminence = null;
+
+        foreach (var prominence in _polityProminences.Values)
+        {
+            if (prominence.ClosestFaction == null)
+                continue;
+
+            if (prominence.Value > (mostProminence?.Value ?? 0))
+            {
+                mostProminence = prominence;
+            }
+        }
+
+        return mostProminence?.ClosestFaction;
+    }
+
     /// <summary>
     /// Try obtain the prominence associated with a polity Id
     /// </summary>

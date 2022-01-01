@@ -93,6 +93,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     [XmlIgnore]
     public FilterType SelectionFilterType = FilterType.None;
 
+    [XmlIgnore]
+    public bool IsHovered = false;
+
     public List<string> Flags;
 
     public FactionCulture Culture;

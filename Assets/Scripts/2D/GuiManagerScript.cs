@@ -3883,12 +3883,9 @@ public class GuiManagerScript : MonoBehaviour
         Faction firstFaction = null;
         string factionNames = "";
 
-        foreach (var prominence in cell.Group.GetPolityProminences())
+        foreach (var faction in cell.GetClosestFactions())
         {
-            var faction = prominence.ClosestFaction;
-
-            if ((faction == null) || 
-                (faction.SelectionFilterType != Faction.FilterType.Selectable))
+            if ((faction.SelectionFilterType != Faction.FilterType.Selectable))
             {
                 continue;
             }

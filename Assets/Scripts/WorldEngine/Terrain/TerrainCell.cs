@@ -259,6 +259,21 @@ public class TerrainCell
         MaxAreaPercent = Area / MaxArea;
     }
 
+    public IEnumerable<Faction> GetClosestFactions()
+    {
+        if (Group != null)
+        {
+            foreach (var faction in Group.GetClosestFactions())
+            {
+                yield return faction;
+            }
+        }
+    }
+
+    public Faction GetClosestFaction(Polity polity) => Group?.GetClosestFaction(polity);
+
+    public Faction GetMostProminentClosestFaction() => Group?.GetMostProminentClosestFaction();
+
     /// <summary>
     /// Returns the contribution level a certain activity would have on this cell
     /// </summary>
