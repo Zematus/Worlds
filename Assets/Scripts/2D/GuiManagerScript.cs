@@ -1748,6 +1748,11 @@ public class GuiManagerScript : MonoBehaviour
             _doneHandlingRequest = TryCompleteGroupSelectionRequest(gsRequest, clickedCell);
             return;
         }
+        else if (Manager.CurrentInputRequest is FactionSelectionRequest fsRequest)
+        {
+            _doneHandlingRequest = TryCompleteFactionSelectionRequest(fsRequest, clickedCell);
+            return;
+        }
 
         throw new System.NotImplementedException(
             $"No method defined to complete input request of type: {Manager.CurrentInputRequest.GetType()}");
@@ -1794,6 +1799,37 @@ public class GuiManagerScript : MonoBehaviour
 
             CompleteSelectRequestTargetOp();
             return true;
+        }
+
+        return false;
+    }
+
+    private bool TryCompleteFactionSelectionRequest(
+        FactionSelectionRequest request,
+        TerrainCell targetCell)
+    {
+        var guidedFaction = Manager.CurrentWorld.GuidedFaction;
+
+        if (guidedFaction == null)
+        {
+            throw new System.Exception("Can't satisfy request without an active guided faction");
+        }
+
+        var targetTerritory = targetCell.EncompassingTerritory;
+
+        if ((targetTerritory != null) &&
+            (targetTerritory.SelectionFilterType == Territory.FilterType.Involved))
+        {
+            var targetFaction = targetCell.GetClosestFaction(targetTerritory.Polity);
+
+            if (targetFaction.SelectionFilterType == Faction.FilterType.Selectable)
+            {
+                request.Set(targetFaction);
+                request.Close();
+
+                CompleteSelectRequestTargetOp();
+                return true;
+            }
         }
 
         return false;
