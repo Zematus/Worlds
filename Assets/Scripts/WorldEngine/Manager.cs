@@ -3145,6 +3145,8 @@ public class Manager
         return value;
     }
 
+    public static bool ResolvingPlayerInvolvedDecisionChain { get; set; }
+
     private static bool IsCoastWater(TerrainCell cell)
     {
         if (cell.WaterBiomePresence < 0.5f)

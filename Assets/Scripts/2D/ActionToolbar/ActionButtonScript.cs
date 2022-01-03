@@ -10,17 +10,13 @@ public class ActionButtonScript : MonoBehaviour
 
     private ModAction _action;
 
-    private long _lastDate = -1;
-
     public void Update()
     {
         if (!gameObject.activeInHierarchy)
             return;
 
-        if (_lastDate == Manager.CurrentWorld.CurrentDate)
+        if (Manager.ResolvingPlayerInvolvedDecisionChain)
             return;
-
-        _lastDate = Manager.CurrentWorld.CurrentDate;
 
         _action.SetTarget(Manager.CurrentWorld.GuidedFaction);
 
@@ -49,8 +45,6 @@ public class ActionButtonScript : MonoBehaviour
         buttonScript.Init(action.Name);
 
         _action = action;
-
-        _lastDate = -1;
 
         Button.onClick.AddListener(AddActionToExecute);
     }

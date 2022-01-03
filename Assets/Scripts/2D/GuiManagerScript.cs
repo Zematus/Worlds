@@ -644,6 +644,11 @@ public class GuiManagerScript : MonoBehaviour
 
         TryResolvePendingAction();
 
+        if (!_resolvingEffects && !_resolvingDecision)
+        {
+            Manager.ResolvingPlayerInvolvedDecisionChain = false;
+        }
+
 #if DEBUG
         if (Manager.Debug_PauseSimRequested)
         {
@@ -2564,6 +2569,9 @@ public class GuiManagerScript : MonoBehaviour
             if (targetFaction.IsUnderPlayerGuidance)
             {
                 RequestModDecisionResolution(decisionToResolve);
+
+                Manager.ResolvingPlayerInvolvedDecisionChain = true;
+
                 return false;
             }
             else
@@ -2679,6 +2687,8 @@ public class GuiManagerScript : MonoBehaviour
         if (!TryResolvePendingEffects())
         {
             SetResolvingEffects(true);
+
+            Manager.ResolvingPlayerInvolvedDecisionChain = true;
 
             return false;
         }

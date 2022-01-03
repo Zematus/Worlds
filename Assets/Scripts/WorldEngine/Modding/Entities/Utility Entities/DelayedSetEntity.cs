@@ -24,11 +24,20 @@ public abstract class DelayedSetEntity<T> : Entity
 
     private bool _needsToSatisfyRequest => _isReset && (!_requestSatisfied);
 
+#if DEBUG
+    private static int _debugIdCounter = 0;
+    private int _debugId = 0;
+#endif
+
     public DelayedSetEntity(
         ValueGetterMethod<T> getterMethod, Context c, string id, IEntity parent)
         : base(c, id, parent)
     {
         _getterMethod = getterMethod;
+
+#if DEBUG
+        _debugId = _debugIdCounter++;
+#endif
     }
 
     public DelayedSetEntity(
@@ -37,12 +46,20 @@ public abstract class DelayedSetEntity<T> : Entity
     {
         _tryRequestGenMethod = tryRequestGenMethod;
         _getterMethod = RequestResultGetter;
+
+#if DEBUG
+        _debugId = _debugIdCounter++;
+#endif
     }
 
     public DelayedSetEntity(Context c, string id, IEntity parent)
         : base(c, id, parent)
     {
         _getterMethod = null;
+
+#if DEBUG
+        _debugId = _debugIdCounter++;
+#endif
     }
 
     public T RequestResultGetter()
@@ -88,21 +105,11 @@ public abstract class DelayedSetEntity<T> : Entity
 
     protected virtual T Setable
     {
-        set
-        {
-            Set(_setable);
-        }
+        set => Set(_setable);
         get
         {
             if (_isReset && (_getterMethod != null))
             {
-//#if DEBUG
-//                if (Id.Contains("selected_faction_") && (Manager.CurrentWorld.CurrentDate >= 506695214))
-//                {
-//                    Debug.LogWarning("Debugging DelayedSetEntity.Setable.get");
-//                }
-//#endif
-
                 Set(_getterMethod());
             }
 

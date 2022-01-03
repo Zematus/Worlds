@@ -74,6 +74,9 @@ public class ModAction : Context, IDebugLogger, IEffectTrigger
     }
 #endif
 
+    private long _lastSetDate = -1;
+    private Faction _guidedFaction = null;
+
     /// <summary>
     /// First UId to use for actions loaded from mods
     /// </summary>
@@ -217,9 +220,21 @@ public class ModAction : Context, IDebugLogger, IEffectTrigger
             throw new System.ArgumentNullException("faction is set to null");
         }
 
+        if ((_lastSetDate == Manager.CurrentWorld.CurrentDate) &&
+            (_guidedFaction == faction) &&
+            Manager.ResolvingPlayerInvolvedDecisionChain)
+        {
+            // We shouldn't reset the target if we are in the middle of resolving a
+            // decision chain and neither the target nor the current date have changed
+            return;
+        }
+
+        _lastSetDate = Manager.CurrentWorld.CurrentDate;
+        _guidedFaction = faction;
+
         Reset();
 
-        Target.Set(faction);
+        Target.Set(_guidedFaction);
     }
 
     public override int GetNextRandomInt(int iterOffset, int maxValue) =>
