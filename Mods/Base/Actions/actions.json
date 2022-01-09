@@ -78,7 +78,7 @@
         { "id": "rs_description_tribe", "value": "''Select a neighboring tribe...''" },
         { "id": "selected_tribe", "value": "contacts.request_selection(rs_description_tribe).polity" },
         { "id": "neighbor_clans", "value": "selected_tribe.get_factions[faction](faction.has_contact_with(target.polity))" },
-        { "id": "rs_description_clan", "value": "''Select the clan within the <<selected_tribe>> tribe the <<target.polity>> tribe should improve relations with...''" },
+        { "id": "rs_description_clan", "value": "''Select which clan the <<target.polity>> tribe should improve relations with...''" },
         { "id": "selected_clan", "value": "neighbor_clans.request_selection(rs_description_clan)" }
       ],
       "accessConditions": [
@@ -93,6 +93,33 @@
       ],
       "effects": [
         "target.trigger_decision(improve_relationship_with_neighbors_clan, selected_clan)"
+      ]
+    },
+    {
+      "id": "invite_clan_join",
+      "name": "Invite neighbor's clan to join tribe",
+      "target": "faction",
+      "category": "diplomacy",
+      "properties": [
+        { "id": "contacts", "value": "target.polity.contacts" },
+        { "id": "rs_description_tribe", "value": "''Select a neighboring tribe...''" },
+        { "id": "selected_tribe", "value": "contacts.request_selection(rs_description_tribe).polity" },
+        { "id": "neighbor_clans", "value": "selected_tribe.get_factions[faction](faction.has_contact_with(target.polity))" },
+        { "id": "rs_description_clan", "value": "''Select which clan the <<target.polity>> tribe should invite to join in...''" },
+        { "id": "selected_clan", "value": "neighbor_clans.request_selection(rs_description_clan)" }
+      ],
+      "accessConditions": [
+        "target == target.polity.dominant_faction",
+        "target.polity.type == tribe"
+      ],
+      "executeConditions": [
+        {
+          "condition": "contacts.count > 0",
+          "info": "Number of neighbor tribes must be greater than 0. Currently, <<contacts.count>>"
+        }
+      ],
+      "effects": [
+        "target.trigger_decision(tribe_invites_clan_join, selected_clan)"
       ]
     }
   ]
