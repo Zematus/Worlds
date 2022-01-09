@@ -5,12 +5,10 @@ public class GroupSelectionRequest : EntitySelectionRequest<CellGroup>, IMapEnti
 {
     private readonly HashSet<CellGroup> _involvedGroups = null;
 
-    public ModText Text { get; private set; }
-
     public GroupSelectionRequest(
         ICollection<CellGroup> collection,
         ModText text) :
-        base(collection)
+        base(collection, text)
     {
         Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
 
@@ -19,18 +17,16 @@ public class GroupSelectionRequest : EntitySelectionRequest<CellGroup>, IMapEnti
             throw new System.Exception("Can't create request without an active guided faction");
         }
 
-        Text = text;
-
         _involvedGroups = new HashSet<CellGroup>(collection);
         _involvedGroups.Add(guidedFaction.CoreGroup);
 
         // Set involved groups as filtered so that the UI can quickly filter them
 
-        guidedFaction.CoreGroup.Cell.AssignedFilterType = TerrainCell.FilterType.Core;
+        guidedFaction.CoreGroup.Cell.SelectionFilterType = TerrainCell.FilterType.Core;
 
         foreach (var group in collection)
         {
-            group.Cell.AssignedFilterType = TerrainCell.FilterType.Selectable;
+            group.Cell.SelectionFilterType = TerrainCell.FilterType.Selectable;
         }
     }
 
@@ -38,7 +34,7 @@ public class GroupSelectionRequest : EntitySelectionRequest<CellGroup>, IMapEnti
     {
         foreach (var group in _involvedGroups)
         {
-            group.Cell.AssignedFilterType = TerrainCell.FilterType.None;
+            group.Cell.SelectionFilterType = TerrainCell.FilterType.None;
         }
 
         base.Close();

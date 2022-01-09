@@ -81,8 +81,6 @@ public abstract class Polity : ISynchronizable
 
     public List<long> EventMessageIds;
 
-    public List<PolityContact> Contacts = null;
-
     public List<PolityEventData> EventDataList = new List<PolityEventData>();
 
     [XmlIgnore]
@@ -164,22 +162,22 @@ public abstract class Polity : ISynchronizable
     }
 
     [XmlIgnore]
-    public HashSet<Region> AccessibleNeighborRegions
+    public HashSet<Region> NeighborRegions
     {
         get
         {
-            if (_needsToFindAccessibleRegions)
+            if (_needsToFindNeighborRegions)
             {
-                FindAccessibleNeighborRegions();
+                FindNeighborRegions();
             }
 
-            return _accessibleNeighborRegions;
+            return _neighborRegions;
         }
     }
 
-    private void FindAccessibleNeighborRegions()
+    private void FindNeighborRegions()
     {
-        _accessibleNeighborRegions = new HashSet<Region>();
+        _neighborRegions = new HashSet<Region>();
 
         if (Territory == null)
             throw new System.Exception("Territory is null. Polity: " + Id);
@@ -189,15 +187,15 @@ public abstract class Polity : ISynchronizable
             if (CoreRegions.Contains(region))
                 continue;
 
-            _accessibleNeighborRegions.Add(region);
+            _neighborRegions.Add(region);
         }
 
-        _needsToFindAccessibleRegions = false;
+        _needsToFindNeighborRegions = false;
     }
 
     public void AccessibleRegionsUpdate()
     {
-        _needsToFindAccessibleRegions = true;
+        _needsToFindNeighborRegions = true;
 
         ApplyRegionAccessibilityUpdate();
     }
@@ -213,7 +211,7 @@ public abstract class Polity : ISynchronizable
 
         CoreRegionIds.Add(region.Id);
 
-        _needsToFindAccessibleRegions = true;
+        _needsToFindNeighborRegions = true;
 
         NeedsNewCensus = true;
 
@@ -230,7 +228,7 @@ public abstract class Polity : ISynchronizable
 
         CoreRegionIds.Remove(region.Id);
 
-        _needsToFindAccessibleRegions = true;
+        _needsToFindNeighborRegions = true;
 
         NeedsNewCensus = true;
 
@@ -307,8 +305,8 @@ public abstract class Polity : ISynchronizable
     private Dictionary<Identifier, PolityContact> _contacts =
         new Dictionary<Identifier, PolityContact>();
 
-    private bool _needsToFindAccessibleRegions = true;
-    private HashSet<Region> _accessibleNeighborRegions;
+    private bool _needsToFindNeighborRegions = true;
+    private HashSet<Region> _neighborRegions;
 
     public Polity()
     {
@@ -572,18 +570,11 @@ public abstract class Polity : ISynchronizable
 
         if (_factions.Count <= 0)
         {
-            //#if DEBUG
-            //Debug.Log ("Polity will be removed due to losing all factions. faction id: " + faction.Id + ", polity id:" + Id);
-            //#endif
-
             PrepareToRemoveFromWorld();
             return;
         }
 
         World.AddPolityToUpdate(this);
-
-        // There's no point in calling this here as this happens after factions have already been updated or after the polity was destroyed
-        //World.AddFactionToUpdate(faction);
 
         FactionCount--;
     }
@@ -638,6 +629,18 @@ public abstract class Polity : ISynchronizable
 
         if (faction.Polity != this)
             throw new System.Exception("Faction is not part of polity");
+
+//#if DEBUG
+//        if ((Id == "176743860:7489493386076493324") || (Id == "215624940:7812196115215947840"))
+//        {
+//            Debug.LogWarning($"DEBUG: changing dominant faction of polity {Id}, DominantFaction: {DominantFaction?.Id}, faction: {faction?.Id}");
+
+//            if (World.CurrentDate == 215643192)
+//            {
+//                Debug.LogWarning($"Debugging SetDominantFaction");
+//            }
+//        }
+//#endif
 
         DominantFaction = faction;
 
@@ -877,8 +880,8 @@ public abstract class Polity : ISynchronizable
         // Can only tranfer influence between factions belonging to the same polity
 
         if (sourceFaction.PolityId != targetFaction.PolityId)
-            throw new System.Exception("Source faction and target faction do not belong to same polity. " +
-                "source's Polity: " + sourceFaction.PolityId + ", target's polity: " + targetFaction.PolityId);
+            throw new System.Exception($"Source faction and target faction do not belong to same polity. " +
+                $"source's Polity: {sourceFaction.PolityId}, target's polity: {targetFaction.PolityId}");
 
         // Always reduce influence of source faction and increase promience of target faction
 
@@ -901,12 +904,20 @@ public abstract class Polity : ISynchronizable
         _willBeRemoved = true;
     }
 
+    public void NormalizeAndUpdateDominantFaction()
+    {
+        if (_willBeRemoved) 
+            return;
+
+        NormalizeFactionInfluences();
+
+        UpdateDominantFaction();
+    }
+
     public void Update()
     {
-        if (_willBeRemoved)
-        {
+        if (_willBeRemoved) 
             return;
-        }
 
         if (!StillPresent)
         {
@@ -941,9 +952,7 @@ public abstract class Polity : ISynchronizable
 
         IsBeingUpdated = true;
 
-        NormalizeFactionInfluences();
-
-        UpdateDominantFaction();
+        NormalizeAndUpdateDominantFaction();
 
         Culture.Update();
 
@@ -1237,12 +1246,6 @@ public abstract class Polity : ISynchronizable
 
         Name.Synchronize();
 
-        Contacts = new List<PolityContact>(_contacts.Values);
-
-        // Reload contacts to ensure order is equal to that in the save file
-        _contacts.Clear();
-        LoadContacts();
-
         FactionIds = new List<Identifier>(_factions.Keys);
 
         // Reload factions to ensure order is equal to that in the save file
@@ -1278,14 +1281,6 @@ public abstract class Polity : ISynchronizable
         return faction;
     }
 
-    private void LoadContacts()
-    {
-        foreach (PolityContact contact in Contacts)
-        {
-            _contacts.Add(contact.Id, contact);
-        }
-    }
-
     public void LoadFactions()
     {
         foreach (Identifier id in FactionIds)
@@ -1297,13 +1292,6 @@ public abstract class Polity : ISynchronizable
     public virtual void FinalizeLoad()
     {
         LoadFactions();
-        LoadContacts();
-
-        foreach (var contact in Contacts)
-        {
-            contact.World = World;
-            contact.FinalizeLoad();
-        }
 
         foreach (long messageId in EventMessageIds)
         {
@@ -1808,9 +1796,7 @@ public abstract class Polity : ISynchronizable
 
     public float CalculateAdministrativeLoad()
     {
-        int socialOrganizationValue = 0;
-
-        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out socialOrganizationValue);
+        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int socialOrganizationValue);
 
         if (socialOrganizationValue <= 0)
         {

@@ -192,6 +192,8 @@ public class World : ISynchronizable, IWorldDateGetter
     public Region HoveredRegion = null;
     [XmlIgnore]
     public Territory HoveredTerritory = null;
+    [XmlIgnore]
+    public Faction HoveredFaction = null;
 
     [XmlIgnore]
     public Faction GuidedFaction = null;

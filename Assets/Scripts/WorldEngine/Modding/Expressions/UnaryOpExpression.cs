@@ -28,7 +28,7 @@ public abstract class UnaryOpExpression<T> : IValueExpression<T>
     public virtual string ToPartiallyEvaluatedString(int depth = -1) =>
         $"({_opStr}{_expression.ToPartiallyEvaluatedString(depth)})";
 
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
+    public string GetFormattedString() => Value.ToFormattedString();
 
     public bool TryGetRequest(out InputRequest request) =>
         _expression.TryGetRequest(out request);

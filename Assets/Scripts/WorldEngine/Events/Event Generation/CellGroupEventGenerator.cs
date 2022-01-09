@@ -10,7 +10,7 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
 
     public CellGroupEventGenerator()
     {
-        _target = new GroupEntity(this, TargetEntityId);
+        _target = new GroupEntity(this, TargetEntityId, null);
 
         // Add the target to the context's entity map
         AddEntity(_target);

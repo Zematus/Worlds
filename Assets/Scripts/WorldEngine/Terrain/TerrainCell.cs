@@ -217,7 +217,7 @@ public class TerrainCell
     public bool IsSelected = false;
     public bool IsHovered = false;
 
-    public FilterType AssignedFilterType = FilterType.None;
+    public FilterType SelectionFilterType = FilterType.None;
 
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
 
@@ -258,6 +258,21 @@ public class TerrainCell
         Area = height * width;
         MaxAreaPercent = Area / MaxArea;
     }
+
+    public IEnumerable<Faction> GetClosestFactions()
+    {
+        if (Group != null)
+        {
+            foreach (var faction in Group.GetClosestFactions())
+            {
+                yield return faction;
+            }
+        }
+    }
+
+    public Faction GetClosestFaction(Polity polity) => Group?.GetClosestFaction(polity);
+
+    public Faction GetMostProminentClosestFaction() => Group?.GetMostProminentClosestFaction();
 
     /// <summary>
     /// Returns the contribution level a certain activity would have on this cell

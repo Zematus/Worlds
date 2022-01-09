@@ -6,7 +6,7 @@
       "target": "faction",
       "parameters": [
         { "id": "selected_region", "type": "region" },
-        { "id": "chance_of_making_attempt", "type": "number" }
+        { "id": "chance_of_making_attempt", "type": "number", "defaultValue": "1" }
       ],
       "properties": [
         { "id": "cohesion_preference", "value": "target.preferences.cohesion" }

@@ -21,24 +21,22 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
 
     private readonly IValueExpression<string> _decisionIdExp;
     private readonly IBaseValueExpression[] _parameterExps;
-    private readonly IValueExpression<string> _triggerPrioExp;
 
     public TriggerDecisionAttribute(FactionEntity factionEntity, IExpression[] arguments)
         : base(FactionEntity.TriggerDecisionAttributeId, factionEntity, arguments, 1)
     {
         _factionEntity = factionEntity;
 
-        _triggerPrioExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
-        _decisionIdExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[1]);
+        _decisionIdExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
 
-        if (arguments.Length > 2)
+        if (arguments.Length > 1)
         {
-            _parameterExps = new IBaseValueExpression[arguments.Length - 2];
+            _parameterExps = new IBaseValueExpression[arguments.Length - 1];
 
             for (int i = 0; i < _parameterExps.Length; i++)
             {
                 _parameterExps[i] =
-                    ValueExpressionBuilder.ValidateValueExpression(arguments[i + 2]);
+                    ValueExpressionBuilder.ValidateValueExpression(arguments[i + 1]);
             }
         }
         else
@@ -58,7 +56,7 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
                 "Check the source mod for inconsistencies");
         }
 
-        string triggerPrio = _triggerPrioExp.Value;
+        string triggerPrio = DecisionTriggerPriority.Decision;
 
         if (!DecisionTriggerPriority.Values.Contains(triggerPrio))
         {

@@ -20,7 +20,7 @@ public abstract class BinaryOpExpressionWithOutput<T> : BinaryOpExpression, IVal
     {
     }
 
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
+    public string GetFormattedString() => Value.ToFormattedString();
 
     public abstract T Value { get; }
 

@@ -2,11 +2,11 @@
   "actions": [
     {
       "id": "expand_toward_region",
-      "name": "Expand Toward Region",
+      "name": "Expand toward region",
       "target": "faction",
       "category": "territory",
       "properties": [
-        { "id": "neighbor_regions", "value": "target.polity.accessible_neighbor_regions" },
+        { "id": "neighbor_regions", "value": "target.polity.neighbor_regions" },
         { "id": "rs_description", "value": "''Select the region the <<target.polity>> tribe should expand to...''" },
         { "id": "selected_region", "value": "neighbor_regions.request_selection(rs_description)" }
       ],
@@ -15,10 +15,111 @@
         "target.polity.type == tribe"
       ],
       "executeConditions": [
-        "neighbor_regions.count > 0"
+        {
+          "condition": "neighbor_regions.count > 0",
+          "info": "Number of neighbor regions must be greater than 0. Currently, <<neighbor_regions.count>>"
+        }
       ],
       "effects": [
-        "target.trigger_decision(action_prio, tribe_decide_expand_toward_region, selected_region, 1)"
+        "target.trigger_decision(tribe_decide_expand_toward_region, selected_region)"
+      ]
+    },
+    {
+      "id": "perform_influence_demand",
+      "name": "Perform influence demand",
+      "target": "faction",
+      "category": "diplomacy",
+      "properties": [
+        { "id": "dominant_faction", "value": "target.polity.dominant_faction" }
+      ],
+      "accessConditions": [
+        "target != dominant_faction",
+        "target.polity.type == tribe"
+      ],
+      "effects": [
+        "target.trigger_decision(clan_decide_performing_influence_demand, dominant_faction)"
+      ]
+    },
+    {
+      "id": "form_new_tribe",
+      "name": "Form new tribe",
+      "target": "faction",
+      "category": "diplomacy",
+      "properties": [
+        { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
+        { "id": "relationship_value", "value": "target.get_relationship(dominant_faction)" },
+        { "id": "cohesion_preference", "value": "target.preferences.cohesion" }
+      ],
+      "accessConditions": [
+        "target != dominant_faction",
+        "target.polity.type == tribe"
+      ],
+      "executeConditions": [
+        {
+          "condition": "relationship_value < 0.4",
+          "info": "Relationship value with dominant clan must be below 0.4. Currently, <<relationship_value>>"
+        },
+        {
+          "condition": "cohesion_preference < 0.5",
+          "info": "Cohesion preference must be below 0.5. Currently, <<cohesion_preference>>"
+        }
+      ],
+      "effects": [
+        "target.trigger_decision(clan_decide_form_new_tribe)"
+      ]
+    },
+    {
+      "id": "improve_relationship_with_neighbors_clan",
+      "name": "Improve relationship with neighbor's clan",
+      "target": "faction",
+      "category": "diplomacy",
+      "properties": [
+        { "id": "contacts", "value": "target.polity.contacts" },
+        { "id": "rs_description_tribe", "value": "''Select a neighboring tribe...''" },
+        { "id": "selected_tribe", "value": "contacts.request_selection(rs_description_tribe).polity" },
+        { "id": "neighbor_clans", "value": "selected_tribe.get_factions[faction](faction.has_contact_with(target.polity))" },
+        { "id": "rs_description_clan", "value": "''Select which clan the <<target.polity>> tribe should improve relations with...''" },
+        { "id": "selected_clan", "value": "neighbor_clans.request_selection(rs_description_clan)" }
+      ],
+      "accessConditions": [
+        "target == target.polity.dominant_faction",
+        "target.polity.type == tribe"
+      ],
+      "executeConditions": [
+        {
+          "condition": "contacts.count > 0",
+          "info": "Number of neighbor tribes must be greater than 0. Currently, <<contacts.count>>"
+        }
+      ],
+      "effects": [
+        "target.trigger_decision(improve_relationship_with_neighbors_clan, selected_clan)"
+      ]
+    },
+    {
+      "id": "invite_clan_join",
+      "name": "Invite neighbor's clan to join tribe",
+      "target": "faction",
+      "category": "diplomacy",
+      "properties": [
+        { "id": "contacts", "value": "target.polity.contacts" },
+        { "id": "rs_description_tribe", "value": "''Select a neighboring tribe...''" },
+        { "id": "selected_tribe", "value": "contacts.request_selection(rs_description_tribe).polity" },
+        { "id": "neighbor_clans", "value": "selected_tribe.get_factions[faction](faction.has_contact_with(target.polity))" },
+        { "id": "rs_description_clan", "value": "''Select which clan the <<target.polity>> tribe should invite to join in...''" },
+        { "id": "selected_clan", "value": "neighbor_clans.request_selection(rs_description_clan)" }
+      ],
+      "accessConditions": [
+        "target == target.polity.dominant_faction",
+        "target.polity.type == tribe"
+      ],
+      "executeConditions": [
+        {
+          "condition": "contacts.count > 0",
+          "info": "Number of neighbor tribes must be greater than 0. Currently, <<contacts.count>>"
+        }
+      ],
+      "effects": [
+        "target.trigger_decision(tribe_invites_clan_join, selected_clan)"
       ]
     }
   ]

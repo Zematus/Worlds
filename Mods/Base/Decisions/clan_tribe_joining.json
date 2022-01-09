@@ -6,7 +6,7 @@
       "target": "faction",
       "parameters": [
         { "id": "contact_faction", "type": "faction" },
-        { "id": "chance_of_making_attempt", "type": "number" }
+        { "id": "chance_of_making_attempt", "type": "number", "defaultValue": "1" }
       ],
       "properties": [
         { "id": "target_isolation", "value": "target.preferences.isolation" },
@@ -54,7 +54,7 @@
             {
               "id": "attempt",
               "text": "The current leader of <<contact_faction>> will ponder the offer from clan <<target>> to join <<target.polity>>",
-              "result": "contact_faction.trigger_decision(decision_prio, faction_decide_on_join_tribe_offer, target.polity, target.leader.charisma)"
+              "result": "contact_faction.trigger_decision(faction_decide_on_join_tribe_offer, target.polity, target.leader.charisma)"
             }
           ]
         },
@@ -82,7 +82,7 @@
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "target_aggression", "value": "target.preferences.aggression" },
         { "id": "contact_strength", "value": "target.polity.get_contact(attempting_polity).strength" },
-        { "id": "contact_strength_factor", "value": "2 - (contact_strength * 30)" },
+        { "id": "contact_strength_factor", "value": "1.5 - clamp(contact_strength * 5, 0, 1)" },
         { "id": "isolation_factor", "value": "target_isolation * 2" },
         { "id": "attempting_leader_charisma_factor", "value": "2 - attempting_leader_charisma" },
         { "id": "chance_of_rejecting_common_factors", "value": "contact_strength_factor * isolation_factor * attempting_leader_charisma_factor" },
@@ -115,7 +115,7 @@
             {
               "id": "notify",
               "text": "<<attempting_polity.leader>> will be notified of our decision...",
-              "result": "attempting_polity.dominant_faction.trigger_decision(decision_prio, clan_rejected_join_tribe_offer, target)"
+              "result": "attempting_polity.dominant_faction.trigger_decision(clan_rejected_join_tribe_offer, target)"
             }
           ]
         },
@@ -138,7 +138,7 @@
             {
               "id": "notify",
               "text": "<<attempting_polity.leader>> will be notified of our decision...",
-              "result": "attempting_polity.dominant_faction.trigger_decision(decision_prio, clan_rejected_join_tribe_offer, target)"
+              "result": "attempting_polity.dominant_faction.trigger_decision(clan_rejected_join_tribe_offer, target)"
             }
           ]
         },
@@ -191,12 +191,12 @@
             {
               "id": "notify_dominant",
               "text": "The current leader of the <<target.polity>> tribe will be notified of our decision...",
-              "result": "dominant_faction.trigger_decision(decision_prio, clan_leaves_tribe_for_another, target, attempting_polity)"
+              "result": "dominant_faction.trigger_decision(clan_leaves_tribe_for_another, target, attempting_polity)"
             },
             {
               "id": "notify_attempter",
               "text": "The current leader of the <<attempting_polity>> tribe will be notified of our decision...",
-              "result": "attempting_faction.trigger_decision(decision_prio, clan_accepted_join_tribe_offer, target)"
+              "result": "attempting_faction.trigger_decision(clan_accepted_join_tribe_offer, target)"
             }
           ]
         },
@@ -239,7 +239,7 @@
             {
               "id": "notify_attempter",
               "text": "The current leader of the <<attempting_polity>> tribe will be notified of our decision...",
-              "result": "attempting_faction.trigger_decision(decision_prio, clan_accepted_join_tribe_offer, target)"
+              "result": "attempting_faction.trigger_decision(clan_accepted_join_tribe_offer, target)"
             }
           ]
         }

@@ -7,8 +7,15 @@ using UnityEngine.Profiling;
 using System;
 
 [XmlInclude(typeof(Clan))]
-public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
+public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, ICellSet
 {
+    public enum FilterType
+    {
+        None,
+        Related,
+        Selectable
+    }
+
     private HashSet<IFactionEventGenerator> _generatorsToTestAssignmentFor =
         new HashSet<IFactionEventGenerator>();
 
@@ -83,6 +90,12 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlIgnore]
     public bool HasBeenUpdated = false;
 
+    [XmlIgnore]
+    public FilterType SelectionFilterType = FilterType.None;
+
+    [XmlIgnore]
+    public bool IsHovered = false;
+
     public List<string> Flags;
 
     public FactionCulture Culture;
@@ -140,11 +153,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlIgnore]
     public Dictionary<Polity, int> OverlapingPolities = new Dictionary<Polity, int>();
 
-#if DEBUG
-    [XmlIgnore]
-    public HashSet<PolityProminence> _overlappingProminences = new HashSet<PolityProminence>();
-#endif
-
     protected Dictionary<Identifier, FactionRelationship> _relationships =
         new Dictionary<Identifier, FactionRelationship>();
 
@@ -154,7 +162,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     private DatedValue<float> _administrativeLoad;
     private DatedValue<Agent> _currentLeader;
 
-    private HashSet<string> _flags = new HashSet<string>();
+    private readonly HashSet<string> _flags = new HashSet<string>();
 
     private bool _preupdated = false;
 
@@ -285,49 +293,87 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         StillPresent = false;
     }
 
-    public void AddOverlappingPolity(PolityProminence prominence)
+//#if DEBUG
+//    static Dictionary<PolityProminence, int> _debug_polityProminences = new Dictionary<PolityProminence, int>();
+//#endif
+
+    public void AddOverlappingPolity(PolityProminence prominence, PolityProminence prominence2)
     {
-#if DEBUG
-        if (!_overlappingProminences.Add(prominence))
-        {
-            throw new System.Exception(
-                $"Tried adding same prominence twice, " +
-                $"group: {prominence.Id}, " +
-                $"polity: {prominence.PolityId}, " +
-                $"faction: {Id}, " +
-                $"faction's polity: {Polity.Id}");
-        }
-#endif
+//#if DEBUG
+//        if ((Id == "97371564:7301682472976039088") && (prominence.Polity.Id == "97371564:7301682472976039088"))
+//        {
+//            if ((prominence2.Group.Position.Equals(315, 131) && (prominence.Group.Position.Equals(315, 130) || prominence.Group.Position.Equals(316, 131) || prominence.Group.Position.Equals(316, 132))) ||
+//                (prominence2.Group.Position.Equals(315, 130) && prominence.Group.Position.Equals(315, 131)) ||
+//                (prominence2.Group.Position.Equals(316, 131) && prominence.Group.Position.Equals(315, 131)) ||
+//                (prominence2.Group.Position.Equals(316, 132) && prominence.Group.Position.Equals(315, 131)))
+//            {
+//                var stackTrace = new System.Diagnostics.StackTrace();
+//                Debug.LogWarning($"Adding prominence: {prominence.Group.Position}, prominence2: {prominence2.Group.Position}, caller: {stackTrace.GetFrame(1).GetMethod().Name}");
+//            }
+
+//            if (!_debug_polityProminences.ContainsKey(prominence))
+//            {
+//                _debug_polityProminences.Add(prominence, 1);
+//            }
+//            else
+//            {
+//                _debug_polityProminences[prominence]++;
+//            }
+//        }
+//#endif
 
         if (OverlapingPolities.ContainsKey(prominence.Polity))
+        {
             OverlapingPolities[prominence.Polity]++;
+        }
         else
+        {
             OverlapingPolities.Add(prominence.Polity, 1);
+        }
     }
 
-    public void RemoveOverlappingPolity(PolityProminence prominence)
+    public void RemoveOverlappingPolity(PolityProminence prominence, PolityProminence prominence2)
     {
-#if DEBUG
-        if (!_overlappingProminences.Remove(prominence))
-        {
-            throw new System.Exception(
-                $"Tried removing same prominence twice, " +
-                $"group: {prominence.Id}, " +
-                $"faction: {Id}, " +
-                $"polity: {prominence.PolityId}, " +
-                $"faction's polity: {PolityId}");
-        }
-#endif
+//#if DEBUG
+//        if ((Id == "97371564:7301682472976039088") && (prominence.Polity.Id == "97371564:7301682472976039088"))
+//        {
+//            //if (prominence.Group.Position.Equals(315, 130)
+//            if ((prominence2.Group.Position.Equals(315, 131) && (prominence.Group.Position.Equals(315, 130) || prominence.Group.Position.Equals(316, 131) || prominence.Group.Position.Equals(316, 132))) ||
+//                (prominence2.Group.Position.Equals(315, 130) && prominence.Group.Position.Equals(315, 131)) ||
+//                (prominence2.Group.Position.Equals(316, 131) && prominence.Group.Position.Equals(315, 131)) ||
+//                (prominence2.Group.Position.Equals(316, 132) && prominence.Group.Position.Equals(315, 131)))
+//            {
+//                var stackTrace = new System.Diagnostics.StackTrace();
+//                Debug.LogWarning($"Removing prominence: {prominence.Group.Position}, prominence2: {prominence2.Group.Position}, caller: {stackTrace.GetFrame(1).GetMethod().Name}");
+//            }
+
+//            if (!_debug_polityProminences.ContainsKey(prominence))
+//            {
+//                //throw new Exception($"Tried to remove prominence not present. prominence: {prominence.Group.Position}, prominence2: {prominence2.Group.Position}");
+//            }
+//            else
+//            {
+//                _debug_polityProminences[prominence]--;
+
+//                if (_debug_polityProminences[prominence] == 0)
+//                {
+//                    _debug_polityProminences.Remove(prominence);
+//                }
+//            }
+//        }
+//#endif
 
         if (OverlapingPolities.ContainsKey(prominence.Polity))
         {
             OverlapingPolities[prominence.Polity]--;
 
             if (OverlapingPolities[prominence.Polity] <= 0)
+            {
                 OverlapingPolities.Remove(prominence.Polity);
+            }
         }
         else
-            throw new System.Exception("removing polity that was not part of overlaping polities");
+            throw new Exception($"Removing polity that was not part of overlaping polities. faction: {Id}, polity: {prominence.Polity.Id}");
     }
 
     public void AddProminence(PolityProminence prominence)
@@ -335,20 +381,17 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if (!Prominences.Add(prominence))
             return;
 
-        foreach (var p in prominence.Group.GetPolityProminences())
-        {
-            AddOverlappingPolity(p);
-        }
+        prominence.IncreaseOverlapWithNeighborPolities(this);
     }
 
-    public void RemoveProminence(PolityProminence prominence)
+    public void RemoveProminence(PolityProminence prominence, bool decreaseOverlap = true)
     {
         if (!Prominences.Remove(prominence))
             return;
 
-        foreach (var p in prominence.Group.GetPolityProminences())
+        if (decreaseOverlap)
         {
-            RemoveOverlappingPolity(p);
+            prominence.DecreaseOverlapWithNeighborPolities(this);
         }
     }
 
@@ -408,10 +451,15 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public float GetRelationshipValue(Faction faction)
     {
+        if (faction == null)
+        {
+            throw new ArgumentNullException("faction is null");
+        }
+
         // Set a default neutral relationship
         if (!_relationships.ContainsKey(faction.Id))
         {
-            Faction.SetRelationship(this, faction, 0.5f);
+            SetRelationship(this, faction, 0.5f);
         }
 
         return _relationships[faction.Id].Value;
@@ -805,6 +853,18 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public virtual void SetDominant(bool state)
     {
+//#if DEBUG
+//        if (Id == "179615149:7788330637982280827")
+//        {
+//            Debug.LogWarning($"DEBUG: Setting faction dominant state to: {state}, faction: {Id}, polity: {Polity.Id}");
+
+//            if (World.CurrentDate == 215643192)
+//            {
+//                Debug.LogWarning($"Debugging SetDominant");
+//            }
+//        }
+//#endif
+
         IsDominant = state;
 
         SetStatusChange();
@@ -834,11 +894,24 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if ((targetPolity == null) || (!targetPolity.StillPresent))
             throw new System.Exception("target Polity is null or not Present");
 
+//#if DEBUG
+//        if (Id == "179615149:7788330637982280827")
+//        {
+//            Debug.LogWarning($"DEBUG: changing polity of faction {Id}, Polity: {Polity.Id}, targetPolity: {targetPolity.Id}");
+
+//            if (World.CurrentDate == 215643192)
+//            {
+//                Debug.LogWarning($"Debugging ChangePolity");
+//            }
+//        }
+//#endif
+
         Polity.RemoveFaction(this);
 
         if (IsDominant)
         {
             Polity.CoreGroupIsValid = false;
+            Polity.NormalizeAndUpdateDominantFaction();
         }
 
         if (transferGroups)
@@ -991,5 +1064,22 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public void InitializeDefaultEvents()
     {
         InitializeOnSpawnEvents();
+    }
+
+    public ICollection<TerrainCell> GetCells()
+    {
+        var cells = new List<TerrainCell>();
+
+        foreach (var prominence in Prominences)
+        {
+            cells.Add(prominence.Group.Cell);
+        }
+
+        return cells;
+    }
+
+    public RectInt GetBoundingRectangle()
+    {
+        return CellSet.GetBoundingRectangle(GetCells());
     }
 }

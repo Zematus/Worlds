@@ -1,4 +1,5 @@
-﻿
+﻿using UnityEngine;
+
 public class PreferenceAttribute : ValueEntityAttribute<float>
 {
     private CulturalPreferencesEntity _preferencesEntity;
@@ -27,6 +28,13 @@ public class PreferenceAttribute : ValueEntityAttribute<float>
         {
             return 0;
         }
+
+#if DEBUG
+        if ((preference.Value <= 0) || (preference.Value >= 1))
+        {
+            Debug.LogWarning($"Preference value not between 0 and 1: {preference.Value}");
+        }
+#endif
 
         return preference.Value;
     }

@@ -12,7 +12,7 @@ public class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
     protected readonly string _id;
     protected readonly int _idHash;
 
-    public override bool RequiresInput => _valExpression.RequiresInput;
+    protected override bool RequiresInputIgnoreParent => _valExpression.RequiresInput;
 
     public override T Value
     {
@@ -34,12 +34,12 @@ public class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
 
     private T _value = default;
 
-    public PropertyEntity(Context c, string id, IExpression exp) : base(c, id)
+    public PropertyEntity(Context c, string id, IExpression exp) : base(c, id, null)
     {
         _id = id;
         _idHash = id.GetHashCode();
 
-        _partialEvalStringConverter = ToPartiallyEvaluatedString;
+        PartialEvalStringConverter = ToPartiallyEvaluatedString;
 
         _valExpression = ValueExpressionBuilder.ValidateValueExpression<T>(exp);
 

@@ -888,10 +888,17 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             return;
 
         Neighbors.Add(direction, group);
+
+        AddNeighborPolities(group);
     }
 
     public void RemoveNeighbor(Direction direction)
     {
+        if (!Neighbors.ContainsKey(direction))
+            return;
+
+        RemoveNeighborPolities(Neighbors[direction]);
+
         Neighbors.Remove(direction);
     }
 
@@ -1007,14 +1014,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// all step 2 group post updates are performed
     public void PostUpdate_BeforePolityUpdates_Step1()
     {
-//#if DEBUG
-//        if ((World.CurrentDate >= Manager.GetDateNumber(2488878, 219)) &&
-//            (Id == "0000000000908440689:5109863400567975564"))
-//        {
-//            Debug.LogWarning("PostUpdate_BeforePolityUpdates_Step1: Debugging group: " + Id);
-//        }
-//#endif
-
         _alreadyUpdated = false;
 
         if (Population < 2)
@@ -2471,6 +2470,40 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return _polityProminences.Values;
     }
 
+    public IEnumerable<Faction> GetClosestFactions()
+    {
+        foreach (var prominence in _polityProminences.Values)
+        {
+            if (prominence.ClosestFaction == null)
+                continue;
+
+            yield return prominence.ClosestFaction;
+        }
+    }
+
+    public Faction GetClosestFaction(Polity polity)
+    {
+        return GetPolityProminence(polity)?.ClosestFaction;
+    }
+
+    public Faction GetMostProminentClosestFaction()
+    {
+        PolityProminence mostProminence = null;
+
+        foreach (var prominence in _polityProminences.Values)
+        {
+            if (prominence.ClosestFaction == null)
+                continue;
+
+            if (prominence.Value > (mostProminence?.Value ?? 0))
+            {
+                mostProminence = prominence;
+            }
+        }
+
+        return mostProminence?.ClosestFaction;
+    }
+
     /// <summary>
     /// Try obtain the prominence associated with a polity Id
     /// </summary>
@@ -3120,6 +3153,60 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         }
     }
 
+    private void AddNeighborPolities(CellGroup group)
+    {
+        foreach (var prominence in group._polityProminences.Values)
+        {
+            AddNeighborPolity(prominence);
+        }
+    }
+
+    private void RemoveNeighborPolities(CellGroup group)
+    {
+        foreach (var prominence in group._polityProminences.Values)
+        {
+            RemoveNeighborPolity(prominence);
+        }
+    }
+
+    private void AddPolityToNeighbors(PolityProminence prominence)
+    {
+        AddNeighborPolity(prominence);
+
+        foreach (var group in NeighborGroups)
+        {
+            group.AddNeighborPolity(prominence);
+        }
+    }
+
+    private void RemoveProminencePolityFromNeighbors(PolityProminence prominence)
+    {
+        RemoveNeighborPolity(prominence);
+
+        foreach (var group in NeighborGroups)
+        {
+            group.RemoveNeighborPolity(prominence);
+        }
+    }
+
+    private void AddNeighborPolity(PolityProminence prominence)
+    {
+        foreach (var gProminence in _polityProminences.Values)
+        {
+            prominence.AddNeighborPolity(gProminence);
+            gProminence.AddNeighborPolity(prominence);
+        }
+    }
+
+    private void RemoveNeighborPolity(PolityProminence prominence)
+    {
+        foreach (var gProminence in _polityProminences.Values)
+        {
+            prominence.RemoveNeighborPolity(gProminence);
+            gProminence.RemoveNeighborPolity(prominence);
+        }
+    }
+
     /// <summary>
     /// Add a new polity prominence
     /// </summary>
@@ -3132,15 +3219,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float initialValue = 0,
         bool modifyTotalValue = false)
     {
-        PolityProminence polityProminence = new PolityProminence(this, polity, initialValue);
+        var prominence = new PolityProminence(this, polity, initialValue);
 
-        // Increase polity contacts
-        foreach (PolityProminence otherProminence in _polityProminences.Values)
-        {
-            Polity.IncreaseContactGroupCount(polity, otherProminence.Polity);
-
-            otherProminence.ClosestFaction?.AddOverlappingPolity(polityProminence);
-        }
+        AddPolityToNeighbors(prominence);
 
         if ((HighestPolityProminence != null) &&
             (polity.Id == HighestPolityProminence.PolityId))
@@ -3150,20 +3231,20 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 $"Group id: {Id}, polity id: {polity.Id}");
         }
 
-        _polityProminences.Add(polity.Id, polityProminence);
-        Cell.AddGroupPolityProminence(polityProminence);
+        _polityProminences.Add(polity.Id, prominence);
+        Cell.AddGroupPolityProminence(prominence);
 
         // We want to update the polity if a group is added.
-        SetPolityUpdate(polityProminence, true);
+        SetPolityUpdate(prominence, true);
 
-        polity.AddGroup(polityProminence);
+        polity.AddGroup(prominence);
 
         if (modifyTotalValue)
         {
             TotalPolityProminenceValue += initialValue;
         }
 
-        World.AddPromToCalculateCoreDistFor(polityProminence);
+        World.AddPromToCalculateCoreDistFor(prominence);
         World.AddGroupWithPolityCountChange(this);
     }
 
@@ -3207,24 +3288,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         _polityProminences.Remove(polityProminence.PolityId);
         Cell.SetGroupPolityProminenceListToReset();
 
-        // If the polity is no longer present, then the contacts would have already been removed
-        if (polityProminence.Polity.StillPresent)
-        {
-            // Decrease polity contacts
-            foreach (PolityProminence epi in _polityProminences.Values)
-            {
-                Polity.DecreaseContactGroupCount(polityProminence.Polity, epi.Polity);
-            }
-        }
-
-        // Decrease overlap with factions
-        foreach (PolityProminence epi in _polityProminences.Values)
-        {
-            if (!_polityProminencesToRemove.Contains(epi.PolityId))
-            {
-                epi.ClosestFaction?.RemoveOverlappingPolity(polityProminence);
-            }
-        }
+        RemoveProminencePolityFromNeighbors(polityProminence);
 
         polityProminence.Polity.RemoveGroup(polityProminence);
 
@@ -3497,6 +3561,8 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         Cell.Group = this;
 
         Neighbors = new Dictionary<Direction, CellGroup>(8);
+
+        AddNeighborPolities(this);
 
         foreach (KeyValuePair<Direction, TerrainCell> pair in Cell.Neighbors)
         {

@@ -8,6 +8,7 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
     public const string CellAttributeId = "cell";
     public const string ProminenceValueAttributeId = "prominence_value";
     public const string FactionCoresCountAttributeId = "faction_cores_count";
+    public const string HasFactionAttributeId = "has_faction";
     public const string GetFactionAttributeId = "get_faction";
     public const string GetFactionCoreDistanceAttributeId = "get_faction_core_distance";
     public const string PreferencesAttributeId = "preferences";
@@ -38,19 +39,19 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
     private readonly List<FactionEntity>
         _factionEntitiesToSet = new List<FactionEntity>();
 
-    public GroupEntity(Context c, string id) : base(c, id)
+    public GroupEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
     public GroupEntity(
-        ValueGetterMethod<CellGroup> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        ValueGetterMethod<CellGroup> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
     public GroupEntity(
-        TryRequestGenMethod<CellGroup> tryRequestGenMethod, Context c, string id)
-        : base(tryRequestGenMethod, c, id)
+        TryRequestGenMethod<CellGroup> tryRequestGenMethod, Context c, string id, IEntity parent)
+        : base(tryRequestGenMethod, c, id, parent)
     {
     }
 
@@ -60,9 +61,10 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             _cellEntity ?? new CellEntity(
                 GetCell,
                 Context,
-                BuildAttributeId(CellAttributeId));
+                BuildAttributeId(CellAttributeId),
+                this);
 
-        return _cellEntity.GetThisEntityAttribute(this);
+        return _cellEntity.GetThisEntityAttribute();
     }
 
     public EntityAttribute GetPolityWithHighestProminenceValueAttribute()
@@ -71,9 +73,10 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             _polityWithHighestProminenceEntity ?? new PolityEntity(
                 GetPolityWithHighestProminenceValue,
                 Context,
-                BuildAttributeId(PolityWithHighestProminenceValueAttributeId));
+                BuildAttributeId(PolityWithHighestProminenceValueAttributeId),
+                this);
 
-        return _polityWithHighestProminenceEntity.GetThisEntityAttribute(this);
+        return _polityWithHighestProminenceEntity.GetThisEntityAttribute();
     }
 
     public EntityAttribute GetPreferencesAttribute()
@@ -82,9 +85,10 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             _preferencesEntity ?? new AssignableCulturalPreferencesEntity(
                 GetCulture,
                 Context,
-                BuildAttributeId(PreferencesAttributeId));
+                BuildAttributeId(PreferencesAttributeId),
+                this);
 
-        return _preferencesEntity.GetThisEntityAttribute(this);
+        return _preferencesEntity.GetThisEntityAttribute();
     }
 
     public EntityAttribute GetKnowledgesAttribute()
@@ -93,9 +97,10 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             _knowledgesEntity ?? new CulturalKnowledgesEntity(
                 GetCulture,
                 Context,
-                BuildAttributeId(KnowledgesAttributeId));
+                BuildAttributeId(KnowledgesAttributeId),
+                this);
 
-        return _knowledgesEntity.GetThisEntityAttribute(this);
+        return _knowledgesEntity.GetThisEntityAttribute();
     }
 
     private EntityAttribute GenerateGetRandomPolityEntityAttribute(IExpression[] arguments)
@@ -117,11 +122,12 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
                 return Group.GetRandomPolity(offset, type);
             },
             Context,
-            BuildAttributeId($"random_polity_{index}"));
+            BuildAttributeId($"random_polity_{index}"),
+            this);
 
         _polityEntitiesToSet.Add(entity);
 
-        return entity.GetThisEntityAttribute(this);
+        return entity.GetThisEntityAttribute();
     }
 
     private ValueGetterEntityAttribute<bool> GenerateHasPolityOfTypeAttribute(IExpression[] arguments)
@@ -140,6 +146,35 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
                     PolityType type = PolityEntity.ConvertToType(argumentExp?.Value);
 
                     return Group.HasPolityOfType(type);
+                });
+
+        return attribute;
+    }
+
+    private ValueGetterEntityAttribute<bool> GenerateHasFactionAttribute(IExpression[] arguments)
+    {
+        if (arguments.Length < 1)
+        {
+            throw new System.ArgumentException("get_faction: missing 'polity' argument");
+        }
+
+        var argumentExp =
+            ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
+
+        var attribute =
+            new ValueGetterEntityAttribute<bool>(
+                HasFactionAttributeId,
+                this,
+                () => {
+                    if (argumentExp.Value is PolityEntity pEntity)
+                    {
+                        return Group.GetFaction(pEntity.Polity) != null;
+                    }
+
+                    throw new System.Exception(
+                        $"Input parameter is not of a valid polity entity: {argumentExp.Value.GetType()}" +
+                        $"\n - expression: {argumentExp}" +
+                        $"\n - value: {argumentExp.ToPartiallyEvaluatedString()}");
                 });
 
         return attribute;
@@ -167,8 +202,10 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
                     if (faction == null)
                     {
                         throw new System.Exception(
-                            $"Closest faction not found. Validate if polity '{pEntity.Polity.Name.Text}' " +
-                            $"is present in Group {Group.Id} first");
+                            $"Faction not found. Validate if polity '{pEntity.Polity.Name.Text}' " +
+                            $"is present in Group first, and then validate if the group is part of " +
+                            $"a faction using 'has_faction' property." +
+                            $"\n - {Context.DebugType}: {Context.Id}");
                     }
 
                     return faction;
@@ -180,11 +217,12 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
                     $"\n - value: {argumentExp.ToPartiallyEvaluatedString()}");
             },
             Context,
-            BuildAttributeId($"faction_{index}"));
+            BuildAttributeId($"faction_{index}"),
+            this);
 
         _factionEntitiesToSet.Add(entity);
 
-        return entity.GetThisEntityAttribute(this);
+        return entity.GetThisEntityAttribute();
     }
 
     protected override object _reference => Group;
@@ -223,6 +261,9 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             case HasPolityOfTypeAttributeId:
                 return GenerateHasPolityOfTypeAttribute(arguments);
 
+            case HasFactionAttributeId:
+                return GenerateHasFactionAttribute(arguments);
+
             case GetFactionAttributeId:
                 return GenerateGetFactionEntityAttribute(arguments);
         }
@@ -237,7 +278,7 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
 
     public override string GetFormattedString()
     {
-        return Group.Cell.Position.ToString().ToBoldFormat();
+        return Group.Cell.Position.ToBoldString();
     }
 
     protected override void ResetInternal()

@@ -15,7 +15,7 @@ public class FixedValueExpression<T> : IValueExpression<T>
 
     public override string ToString() => FixedValue.ToString();
 
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
+    public string GetFormattedString() => Value.ToFormattedString();
 
     public string ToPartiallyEvaluatedString(int depth = -1) => ToString();
 

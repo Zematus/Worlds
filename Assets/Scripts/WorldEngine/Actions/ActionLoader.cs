@@ -17,6 +17,13 @@ public class ActionLoader
     /// </summary>
     public LoadedAction[] actions;
 
+    [Serializable]
+    public class LoadedJustifiedCondition
+    {
+        public string condition;
+        public string info;
+    }
+
     /// <summary>
     /// Object defining an action entry. Structure must match that of
     /// an action entry in the mod file
@@ -28,7 +35,7 @@ public class ActionLoader
         public string target;
         public string category;
         public string[] accessConditions;
-        public string[] executeConditions;
+        public LoadedJustifiedCondition[] executeConditions;
         public string[] effects;
     }
 
@@ -68,71 +75,96 @@ public class ActionLoader
         }
     }
 
+    private static JustifiedCondition CreateExecuteCondition(
+        ModAction action,
+        LoadedJustifiedCondition js)
+    {
+        var condition = new JustifiedCondition(action);
+
+        condition.Info = new ModText(action, js.info);
+        condition.Condition = ValueExpressionBuilder.BuildValueExpression<bool>(action, js.condition);
+
+        return condition;
+    }
+
     /// <summary>
     /// Produces an action object from a single action entry
     /// </summary>
-    /// <param name="e">The action entry</param>
+    /// <param name="a">The action entry</param>
     /// <returns>The resulting action</returns>
-    private static ModAction CreateAction(LoadedAction e)
+    private static ModAction CreateAction(LoadedAction a)
     {
-        if (string.IsNullOrEmpty(e.id))
+        if (string.IsNullOrEmpty(a.id))
         {
             throw new ArgumentException("action 'id' can't be null or empty");
         }
 
-        if (string.IsNullOrEmpty(e.name))
+        if (string.IsNullOrEmpty(a.name))
         {
             throw new ArgumentException("action 'name' can't be null or empty");
         }
 
-        if (string.IsNullOrEmpty(e.target))
+        if (string.IsNullOrEmpty(a.target))
         {
             throw new ArgumentException("action 'target' can't be null or empty");
         }
 
-        if (string.IsNullOrEmpty(e.category))
+        if (string.IsNullOrEmpty(a.category))
         {
             throw new ArgumentException("action 'category' can't be null or empty");
         }
 
-        if (!ModAction.CategoryIds.Contains(e.category))
+        if (!ModAction.CategoryIds.Contains(a.category))
         {
-            throw new ArgumentException("event 'category' is not supported: " + e.category);
+            throw new ArgumentException("event 'category' is not supported: " + a.category);
         }
 
-        if (e.effects == null)
+        if (a.effects == null)
         {
             throw new ArgumentException("event 'effects' list can't be empty");
         }
 
         ModAction action = new ModAction();
-        action.Initialize(e);
+        action.Initialize(a);
 
         IValueExpression<bool>[] accessConditions = null;
-        IValueExpression<bool>[] executeConditions = null;
+        JustifiedCondition[] executeConditions = null;
 
-        if (e.accessConditions != null)
+        if (a.accessConditions != null)
         {
             // Build the access condition expressions (must evaluate to bool values)
             accessConditions =
-                ValueExpressionBuilder.BuildValueExpressions<bool>(action, e.accessConditions);
+                ValueExpressionBuilder.BuildValueExpressions<bool>(action, a.accessConditions);
         }
 
-        if (e.executeConditions != null)
+        if (a.executeConditions != null)
         {
-            // Build the execute condition expressions (must evaluate to bool values)
-            executeConditions =
-                ValueExpressionBuilder.BuildValueExpressions<bool>(action, e.executeConditions);
+            executeConditions = new JustifiedCondition[a.executeConditions.Length];
+
+            for (int i = 0; i < a.executeConditions.Length; i++)
+            {
+                try
+                {
+                    executeConditions[i] = CreateExecuteCondition(action, a.executeConditions[i]);
+                }
+                catch (Exception ex)
+                {
+                    // If there's a failure while loading a execute condition entry,
+                    // report the index within the decision...
+                    throw new Exception(
+                        $"Failure loading justified condition #{i} in action '{a.id}': {ex.Message}", ex);
+                }
+            }
         }
 
         // Build the effect expressions (must produce side effects)
         IEffectExpression[] effects =
-            ExpressionBuilder.BuildEffectExpressions(action, e.effects, true);
+            ExpressionBuilder.BuildEffectExpressions(action, a.effects, true);
 
-        action.IdHash = e.id.GetHashCode();
+        action.IdHash = a.id.GetHashCode();
         action.UId = ModAction.CurrentUId++;
-        action.Name = e.name;
-        action.Category = e.category;
+        action.Name = a.name;
+        action.Category = a.category;
         action.AccessConditions = accessConditions;
         action.ExecuteConditions = executeConditions;
         action.Effects = effects;

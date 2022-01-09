@@ -27,7 +27,7 @@ public class SuperRegion : Region
 
     private void UpdateRectangle(Region subRegion, bool first)
     {
-        RectInt subRect = subRegion.GetRectangle();
+        RectInt subRect = subRegion.GetBoundingRectangle();
 
         if (first)
         {
@@ -178,7 +178,7 @@ public class SuperRegion : Region
         return _mostCenteredCell;
     }
 
-    public override RectInt GetRectangle()
+    public override RectInt GetBoundingRectangle()
     {
         return _rect;
     }

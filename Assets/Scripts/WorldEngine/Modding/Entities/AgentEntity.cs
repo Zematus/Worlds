@@ -19,13 +19,13 @@ public class AgentEntity : DelayedSetEntity<Agent>
 
     protected override object _reference => Agent;
 
-    public AgentEntity(Context c, string id) : base(c, id)
+    public AgentEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
     public AgentEntity(
-        ValueGetterMethod<Agent> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        ValueGetterMethod<Agent> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 

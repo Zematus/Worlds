@@ -70,7 +70,7 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
         {
             foreach (DecisionOptionEffect effect in option.Effects)
             {
-                descriptionText += "\n\t• " + effect.Text.GetFormattedString();
+                descriptionText += $"\n\t• {effect.Text.GetFormattedString()}";
             }
         }
         else
@@ -88,9 +88,7 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
         }
 
         ButtonWithTooltipScript buttonScript = button.GetComponent<ButtonWithTooltipScript>();
-        buttonScript.ButtonText.text = text;
-        buttonScript.TooltipText.text = descriptionText;
-        buttonScript.TooltipPanel.gameObject.SetActive(false);
+        buttonScript.Init(text, descriptionText);
 
         button.onClick.RemoveAllListeners();
 

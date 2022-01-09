@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 public class TransferInfluenceAttribute : EffectEntityAttribute
 {
-    private PolityEntity _polityEntity;
+    private readonly PolityEntity _polityEntity;
 
     private readonly IValueExpression<IEntity> _sourceFactionExp;
     private readonly IValueExpression<IEntity> _targetFactionExp;

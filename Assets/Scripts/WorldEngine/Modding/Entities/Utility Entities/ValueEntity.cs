@@ -9,7 +9,7 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
 
     protected ValueGetterEntityAttribute<T> _valueAttribute;
 
-    protected PartiallyEvaluatedStringConverter _partialEvalStringConverter { private get; set; }
+    protected PartiallyEvaluatedStringConverter PartialEvalStringConverter { private get; set; }
 
     public virtual T Value { get; protected set; }
 
@@ -17,7 +17,14 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
 
     private IValueExpression<T> _valGetterExpression = null;
 
-    public ValueEntity(Context c, string id) : base(c, id)
+    private T _defaultValue;
+
+    public ValueEntity(Context c, string id, IEntity parent, T defaultValue) : base(c, id, parent, true)
+    {
+        _defaultValue = defaultValue;
+    }
+
+    public ValueEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
@@ -28,7 +35,7 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
             case ValueAttributeId:
                 _valueAttribute =
                     _valueAttribute ?? new ValueGetterEntityAttribute<T>(
-                        ValueAttributeId, this, GetValue, _partialEvalStringConverter);
+                        ValueAttributeId, this, GetValue, PartialEvalStringConverter);
                 return _valueAttribute;
         }
 
@@ -51,18 +58,22 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
         }
     }
 
+    public override void UseDefaultValue() => Set(_defaultValue);
+
+    public override object GetDefaultValue() => _defaultValue;
+
     public override void Set(
         object o,
         PartiallyEvaluatedStringConverter converter)
     {
-        _partialEvalStringConverter = converter;
+        PartialEvalStringConverter = converter;
 
         Set(o);
     }
 
     public override string GetDebugString() => Value.ToString();
-
-    public override string GetFormattedString() => Value.ToString().ToBoldFormat();
+    
+    public override string GetFormattedString() => Value.ToFormattedString();
 
     public IValueExpression<T> ValueExpression
     {
@@ -70,7 +81,7 @@ public class ValueEntity<T> : Entity, IValueEntity<T>
         {
             _valGetterExpression = _valGetterExpression ??
                 new ValueGetterExpression<T>(
-                    Id, GetValue, _partialEvalStringConverter);
+                    Id, GetValue, PartialEvalStringConverter);
 
             return _valGetterExpression;
         }

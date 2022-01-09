@@ -1,4 +1,5 @@
-﻿
+﻿using UnityEngine;
+
 public class AssignablePreferenceAttribute : AssignableValueEntityAttribute<float>
 {
     private AssignableCulturalPreferencesEntity _preferencesEntity;
@@ -28,6 +29,13 @@ public class AssignablePreferenceAttribute : AssignableValueEntityAttribute<floa
         {
             return 0;
         }
+
+#if DEBUG
+        if ((preference.Value <= 0) || (preference.Value >= 1))
+        {
+            Debug.LogWarning($"Preference value not between 0 and 1: {preference.Value}");
+        }
+#endif
 
         return preference.Value;
     }
