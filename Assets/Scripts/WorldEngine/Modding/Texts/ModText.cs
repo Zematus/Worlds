@@ -95,15 +95,17 @@ public class ModText : IInputRequester, IFormattedStringGenerator
         return output;
     }
 
-    public string ToPartiallyEvaluatedString(bool evaluate = true)
+    public string ToPartiallyEvaluatedString(int depth = -1)
     {
         string output = "";
+
+        depth = (depth > 0) ? depth - 1 : depth;
 
         foreach (IFormattedStringGenerator part in _textParts)
         {
             if (part is IExpression exp)
             {
-                output += exp.ToPartiallyEvaluatedString(evaluate);
+                output += exp.ToPartiallyEvaluatedString(depth);
             }
             else
             {

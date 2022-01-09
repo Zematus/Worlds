@@ -20,9 +20,19 @@ public abstract class BinaryOpExpressionWithOutput<T> : BinaryOpExpression, IVal
     {
     }
 
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
+    public string GetFormattedString() => Value.ToFormattedString();
 
     public abstract T Value { get; }
 
     public object ValueObject => Value;
+
+    public override string ToPartiallyEvaluatedString(int depth = -1)
+    {
+        if (depth == 0)
+            return Value.ToString();
+
+        depth = (depth > 0) ? depth - 1 : depth;
+
+        return base.ToPartiallyEvaluatedString(depth);
+    }
 }

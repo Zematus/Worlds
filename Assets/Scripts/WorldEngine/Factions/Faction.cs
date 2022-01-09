@@ -7,11 +7,22 @@ using UnityEngine.Profiling;
 using System;
 
 [XmlInclude(typeof(Clan))]
-public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
+public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, ICellSet
 {
+    public enum FilterType
+    {
+        None,
+        Related,
+        Selectable
+    }
+
+    private HashSet<IFactionEventGenerator> _generatorsToTestAssignmentFor =
+        new HashSet<IFactionEventGenerator>();
+
     public static List<IWorldEventGenerator> OnSpawnEventGenerators;
     public static List<IWorldEventGenerator> OnStatusChangeEventGenerators;
     public static List<IWorldEventGenerator> OnGuideSwitchEventGenerators;
+    public static List<IWorldEventGenerator> OnCoreGroupProminenceValueBelowEventGenerators;
 
     [XmlAttribute("Inf")]
     public float InfluenceInternal;
@@ -79,6 +90,12 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlIgnore]
     public bool HasBeenUpdated = false;
 
+    [XmlIgnore]
+    public FilterType SelectionFilterType = FilterType.None;
+
+    [XmlIgnore]
+    public bool IsHovered = false;
+
     public List<string> Flags;
 
     public FactionCulture Culture;
@@ -101,9 +118,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     [XmlIgnore]
     public CellGroup CoreGroup;
-
-    [XmlIgnore]
-    public CellGroup NewCoreGroup = null;
 
     [XmlIgnore]
     public bool IsInitialized = false;
@@ -133,6 +147,12 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlIgnore]
     public long CurrentDate => World.CurrentDate;
 
+    [XmlIgnore]
+    public HashSet<PolityProminence> Prominences = new HashSet<PolityProminence>();
+
+    [XmlIgnore]
+    public Dictionary<Polity, int> OverlapingPolities = new Dictionary<Polity, int>();
+
     protected Dictionary<Identifier, FactionRelationship> _relationships =
         new Dictionary<Identifier, FactionRelationship>();
 
@@ -142,7 +162,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     private DatedValue<float> _administrativeLoad;
     private DatedValue<Agent> _currentLeader;
 
-    private HashSet<string> _flags = new HashSet<string>();
+    private readonly HashSet<string> _flags = new HashSet<string>();
 
     private bool _preupdated = false;
 
@@ -252,6 +272,13 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if (!polityBeingDestroyed)
         {
             Polity.RemoveFaction(this);
+
+            World.AddPolityToUpdate(Polity);
+
+            if (IsDominant)
+            {
+                Polity.CoreGroupIsValid = false;
+            }
         }
 
         List<FactionRelationship> relationshipsToRemove =
@@ -266,13 +293,114 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         StillPresent = false;
     }
 
+//#if DEBUG
+//    static Dictionary<PolityProminence, int> _debug_polityProminences = new Dictionary<PolityProminence, int>();
+//#endif
+
+    public void AddOverlappingPolity(PolityProminence prominence, PolityProminence prominence2)
+    {
+//#if DEBUG
+//        if ((Id == "97371564:7301682472976039088") && (prominence.Polity.Id == "97371564:7301682472976039088"))
+//        {
+//            if ((prominence2.Group.Position.Equals(315, 131) && (prominence.Group.Position.Equals(315, 130) || prominence.Group.Position.Equals(316, 131) || prominence.Group.Position.Equals(316, 132))) ||
+//                (prominence2.Group.Position.Equals(315, 130) && prominence.Group.Position.Equals(315, 131)) ||
+//                (prominence2.Group.Position.Equals(316, 131) && prominence.Group.Position.Equals(315, 131)) ||
+//                (prominence2.Group.Position.Equals(316, 132) && prominence.Group.Position.Equals(315, 131)))
+//            {
+//                var stackTrace = new System.Diagnostics.StackTrace();
+//                Debug.LogWarning($"Adding prominence: {prominence.Group.Position}, prominence2: {prominence2.Group.Position}, caller: {stackTrace.GetFrame(1).GetMethod().Name}");
+//            }
+
+//            if (!_debug_polityProminences.ContainsKey(prominence))
+//            {
+//                _debug_polityProminences.Add(prominence, 1);
+//            }
+//            else
+//            {
+//                _debug_polityProminences[prominence]++;
+//            }
+//        }
+//#endif
+
+        if (OverlapingPolities.ContainsKey(prominence.Polity))
+        {
+            OverlapingPolities[prominence.Polity]++;
+        }
+        else
+        {
+            OverlapingPolities.Add(prominence.Polity, 1);
+        }
+    }
+
+    public void RemoveOverlappingPolity(PolityProminence prominence, PolityProminence prominence2)
+    {
+//#if DEBUG
+//        if ((Id == "97371564:7301682472976039088") && (prominence.Polity.Id == "97371564:7301682472976039088"))
+//        {
+//            //if (prominence.Group.Position.Equals(315, 130)
+//            if ((prominence2.Group.Position.Equals(315, 131) && (prominence.Group.Position.Equals(315, 130) || prominence.Group.Position.Equals(316, 131) || prominence.Group.Position.Equals(316, 132))) ||
+//                (prominence2.Group.Position.Equals(315, 130) && prominence.Group.Position.Equals(315, 131)) ||
+//                (prominence2.Group.Position.Equals(316, 131) && prominence.Group.Position.Equals(315, 131)) ||
+//                (prominence2.Group.Position.Equals(316, 132) && prominence.Group.Position.Equals(315, 131)))
+//            {
+//                var stackTrace = new System.Diagnostics.StackTrace();
+//                Debug.LogWarning($"Removing prominence: {prominence.Group.Position}, prominence2: {prominence2.Group.Position}, caller: {stackTrace.GetFrame(1).GetMethod().Name}");
+//            }
+
+//            if (!_debug_polityProminences.ContainsKey(prominence))
+//            {
+//                //throw new Exception($"Tried to remove prominence not present. prominence: {prominence.Group.Position}, prominence2: {prominence2.Group.Position}");
+//            }
+//            else
+//            {
+//                _debug_polityProminences[prominence]--;
+
+//                if (_debug_polityProminences[prominence] == 0)
+//                {
+//                    _debug_polityProminences.Remove(prominence);
+//                }
+//            }
+//        }
+//#endif
+
+        if (OverlapingPolities.ContainsKey(prominence.Polity))
+        {
+            OverlapingPolities[prominence.Polity]--;
+
+            if (OverlapingPolities[prominence.Polity] <= 0)
+            {
+                OverlapingPolities.Remove(prominence.Polity);
+            }
+        }
+        else
+            throw new Exception($"Removing polity that was not part of overlaping polities. faction: {Id}, polity: {prominence.Polity.Id}");
+    }
+
+    public void AddProminence(PolityProminence prominence)
+    {
+        if (!Prominences.Add(prominence))
+            return;
+
+        prominence.IncreaseOverlapWithNeighborPolities(this);
+    }
+
+    public void RemoveProminence(PolityProminence prominence, bool decreaseOverlap = true)
+    {
+        if (!Prominences.Remove(prominence))
+            return;
+
+        if (decreaseOverlap)
+        {
+            prominence.DecreaseOverlapWithNeighborPolities(this);
+        }
+    }
+
     /// <summary>
     /// Sets this faction to be removed from the world
     /// </summary>
     public void SetToRemove()
     {
-        PolityProminence prominence = CoreGroup.GetPolityProminence(PolityId);
-        prominence.ResetCoreDistances();
+        CoreGroup.ResetCoreDistances(PolityId, true);
 
         World.AddFactionToRemove(this);
 
@@ -323,10 +451,15 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public float GetRelationshipValue(Faction faction)
     {
+        if (faction == null)
+        {
+            throw new ArgumentNullException("faction is null");
+        }
+
         // Set a default neutral relationship
         if (!_relationships.ContainsKey(faction.Id))
         {
-            Faction.SetRelationship(this, faction, 0.5f);
+            SetRelationship(this, faction, 0.5f);
         }
 
         return _relationships[faction.Id].Value;
@@ -418,20 +551,20 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         float initialRelationshipValue)
     {
 //#if DEBUG
-//        Manager.DebugPauseSimRequested = true;
+//        Manager.Debug_PauseSimRequested = true;
 //#endif
 
         Influence -= influenceToTransfer;
 
         if (newFactionCoreGroup == null)
         {
-            throw new Exception("newFactionCoreGroup is null - Faction Id: " + Id);
+            throw new Exception($"newFactionCoreGroup is null - Faction Id: {Id}");
         }
 
         if (newFactionCoreGroup.FactionCores.Count > 0)
         {
             throw new Exception(
-                "newFactionCoreGroup has cores already - Group: " + newFactionCoreGroup.Id + ", Faction: " + Id);
+                $"newFactionCoreGroup has cores already - Group: {newFactionCoreGroup.Id}, Faction: {Id}");
         }
 
         float polityProminenceValue = newFactionCoreGroup.GetPolityProminenceValue(Polity);
@@ -440,20 +573,20 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         if (highestPolityProminence == null)
         {
             throw new Exception(
-                "highestPolityProminence is null - Faction Id: " + Id +
-                ", Group Id: " + newFactionCoreGroup);
+                $"highestPolityProminence is null - Faction Id: {Id}" +
+                $", Group Id: {newFactionCoreGroup}");
         }
 
         if (CurrentLeader == null)
         {
-            throw new Exception("CurrentLeader is null - Faction Id: " + Id);
+            throw new Exception($"CurrentLeader is null - Faction Id: {Id}");
         }
 
         Polity newPolity = Polity;
 
         if (newPolity == null)
         {
-            throw new Exception("newPolity is null - Faction Id: " + Id);
+            throw new Exception($"newPolity is null - Faction Id: {Id}");
         }
 
         // If the polity with the highest prominence is different than the source faction's polity and it's value is twice greater switch the new clan's polity to this one.
@@ -468,7 +601,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         if (newFaction == null)
         {
-            throw new Exception("newFaction is null - Faction Id: " + Id);
+            throw new Exception($"newFaction is null - Faction Id: {Id}");
         }
 
 #if DEBUG
@@ -476,7 +609,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         if (existingFaction != null)
         {
-            throw new Exception("faction Id already exists - new faction Id: " + newFaction.Id);
+            throw new Exception($"faction Id already exists - new faction Id: {newFaction.Id}");
         }
 #endif
 
@@ -559,6 +692,16 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         World.AddPolityToUpdate(Polity);
     }
 
+    public void TryAssignEvents()
+    {
+        foreach (var generator in _generatorsToTestAssignmentFor)
+        {
+            generator.TryGenerateEventAndAssign(this);
+        }
+
+        _generatorsToTestAssignmentFor.Clear();
+    }
+
     /// <summary>
     /// Cleans up all state flags
     /// </summary>
@@ -568,25 +711,36 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         HasBeenUpdated = false;
     }
 
-    public void PrepareNewCoreGroup(CellGroup coreGroup)
+    public void MigrateCoreToGroup(CellGroup group)
     {
-        NewCoreGroup = coreGroup;
-    }
+        if (group == CoreGroup)
+            return;
 
-    [System.Obsolete]
-    public void MigrateToNewCoreGroup()
-    {
+        if (group == null)
+            throw new ArgumentNullException("MigrateCoreToGroup: group to se as core can't be null");
+
         CoreGroup.RemoveFactionCore(this);
+        CoreGroup.ResetCoreDistances(PolityId, true);
 
-        CoreGroup = NewCoreGroup;
-        CoreGroupId = NewCoreGroup.Id;
+        CoreGroup = group;
+        CoreGroupId = group.Id;
 
-        CoreGroup.AddFactionCore(this);
+        group.AddFactionCore(this);
+        var prom = group.GetPolityProminence(PolityId);
+        World.AddPromToCalculateCoreDistFor(prom);
 
         if (IsDominant)
         {
-            Polity.SetCoreGroup(CoreGroup);
+            Polity.SetCoreGroup(group);
         }
+    }
+
+    public bool HasContactWith(Polity polity)
+    {
+        if (polity == null)
+            throw new ArgumentNullException("HasContactWith: polity can't be null");
+
+        return OverlapingPolities.ContainsKey(polity);
     }
 
     public virtual void Synchronize()
@@ -699,6 +853,18 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public virtual void SetDominant(bool state)
     {
+//#if DEBUG
+//        if (Id == "179615149:7788330637982280827")
+//        {
+//            Debug.LogWarning($"DEBUG: Setting faction dominant state to: {state}, faction: {Id}, polity: {Polity.Id}");
+
+//            if (World.CurrentDate == 215643192)
+//            {
+//                Debug.LogWarning($"Debugging SetDominant");
+//            }
+//        }
+//#endif
+
         IsDominant = state;
 
         SetStatusChange();
@@ -711,16 +877,47 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         GenerateGuideSwitchEvents();
     }
 
-    public void ChangePolity(Polity targetPolity, float targetInfluence)
+    public List<CellGroup> GetGroups()
+    {
+        var groups = new List<CellGroup>();
+
+        foreach (var prominence in Prominences)
+        {
+            groups.Add(prominence.Group);
+        }
+
+        return groups;
+    }
+
+    public void ChangePolity(Polity targetPolity, float targetInfluence, bool transferGroups = true)
     {
         if ((targetPolity == null) || (!targetPolity.StillPresent))
             throw new System.Exception("target Polity is null or not Present");
 
+//#if DEBUG
+//        if (Id == "179615149:7788330637982280827")
+//        {
+//            Debug.LogWarning($"DEBUG: changing polity of faction {Id}, Polity: {Polity.Id}, targetPolity: {targetPolity.Id}");
+
+//            if (World.CurrentDate == 215643192)
+//            {
+//                Debug.LogWarning($"Debugging ChangePolity");
+//            }
+//        }
+//#endif
+
         Polity.RemoveFaction(this);
 
-        var prom = CoreGroup.GetPolityProminence(Polity);
+        if (IsDominant)
+        {
+            Polity.CoreGroupIsValid = false;
+            Polity.NormalizeAndUpdateDominantFaction();
+        }
 
-        prom.ResetCoreDistances(addToRecalcs: true);
+        if (transferGroups)
+        {
+            targetPolity.TransferGroups(Polity, GetGroups());
+        }
 
         Polity = targetPolity;
         PolityId = Polity.Id;
@@ -753,16 +950,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         preference.Value = MathUtility.DecreaseByPercent(value, percentage);
     }
 
-    public float GetPreferenceValue(string id)
-    {
-        CulturalPreference preference = Culture.GetPreference(id);
-
-        if (preference != null)
-            return preference.Value;
-
-        return 0;
-    }
-
     public void SetFlag(string flag)
     {
         _flags.Add(flag);
@@ -783,15 +970,27 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         OnSpawnEventGenerators = new List<IWorldEventGenerator>();
         OnStatusChangeEventGenerators = new List<IWorldEventGenerator>();
         OnGuideSwitchEventGenerators = new List<IWorldEventGenerator>();
+        OnCoreGroupProminenceValueBelowEventGenerators = new List<IWorldEventGenerator>();
+    }
+
+    public void AddGeneratorToTestAssignmentFor(IFactionEventGenerator generator)
+    {
+        _generatorsToTestAssignmentFor.Add(generator);
+        World.AddFactionToAssignEventsTo(this);
     }
 
     private void InitializeOnSpawnEvents()
     {
         foreach (var generator in OnSpawnEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"Faction.InitializeOnSpawnEvents: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
-                fGenerator.TryGenerateEventAndAssign(this);
+                AddGeneratorToTestAssignmentFor(fGenerator);
             }
         }
     }
@@ -811,9 +1010,14 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     {
         foreach (var generator in OnStatusChangeEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"Faction.ApplyStatusChange: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
-                fGenerator.TryGenerateEventAndAssign(this);
+                AddGeneratorToTestAssignmentFor(fGenerator);
             }
         }
 
@@ -830,9 +1034,29 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     {
         foreach (var generator in OnGuideSwitchEventGenerators)
         {
+            if ((generator is Context context) && context.DebugLogEnabled)
+            {
+                Debug.Log($"Faction.GenerateGuideSwitchEvents: adding '{context.Id}' to list of events to try to assign");
+            }
+
             if (generator is IFactionEventGenerator fGenerator)
             {
-                fGenerator.TryGenerateEventAndAssign(this);
+                AddGeneratorToTestAssignmentFor(fGenerator);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tries to generate and apply all events related to core group dropping below target value
+    /// </summary>
+    public void GenerateCoreGroupProminenceValueBelowEvents(float prominenceValue)
+    {
+        foreach (var generator in OnCoreGroupProminenceValueBelowEventGenerators)
+        {
+            if ((generator is FactionEventGenerator fGenerator) &&
+                (prominenceValue < fGenerator.OnCoreGroupProminenceValueBelowParameterValue))
+            {
+                AddGeneratorToTestAssignmentFor(fGenerator);
             }
         }
     }
@@ -840,5 +1064,22 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public void InitializeDefaultEvents()
     {
         InitializeOnSpawnEvents();
+    }
+
+    public ICollection<TerrainCell> GetCells()
+    {
+        var cells = new List<TerrainCell>();
+
+        foreach (var prominence in Prominences)
+        {
+            cells.Add(prominence.Group.Cell);
+        }
+
+        return cells;
+    }
+
+    public RectInt GetBoundingRectangle()
+    {
+        return CellSet.GetBoundingRectangle(GetCells());
     }
 }

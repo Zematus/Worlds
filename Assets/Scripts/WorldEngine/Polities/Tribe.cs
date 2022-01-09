@@ -47,34 +47,31 @@ public class Tribe : Polity
                 "Unable to assign a core prominence bigger than zero. Group: " + coreGroup);
         }
 
-        coreGroup.AddPolityProminenceValueDelta(this, coreProminenceFactor);
-
-        // substract the new tribe prominence from the unorganized bands prominence
-        coreGroup.AddUBandsProminenceValueDelta(-coreProminenceFactor);
-
-        GenerateName();
-
-        //		Debug.Log ("New tribe '" + Name + "' spawned at " + coreGroup.Cell.Position);
-
-        //// Add starting clan
-
-        Clan clan = new Clan(this, coreGroup, 1); // Clan should be initialized when the Tribe gets initialized
+        Clan clan = new Clan(this, coreGroup, 1);
+        // Clan should be initialized when the Tribe gets initialized
 
         AddFaction(clan);
 
         SetDominantFaction(clan, false);
-    }
 
-    public Tribe(Clan triggerClan, Polity parentPolity) :
-        base(PolityTypeStr, triggerClan.CoreGroup, triggerClan.GetHashCode())
-    {
-        triggerClan.ChangePolity(this, triggerClan.Influence);
-
-        SwitchCellProminences(parentPolity, triggerClan);
+        coreGroup.AddPolityProminence(this, coreProminenceFactor, true);
+        coreGroup.FindHighestPolityProminence();
 
         GenerateName();
+    }
 
-        //		Debug.Log ("New tribe '" + Name + "' from tribe '" + parentPolity.Name + "' with total transfered influence = " + transferedInfluence);
+    public Tribe(Clan triggerClan) :
+        base(PolityTypeStr, triggerClan.CoreGroup, triggerClan.GetHashCode())
+    {
+        var sourcePolity = triggerClan.Polity;
+        var groups = triggerClan.GetGroups();
+
+        triggerClan.ChangePolity(this, triggerClan.Influence, false);
+
+        SetDominantFaction(triggerClan, false);
+        TransferGroups(sourcePolity, groups);
+
+        GenerateName();
     }
 
     public static void GenerateTribeNounVariations()
@@ -82,178 +79,49 @@ public class Tribe : Polity
         TribeNounVariations = NameTools.GenerateNounVariations(TribeNounVariants);
     }
 
-    private void SwitchCellProminences(Polity sourcePolity, Clan triggerClan)
+    private Dictionary<CellGroup, float> FindGroupsToTransfer(Polity sourcePolity, Faction triggerFaction)
     {
-//#if DEBUG
-//        Manager.DebugPauseSimRequested = true;
-//#endif
-
-        float targetPolityInfluence = triggerClan.Influence;
-        float sourcePolityInfluence = 1 - targetPolityInfluence;
-
-        if (targetPolityInfluence <= 0)
-        {
-            throw new System.Exception("Pulling clan influence equal or less than zero.");
-        }
-
         int maxGroupCount = sourcePolity.Groups.Count;
 
-        Dictionary<CellGroup, float> groupDistances = new Dictionary<CellGroup, float>(maxGroupCount);
-
+        HashSet<CellGroup> exploredGroups = new HashSet<CellGroup>();
         Queue<CellGroup> sourceGroups = new Queue<CellGroup>(maxGroupCount);
 
         sourceGroups.Enqueue(CoreGroup);
+        exploredGroups.Add(CoreGroup);
 
-        int reviewedCells = 0;
-        int switchedCells = 0;
-
-        HashSet<Faction> factionsToTransfer = new HashSet<Faction>();
+        var groupsToTransfer = new Dictionary<CellGroup, float>();
 
         while (sourceGroups.Count > 0)
         {
             CellGroup group = sourceGroups.Dequeue();
-
-            if (groupDistances.ContainsKey(group))
-                continue;
 
             PolityProminence pi = group.GetPolityProminence(sourcePolity);
 
             if (pi == null)
                 continue;
 
-            reviewedCells++;
-
-            float distanceToTargetPolityCore = CalculateShortestCoreDistance(group, groupDistances);
-
-            if (distanceToTargetPolityCore >= PolityProminence.MaxCoreDistance)
+            if (pi.ClosestFaction != triggerFaction)
                 continue;
-
-            groupDistances.Add(group, distanceToTargetPolityCore);
-
-            float distanceToSourcePolityCore = pi.PolityCoreDistance;
 
             float percentProminence = 1f;
-
-            if (distanceToSourcePolityCore < PolityProminence.MaxCoreDistance)
-            {
-                float ditanceToCoresSum = distanceToTargetPolityCore + distanceToSourcePolityCore;
-
-                float distanceFactor = distanceToSourcePolityCore / ditanceToCoresSum;
-
-                distanceFactor = Mathf.Clamp01((distanceFactor * 3f) - 1f);
-
-                float targetDistanceFactor = distanceFactor;
-                float sourceDistanceFactor = 1 - distanceFactor;
-
-                float targetPolityWeight = targetPolityInfluence * targetDistanceFactor;
-                float sourcePolityWeight = sourcePolityInfluence * sourceDistanceFactor;
-
-                percentProminence = targetPolityWeight / (targetPolityWeight + sourcePolityWeight);
-
-                if (float.IsNaN(percentProminence))
-                {
-                    throw new System.Exception("percent prominence is Nan. Tribe: " + Id);
-                }
-            }
-
-            if (percentProminence <= 0)
-                continue;
-
-            if (percentProminence > 0.5f)
-            {
-                switchedCells++;
-
-                foreach (Faction faction in group.GetFactionCores())
-                {
-                    // Do not transfer factions that belong to polities other than the source one
-                    if (faction.Polity != sourcePolity)
-                        continue;
-
-                    if (sourcePolity.DominantFaction == faction)
-                    {
-                        new System.Exception("Dominant Faction getting switched...");
-                    }
-
-                    //					#if DEBUG
-                    //					if (sourcePolity.FactionCount == 1) {
-                    //						throw new System.Exception ("Number of factions in Polity " + Id + " will be equal or less than zero. Current Date: " + World.CurrentDate);
-                    //					}
-                    //					#endif
-
-                    factionsToTransfer.Add(faction);
-                }
-            }
 
             float prominenceValue = pi.Value;
 
             float sourceProminenceValueDelta = prominenceValue * percentProminence;
 
-            group.AddPolityProminenceValueDelta(sourcePolity, -sourceProminenceValueDelta);
-            group.AddPolityProminenceValueDelta(this, sourceProminenceValueDelta);
-
-            World.AddGroupToUpdate(group);
+            groupsToTransfer.Add(group, sourceProminenceValueDelta);
 
             foreach (CellGroup neighborGroup in group.NeighborGroups)
             {
-                if (groupDistances.ContainsKey(neighborGroup))
+                if (exploredGroups.Contains(neighborGroup))
                     continue;
 
                 sourceGroups.Enqueue(neighborGroup);
+                exploredGroups.Add(neighborGroup);
             }
         }
 
-        float highestInfluence = triggerClan.Influence;
-        Clan dominantClan = triggerClan;
-
-        foreach (Faction faction in factionsToTransfer)
-        {
-            if (faction is Clan clan)
-            {
-                if (clan.Influence > highestInfluence)
-                {
-                    highestInfluence = clan.Influence;
-                    dominantClan = clan;
-                }
-            }
-
-            faction.ChangePolity(this, faction.Influence);
-        }
-
-        SetDominantFaction(dominantClan, false);
-    }
-
-    private float CalculateShortestCoreDistance(
-        CellGroup group, Dictionary<CellGroup, float> groupDistances)
-    {
-        if (groupDistances.Count <= 0)
-            return 0;
-
-        float shortestDistance = PolityProminence.MaxCoreDistance;
-
-        foreach (KeyValuePair<Direction, CellGroup> pair in group.Neighbors)
-        {
-            float distanceToCoreFromNeighbor = float.MaxValue;
-
-            if (!groupDistances.TryGetValue(pair.Value, out distanceToCoreFromNeighbor))
-            {
-                continue;
-            }
-
-            if (distanceToCoreFromNeighbor >= float.MaxValue)
-                continue;
-
-            float neighborDistance = group.Cell.NeighborDistances[pair.Key];
-
-            float totalDistance = distanceToCoreFromNeighbor + neighborDistance;
-
-            if (totalDistance < 0)
-                continue;
-
-            if (totalDistance < shortestDistance)
-                shortestDistance = totalDistance;
-        }
-
-        return shortestDistance;
+        return groupsToTransfer;
     }
 
     protected override void UpdateInternal()
@@ -320,37 +188,6 @@ public class Tribe : Polity
         //		#if DEBUG
         //		Debug.Log ("Tribe #" + Id + " name: " + Name);
         //		#endif
-    }
-
-    public override float CalculateGroupProminenceExpansionValue(CellGroup sourceGroup, CellGroup targetGroup, float sourceValue)
-    {
-        if (sourceValue <= 0)
-            return 0;
-
-        float sourceGroupTotalPolityProminenceValue = sourceGroup.TotalPolityProminenceValue;
-        float targetGroupTotalPolityProminenceValue = targetGroup.TotalPolityProminenceValue;
-
-        if (sourceGroupTotalPolityProminenceValue <= 0)
-        {
-            throw new System.Exception("sourceGroup.TotalPolityProminenceValue equal or less than 0: " + sourceGroupTotalPolityProminenceValue);
-        }
-
-        float prominenceFactor = sourceGroupTotalPolityProminenceValue / (targetGroupTotalPolityProminenceValue + sourceGroupTotalPolityProminenceValue);
-        prominenceFactor = Mathf.Pow(prominenceFactor, 4);
-
-        targetGroup.Cell.CalculateAdaptation(Culture, out _, out float modifiedSurvivability);
-
-        float survivabilityFactor = Mathf.Pow(modifiedSurvivability, 2);
-
-        float finalFactor = prominenceFactor * survivabilityFactor;
-
-        if (sourceGroup != targetGroup)
-        {
-            // There should be a strong bias against polity expansion to reduce activity
-            finalFactor *= TribalExpansionFactor;
-        }
-
-        return finalFactor;
     }
 
     public override void FinalizeLoad()

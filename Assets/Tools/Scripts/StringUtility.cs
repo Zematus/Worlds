@@ -17,9 +17,19 @@ public static class StringUtility
         return output;
     }
 
-    public static string ToBoldFormat(this string text)
+    public static string ToBoldString(this object o)
     {
-        return "<b>" + text + "</b>";
+        return $"<b>{o}</b>";
+    }
+
+    public static string ToFormattedString(this object o)
+    {
+        if (o is float value)
+        {
+            return value.ToString("0.000").ToBoldString();
+        }
+
+        return o.ToBoldString();
     }
 
     public static string FirstLetterToUpper(this string text)

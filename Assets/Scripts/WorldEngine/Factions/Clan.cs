@@ -202,8 +202,6 @@ public class Clan : Faction
 
         float administrativeLoad = Polity.TotalAdministrativeCost * Influence / (float)socialOrganizationValue;
 
-        administrativeLoad = Mathf.Pow(administrativeLoad, 2);
-
         if (administrativeLoad < 0)
         {
             Debug.LogWarning("administrativeLoad less than 0: " + administrativeLoad + ", Clan Id: " + Id);

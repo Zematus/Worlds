@@ -9,6 +9,8 @@ public class PolityProminenceCluster : Identifiable, ISynchronizable
     public const int MaxSize = 50;
     public const int MinSplitSize = 25;
 
+    public const float MaxAdminCost = Polity.MaxAdminCost;
+
     [XmlAttribute("TAC")]
     public float TotalAdministrativeCost = 0;
 
@@ -75,10 +77,8 @@ public class PolityProminenceCluster : Identifiable, ISynchronizable
 
         foreach (PolityProminence prominence in _prominences.Values)
         {
-            if (prominence.AdministrativeCost < float.MaxValue)
-                TotalAdministrativeCost += prominence.AdministrativeCost;
-            else
-                TotalAdministrativeCost = float.MaxValue;
+            TotalAdministrativeCost = 
+                Mathf.Min(prominence.AdministrativeCost + prominence.AdministrativeCost, MaxAdminCost);
 
             float polityPop = prominence.Group.Population * prominence.Value;
 
@@ -331,7 +331,9 @@ public class PolityProminenceCluster : Identifiable, ISynchronizable
             p.World = Polity.World;
             p.Group = Polity.World.GetGroup(pair.Key);
             p.Polity = Polity;
-            p.ClosestFaction = Polity.GetFaction(p.ClosestFactionId);
+
+            p.SetClosestFaction(Polity.GetFaction(p.ClosestFactionId));
+
             p.Cluster = this;
 
             if (p.ClosestFaction == null)

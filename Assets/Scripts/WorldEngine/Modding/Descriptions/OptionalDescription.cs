@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class OptionalDescription : Description
 {
@@ -14,7 +15,7 @@ public class OptionalDescription : Description
 
     public bool CanShow()
     {
-        OpenDebugOutput("Evaluating if option '" + Id + "' can be shown:");
+        OpenDebugOutput("Evaluating if option '" + Id + "' is available:");
 
         if (Conditions == null)
         {

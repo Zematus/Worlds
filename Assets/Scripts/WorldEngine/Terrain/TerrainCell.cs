@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using UnityEngine.Profiling;
 
 public enum Direction
 {
@@ -49,6 +50,13 @@ public enum CellUpdateSubType
 
 public class TerrainCell
 {
+    public enum FilterType
+    {
+        None,
+        Core,
+        Selectable
+    }
+
 #if DEBUG
     public delegate void GetNextLocalRandomCalledDelegate(string callerMethod);
 
@@ -61,7 +69,7 @@ public class TerrainCell
 
     public const float PopulationForagingConstant = 10;
     public const float PopulationFarmingConstant = 5;
-    public const float PopulationFishingConstant = 2;
+    public const float PopulationFishingConstant = 1;
 
     public const int MaxNeighborhoodCellCount = 9;
 
@@ -209,6 +217,8 @@ public class TerrainCell
     public bool IsSelected = false;
     public bool IsHovered = false;
 
+    public FilterType SelectionFilterType = FilterType.None;
+
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
 
     public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
@@ -216,6 +226,10 @@ public class TerrainCell
     public List<TerrainCell> NeighborList { get; private set; }
     public List<Direction> DirectionList { get; private set; }
     public Dictionary<Direction, float> NeighborDistances { get; private set; }
+
+    public List<PolityProminence> PolityProminences =
+        new List<PolityProminence>();
+    private bool _shoulResetPolityProminenceList = false;
 
     private float _waterAccumulation = 0;
 
@@ -244,6 +258,21 @@ public class TerrainCell
         Area = height * width;
         MaxAreaPercent = Area / MaxArea;
     }
+
+    public IEnumerable<Faction> GetClosestFactions()
+    {
+        if (Group != null)
+        {
+            foreach (var faction in Group.GetClosestFactions())
+            {
+                yield return faction;
+            }
+        }
+    }
+
+    public Faction GetClosestFaction(Polity polity) => Group?.GetClosestFaction(polity);
+
+    public Faction GetMostProminentClosestFaction() => Group?.GetMostProminentClosestFaction();
 
     /// <summary>
     /// Returns the contribution level a certain activity would have on this cell
@@ -365,8 +394,15 @@ public class TerrainCell
 
         CalculateAdaptation(culture, out float foragingCapacity, out float survivability);
 
-        if (survivability <= 0)
+        float survivabilityOffset = 0.25f;
+
+        float survivabilityFactor =
+            (survivability - survivabilityOffset) / (1 - survivabilityOffset);
+
+        if (survivabilityFactor <= 0)
             return 0;
+
+        survivabilityFactor = Mathf.Clamp01(survivabilityFactor);
 
         float populationCapacityByForaging =
             foragingContribution * PopulationForagingConstant * Area * foragingCapacity;
@@ -399,7 +435,7 @@ public class TerrainCell
 
         float populationCapacity =
             (populationCapacityByForaging + populationCapacityByFarming + populationCapacityByFishing) *
-            survivability * accesibilityFactor;
+            survivabilityFactor * accesibilityFactor;
 
         return Mathf.Max(0, populationCapacity);
     }
@@ -431,144 +467,227 @@ public class TerrainCell
         float altitudeDeltaFactor = altChangeConstant * altitudeChange / (sourceCell.Area + Area);
 
         altitudeDeltaFactor = Mathf.Abs(altitudeDeltaFactor + 0.5f); // downslope preference offset
-        altitudeDeltaFactor = 0.5f / (altitudeDeltaFactor + 0.5f);
+        altitudeDeltaFactor = 1f / (altitudeDeltaFactor + 0.5f);
 
         return altitudeDeltaFactor;
+    }
+
+    public void AddGroupPolityProminence(PolityProminence p)
+    {
+        PolityProminences.Add(p);
+    }
+
+    public void SetGroupPolityProminenceListToReset()
+    {
+        _shoulResetPolityProminenceList = true;
+    }
+
+    public void TryResetGroupPolityProminenceList(bool force = false, bool refill = true)
+    {
+        if (!force && !_shoulResetPolityProminenceList)
+            return;
+
+        _shoulResetPolityProminenceList = false;
+
+        PolityProminences.Clear();
+
+        if (refill && (Group != null) && Group.StillPresent)
+        {
+            PolityProminences.AddRange(Group.GetPolityProminences());
+        }
+    }
+
+    public float CalculateOccupancyAggressionFactor(
+        Culture cultureA, Culture cultureB, float minDelta = 0)
+    {
+        float aggrDiff = Culture.CalculateAggressionDiff(cultureA, cultureB);
+
+        float scaleConst = 1000;
+        float aggrFactor;
+
+        if (aggrDiff >= 0)
+        {
+            aggrFactor = Mathf.Max(0, aggrDiff - minDelta);
+            aggrFactor = 1 + aggrFactor * scaleConst;
+        }
+        else
+        {
+            aggrFactor = Mathf.Max(0, -aggrDiff - minDelta);
+            aggrFactor = 1 / (1 + aggrFactor * scaleConst);
+        }
+
+        return aggrFactor;
     }
 
     /// <summary>
     /// Estimates the effective "occupancy" on a cell as a population quantity
     /// </summary>
-    /// <param name="targetCulture">the culture the value is calculated for</param>
-    /// <param name="isPolity">'true' is the target culture is associated to a polity.
+    /// <param name="sourceCulture">the culture the value is calculated for</param>
+    /// <param name="isPolity">'true' if the target culture is associated to a polity.
     /// 'false' if its associated to unorganized bands</param>
+    /// <param name="isSource">'true' if this cell is equal to the source cell</param>
     /// <returns>the estimated occupancy</returns>
-    public float EstimateEffectiveOccupancy(Culture targetCulture, bool isPolity)
+    public float EstimateEffectiveOccupancy(
+        Culture sourceCulture,
+        bool isPolity,
+        bool isSource = false)
     {
         if (Group == null)
             return 0;
 
+        Profiler.BeginSample("EstimateEffectiveOccupancy");
+
         float effectivePopulation = 0;
 
-        // This allows polities to expand into free, populated territories
-        float effectivenessConstant = 100f;
+        // This allows polities to expand into territories occupied by
+        // unorganized bands
+        float ubEffectConst = 100f;
+        // This reduces the incentive of a polity to migrate inwards
+        float innerMigPenalty = isSource ? 0f : 5f;
 
-        float polityEffectivenessFactor = effectivenessConstant;
+        float polityEffectivenessFactor = ubEffectConst;
         float ubEffectivenessFactor = 1f;
 
         if (isPolity)
         {
-            polityEffectivenessFactor /= effectivenessConstant;
-            ubEffectivenessFactor /= effectivenessConstant;
+            polityEffectivenessFactor /= ubEffectConst;
+            ubEffectivenessFactor /= ubEffectConst;
         }
 
         //////// Effective population from polities
 
         float promPopulation = 0;
 
-        foreach (PolityProminence p in Group.GetPolityProminences())
+        Profiler.BeginSample("EstimateEffectiveOccupancy foreach");
+
+        // NOTE: doing a for loop is slightly faster than doing a foreach, and this
+        // function is called very frequently. So it's worth implementing this way
+        for (int i = 0; i < PolityProminences.Count; i++)
         {
+            PolityProminence p = PolityProminences[i];
+
             float promAggrFactor = 1;
+            float innerMigFactor = 1;
 
-            Culture sourceCulture = p.Polity.Culture;
+            Culture promCulture = p.Polity.Culture;
 
-            if (targetCulture != sourceCulture)
+            if (sourceCulture != promCulture)
             {
-                promAggrFactor = Culture.CalculateAggressionTowards(targetCulture, sourceCulture);
-
-                if (promAggrFactor <= 0)
-                {
-                    promAggrFactor = 1 + (promAggrFactor * 0.99f);
-                }
-                else
-                {
-                    promAggrFactor = 1 / (1 - (promAggrFactor * 0.99f));
-                }
+                promAggrFactor =
+                    CalculateOccupancyAggressionFactor(promCulture, sourceCulture);
+            }
+            else
+            {
+                float valueFactor = Mathf.Clamp01(p.Value - 0.5f) * 2f;
+                innerMigFactor = 1 + innerMigPenalty * valueFactor;
             }
 
-            promPopulation += Group.Population * p.Value * promAggrFactor;
+            promPopulation += Group.Population * p.Value * promAggrFactor * innerMigFactor;
         }
+
+        Profiler.EndSample(); // ("EstimateEffectiveOccupancy foreach");
 
         float promEffectivePopulation = promPopulation * polityEffectivenessFactor;
 
         effectivePopulation += Mathf.Max(0, promEffectivePopulation);
 
         //////// Effective population from unorganized bands
-
-        float ubAggrFactor = Culture.CalculateAggressionTowards(targetCulture, Group.Culture);
-
+        
         float ubPopulation =
-            Group.Population * (1 - Group.TotalPolityProminenceValue) * ubAggrFactor;
-        float ubEffectivePopulation = ubPopulation * ubEffectivenessFactor;
+            Group.Population * (1 - Group.TotalPolityProminenceValue);
 
-        effectivePopulation += Mathf.Max(0, ubEffectivePopulation);
+        if (ubPopulation > 0)
+        {
+            float ubAggrFactor;
+
+            if (isPolity)
+            {
+                ubAggrFactor = CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture);
+            }
+            else
+            {
+                ubAggrFactor = CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture, 0.25f);
+            }
+
+            float ubEffectivePopulation =
+                ubPopulation * ubEffectivenessFactor * ubAggrFactor;
+
+            effectivePopulation += Mathf.Max(0, ubEffectivePopulation);
+        }
 
         ////////
+
+        Profiler.EndSample(); // ("EstimateEffectiveOccupancy");
 
         return effectivePopulation;
     }
 
     /// <summary>
-    /// Estimates how valuable this cell might be as a migration target for unorganized
-    /// bands
+    /// Estimates how valuable this cell might be as a migration target using another
+    /// group as reference
     /// </summary>
-    /// <param name="sourceGroup">the group from which the migration will arrive</param>
-    /// <param name="polity">the polity to which the migrating population belongs, if any</param>
+    /// <param name="refGroup">the group to use as reference to calculate</param>
+    /// <param name="refPolity">the polity to use as reference to calculate</param>
     /// <returns></returns>
-    public float CalculateMigrationValue(CellGroup sourceGroup, Polity polity)
+    public float CalculateRelativeMigrationValue(
+        CellGroup refGroup,
+        Polity refPolity)
     {
-        float freeSpaceOffset = 0;
+        bool isPolity = refPolity != null;
 
-        bool isPolity = polity != null;
+        float sourceCoreRegionConst = 10;
+        float targetcoreRegionConst = 1000;
 
-        Culture targetCulture;
+        bool sourceIsPartOfCoreRegion = true;
+        bool targetIsPartOfCoreRegion = true;
+
+        TerrainCell sourceCell = refGroup.Cell;
+
+        Culture sourceCulture;
         if (isPolity)
         {
-            targetCulture = polity.Culture;
+            sourceCulture = refPolity.Culture;
+
+            sourceIsPartOfCoreRegion = refPolity.CoreRegions.Contains(sourceCell.Region);
+            targetIsPartOfCoreRegion = refPolity.CoreRegions.Contains(Region);
         }
         else
         {
-            targetCulture = sourceGroup.Culture;
+            sourceCulture = refGroup.Culture;
         }
 
         float targetOptimalPop =
-            EstimateOptimalPopulation(sourceGroup.Culture);
-
-        float targetFreeSpace =
-            targetOptimalPop - EstimateEffectiveOccupancy(targetCulture, isPolity);
-
+            EstimateOptimalPopulation(refGroup.Culture);
         float sourceOptimalPop =
-            sourceGroup.Cell.EstimateOptimalPopulation(sourceGroup.Culture);
+            sourceCell.EstimateOptimalPopulation(refGroup.Culture);
 
-        float sourceFreeSpace =
-            sourceOptimalPop - sourceGroup.Cell.EstimateEffectiveOccupancy(targetCulture, isPolity);
+        float targetOccupancy =
+            EstimateEffectiveOccupancy(sourceCulture, isPolity);
+        float sourceOccupancy =
+            sourceCell.EstimateEffectiveOccupancy(sourceCulture, isPolity, true);
 
-        if (targetFreeSpace < freeSpaceOffset)
-        {
-            freeSpaceOffset = targetFreeSpace;
-        }
+        float migResitance = 1000;
 
-        if (sourceFreeSpace < freeSpaceOffset)
-        {
-            freeSpaceOffset = sourceFreeSpace;
-        }
+        float targetModOccRatio = (targetOccupancy + migResitance) / (targetOptimalPop + migResitance);
+        float sourceModOccRatio = (sourceOccupancy + migResitance) / (sourceOptimalPop + migResitance);
 
-        float modTargetFreeSpace = targetFreeSpace - freeSpaceOffset + 1;
-        float modSourceFreeSpace = sourceFreeSpace - freeSpaceOffset;
+        float occRatioFactor = sourceModOccRatio - targetModOccRatio;
 
-        float freeSpaceFactor =
-            modTargetFreeSpace / (modTargetFreeSpace + modSourceFreeSpace);
+        float coreRegionFactor = 1;
 
-        freeSpaceFactor *= targetFreeSpace / (sourceOptimalPop + 1);
+        if (!sourceIsPartOfCoreRegion)
+            coreRegionFactor *= sourceCoreRegionConst;
 
-        float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceGroup.Cell);
+        if (!targetIsPartOfCoreRegion)
+            coreRegionFactor *= 1 / targetcoreRegionConst;
 
-        float cellValue = freeSpaceFactor * altitudeFactor;
+        float targetOptFactor = targetOptimalPop + 1;
+        float sourceOptFactor = sourceOptimalPop + 1;
+        float optimalityFactor = 2 * targetOptFactor / (targetOptFactor + sourceOptFactor);
 
-        if ((polity != null) && (!polity.CoreRegions.Contains(Region)))
-        {
-            cellValue *= 0.05f;
-        }
+        float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceCell);
+
+        float cellValue = occRatioFactor * coreRegionFactor * optimalityFactor * altitudeFactor;
 
         if (float.IsNaN(cellValue))
         {

@@ -231,7 +231,8 @@ public abstract class CellCulturalSkill : CulturalSkill
 
     protected void RecalculateAdaptation(float targetValue)
     {
-        AdaptationLevel = MathUtility.RoundToSixDecimals(1 - Mathf.Abs(Value - targetValue));
+        float adaptation = (Value + 0.001f) / (targetValue + 0.001f);
+        AdaptationLevel = MathUtility.RoundToSixDecimals(Mathf.Clamp01(adaptation));
     }
 
     public void PostUpdate()

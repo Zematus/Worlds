@@ -48,7 +48,7 @@ public class FactionModEvent : FactionEvent
 
         Profiler.EndSample(); // "FactionModEvent CanTrigger - SetTarget"
 
-        if (!Generator.CanTriggerEvent())
+        if (!Generator.CanTriggerEvent(this))
         {
             Profiler.EndSample(); // "FactionModEvent CanTrigger"
 
@@ -76,12 +76,17 @@ public class FactionModEvent : FactionEvent
             return;
         }
 
+        base.DestroyInternal();
+    }
+
+    public override void Cleanup()
+    {
         if (Faction != null)
         {
             Faction.UnsetFlag(EventSetFlag);
         }
 
-        base.DestroyInternal();
+        base.Cleanup();
     }
 
     public override void FinalizeLoad()

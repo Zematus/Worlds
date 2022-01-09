@@ -21,16 +21,16 @@ public abstract class Context : IDebugLogger
 
     public string Id;
 
-    protected bool DebugEnabled
+    public bool DebugLogEnabled
     {
         get
         {
             if (_parentContext != null)
             {
-                return _parentContext.DebugEnabled;
+                return _parentContext.DebugLogEnabled;
             }
 
-            return (Manager.CurrentDevMode == DevMode.Advanced) && _debug;
+            return (Manager.CurrentDevMode == DevMode.Advanced) && _debugLogEnabled;
         }
     }
 
@@ -38,7 +38,7 @@ public abstract class Context : IDebugLogger
 
     protected Context _parentContext = null;
 
-    protected bool _debug = false;
+    protected bool _debugLogEnabled = false;
 
     private string _dbgStr = null;
     private int _dbgTabCount = -1;
@@ -59,13 +59,13 @@ public abstract class Context : IDebugLogger
         }
 
         public LoadedProperty[] properties;
-        public bool debug;
+        public bool enableDebugLog;
     }
 
     /// <summary>
     /// List of entities that can be referenced by expressions using this context
     /// </summary>
-    readonly private Dictionary<string, Entity> _entities =
+    readonly protected Dictionary<string, Entity> _entities =
         new Dictionary<string, Entity>();
 
     readonly private List<IReseteableEntity> _propertyEntities =
@@ -93,7 +93,12 @@ public abstract class Context : IDebugLogger
             }
         }
 
-        _debug = c.debug;
+        _debugLogEnabled = c.enableDebugLog;
+    }
+
+    public void EnableDebugLog(bool state)
+    {
+        _debugLogEnabled = state;
     }
 
     private void AddPropertyEntity(LoadedContext.LoadedProperty p)
@@ -160,7 +165,7 @@ public abstract class Context : IDebugLogger
             return;
         }
 
-        if (DebugEnabled)
+        if (DebugLogEnabled)
         {
             _dbgTabCount++;
 
@@ -173,6 +178,35 @@ public abstract class Context : IDebugLogger
         }
     }
 
+    private string ExplodedPartiallyEvaluatedExpression(IExpression exp)
+    {
+        List<string> partEvals = new List<string>();
+
+        int depth = 0;
+        string partEval = exp.ToPartiallyEvaluatedString(depth);
+        partEvals.Add(partEval);
+
+        while (true)
+        {
+            string nextPartEval = exp.ToPartiallyEvaluatedString(++depth);
+
+            if (nextPartEval.Equals(partEval))
+                break;
+
+            partEval = nextPartEval;
+            partEvals.Add(partEval);
+        }
+
+        string output = "";
+
+        for (int i = partEvals.Count - 1; i >= 0; i--)
+        {
+            output += $"\n\t - Partial eval (depth {i}): {partEvals[i]}";
+        }
+
+        return output;
+    }
+
     public void AddExpDebugOutput(
         string label, IExpression exp)
     {
@@ -182,16 +216,17 @@ public abstract class Context : IDebugLogger
             return;
         }
 
-        if (DebugEnabled)
+        if (DebugLogEnabled)
         {
             if (exp != null)
             {
-                AddDebugOutput("\t" + label + ": " + exp.ToString() +
-                    "\n\t - Partial eval: " + exp.ToPartiallyEvaluatedString());
+                AddDebugOutput(
+                    $"\t{label}: {exp}" +
+                    $"{ExplodedPartiallyEvaluatedExpression(exp)}");
             }
             else
             {
-                AddDebugOutput("  " + label + " is null");
+                AddDebugOutput($"\t{label} is null");
             }
         }
     }
@@ -205,17 +240,18 @@ public abstract class Context : IDebugLogger
             return;
         }
 
-        if (DebugEnabled)
+        if (DebugLogEnabled)
         {
             if (exp != null)
             {
-                AddDebugOutput("\t" + label + ": " + exp.ToString() +
-                    "\n\t - Partial eval: " + exp.ToPartiallyEvaluatedString() + 
-                    "\n\t - Value: " + exp.Value);
+                AddDebugOutput(
+                    $"\t{label}: {exp}" +
+                    $"{ExplodedPartiallyEvaluatedExpression(exp)}" +
+                    $"\n\t - Value: {exp.Value}");
             }
             else
             {
-                AddDebugOutput("  " + label + " is null");
+                AddDebugOutput($"\t{label} is null");
             }
         }
     }
@@ -229,18 +265,35 @@ public abstract class Context : IDebugLogger
             return;
         }
 
-        if (DebugEnabled)
+        if (DebugLogEnabled)
         {
             if (exp != null)
             {
-                AddDebugOutput("\t" + label + ": " + exp.ToString() +
-                    "\n\t - Partial eval: " + exp.ToPartiallyEvaluatedString() +
-                    "\n\t - Value: " + exp.ValueObject);
+                AddDebugOutput(
+                    $"\t{label}: {exp}" +
+                    $"{ExplodedPartiallyEvaluatedExpression(exp)}" +
+                    $"\n\t - Value: {exp.ValueObject}");
             }
             else
             {
-                AddDebugOutput("  " + label + " is null");
+                AddDebugOutput($"\t{label} is null");
             }
+        }
+    }
+
+    public void AddValueDebugOutput<T>(
+        string label, T value)
+    {
+        if (_parentContext != null)
+        {
+            _parentContext.AddValueDebugOutput(label, value);
+            return;
+        }
+
+        if (DebugLogEnabled)
+        {
+            AddDebugOutput(
+                $"\t{label} Value: {value}");
         }
     }
 
@@ -255,7 +308,7 @@ public abstract class Context : IDebugLogger
         if (string.IsNullOrEmpty(message))
             return;
 
-        if (DebugEnabled)
+        if (DebugLogEnabled)
         {
             string idString = "[" + Id + "] ";
 
@@ -281,7 +334,7 @@ public abstract class Context : IDebugLogger
             return;
         }
 
-        if (DebugEnabled)
+        if (DebugLogEnabled)
         {
             AddDebugOutput(message);
 

@@ -27,6 +27,8 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
 
     private void SetOptions()
     {
+        _decision.OpenDebugOutput("Setting Decision Dialog Options:");
+
         _optionButtons.Add(OptionButtonPrefab);
 
         DecisionOption[] options = _decision.Options;
@@ -35,17 +37,25 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
 
         foreach (DecisionOption option in options)
         {
-            // Skip options that can only be used by the simulation AI
-            if (option.AllowedGuide == GuideType.Simulation)
-                continue;
+            option.OpenDebugOutput("Testing option '" + option.Id + "':" +
+                "\n  Allowed guide: " + option.AllowedGuide);
 
-            if (!option.CanShow())
+            // Skip options that can only be used by the simulation AI
+            if ((option.AllowedGuide == GuideType.Simulation) ||
+                (!option.CanShow()))
+            {
+                option.CloseDebugOutput("  Option now available");
                 continue;
+            }
 
             SetOptionButton(option, i);
 
+            option.CloseDebugOutput("  Displayed option");
+
             i++;
         }
+
+        _decision.CloseDebugOutput();
     }
 
     private void SetOptionButton(DecisionOption option, int index)
@@ -60,7 +70,7 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
         {
             foreach (DecisionOptionEffect effect in option.Effects)
             {
-                descriptionText += "\n\t• " + effect.Text.GetFormattedString();
+                descriptionText += $"\n\t• {effect.Text.GetFormattedString()}";
             }
         }
         else
@@ -78,9 +88,7 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
         }
 
         ButtonWithTooltipScript buttonScript = button.GetComponent<ButtonWithTooltipScript>();
-        buttonScript.ButtonText.text = text;
-        buttonScript.TooltipText.text = descriptionText;
-        buttonScript.TooltipPanel.gameObject.SetActive(false);
+        buttonScript.Init(text, descriptionText);
 
         button.onClick.RemoveAllListeners();
 
@@ -88,13 +96,22 @@ public class ModDecisionDialogPanelScript : ModalPanelScript
         {
             if (option.Effects != null)
             {
+                option.OpenDebugOutput("Applying Player chosen decision option effects:");
+
                 World world = _decision.Target.Faction.World;
 
                 foreach (DecisionOptionEffect effect in option.Effects)
                 {
+                    if (effect.Result.RequiresInput)
+                        option.AddDebugOutput($"Effect {effect.Id} waiting for player input...");
+                    else
+                        option.AddExpDebugOutput("Effect", effect.Result);
+
                     effect.Result.Trigger = _decision.Trigger;
                     world.AddEffectToResolve(effect.Result);
                 }
+
+                option.CloseDebugOutput();
             }
 
             OptionChosenEvent.Invoke();

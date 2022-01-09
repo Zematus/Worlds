@@ -5,7 +5,22 @@ public interface IEntity : IComparable<object>, IInputRequester, IFormattedStrin
 {
     string Id { get; }
 
-    EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null);
+    IEntity Parent { get; }
+
+    EntityAttribute GetParametricAttribute(
+        string attributeId,
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments);
+
+    EntityAttribute GetAttribute(
+        string attributeId, 
+        IExpression[] arguments = null);
+
+    ParametricSubcontext BuildParametricSubcontext(
+        Context parentContext, 
+        string attributeId, 
+        string[] paramIds);
 
     string GetDebugString();
 
@@ -19,7 +34,7 @@ public interface IEntity : IComparable<object>, IInputRequester, IFormattedStrin
 
     void Set(object o, PartiallyEvaluatedStringConverter converter);
 
-    EntityAttribute GetThisEntityAttribute(Entity parent);
+    EntityAttribute GetThisEntityAttribute();
 
-    string ToPartiallyEvaluatedString(bool evaluate);
+    string ToPartiallyEvaluatedString(int depth = -1);
 }

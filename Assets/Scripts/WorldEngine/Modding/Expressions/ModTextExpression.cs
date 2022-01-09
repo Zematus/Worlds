@@ -25,8 +25,8 @@ public class ModTextExpression : IValueExpression<ModText>
 
     public string GetFormattedString() => _modText.GetFormattedString();
 
-    public string ToPartiallyEvaluatedString(bool evaluate = true) =>
-        _modText.ToPartiallyEvaluatedString(evaluate);
+    public string ToPartiallyEvaluatedString(int depth = -1) =>
+        _modText.ToPartiallyEvaluatedString(depth);
 
     public bool TryGetRequest(out InputRequest request) =>
         _modText.TryGetRequest(out request);

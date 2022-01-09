@@ -17,13 +17,15 @@ public abstract class AssignableValueEntityAttribute<T> : EntityAttribute
         return new AssignableValueEntityAttributeExpression<T>(this);
     }
 
-    public override string ToPartiallyEvaluatedString(bool evaluate)
+    public override string ToPartiallyEvaluatedString(int depth = -1)
     {
-        if (evaluate)
+        if (depth == 0)
         {
             return Value.ToString();
         }
 
-        return base.ToPartiallyEvaluatedString(evaluate);
+        depth = (depth > 0) ? depth - 1 : depth;
+
+        return base.ToPartiallyEvaluatedString(depth);
     }
 }

@@ -21,8 +21,8 @@ public class EntityExpression : IValueExpression<IEntity>
 
     public bool RequiresInput => Value.RequiresInput;
 
-    public string ToPartiallyEvaluatedString(bool evaluate) =>
-        Value.ToPartiallyEvaluatedString(evaluate);
+    public string ToPartiallyEvaluatedString(int depth = -1) =>
+        Value.ToPartiallyEvaluatedString(depth);
 
     public bool TryGetRequest(out InputRequest request) =>
         Value.TryGetRequest(out request);

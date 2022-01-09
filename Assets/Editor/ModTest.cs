@@ -482,7 +482,7 @@ public class ModTest
 
         TestContext testContext = new TestContext();
 
-        GroupEntity testGroupEntity = new GroupEntity(testContext, "target");
+        GroupEntity testGroupEntity = new GroupEntity(testContext, "target", null);
 
         testContext.AddEntity(testGroupEntity);
 
@@ -646,7 +646,7 @@ public class ModTest
 
         TestContext testContext = new TestContext();
 
-        FactionEntity testFactionEntity = new FactionEntity(testContext, "target");
+        FactionEntity testFactionEntity = new FactionEntity(testContext, "target", null);
 
         testContext.AddEntity(testFactionEntity);
 

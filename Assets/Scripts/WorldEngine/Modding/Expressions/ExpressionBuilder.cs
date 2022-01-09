@@ -8,9 +8,9 @@ public static class ExpressionBuilder
     public static IExpression BuildExpression(
         Context context, string expressionStr, bool allowInputRequesters = false)
     {
-//#if DEBUG
-//        TestMatch(context, expressionStr);
-//#endif
+        //#if DEBUG
+        //        TestMatch(context, expressionStr);
+        //#endif
 
         IExpression expression = null;
 
@@ -94,17 +94,52 @@ public static class ExpressionBuilder
                 context, entityStr, allowInputRequesters);
 
         string identifier = match.Groups["identifier"].Value.Trim();
+        string paramIds = match.Groups["paramIds"].Value.Trim();
         string arguments = match.Groups["arguments"].Value.Trim();
+
+        bool isParametric = false;
+        string[] paramIdArray = null;
+        Context argContext = context;
+
+        // if the attribute has parameter identifiers, then we need to build
+        // a parametric subcontext before building the argument expressions
+        if (!string.IsNullOrWhiteSpace(paramIds))
+        {
+            paramIdArray = ExtractIdentifierArray(paramIds);
+            isParametric = true;
+
+            argContext = 
+                entExpression.Value.BuildParametricSubcontext(
+                    context,
+                    identifier,
+                    paramIdArray);
+        }
 
         IExpression[] argExpressions = null;
         if (!string.IsNullOrWhiteSpace(arguments))
         {
             argExpressions = BuildFunctionArgumentExpressions(
-                context, arguments, allowInputRequesters);
+                argContext, arguments, allowInputRequesters);
         }
 
-        EntityAttribute attribute =
-            entExpression.Value.GetAttribute(identifier, argExpressions);
+        EntityAttribute attribute;
+
+        if (isParametric)
+        {
+            attribute =
+                entExpression.Value.GetParametricAttribute(
+                    identifier, 
+                    argContext as ParametricSubcontext, 
+                    paramIdArray, 
+                    argExpressions);
+        }
+        else
+        {
+            attribute =
+                entExpression.Value.GetAttribute(
+                    identifier, 
+                    argExpressions);
+        }
 
         return attribute.GetExpression();
     }
@@ -196,6 +231,25 @@ public static class ExpressionBuilder
     }
 #endif
 
+    private static string[] ExtractIdentifierArray(string identifiersStr)
+    {
+        List<string> identifierList = new List<string>();
+
+        Match match = Regex.Match(identifiersStr, ModParseUtility.IdentifierListRegex);
+
+        while (match.Success == true)
+        {
+            string identifier = match.Groups["identifier"].Value.Trim();
+            string otherIds = match.Groups["otherIds"].Value.Trim();;
+
+            identifierList.Add(identifier);
+
+            match = Regex.Match(otherIds, ModParseUtility.IdentifierListRegex);
+        }
+
+        return identifierList.ToArray();
+    }
+
     private static IExpression[] BuildFunctionArgumentExpressions(
         Context context, string arguments, bool allowInputRequesters = false)
     {
@@ -265,6 +319,8 @@ public static class ExpressionBuilder
                 return new MinFunctionExpression(context, argExpressions);
             case ClampFunctionExpression.FunctionId:
                 return new ClampFunctionExpression(context, argExpressions);
+            case GetProbabilityAdjectiveFunctionExpression.FunctionId:
+                return new GetProbabilityAdjectiveFunctionExpression(context, argExpressions);
         }
 
         if (string.IsNullOrWhiteSpace(arguments))

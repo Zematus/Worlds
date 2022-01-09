@@ -16,13 +16,13 @@ public class CulturalKnowledgesEntity : DelayedSetEntity<Culture>
     private readonly Dictionary<string, KnowledgeEntity> _knowledgeEntities =
         new Dictionary<string, KnowledgeEntity>();
 
-    public CulturalKnowledgesEntity(Context c, string id) : base(c, id)
+    public CulturalKnowledgesEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
     public CulturalKnowledgesEntity(
-        ValueGetterMethod<Culture> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        ValueGetterMethod<Culture> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
@@ -33,12 +33,13 @@ public class CulturalKnowledgesEntity : DelayedSetEntity<Culture>
             entity = new KnowledgeEntity(
                 () => Culture.GetKnowledge(attributeId),
                 Context,
-                BuildAttributeId(attributeId));
+                BuildAttributeId(attributeId),
+                this);
 
             _knowledgeEntities[attributeId] = entity;
         }
 
-        return entity.GetThisEntityAttribute(this);
+        return entity.GetThisEntityAttribute();
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)

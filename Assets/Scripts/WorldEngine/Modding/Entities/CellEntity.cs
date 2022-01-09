@@ -37,13 +37,13 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
         public override float Value => _cellEntity.Cell.GetBiomeTraitPresence(_argument.Value);
     }
 
-    public CellEntity(Context c, string id) : base(c, id)
+    public CellEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
     public CellEntity(
-        ValueGetterMethod<TerrainCell> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        ValueGetterMethod<TerrainCell> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
@@ -65,6 +65,6 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
 
     public override string GetFormattedString()
     {
-        return Cell.Position.ToString().ToBoldFormat();
+        return Cell.Position.ToBoldString();
     }
 }

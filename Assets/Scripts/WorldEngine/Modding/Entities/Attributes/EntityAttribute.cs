@@ -15,6 +15,14 @@ public abstract class EntityAttribute : IInputRequester
     {
         get
         {
+            if (Entity == null)
+            {
+                throw new System.NullReferenceException("Entity is null");
+            }
+
+            if (Entity.RequiresInput)
+                return true;
+
             if (Arguments != null)
             {
                 foreach (IExpression e in Arguments)
@@ -49,10 +57,19 @@ public abstract class EntityAttribute : IInputRequester
         return Entity.Id + "." + Id;
     }
 
-    public virtual string ToPartiallyEvaluatedString(bool evaluate) => ToString();
+    public virtual string ToPartiallyEvaluatedString(int depth = -1) =>
+        ToString();
 
     public virtual bool TryGetRequest(out InputRequest request)
     {
+        if (Entity == null)
+        {
+            throw new System.NullReferenceException("Entity is null");
+        }
+
+        if (Entity.TryGetRequest(out request))
+            return true;
+
         if (Arguments != null)
         {
             foreach (IExpression e in Arguments)

@@ -38,7 +38,7 @@ public class CellGroupModEvent : CellGroupEvent
 
         _generator.SetTarget(Group);
 
-        if (!_generator.CanTriggerEvent())
+        if (!_generator.CanTriggerEvent(this))
         {
             return false;
         }
@@ -62,12 +62,17 @@ public class CellGroupModEvent : CellGroupEvent
             return;
         }
 
+        base.DestroyInternal();
+    }
+
+    public override void Cleanup()
+    {
         if (Group != null)
         {
             Group.UnsetFlag(EventSetFlag);
         }
 
-        base.DestroyInternal();
+        base.Cleanup();
     }
 
     public override void FinalizeLoad()

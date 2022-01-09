@@ -24,7 +24,7 @@ public class FocusPanelScript : MonoBehaviour
 
     public void SetState(FocusPanelState state, Polity polity)
     {
-        PolityText.text = polity.Name.Text + " " + polity.Type;
+        PolityText.text = polity.Name.Text + " " + polity.TypeStr;
 
         switch (state)
         {

@@ -1,9 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-
-public class NormalizeFunctionExpression : FunctionExpression, IValueExpression<float>
+﻿
+public class NormalizeFunctionExpression : FunctionExpressionWithOutput<float>
 {
     public const string FunctionId = "normalize";
 
@@ -19,7 +15,7 @@ public class NormalizeFunctionExpression : FunctionExpression, IValueExpression<
         _maxArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[2]);
     }
 
-    public float Value
+    public override float Value
     {
         get {
             float min = _minArg.Value;
@@ -30,6 +26,13 @@ public class NormalizeFunctionExpression : FunctionExpression, IValueExpression<
                 string inputValueStr = _valueArg.ToPartiallyEvaluatedString();
                 string minValueStr = _minArg.ToPartiallyEvaluatedString();
                 string maxValueStr = _maxArg.ToPartiallyEvaluatedString();
+
+                _context.EnableDebugLog(true);
+                _context.OpenDebugOutput("Expanding exception arguments:");
+                _context.AddExpDebugOutput("input", _valueArg);
+                _context.AddExpDebugOutput("min", _minArg);
+                _context.AddExpDebugOutput("max", _maxArg);
+                _context.CloseDebugOutput();
 
                 throw new System.ArgumentException(
                     _context.Id + " - " +
@@ -43,8 +46,4 @@ public class NormalizeFunctionExpression : FunctionExpression, IValueExpression<
             return (_valueArg.Value - min) / (max - min);
         }
     }
-
-    public object ValueObject => Value;
-
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 }

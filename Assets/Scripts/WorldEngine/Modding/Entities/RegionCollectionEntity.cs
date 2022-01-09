@@ -3,64 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class RegionCollectionEntity : CollectionEntity<Region>
+public class RegionCollectionEntity : EntityCollectionEntity<Region>
 {
-    private int _selectedRegionIndex = 0;
-
-    private readonly List<RegionEntity>
-        _regionEntitiesToSet = new List<RegionEntity>();
-
     public RegionCollectionEntity(
-        CollectionGetterMethod<Region> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        CollectionGetterMethod<Region> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
-    }
-
-    protected override EntityAttribute GenerateRequestSelectionAttribute(IExpression[] arguments)
-    {
-        int index = _selectedRegionIndex++;
-        int iterOffset = Context.GetNextIterOffset() + index;
-
-        if ((arguments == null) && (arguments.Length < 1))
-        {
-            throw new System.ArgumentException(
-                "'request_selection' is missing 1 argument");
-        }
-
-        IValueExpression<ModText> textExpression =
-            ValueExpressionBuilder.ValidateValueExpression<ModText>(arguments[0]);
-
-        RegionEntity entity = new RegionEntity(
-            (out DelayedSetEntityInputRequest<Region> request) =>
-            {
-                request = new RegionSelectionRequest(
-                    Collection, textExpression.Value);
-                return true;
-            },
-            Context,
-            BuildAttributeId("selected_region_" + index));
-
-        _regionEntitiesToSet.Add(entity);
-
-        return entity.GetThisEntityAttribute(this);
-    }
-
-    protected override EntityAttribute GenerateSelectRandomAttribute()
-    {
-        int index = _selectedRegionIndex++;
-        int iterOffset = Context.GetNextIterOffset() + index;
-
-        RegionEntity entity = new RegionEntity(
-            () => {
-                int offset = iterOffset + Context.GetBaseOffset();
-                return Collection.RandomSelect(Context.GetNextRandomInt, offset); 
-            },
-            Context,
-            BuildAttributeId("selected_region_" + index));
-
-        _regionEntitiesToSet.Add(entity);
-
-        return entity.GetThisEntityAttribute(this);
     }
 
     public override string GetDebugString()
@@ -68,13 +16,15 @@ public class RegionCollectionEntity : CollectionEntity<Region>
         return "region_collection";
     }
 
-    protected override void ResetInternal()
-    {
-        if (_isReset) return;
+    protected override DelayedSetEntity<Region> ConstructEntity(
+        ValueGetterMethod<Region> getterMethod, Context c, string id, IEntity parent)
+        => new RegionEntity(getterMethod, c, id, parent);
 
-        foreach (RegionEntity regionEntity in _regionEntitiesToSet)
-        {
-            regionEntity.Reset();
-        }
-    }
+    protected override DelayedSetEntity<Region> ConstructEntity(
+        TryRequestGenMethod<Region> tryRequestGenMethod, Context c, string id, IEntity parent)
+        => new RegionEntity(tryRequestGenMethod, c, id, parent);
+
+    protected override DelayedSetEntityInputRequest<Region> ConstructInputRequest(
+        ICollection<Region> collection, ModText text)
+        => new RegionSelectionRequest(collection, text);
 }

@@ -64,7 +64,7 @@ public class TestEntity : Entity
 
         private TestBooleanEntityAttribute _boolAttribute;
 
-        public InternalEntity(Context c) : base(c, TestId)
+        public InternalEntity(Context c) : base(c, TestId, null)
         {
             _boolAttribute = new TestBooleanEntityAttribute(this, true);
         }
@@ -106,7 +106,7 @@ public class TestEntity : Entity
 
     protected override object _reference => this;
 
-    public TestEntity(Context c) : base(c, "testEntity")
+    public TestEntity(Context c) : base(c, "testEntity", null)
     {
         _internalEntity = new InternalEntity(Context);
 
@@ -158,11 +158,6 @@ public class TestPolity : Polity
     public TestPolity(string type, CellGroup coreGroup) : base(type, coreGroup)
     {
         _testId = _testCounter++;
-    }
-
-    public override float CalculateGroupProminenceExpansionValue(CellGroup sourceGroup, CellGroup targetGroup, float sourceValue)
-    {
-        throw new NotImplementedException();
     }
 
     protected override void GenerateName()

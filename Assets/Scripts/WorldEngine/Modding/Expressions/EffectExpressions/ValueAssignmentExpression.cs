@@ -25,10 +25,10 @@ public class ValueAssignmentExpression<T> : BinaryOpExpression, IEffectExpressio
         _targetValueExp.Value = _sourceValueExp.Value;
     }
 
-    public override string ToPartiallyEvaluatedString(bool evaluate)
+    public override string ToPartiallyEvaluatedString(int depth)
     {
         return
-            "(" + _expressionA.ToPartiallyEvaluatedString(false) +
-            " = " + _expressionB.ToPartiallyEvaluatedString(evaluate) + ")";
+            "(" + _expressionA.ToPartiallyEvaluatedString(0) +
+            " = " + _expressionB.ToPartiallyEvaluatedString(depth) + ")";
     }
 }

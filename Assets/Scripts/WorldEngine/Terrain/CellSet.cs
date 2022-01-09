@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public delegate bool CanAddCellDelegate(TerrainCell cell);
 
-public class CellSet : ICellCollectionGetter
+public class CellSet : ICellSet
 {
     public World World;
 
@@ -30,7 +30,8 @@ public class CellSet : ICellCollectionGetter
     {
         CellArea area = new CellArea()
         {
-            World = World
+            World = World,
+            Cells = Cells
         };
 
         return area;
@@ -57,32 +58,45 @@ public class CellSet : ICellCollectionGetter
             return;
         }
 
-        if ((cell.Longitude - Left.Longitude) == -1)
+        int diffLeft = cell.Longitude - Left.Longitude;
+        int diffRight = cell.Longitude - Right.Longitude;
+
+        if (diffLeft < 0)
         {
-            Left = cell;
-        }
-        else if ((cell.Longitude - Left.Longitude - Manager.WorldWidth) == -1)
-        {
-            Left = cell;
-            WrapsAround = true;
+            if ((diffRight + diffLeft + Manager.WorldWidth) < 0)
+            {
+                // Wrapped around, the cell would be closer to the 
+                // rightmost cell and would be even more rightmost
+                Right = cell;
+                WrapsAround = true;
+            }
+            else
+            {
+                Left = cell;
+            }
         }
 
-        if ((cell.Longitude - Right.Longitude) == 1)
+        if (diffRight > 0)
         {
-            Right = cell;
-        }
-        else if ((cell.Longitude - Right.Longitude + Manager.WorldWidth) == 1)
-        {
-            Right = cell;
-            WrapsAround = true;
+            if ((diffRight + diffLeft - Manager.WorldWidth) > 0)
+            {
+                // Wrapped around, the cell would be closer to the 
+                // leftmost cell and would be even more leftmost
+                Left = cell;
+                WrapsAround = true;
+            }
+            else
+            {
+                Right = cell;
+            }
         }
 
-        if ((cell.Latitude - Top.Latitude) == 1)
+        if ((cell.Latitude - Top.Latitude) > 0)
         {
             Top = cell;
         }
 
-        if ((cell.Latitude - Bottom.Latitude) == -1)
+        if ((cell.Latitude - Bottom.Latitude) < 0)
         {
             Bottom = cell;
         }
@@ -201,11 +215,6 @@ public class CellSet : ICellCollectionGetter
         float maxScaleDiff,
         float minRectAreaPercent)
     {
-//#if DEBUG
-//        Debug.Log("Spliting set with area: " + cellSet.Area + ", width: " +
-//            cellSet.RectWidth + ", height: " + cellSet.RectHeight);
-//#endif
-
         int majorLength = Mathf.Max(cellSet.RectHeight, cellSet.RectWidth);
         int minorLength = Mathf.Min(cellSet.RectHeight, cellSet.RectWidth);
         float scaleDiff = majorLength / (float)minorLength;
@@ -220,10 +229,6 @@ public class CellSet : ICellCollectionGetter
 
         if (noNeedToSplit)
         {
-//#if DEBUG
-//            Debug.Log("Returning set with area: " + cellSet.Area);
-//#endif
-
             yield return cellSet;
         }
         else if (majorLength == cellSet.RectHeight)
@@ -243,11 +248,6 @@ public class CellSet : ICellCollectionGetter
 
             topCellSet.Update();
             bottomCellSet.Update();
-
-//#if DEBUG
-//            Debug.Log("topCellSet area: " + topCellSet.Area);
-//            Debug.Log("bottomCellSet area: " + bottomCellSet.Area);
-//#endif
 
             foreach (CellSet subset in SplitIntoSubsets(
                 topCellSet, maxMajorLength, minMajorLength, maxScaleDiff, minRectAreaPercent))
@@ -278,11 +278,6 @@ public class CellSet : ICellCollectionGetter
 
             leftCellSet.Update();
             rightCellSet.Update();
-
-//#if DEBUG
-//            Debug.Log("leftCellSet area: " + leftCellSet.Area);
-//            Debug.Log("rightCellSet area: " + rightCellSet.Area);
-//#endif
 
             foreach (CellSet subset in SplitIntoSubsets(
                 leftCellSet, maxMajorLength, minMajorLength, maxScaleDiff, minRectAreaPercent))
@@ -387,5 +382,99 @@ public class CellSet : ICellCollectionGetter
     public ICollection<TerrainCell> GetCells()
     {
         return Cells;
+    }
+
+    public RectInt GetBoundingRectangle()
+    {
+        int xMin = Left.Longitude;
+        int xMax = Right.Longitude;
+        int yMin = Bottom.Latitude;
+        int yMax = Top.Latitude;
+
+        // this makes sure the rectagle can correctly wrap around the vertical edges of the map if needed
+        if (xMax < xMin)
+        {
+            xMax += World.Width;
+        }
+
+        return new RectInt(xMin, yMin, xMax - xMin, yMax - yMin);
+    }
+
+    public static RectInt GetBoundingRectangle(ICollection<TerrainCell> cells)
+    {
+        int xMin = 0;
+        int xMax = 0;
+        int yMin = 0;
+        int yMax = 0;
+        bool first = true;
+
+        foreach (var cell in cells)
+        {
+            var pos = cell.Position;
+
+            if (first)
+            {
+                xMin = pos.Longitude;
+                xMax = pos.Longitude;
+                yMin = pos.Latitude;
+                yMax = pos.Latitude;
+
+                first = false;
+                continue;
+            }
+
+            if (pos.Longitude < xMin)
+            {
+                int altLong = pos.Longitude + Manager.WorldWidth;
+                int maxAltDiff = Mathf.Abs(xMax - altLong);
+                int minDiff = Mathf.Abs(xMin - pos.Longitude);
+
+                if (maxAltDiff < minDiff)
+                {
+                    if (altLong > xMax)
+                    {
+                        xMax = pos.Longitude;
+                    }
+                }
+                else
+                {
+                    xMin = pos.Longitude;
+                }
+            }
+            if (pos.Longitude > xMax)
+            {
+                int altLong = pos.Longitude - Manager.WorldWidth;
+                int minAltDiff = Mathf.Abs(xMin - altLong);
+                int maxDiff = Mathf.Abs(xMax - pos.Longitude);
+
+                if (minAltDiff < maxDiff)
+                {
+                    if (altLong < xMin)
+                    {
+                        xMin = pos.Longitude;
+                    }
+                }
+                else
+                {
+                    xMax = pos.Longitude;
+                }
+            }
+            if (pos.Latitude < yMin)
+            {
+                yMin = pos.Latitude;
+            }
+            if (pos.Latitude > yMax)
+            {
+                yMax = pos.Latitude;
+            }
+        }
+
+        // this makes sure the rectagle can correctly wrap around the vertical edges of the map if needed
+        if (xMax < xMin)
+        {
+            xMax += Manager.WorldWidth;
+        }
+
+        return new RectInt(xMin, yMin, xMax - xMin, yMax - yMin);
     }
 }

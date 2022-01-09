@@ -13,13 +13,13 @@ public class CulturalPreferencesEntity : DelayedSetEntity<Culture>
 
     protected override object _reference => Culture;
 
-    public CulturalPreferencesEntity(Context c, string id) : base(c, id)
+    public CulturalPreferencesEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
     public CulturalPreferencesEntity(
-        ValueGetterMethod<Culture> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        ValueGetterMethod<Culture> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 

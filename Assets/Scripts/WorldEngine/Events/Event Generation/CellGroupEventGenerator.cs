@@ -10,7 +10,7 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
 
     public CellGroupEventGenerator()
     {
-        _target = new GroupEntity(this, TargetEntityId);
+        _target = new GroupEntity(this, TargetEntityId, null);
 
         // Add the target to the context's entity map
         AddEntity(_target);
@@ -27,16 +27,26 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         // can be assigned by other events by default
     }
 
+    public override void SetToAssignOnPolityCountChange()
+    {
+        CellGroup.OnPolityCountChangeEventGenerators.Add(this);
+    }
+
+    public override void SetToAssignOnCoreCountChange()
+    {
+        CellGroup.OnCoreCountChangeEventGenerators.Add(this);
+    }
+
     public override void SetToAssignOnStatusChange()
     {
         throw new System.InvalidOperationException(
             "OnAssign does not support 'status_change' for Cell Groups");
     }
 
-    public override void SetToAssignOnPolityContactChange()
+    public override void SetToAssignOnContactChange()
     {
         throw new System.InvalidOperationException(
-            "OnAssign does not support 'polity_contact_change' for Cell Groups");
+            "OnAssign does not support 'contact_change' for Cell Groups");
     }
 
     public override void SetToAssignOnCoreHighestProminenceChange()
@@ -55,6 +65,12 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
     {
         throw new System.InvalidOperationException(
             "OnAssign does not support 'guide_switch' for Cell Groups");
+    }
+
+    public override void SetToAssignOnCoreGroupProminenceValueBelow(string valueStr)
+    {
+        throw new System.InvalidOperationException(
+            "OnAssign does not support 'core_group_prominence_value_below' for Cell Groups");
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)
@@ -103,5 +119,11 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         }
 
         return TryGenerateEventAndAssign(modEvent.Group, modEvent, true);
+    }
+
+    protected override void AddTargetDebugOutput()
+    {
+        AddDebugOutput(
+            $"\tTarget Group: {_target.Group.Id}");
     }
 }
