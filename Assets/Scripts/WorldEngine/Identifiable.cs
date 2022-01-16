@@ -61,6 +61,13 @@ public abstract class Identifiable
         _idSuffix = idSuffix;
 
         _id = new Identifier(InitDate, _idSuffix);
+
+#if DEBUG
+        if (_id == "165281100:1124905512044893788")
+        {
+            Manager.Debug_PauseSimRequested = true;
+        }
+#endif
     }
 
     public override string ToString()
