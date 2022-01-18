@@ -233,7 +233,7 @@ public class CellSet : ICellSet
         }
         else
         {
-            int middleLongitude = (cellSet.Left.Longitude + cellSet.Right.Longitude) / 2;
+            int middleLongitude = (cellSet._left + cellSet._right) / 2;
 
             CellSet leftCellSet = new CellSet();
             CellSet rightCellSet = new CellSet();

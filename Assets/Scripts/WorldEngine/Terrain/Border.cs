@@ -48,10 +48,10 @@ public class Border : CellSet
 
         enclosedCellSet = new CellSet();
 
-        HashSet<TerrainCell> exploredSet = new HashSet<TerrainCell>();
+        var exploredSet = new HashSet<TerrainCell>();
         exploredSet.UnionWith(outsideSet);
 
-        Queue<TerrainCell> toAdd = new Queue<TerrainCell>();
+        var toAdd = new Queue<TerrainCell>();
 
         toAdd.Enqueue(Top);
 
