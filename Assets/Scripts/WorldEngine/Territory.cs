@@ -353,7 +353,9 @@ public class Territory : ISynchronizable, ICellSet
                 _cells,
                 out CellSet enclosedSet,
                 CanAddCellToEnclosedArea))
+            {
                 continue;
+            }
 
             _enclosedAreas.Add(enclosedSet.GetArea());
 
@@ -501,15 +503,6 @@ public class Territory : ISynchronizable, ICellSet
 
     private void AddLongitude(int longitude)
     {
-        if (_longitudes.ContainsKey(longitude))
-        {
-            _longitudes[longitude]++;
-        }
-        else
-        {
-            _longitudes[longitude] = 1;
-        }
-
         if (_leftmost == -1)
         {
             _leftmost = longitude;
@@ -521,17 +514,19 @@ public class Territory : ISynchronizable, ICellSet
             _validRightmost = true;
         }
 
-        int diffLeft = longitude - _leftmost;
-        int diffRight = longitude - _rightmost;
-
-        if (diffLeft < 0)
+        if (longitude < _leftmost)
         {
-            if ((diffRight + diffLeft + Manager.WorldWidth) < 0)
+            int modLong = longitude + Manager.WorldWidth;
+            var leftDiff = _leftmost - longitude;
+            var rightDiff = Mathf.Abs(_rightmost - modLong);
+
+            if (rightDiff < leftDiff)
             {
-                // Wrapped around, the cell would be closer to the 
-                // rightmost cell and would be even more rightmost
-                _rightmost = longitude;
-                _validRightmost = true;
+                if (modLong > _rightmost)
+                {
+                    _rightmost = modLong;
+                    _validRightmost = true;
+                }
             }
             else
             {
@@ -540,20 +535,35 @@ public class Territory : ISynchronizable, ICellSet
             }
         }
 
-        if (diffRight > 0)
+        if (_rightmost < longitude)
         {
-            if ((diffRight + diffLeft - Manager.WorldWidth) > 0)
+            int modLong = longitude - Manager.WorldWidth;
+            var leftDiff = Mathf.Abs(_leftmost - modLong);
+            var rightDiff = longitude - _rightmost;
+
+            if (rightDiff < leftDiff)
             {
-                // Wrapped around, the cell would be closer to the 
-                // leftmost cell and would be even more leftmost
-                _leftmost = longitude;
-                _validLeftmost = true;
+                if (modLong > _rightmost)
+                {
+                    _leftmost = longitude;
+                    _validLeftmost = true;
+                }
             }
             else
             {
                 _rightmost = longitude;
                 _validRightmost = true;
+
             }
+        }
+
+        if (_longitudes.ContainsKey(longitude))
+        {
+            _longitudes[longitude]++;
+        }
+        else
+        {
+            _longitudes[longitude] = 1;
         }
     }
 
@@ -574,6 +584,9 @@ public class Territory : ISynchronizable, ICellSet
                 _validLeftmost = false;
 
             if (longitude == _rightmost)
+                _validRightmost = false;
+
+            if ((longitude + Manager.WorldWidth) == _rightmost)
                 _validRightmost = false;
         }
     }
@@ -596,15 +609,18 @@ public class Territory : ISynchronizable, ICellSet
                 continue;
             }
 
-            int diffLeft = longitude - _leftmost;
-            int diffRight = longitude - _rightmost;
-
-            if (diffLeft < 0)
+            if (longitude < _leftmost)
             {
-                if ((diffRight + diffLeft + Manager.WorldWidth) < 0)
+                int modLong = longitude + Manager.WorldWidth;
+                var leftDiff = _leftmost - longitude;
+                var rightDiff = Mathf.Abs(_rightmost - modLong);
+
+                if (rightDiff < leftDiff)
                 {
-                    // Wrap around
-                    _rightmost = longitude;
+                    if (modLong > _rightmost)
+                    {
+                        _rightmost = modLong;
+                    }
                 }
                 else
                 {
@@ -612,16 +628,23 @@ public class Territory : ISynchronizable, ICellSet
                 }
             }
 
-            if (diffRight > 0)
+            if (_rightmost < longitude)
             {
-                if ((diffRight + diffLeft - Manager.WorldWidth) > 0)
+                int modLong = longitude - Manager.WorldWidth;
+                var leftDiff = Mathf.Abs(_leftmost - modLong);
+                var rightDiff = longitude - _rightmost;
+
+                if (rightDiff < leftDiff)
                 {
-                    // Wrap around
-                    _leftmost = longitude;
+                    if (modLong > _rightmost)
+                    {
+                        _leftmost = longitude;
+                    }
                 }
                 else
                 {
                     _rightmost = longitude;
+
                 }
             }
         }
@@ -835,6 +858,11 @@ public class Territory : ISynchronizable, ICellSet
 
     private void DecreaseAccessToRegion(Region region)
     {
+        if (region == null)
+        {
+            throw new System.ArgumentNullException($"region can't be null");
+        }
+
         if (!_regionAccesses.TryGetValue(region, out var regionAccess))
         {
             throw new System.Exception(
@@ -863,17 +891,6 @@ public class Territory : ISynchronizable, ICellSet
         UpdateLongitudeEdges();
         UpdateLatitudeEdges();
 
-        int xMin = _leftmost;
-        int xMax = _rightmost;
-        int yMin = _bottom;
-        int yMax = _top;
-
-        // this makes sure the rectagle can correctly wrap around the vertical edges of the map if needed
-        if (xMax < xMin)
-        {
-            xMax += World.Width;
-        }
-
-        return new RectInt(xMin, yMin, xMax - xMin, yMax - yMin);
+        return new RectInt(_leftmost, _bottom, _rightmost - _leftmost, _top - _bottom);
     }
 }
