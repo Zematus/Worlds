@@ -240,7 +240,18 @@ public class CellSet : ICellSet
 
             foreach (TerrainCell cell in cellSet.Cells)
             {
-                if (cell.Longitude > middleLongitude)
+                int longitude = cell.Longitude;
+
+                if (longitude < cellSet._left)
+                {
+                    longitude += Manager.WorldWidth;
+                }
+                else if (longitude > cellSet._right)
+                {
+                    longitude -= Manager.WorldWidth;
+                }
+
+                if (longitude > middleLongitude)
                     rightCellSet.AddCell(cell);
                 else
                     leftCellSet.AddCell(cell);
