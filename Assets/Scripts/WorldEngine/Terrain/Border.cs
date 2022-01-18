@@ -62,12 +62,6 @@ public class Border : CellSet
             if ((canAddCell == null) || canAddCell(cell))
             {
                 enclosedCellSet.AddCell(cell);
-#if DEBUG
-                if (Territory.DEBUG_territoryDebug && (enclosedCellSet.Area > 100))
-                {
-                    Manager.Debug_BreakRequested = true;
-                }
-#endif
             }
 
             if (enclosedCellSet.Area > RectArea)

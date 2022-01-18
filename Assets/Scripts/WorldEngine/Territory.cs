@@ -345,35 +345,17 @@ public class Territory : ISynchronizable, ICellSet
         return cell.Group == null;
     }
 
-#if DEBUG
-    public static bool DEBUG_territoryDebug = false;
-#endif
-
     public void AddEnclosedAreas()
     {
         foreach (Border border in _newOuterBorders)
         {
-#if DEBUG
-            // if (Polity.Id == "91508971:8524009852160210856")
-            if (Polity.Id == "142538122:9078103927274258160")
-            {
-                DEBUG_territoryDebug = true;
-            }
-#endif
-
             if (!border.TryGetEnclosedCellSet(
                 _cells,
                 out CellSet enclosedSet,
                 CanAddCellToEnclosedArea))
             {
-#if DEBUG
-                DEBUG_territoryDebug = false;
-#endif
                 continue;
             }
-#if DEBUG
-            DEBUG_territoryDebug = false;
-#endif
 
             _enclosedAreas.Add(enclosedSet.GetArea());
 
@@ -555,8 +537,24 @@ public class Territory : ISynchronizable, ICellSet
 
         if (_rightmost < longitude)
         {
-            _rightmost = longitude;
-            _validRightmost = true;
+            int modLong = longitude - Manager.WorldWidth;
+            var leftDiff = Mathf.Abs(_leftmost - modLong);
+            var rightDiff = longitude - _rightmost;
+
+            if (rightDiff < leftDiff)
+            {
+                if (modLong > _rightmost)
+                {
+                    _leftmost = longitude;
+                    _validLeftmost = true;
+                }
+            }
+            else
+            {
+                _rightmost = longitude;
+                _validRightmost = true;
+
+            }
         }
 
         if (_longitudes.ContainsKey(longitude))
@@ -632,7 +630,22 @@ public class Territory : ISynchronizable, ICellSet
 
             if (_rightmost < longitude)
             {
-                _rightmost = longitude;
+                int modLong = longitude - Manager.WorldWidth;
+                var leftDiff = Mathf.Abs(_leftmost - modLong);
+                var rightDiff = longitude - _rightmost;
+
+                if (rightDiff < leftDiff)
+                {
+                    if (modLong > _rightmost)
+                    {
+                        _leftmost = longitude;
+                    }
+                }
+                else
+                {
+                    _rightmost = longitude;
+
+                }
             }
         }
 
@@ -878,11 +891,6 @@ public class Territory : ISynchronizable, ICellSet
         UpdateLongitudeEdges();
         UpdateLatitudeEdges();
 
-        int xMin = _leftmost;
-        int xMax = _rightmost;
-        int yMin = _bottom;
-        int yMax = _top;
-
-        return new RectInt(xMin, yMin, xMax - xMin, yMax - yMin);
+        return new RectInt(_leftmost, _bottom, _rightmost - _leftmost, _top - _bottom);
     }
 }

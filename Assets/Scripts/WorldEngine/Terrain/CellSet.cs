@@ -68,36 +68,18 @@ public class CellSet : ICellSet
 
         if (cell.Latitude > _top)
         {
-#if DEBUG
-            if (Territory.DEBUG_territoryDebug)
-            {
-                Manager.Debug_BreakRequested = true;
-            }
-#endif
             Top = cell;
             _top = cell.Latitude;
         }
 
         if (cell.Latitude < _bottom)
         {
-#if DEBUG
-            if (Territory.DEBUG_territoryDebug)
-            {
-                Manager.Debug_BreakRequested = true;
-            }
-#endif
             Bottom = cell;
             _bottom = cell.Latitude;
         }
 
         if (cell.Longitude < _left)
         {
-#if DEBUG
-            if (Territory.DEBUG_territoryDebug)
-            {
-                Manager.Debug_BreakRequested = true;
-            }
-#endif
             int modLong = cell.Longitude + Manager.WorldWidth;
             int leftDiff = _left - cell.Longitude;
             int rightDiff = Mathf.Abs(_right - modLong);
@@ -119,14 +101,23 @@ public class CellSet : ICellSet
 
         if (cell.Longitude > _right)
         {
-#if DEBUG
-            if (Territory.DEBUG_territoryDebug)
+            int modLong = cell.Longitude - Manager.WorldWidth;
+            int leftDiff = Mathf.Abs(modLong - _left);
+            int rightDiff = cell.Longitude - _right;
+
+            if (rightDiff > leftDiff)
             {
-                Manager.Debug_BreakRequested = true;
+                if (modLong < _left)
+                {
+                    Left = cell;
+                    _left = modLong;
+                }
             }
-#endif
-            Right = cell;
-            _right = cell.Longitude;
+            else
+            {
+                Right = cell;
+                _right = cell.Longitude;
+            }
         }
     }
 
@@ -370,10 +361,7 @@ public class CellSet : ICellSet
 
     public static RectInt GetBoundingRectangle(ICollection<TerrainCell> cells)
     {
-        int xMin = 0;
-        int xMax = 0;
-        int yMin = 0;
-        int yMax = 0;
+        RectInt rect = new RectInt();
         bool first = true;
 
         foreach (var cell in cells)
@@ -382,39 +370,16 @@ public class CellSet : ICellSet
 
             if (first)
             {
-                xMin = pos.Longitude;
-                xMax = pos.Longitude;
-                yMin = pos.Latitude;
-                yMax = pos.Latitude;
+                rect.position = cell.Position;
+                rect.size = Vector2Int.one;
 
                 first = false;
                 continue;
             }
 
-            if (pos.Longitude < xMin)
-            {
-                int modLong = pos.Longitude + Manager.WorldWidth;
-                int maxAltDiff = Mathf.Abs(xMax - modLong);
-                int minDiff = xMin - pos.Longitude;
-
-                if (maxAltDiff < minDiff)
-                {
-                    if (modLong > xMax)
-                    {
-                        xMax = modLong;
-                    }
-                }
-                else
-                {
-                    xMin = pos.Longitude;
-                }
-            }
-
-            xMax = Mathf.Max(xMax, pos.Longitude);
-            yMin = Mathf.Min(yMin, pos.Latitude);
-            yMax = Mathf.Max(yMax, pos.Latitude);
+            rect.Extend(cell.Position, Manager.WorldWidth);
         }
 
-        return new RectInt(xMin, yMin, xMax - xMin, yMax - yMin);
+        return rect;
     }
 }
