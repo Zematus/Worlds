@@ -1693,7 +1693,7 @@ public abstract class Polity : ISynchronizable
         {
             if ((generator is Context context) && context.DebugLogEnabled)
             {
-                Debug.Log($"Polity.ApplyPolityContactChange: adding '{context.Id}' to list of events to try to assign");
+                Debug.Log($"Polity.ApplyPolityContactChange: adding '{context.Id}' to list of events to try to assign. Polity: {Id}");
             }
 
             if (generator is IFactionEventGenerator fGenerator)

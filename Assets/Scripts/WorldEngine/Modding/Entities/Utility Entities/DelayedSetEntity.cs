@@ -73,6 +73,13 @@ public abstract class DelayedSetEntity<T> : Entity
 
         ResetInternal();
 
+#if DEBUG
+        if ((Manager.CurrentWorld.CurrentDate == 181582635) &&
+            (Id == "target.polity.contacts.selected_entity_0.polity.factions_collection_0.selected_entity_0"))
+        {
+            Debug.Log("Debugging DelayedSetEntity.Reset");
+        }
+#endif
         _isReset = true;
     }
 
@@ -85,6 +92,13 @@ public abstract class DelayedSetEntity<T> : Entity
 
     public virtual void Set(T t)
     {
+#if DEBUG
+        if ((Manager.CurrentWorld.CurrentDate == 181582635) &&
+            (Id == "target.polity.contacts.selected_entity_0.polity.factions_collection_0.selected_entity_0"))
+        {
+            Debug.Log("Debugging DelayedSetEntity.Set");
+        }
+#endif
         _setable = t;
 
         ResetInternal();
@@ -108,6 +122,13 @@ public abstract class DelayedSetEntity<T> : Entity
         set => Set(_setable);
         get
         {
+#if DEBUG
+            if ((Manager.CurrentWorld.CurrentDate == 181582635) &&
+                (Id == "target.polity.contacts.selected_entity_0.polity.factions_collection_0.selected_entity_0"))
+            {
+                Debug.Log("Debugging DelayedSetEntity.Set");
+            }
+#endif
             if (_isReset && (_getterMethod != null))
             {
                 Set(_getterMethod());

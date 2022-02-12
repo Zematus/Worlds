@@ -47,6 +47,12 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
 
     public override void Apply(IEffectTrigger trigger)
     {
+#if DEBUG
+        if ((Manager.CurrentWorld.CurrentDate == 181582635) && (Id == "tribe_invites_clan_join"))
+        {
+            Debug.Log("Debugging TriggerDecisionAttribute.Apply");
+        }
+#endif
         string decisionId = _decisionIdExp.Value;
 
         if (!ModDecision.Decisions.TryGetValue(decisionId, out _decisionToTrigger))

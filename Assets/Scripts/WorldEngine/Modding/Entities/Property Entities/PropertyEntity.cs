@@ -18,6 +18,12 @@ public class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
     {
         get
         {
+#if DEBUG
+            if ((Manager.CurrentWorld?.CurrentDate == 181582635) && (Id == "selected_faction"))
+            {
+                Debug.Log("Debugging PropertyEntity.Value.get");
+            }
+#endif
             if (!_evaluated)
             {
                 _value = _valExpression.Value;
@@ -47,6 +53,12 @@ public class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
 
     public void Reset()
     {
+#if DEBUG
+        if ((Manager.CurrentWorld.CurrentDate == 181582635) && (Id == "selected_faction"))
+        {
+            Debug.Log("Debugging PropertyEntity.Reset");
+        }
+#endif
         _evaluated = false;
     }
 
