@@ -1012,9 +1012,19 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         else
         {
             NeighborFactions[faction] = 1;
+
+            if (!HasRelationship(faction))
+            {
+                SetRelationship(faction, 0.5f);
+            }
         }
 
         var polity = faction.Polity;
+
+        if (polity == Polity)
+        {
+            return;
+        }
 
         if (NeighborPolities.ContainsKey(polity))
         {
@@ -1024,6 +1034,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         {
             NeighborPolities[polity] = 1;
         }
+
+        Polity.IncreaseContact(polity);
     }
 
     private void UnsetNeighborFactionsFromProminence(PolityProminence prominence)
@@ -1059,6 +1071,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
 
         var polity = faction.Polity;
 
+        if (polity == Polity)
+        {
+            return;
+        }
+
         if (NeighborPolities.ContainsKey(polity))
         {
             NeighborPolities[polity]--;
@@ -1068,5 +1085,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
                 NeighborPolities.Remove(polity);
             }
         }
+
+        Polity.DecreaseContact(polity);
     }
 }

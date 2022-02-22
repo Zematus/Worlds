@@ -8,7 +8,7 @@ using UnityEngine.Profiling;
 public class PolityContact : Identifiable, ISynchronizable
 {
     [XmlAttribute("GC")]
-    public int GroupCount;
+    public int Count = 0;
 
     #region NeighborPolityId
     [XmlAttribute("NPId")]
@@ -53,8 +53,7 @@ public class PolityContact : Identifiable, ISynchronizable
     public PolityContact(
         World world,
         Polity thisPolity,
-        Polity neighborPolity,
-        int initialGroupCount = 0) :
+        Polity neighborPolity) :
         base(neighborPolity.Info)
     {
         World = world;
@@ -65,10 +64,7 @@ public class PolityContact : Identifiable, ISynchronizable
         NeighborPolity = neighborPolity;
         NeighborPolityId = neighborPolity.Id;
 
-        _strength =
-            new DatedValue<float>(World, CalculateStrength);
-
-        GroupCount = initialGroupCount;
+        _strength = new DatedValue<float>(World, CalculateStrength);
     }
 
     private float CalculateStrength()
@@ -76,14 +72,14 @@ public class PolityContact : Identifiable, ISynchronizable
         int thisGroupCount = ThisPolity.Groups.Count;
         int neighborGroupCount = NeighborPolity.Groups.Count;
 
-        float minPolityGroupCount = Mathf.Min(thisGroupCount, neighborGroupCount);
+        float minCountFactor = Mathf.Min(thisGroupCount, neighborGroupCount) * 9;
 
-        if (minPolityGroupCount == 0)
+        if (minCountFactor == 0)
         {
-            throw new System.Exception("Min polity group count can't be zero");
+            throw new System.Exception("Min count can't be zero");
         }
 
-        return GroupCount / minPolityGroupCount;
+        return Count / minCountFactor;
     }
 
     public void Synchronize()

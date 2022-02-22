@@ -634,7 +634,8 @@ public class ModTest
 
         Faction.SetRelationship(_testFaction0, _testFaction1, 0.6f);
 
-        Polity.AddContact(_testPolity1, _testPolity2, 1);
+        _testPolity1.IncreaseContact(_testPolity2);
+        _testPolity2.IncreaseContact(_testPolity1);
     }
 
     [Test]

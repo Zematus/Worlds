@@ -3726,22 +3726,21 @@ public class GuiManagerScript : MonoBehaviour
 
         Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
 
-        float relationshipValue = 0;
-        int groupCount = 0;
+        float strength = 0;
 
         if ((polity.Territory != selectedTerritory) && (selectedTerritory != null))
         {
-            groupCount = selectedTerritory.Polity.GetContactGroupCount(polity);
+            strength = selectedTerritory.Polity.GetContactStrength(polity);
         }
 
-        if (groupCount > 0)
+        if (strength > 0)
         {
-            relationshipValue = selectedTerritory.Polity.GetRelationshipValue(polity);
+            float relationshipValue = selectedTerritory.Polity.GetRelationshipValue(polity);
 
             text = "Neighboring polity: " + polityTitle;
 
             text += "\n\nRelationship Value: " + relationshipValue.ToString("0.000");
-            text += "\n\nOverlaping groups: " + groupCount;
+            text += "\n\nContact Strength: " + strength;
 
         }
         else

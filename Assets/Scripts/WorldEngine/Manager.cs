@@ -4142,11 +4142,11 @@ public class Manager
 
             if (selectedTerritory != territory)
             {
-                int contactGroupCount = selectedPolity.GetContactGroupCount(polity);
+                int count = selectedPolity.GetContactCount(polity);
 
-                contactValue = MathUtility.ToPseudoLogaritmicScale01(contactGroupCount);
+                contactValue = MathUtility.ToPseudoLogaritmicScale01(count);
 
-                isInContact = (contactValue > 0);
+                isInContact = (count > 0);
             }
             else
             {
