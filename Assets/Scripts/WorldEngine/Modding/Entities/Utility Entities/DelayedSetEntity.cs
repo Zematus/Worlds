@@ -126,7 +126,7 @@ public abstract class DelayedSetEntity<T> : Entity
             if ((Manager.CurrentWorld.CurrentDate == 181582635) &&
                 (Id == "target.polity.contacts.selected_entity_0.polity.factions_collection_0.selected_entity_0"))
             {
-                Debug.Log("Debugging DelayedSetEntity.Set");
+                Debug.Log("Debugging DelayedSetEntity.Setable.get");
             }
 #endif
             if (_isReset && (_getterMethod != null))

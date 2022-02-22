@@ -1026,8 +1026,7 @@ public class World : ISynchronizable, IWorldDateGetter
             float currentFactionCoreDist = polityProminence.FactionCoreDistance;
             float currentPolityCoreDist = polityProminence.PolityCoreDistance;
 
-            foreach (KeyValuePair<Direction, PolityProminence> pair in
-                polityProminence.NeighborProminences)
+            foreach (var pair in polityProminence.NeighborProminencesInPolity)
             {
                 if (promsToCalculateSet.Contains(pair.Value))
                     continue;
