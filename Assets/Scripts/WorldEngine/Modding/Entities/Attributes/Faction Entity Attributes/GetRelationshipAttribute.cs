@@ -20,13 +20,6 @@ public class GetRelationshipAttribute : ValueEntityAttribute<float>
         {
             if (_argumentExp.Value is FactionEntity fEntity)
             {
-#if DEBUG
-                if (Manager.CurrentWorld.CurrentDate == 181582635)
-                {
-                    Debug.Log("Debugging GetRelationshipAttribute.Value");
-                }
-#endif
-
                 if (fEntity.Faction == null)
                 {
                     throw new System.Exception(

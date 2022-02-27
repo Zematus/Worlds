@@ -23,32 +23,8 @@ public class FactionEntity : DelayedSetEntity<Faction>
 
     public virtual Faction Faction
     {
-#if DEBUG
-        get {
-            if ((Manager.CurrentWorld.CurrentDate == 181582635) && _isReset)
-            {
-                Debug.Log("Debugging FactionEntity.Faction.get");
-            }
-
-            return Setable;
-        }
-#else
         get => Setable;
-#endif
-
-#if DEBUG
-        private set
-        {
-            if (Manager.CurrentWorld.CurrentDate == 181582635)
-            {
-                Debug.Log("Debugging FactionEntity.Faction.set");
-            }
-
-            Setable = value;
-        }
-#else
         private set => Setable = value;
-#endif
     }
 
     private ValueGetterEntityAttribute<string> _typeAttribute;

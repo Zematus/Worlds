@@ -99,12 +99,6 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
     {
         Profiler.BeginSample("FactionEventGenerator.SetTarget - Reset");
 
-#if DEBUG
-        if (Manager.CurrentWorld.CurrentDate == 181582635)
-        {
-            Debug.Log("Debugging FactionEventGenerator.SetTarget");
-        }
-#endif
         Reset();
 
         Profiler.EndSample(); // "FactionEventGenerator.SetTarget - Reset"
