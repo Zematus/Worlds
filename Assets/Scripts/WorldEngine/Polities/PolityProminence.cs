@@ -504,7 +504,7 @@ public class PolityProminence
 
     private void AddNeighborProminence(PolityProminence p)
     {
-        if (NeighborProminences.Add(p))
+        if (!NeighborProminences.Add(p))
         {
             throw new System.ArgumentException($"trying to add prominence twice. this:{Id}, p:{p.Id}");
         }
@@ -548,7 +548,7 @@ public class PolityProminence
 
     private void RemoveNeighborProminence(PolityProminence p)
     {
-        if (NeighborProminences.Remove(p))
+        if (!NeighborProminences.Remove(p))
         {
             throw new System.ArgumentException($"trying to remove prominence twice. this:{Id}, p:{p.Id}");
         }

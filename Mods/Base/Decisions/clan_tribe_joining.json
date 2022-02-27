@@ -63,8 +63,7 @@
           "text": "No, we rather not...",
           "weight": "1 - clamp(chance_of_making_attempt, 0, 1)"
         }
-      ],
-      "enableDebugLog": true
+      ]
     },
     {
       "id": "faction_decide_on_join_tribe_offer",

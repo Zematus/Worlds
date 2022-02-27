@@ -185,8 +185,7 @@
       "effects": [
         "target.trigger_decision(tribe_invites_clan_join, selected_faction, chance_of_making_attempt)"
       ],
-      "repeatable": true,
-      "enableDebugLog": true
+      "repeatable": true
     },
     {
       "id": "expand_toward_region",

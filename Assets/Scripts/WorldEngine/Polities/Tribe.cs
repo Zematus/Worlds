@@ -66,10 +66,11 @@ public class Tribe : Polity
         var sourcePolity = triggerClan.Polity;
         var groups = triggerClan.GetGroups();
 
+        TransferGroups(sourcePolity, groups);
+
         triggerClan.ChangePolity(this, triggerClan.Influence, false);
 
         SetDominantFaction(triggerClan, false);
-        TransferGroups(sourcePolity, groups);
 
         GenerateName();
     }
