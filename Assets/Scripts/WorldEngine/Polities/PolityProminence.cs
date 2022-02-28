@@ -468,17 +468,17 @@ public class PolityProminence
         }
     }
 
-    public void SetAllNeighborProminences()
+    public void SetAllNeighborProminences(bool bidirectional = true)
     {
-        SetNeighborProminencesFromGroup(Group);
+        SetNeighborProminencesFromGroup(Group, bidirectional);
 
         foreach (var nGroup in Group.NeighborGroups)
         {
-            SetNeighborProminencesFromGroup(nGroup);
+            SetNeighborProminencesFromGroup(nGroup, bidirectional);
         }
     }
 
-    private void SetNeighborProminencesFromGroup(CellGroup group)
+    private void SetNeighborProminencesFromGroup(CellGroup group, bool bidirectional = true)
     {
         foreach (PolityProminence p in group.GetPolityProminences())
         {
@@ -487,11 +487,11 @@ public class PolityProminence
                 continue;
             }
 
-            SetProminenceAsNeighbors(p, this);
+            SetProminenceAsNeighbors(p, this, bidirectional);
         }
     }
 
-    private static void SetProminenceAsNeighbors(PolityProminence a, PolityProminence b)
+    private static void SetProminenceAsNeighbors(PolityProminence a, PolityProminence b, bool bidirectional = true)
     {
         if (a == b)
         {
@@ -499,7 +499,11 @@ public class PolityProminence
         }
 
         a.AddNeighborProminence(b);
-        b.AddNeighborProminence(a);
+
+        if (bidirectional)
+        {
+            b.AddNeighborProminence(a);
+        }
     }
 
     private void AddNeighborProminence(PolityProminence p)

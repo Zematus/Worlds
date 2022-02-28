@@ -83,7 +83,7 @@ public class Culture : ISynchronizable
     }
 
     /// <summary>
-    /// Adds a new preference if not already present to the ulture
+    /// Adds a new preference if not already present to the culture
     /// </summary>
     /// <param name="preference">The preference to try to add</param>
     public void AddPreference(CulturalPreference preference)
@@ -472,7 +472,7 @@ public class Culture : ISynchronizable
     {
         foreach (CulturalPreference p in Preferences)
         {
-            _preferences.Add(p.Id, p);
+            AddPreference(p);
         }
     }
 
@@ -480,7 +480,7 @@ public class Culture : ISynchronizable
     {
         foreach (CulturalActivity a in Activities)
         {
-            _activities.Add(a.Id, a);
+            AddActivity(a);
         }
     }
 
@@ -488,7 +488,7 @@ public class Culture : ISynchronizable
     {
         foreach (CulturalSkill s in Skills)
         {
-            _skills.Add(s.Id, s);
+            AddSkill(s);
         }
     }
 
@@ -496,7 +496,7 @@ public class Culture : ISynchronizable
     {
         foreach (CulturalKnowledge k in Knowledges)
         {
-            _knowledges.Add(k.Id, k);
+            AddKnowledge(k);
         }
     }
 

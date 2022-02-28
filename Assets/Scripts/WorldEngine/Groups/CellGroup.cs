@@ -366,19 +366,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         Neighbors = new Dictionary<Direction, CellGroup>(8);
 
-        foreach (KeyValuePair<Direction, TerrainCell> pair in Cell.Neighbors)
-        {
-            if (pair.Value.Group != null)
-            {
-                CellGroup group = pair.Value.Group;
-
-                Neighbors.Add(pair.Key, group);
-
-                Direction dir = TerrainCell.ReverseDirection(pair.Key);
-
-                group.AddNeighbor(dir, this);
-            }
-        }
+        InitializeNeighbors();
 
         bool initialGroup = false;
 
@@ -402,6 +390,26 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         InitializeDefaultEvents();
 
         World.AddUpdatedGroup(this);
+    }
+
+    private void InitializeNeighbors(bool bothDirections = true)
+    {
+        foreach (var pair in Cell.Neighbors)
+        {
+            var group = pair.Value.Group;
+
+            if (group != null)
+            {
+                Neighbors.Add(pair.Key, group);
+
+                if (bothDirections)
+                {
+                    Direction dir = TerrainCell.ReverseDirection(pair.Key);
+
+                    group.AddNeighbor(dir, this);
+                }
+            }
+        }
     }
 
     // This accessor ensures neighbors are always accessed in the same order
@@ -3445,10 +3453,15 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public static int Debug_LoadedGroups = 0;
 #endif
 
-    public void LoadPolityProminences()
+    private void LoadPolityProminences()
     {
         foreach (PolityProminence p in PolityProminences)
         {
+            if (Cell == null)
+            {
+                throw new System.Exception("Cell can't be null");
+            }
+
             _polityProminences.Add(p.PolityId, p);
             Cell.AddGroupPolityProminence(p);
         }
@@ -3456,7 +3469,18 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     public void PrefinalizeLoad()
     {
+        Cell = World.GetCell(Longitude, Latitude);
+
+        if (Cell == null)
+        {
+            throw new System.Exception($"Cell [{Longitude},{Latitude}] is null");
+        }
+
+        Cell.Group = this;
+
         LoadPolityProminences();
+
+        Neighbors = new Dictionary<Direction, CellGroup>(8);
     }
 
     public void FinalizeLoad()
@@ -3494,36 +3518,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             _properties.Add(property);
         }
 
-        Cell = World.GetCell(Longitude, Latitude);
-
-        Cell.Group = this;
-
-        Neighbors = new Dictionary<Direction, CellGroup>(8);
-
-        foreach (KeyValuePair<Direction, TerrainCell> pair in Cell.Neighbors)
-        {
-            if (pair.Value.Group != null)
-            {
-                CellGroup group = pair.Value.Group;
-
-                Neighbors.Add(pair.Key, group);
-
-                Direction dir = TerrainCell.ReverseDirection(pair.Key);
-
-                group.AddNeighbor(dir, this);
-            }
-        }
+        InitializeNeighbors(false);
 
         World.UpdateMostPopulousGroup(this);
 
         Culture.World = World;
         Culture.Group = this;
         Culture.FinalizeLoad();
-
-        if (Cell == null)
-        {
-            throw new System.Exception("Cell [" + Longitude + "," + Latitude + "] is null");
-        }
 
         if (SeaMigrationRoute != null)
         {
@@ -3556,7 +3557,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
                 HighestPolityProminence = p;
             }
 
-            p.SetAllNeighborProminences();
+            p.SetAllNeighborProminences(false);
         }
 
         // Generate Update Event
