@@ -45,10 +45,7 @@ public class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
 
     }
 
-    public void Reset()
-    {
-        _evaluated = false;
-    }
+    public void Reset() => _evaluated = false;
 
     public override string ToPartiallyEvaluatedString(int depth = -1) =>
         _valExpression.ToPartiallyEvaluatedString(depth);

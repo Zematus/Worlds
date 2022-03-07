@@ -151,7 +151,10 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     public HashSet<PolityProminence> Prominences = new HashSet<PolityProminence>();
 
     [XmlIgnore]
-    public Dictionary<Polity, int> OverlapingPolities = new Dictionary<Polity, int>();
+    public Dictionary<Faction, int> NeighborFactions = new Dictionary<Faction, int>();
+
+    [XmlIgnore]
+    public Dictionary<Polity, int> NeighborPolities = new Dictionary<Polity, int>();
 
     protected Dictionary<Identifier, FactionRelationship> _relationships =
         new Dictionary<Identifier, FactionRelationship>();
@@ -209,7 +212,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         if (parentFaction != null)
         {
             PolityProminence polityProminence = CoreGroup.GetPolityProminence(PolityId);
-            World.AddPromToCalculateCoreDistFor(polityProminence);
+            World.AddPromToSetCoreDistFor(polityProminence);
         }
     }
 
@@ -293,106 +296,20 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         StillPresent = false;
     }
 
-//#if DEBUG
-//    static Dictionary<PolityProminence, int> _debug_polityProminences = new Dictionary<PolityProminence, int>();
-//#endif
-
-    public void AddOverlappingPolity(PolityProminence prominence, PolityProminence prominence2)
-    {
-//#if DEBUG
-//        if ((Id == "97371564:7301682472976039088") && (prominence.Polity.Id == "97371564:7301682472976039088"))
-//        {
-//            if ((prominence2.Group.Position.Equals(315, 131) && (prominence.Group.Position.Equals(315, 130) || prominence.Group.Position.Equals(316, 131) || prominence.Group.Position.Equals(316, 132))) ||
-//                (prominence2.Group.Position.Equals(315, 130) && prominence.Group.Position.Equals(315, 131)) ||
-//                (prominence2.Group.Position.Equals(316, 131) && prominence.Group.Position.Equals(315, 131)) ||
-//                (prominence2.Group.Position.Equals(316, 132) && prominence.Group.Position.Equals(315, 131)))
-//            {
-//                var stackTrace = new System.Diagnostics.StackTrace();
-//                Debug.LogWarning($"Adding prominence: {prominence.Group.Position}, prominence2: {prominence2.Group.Position}, caller: {stackTrace.GetFrame(1).GetMethod().Name}");
-//            }
-
-//            if (!_debug_polityProminences.ContainsKey(prominence))
-//            {
-//                _debug_polityProminences.Add(prominence, 1);
-//            }
-//            else
-//            {
-//                _debug_polityProminences[prominence]++;
-//            }
-//        }
-//#endif
-
-        if (OverlapingPolities.ContainsKey(prominence.Polity))
-        {
-            OverlapingPolities[prominence.Polity]++;
-        }
-        else
-        {
-            OverlapingPolities.Add(prominence.Polity, 1);
-        }
-    }
-
-    public void RemoveOverlappingPolity(PolityProminence prominence, PolityProminence prominence2)
-    {
-//#if DEBUG
-//        if ((Id == "97371564:7301682472976039088") && (prominence.Polity.Id == "97371564:7301682472976039088"))
-//        {
-//            //if (prominence.Group.Position.Equals(315, 130)
-//            if ((prominence2.Group.Position.Equals(315, 131) && (prominence.Group.Position.Equals(315, 130) || prominence.Group.Position.Equals(316, 131) || prominence.Group.Position.Equals(316, 132))) ||
-//                (prominence2.Group.Position.Equals(315, 130) && prominence.Group.Position.Equals(315, 131)) ||
-//                (prominence2.Group.Position.Equals(316, 131) && prominence.Group.Position.Equals(315, 131)) ||
-//                (prominence2.Group.Position.Equals(316, 132) && prominence.Group.Position.Equals(315, 131)))
-//            {
-//                var stackTrace = new System.Diagnostics.StackTrace();
-//                Debug.LogWarning($"Removing prominence: {prominence.Group.Position}, prominence2: {prominence2.Group.Position}, caller: {stackTrace.GetFrame(1).GetMethod().Name}");
-//            }
-
-//            if (!_debug_polityProminences.ContainsKey(prominence))
-//            {
-//                //throw new Exception($"Tried to remove prominence not present. prominence: {prominence.Group.Position}, prominence2: {prominence2.Group.Position}");
-//            }
-//            else
-//            {
-//                _debug_polityProminences[prominence]--;
-
-//                if (_debug_polityProminences[prominence] == 0)
-//                {
-//                    _debug_polityProminences.Remove(prominence);
-//                }
-//            }
-//        }
-//#endif
-
-        if (OverlapingPolities.ContainsKey(prominence.Polity))
-        {
-            OverlapingPolities[prominence.Polity]--;
-
-            if (OverlapingPolities[prominence.Polity] <= 0)
-            {
-                OverlapingPolities.Remove(prominence.Polity);
-            }
-        }
-        else
-            throw new Exception($"Removing polity that was not part of overlaping polities. faction: {Id}, polity: {prominence.Polity.Id}");
-    }
-
     public void AddProminence(PolityProminence prominence)
     {
         if (!Prominences.Add(prominence))
             return;
 
-        prominence.IncreaseOverlapWithNeighborPolities(this);
+        SetNeighborFactionsFromProminence(prominence);
     }
 
-    public void RemoveProminence(PolityProminence prominence, bool decreaseOverlap = true)
+    public void RemoveProminence(PolityProminence prominence)
     {
         if (!Prominences.Remove(prominence))
             return;
 
-        if (decreaseOverlap)
-        {
-            prominence.DecreaseOverlapWithNeighborPolities(this);
-        }
+        UnsetNeighborFactionsFromProminence(prominence);
     }
 
     /// <summary>
@@ -727,7 +644,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
 
         group.AddFactionCore(this);
         var prom = group.GetPolityProminence(PolityId);
-        World.AddPromToCalculateCoreDistFor(prom);
+        World.AddPromToSetCoreDistFor(prom);
 
         if (IsDominant)
         {
@@ -735,12 +652,20 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         }
     }
 
-    public bool HasContactWith(Polity polity)
+    public bool HasContactWithFaction(Faction faction)
+    {
+        if (faction == null)
+            throw new ArgumentNullException("HasContactWithFaction: faction can't be null");
+
+        return NeighborFactions.ContainsKey(faction);
+    }
+
+    public bool HasContactWithPolity(Polity polity)
     {
         if (polity == null)
-            throw new ArgumentNullException("HasContactWith: polity can't be null");
+            throw new ArgumentNullException("HasContactWithPolity: polity can't be null");
 
-        return OverlapingPolities.ContainsKey(polity);
+        return NeighborPolities.ContainsKey(polity);
     }
 
     public virtual void Synchronize()
@@ -853,18 +778,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
 
     public virtual void SetDominant(bool state)
     {
-//#if DEBUG
-//        if (Id == "179615149:7788330637982280827")
-//        {
-//            Debug.LogWarning($"DEBUG: Setting faction dominant state to: {state}, faction: {Id}, polity: {Polity.Id}");
-
-//            if (World.CurrentDate == 215643192)
-//            {
-//                Debug.LogWarning($"Debugging SetDominant");
-//            }
-//        }
-//#endif
-
         IsDominant = state;
 
         SetStatusChange();
@@ -893,18 +806,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     {
         if ((targetPolity == null) || (!targetPolity.StillPresent))
             throw new System.Exception("target Polity is null or not Present");
-
-//#if DEBUG
-//        if (Id == "179615149:7788330637982280827")
-//        {
-//            Debug.LogWarning($"DEBUG: changing polity of faction {Id}, Polity: {Polity.Id}, targetPolity: {targetPolity.Id}");
-
-//            if (World.CurrentDate == 215643192)
-//            {
-//                Debug.LogWarning($"Debugging ChangePolity");
-//            }
-//        }
-//#endif
 
         Polity.RemoveFaction(this);
 
@@ -1081,5 +982,110 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     public RectInt GetBoundingRectangle()
     {
         return CellSet.GetBoundingRectangle(GetCells());
+    }
+
+    private void SetNeighborFactionsFromProminence(PolityProminence prominence)
+    {
+        foreach (var p in prominence.NeighborProminences)
+        {
+            SetFactionsAsNeighbors(p.ClosestFaction, this);
+        }
+    }
+
+    private static void SetFactionsAsNeighbors(Faction a, Faction b)
+    {
+        a?.AddNeighborFaction(b);
+        b?.AddNeighborFaction(a);
+    }
+
+    public void AddNeighborFaction(Faction faction)
+    {
+        if ((faction == null) || (faction == this))
+        {
+            return;
+        }
+
+        if (NeighborFactions.ContainsKey(faction))
+        {
+            NeighborFactions[faction]++;
+        }
+        else
+        {
+            NeighborFactions[faction] = 1;
+
+            if (!HasRelationship(faction))
+            {
+                SetRelationship(faction, 0.5f);
+            }
+        }
+
+        var polity = faction.Polity;
+
+        if (polity == Polity)
+        {
+            return;
+        }
+
+        if (NeighborPolities.ContainsKey(polity))
+        {
+            NeighborPolities[polity]++;
+        }
+        else
+        {
+            NeighborPolities[polity] = 1;
+        }
+
+        Polity.IncreaseContact(polity);
+    }
+
+    private void UnsetNeighborFactionsFromProminence(PolityProminence prominence)
+    {
+        foreach (var p in prominence.NeighborProminences)
+        {
+            UnsetFactionsAsNeighbors(p.ClosestFaction, this);
+        }
+    }
+
+    private static void UnsetFactionsAsNeighbors(Faction a, Faction b)
+    {
+        a?.RemoveNeighborFaction(b);
+        b?.RemoveNeighborFaction(a);
+    }
+
+    public void RemoveNeighborFaction(Faction faction)
+    {
+        if ((faction == null) || (faction == this))
+        {
+            return;
+        }
+
+        if (NeighborFactions.ContainsKey(faction))
+        {
+            NeighborFactions[faction]--;
+
+            if (NeighborFactions[faction] == 0)
+            {
+                NeighborFactions.Remove(faction);
+            }
+        }
+
+        var polity = faction.Polity;
+
+        if (polity == Polity)
+        {
+            return;
+        }
+
+        if (NeighborPolities.ContainsKey(polity))
+        {
+            NeighborPolities[polity]--;
+
+            if (NeighborPolities[polity] == 0)
+            {
+                NeighborPolities.Remove(polity);
+            }
+        }
+
+        Polity.DecreaseContact(polity);
     }
 }

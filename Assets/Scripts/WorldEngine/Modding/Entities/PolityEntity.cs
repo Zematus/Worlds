@@ -261,7 +261,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
         return base.BuildParametricSubcontext(parentContext, attributeId, paramIds);
     }
 
-    public EntityAttribute GetFactionAttribute(
+    public EntityAttribute GetFactionsAttribute(
         ParametricSubcontext subcontext,
         string[] paramIds,
         IExpression[] arguments)
@@ -319,7 +319,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
         switch (attributeId)
         {
             case GetFactionsAttributeId:
-                return GetFactionAttribute(subcontext, paramIds, arguments);
+                return GetFactionsAttribute(subcontext, paramIds, arguments);
         }
 
         return base.GetParametricAttribute(attributeId, subcontext, paramIds, arguments);

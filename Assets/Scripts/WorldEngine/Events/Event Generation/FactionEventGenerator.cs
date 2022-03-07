@@ -1,4 +1,5 @@
-﻿using UnityEngine.Profiling;
+﻿using UnityEngine;
+using UnityEngine.Profiling;
 
 public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 {

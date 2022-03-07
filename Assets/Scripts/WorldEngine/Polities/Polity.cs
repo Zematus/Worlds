@@ -406,11 +406,6 @@ public abstract class Polity : ISynchronizable
 
         List<PolityContact> contacts = new List<PolityContact>(_contacts.Values);
 
-        foreach (PolityContact contact in contacts)
-        {
-            RemoveContact(this, contact.NeighborPolity);
-        }
-
         List<Faction> factions = new List<Faction>(_factions.Values);
 
         foreach (Faction faction in factions)
@@ -581,6 +576,11 @@ public abstract class Polity : ISynchronizable
 
     public Faction GetFaction(Identifier id)
     {
+        if (id == null)
+        {
+            throw new System.Exception($"faction id can't be null");
+        }
+
         _factions.TryGetValue(id, out Faction faction);
 
         return faction;
@@ -689,20 +689,14 @@ public abstract class Polity : ISynchronizable
         }
     }
 
-    public static void AddContact(Polity polityA, Polity polityB, int initialGroupCount)
-    {
-        polityA.AddContact(polityB, initialGroupCount);
-        polityB.AddContact(polityA, initialGroupCount);
-    }
-
     private void SetContactUpdatedCells(Polity polity)
     {
         Manager.AddUpdatedCells(polity, CellUpdateType.Territory, CellUpdateSubType.Relationship);
     }
 
-    private void AddContactInternal(Polity polity, int initialGroupCount = 0)
+    private void AddContact(Polity polity)
     {
-        PolityContact contact = new PolityContact(World, this, polity, initialGroupCount);
+        PolityContact contact = new PolityContact(World, this, polity);
 
         _contacts.Add(polity.Id, contact);
 
@@ -724,40 +718,11 @@ public abstract class Polity : ISynchronizable
         ApplyPolityContactChange();
     }
 
-    public void AddContact(Polity polity, int initialGroupCount)
-    {
-        if (_contacts.ContainsKey(polity.Id))
-        {
-            throw new System.Exception("Unable to modify existing polity contact. polityA: " +
-                Id + ", polityB: " + polity.Id);
-        }
-
-        AddContactInternal(polity, initialGroupCount);
-
-        SetContactUpdatedCells(polity);
-    }
-
-    public static void RemoveContact(Polity polityA, Polity polityB)
-    {
-        polityA.RemoveContact(polityB);
-        polityB.RemoveContact(polityA);
-    }
-
-    private void RemoveContactInternal(Polity polity)
+    private void RemoveContact(Polity polity)
     {
         _contacts.Remove(polity.Id);
 
         ApplyPolityContactChange();
-    }
-
-    public void RemoveContact(Polity polity)
-    {
-        if (!_contacts.ContainsKey(polity.Id))
-            return;
-
-        RemoveContactInternal(polity);
-
-        SetContactUpdatedCells(polity);
     }
 
     public ICollection<PolityContact> GetContacts()
@@ -775,49 +740,46 @@ public abstract class Polity : ISynchronizable
         return null;
     }
 
-    public int GetContactGroupCount(Polity polity)
+    public float GetContactStrength(Polity polity)
     {
         if (!_contacts.ContainsKey(polity.Id))
             return 0;
 
-        return _contacts[polity.Id].GroupCount;
+        return _contacts[polity.Id].Strength;
     }
 
-    public static void IncreaseContactGroupCount(Polity polityA, Polity polityB)
+    public int GetContactCount(Polity polity)
     {
-        polityA.IncreaseContactGroupCount(polityB);
-        polityB.IncreaseContactGroupCount(polityA);
+        if (!_contacts.ContainsKey(polity.Id))
+            return 0;
+
+        return _contacts[polity.Id].Count;
     }
 
-    public void IncreaseContactGroupCount(Polity polity)
+    public void IncreaseContact(Polity polity)
     {
         if (!_contacts.ContainsKey(polity.Id))
         {
-            AddContactInternal(polity);
+            AddContact(polity);
         }
 
-        _contacts[polity.Id].GroupCount++;
+        _contacts[polity.Id].Count++;
 
         SetContactUpdatedCells(polity);
     }
 
-    public static void DecreaseContactGroupCount(Polity polityA, Polity polityB)
-    {
-        polityA.DecreaseContactGroupCount(polityB);
-        polityB.DecreaseContactGroupCount(polityA);
-    }
-
-    public void DecreaseContactGroupCount(Polity polity)
+    public void DecreaseContact(Polity polity)
     {
         if (!_contacts.TryGetValue(polity.Id, out PolityContact contact))
-            throw new System.Exception("(id: " + Id + ") contact not present: " + polity.Id +
-                " - Date: " + World.CurrentDate);
-
-        contact.GroupCount--;
-
-        if (contact.GroupCount <= 0)
         {
-            RemoveContactInternal(polity);
+            throw new System.Exception($"(id: {Id}) contact not present: {polity.Id}");
+        }
+
+        contact.Count--;
+
+        if (contact.Count <= 0)
+        {
+            RemoveContact(polity);
         }
 
         SetContactUpdatedCells(polity);
@@ -1679,7 +1641,7 @@ public abstract class Polity : ISynchronizable
 
         float minGroupCount = Mathf.Min(contacGroupCount, Groups.Count);
 
-        float countFactor = contact.GroupCount / minGroupCount;
+        float countFactor = contact.Count / minGroupCount;
 
         return countFactor;
     }
@@ -1693,7 +1655,7 @@ public abstract class Polity : ISynchronizable
         {
             if ((generator is Context context) && context.DebugLogEnabled)
             {
-                Debug.Log($"Polity.ApplyPolityContactChange: adding '{context.Id}' to list of events to try to assign");
+                Debug.Log($"Polity.ApplyPolityContactChange: adding '{context.Id}' to list of events to try to assign. Polity: {Id}");
             }
 
             if (generator is IFactionEventGenerator fGenerator)

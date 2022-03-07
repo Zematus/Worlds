@@ -297,16 +297,22 @@ public class PolityProminenceCluster : Identifiable, ISynchronizable
 
         if (group == null)
         {
-            string message = "Missing Group with Id " + id + " in PolityProminenceCluster of Polity with Id " + Polity.Id;
-            throw new System.Exception(message);
+            throw new System.Exception(
+                $"Missing Group {id} in PolityProminenceCluster of Polity {Polity.Id}");
         }
 
         PolityProminence prominence = group.GetPolityProminence(Polity);
 
         if (prominence == null)
         {
-            string message = "Missing polity prominence with Id " + id + " in PolityProminenceCluster of Polity with Id " + Polity.Id;
-            throw new System.Exception(message);
+            throw new System.Exception(
+                $"Missing polity prominence {id} in PolityProminenceCluster of Polity {Polity.Id}");
+        }
+
+        if (prominence.ClosestFactionId == null)
+        {
+            throw new System.Exception(
+                $"Missing ClosestFactionId for polity prominence {id} in PolityProminenceCluster of Polity {Polity.Id}");
         }
 
         return prominence;
@@ -326,7 +332,7 @@ public class PolityProminenceCluster : Identifiable, ISynchronizable
 
         foreach (var pair in _prominences)
         {
-            PolityProminence p = pair.Value;
+            var p = pair.Value;
 
             p.World = Polity.World;
             p.Group = Polity.World.GetGroup(pair.Key);

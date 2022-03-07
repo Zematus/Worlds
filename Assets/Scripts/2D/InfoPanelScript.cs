@@ -529,7 +529,7 @@ public class InfoPanelScript : MonoBehaviour
 
             InfoText.text += "\n\tLeader: " + leader.Name.Text;
 
-            InfoText.text += "\n\tContact Strength: " + contact.GroupCount;
+            InfoText.text += "\n\tContact Strength: " + contact.Strength;
         }
     }
 

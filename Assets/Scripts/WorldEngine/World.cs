@@ -311,6 +311,7 @@ public class World : ISynchronizable, IWorldDateGetter
     private HashSet<CellGroup> _groupsWithCoreCountChange = new HashSet<CellGroup>();
 
     private HashSet<PolityProminence> _promsWithCoreDistToCalculate = new HashSet<PolityProminence>();
+    private HashSet<PolityProminence> _promsWithCoreDistToDefault = new HashSet<PolityProminence>();
 
     private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToCleanupAfterUpdate = new HashSet<CellGroup>();
@@ -646,11 +647,11 @@ public class World : ISynchronizable, IWorldDateGetter
         }
 
 #if DEBUG
-        string debugMsg = "Total Groups: " + _cellGroups.Count + "\nSerialized event types:";
+        string debugMsg = $"Total Groups: {_cellGroups.Count}\nSerialized event types:";
 
         foreach (KeyValuePair<System.Type, int> pair in eventTypes)
         {
-            debugMsg += "\n\t" + pair.Key + " : " + pair.Value;
+            debugMsg += $"\n\t{pair.Key} : {pair.Value}";
         }
 
         Debug.Log(debugMsg);
@@ -1003,13 +1004,15 @@ public class World : ISynchronizable, IWorldDateGetter
 
     private void CalculateProminenceDistancesToCores()
     {
-        Queue<PolityProminence> promsToCalculate = new Queue<PolityProminence>();
-        HashSet<PolityProminence> promsToCalculateSet = new HashSet<PolityProminence>();
+        var promsToCalculate = new Queue<PolityProminence>();
+        var promsToCalculateSet = new HashSet<PolityProminence>();
 
-        foreach (PolityProminence polityProminence in _promsWithCoreDistToCalculate)
+        foreach (var polityProminence in _promsWithCoreDistToCalculate)
         {
             if (!polityProminence.StillPresent)
+            {
                 continue;
+            }
 
             promsToCalculate.Enqueue(polityProminence);
             promsToCalculateSet.Add(polityProminence);
@@ -1026,8 +1029,7 @@ public class World : ISynchronizable, IWorldDateGetter
             float currentFactionCoreDist = polityProminence.FactionCoreDistance;
             float currentPolityCoreDist = polityProminence.PolityCoreDistance;
 
-            foreach (KeyValuePair<Direction, PolityProminence> pair in
-                polityProminence.NeighborProminences)
+            foreach (var pair in polityProminence.NeighborProminencesInPolity)
             {
                 if (promsToCalculateSet.Contains(pair.Value))
                     continue;
@@ -1041,7 +1043,18 @@ public class World : ISynchronizable, IWorldDateGetter
             }
         }
 
+        foreach (var polityProminence in _promsWithCoreDistToDefault)
+        {
+            if (!polityProminence.StillPresent)
+            {
+                continue;
+            }
+
+            polityProminence.SetDefaultClosestFaction();
+        }
+
         _promsWithCoreDistToCalculate.Clear();
+        _promsWithCoreDistToDefault.Clear();
     }
 
     /// <summary>
@@ -1837,14 +1850,32 @@ public class World : ISynchronizable, IWorldDateGetter
         _groupsToUpdate.Add(group);
     }
 
-    public void AddPromToCalculateCoreDistFor(PolityProminence prominence)
+    public void AddPromToSetCoreDistFor(PolityProminence prominence, bool calculateFirst = true)
     {
         if ((prominence == null) || !prominence.StillPresent)
         {
             throw new System.ArgumentException("prominence is null or no longer present");
         }
 
-        _promsWithCoreDistToCalculate.Add(prominence);
+        if (calculateFirst)
+        {
+            _promsWithCoreDistToCalculate.Add(prominence);
+        }
+        else
+        {
+            _promsWithCoreDistToDefault.Add(prominence);
+        }
+    }
+
+    public void RemovePromToSetCoreDistFor(PolityProminence prominence)
+    {
+        if (prominence == null)
+        {
+            throw new System.ArgumentException("prominence is null");
+        }
+        
+        _promsWithCoreDistToCalculate.Remove(prominence);
+        _promsWithCoreDistToDefault.Remove(prominence);
     }
 
     public void AddGroupWithPolityCountChange(CellGroup group)

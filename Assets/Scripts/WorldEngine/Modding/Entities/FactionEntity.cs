@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class FactionEntity : DelayedSetEntity<Faction>
 {
@@ -224,7 +225,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
                             $"\n - polity: {entityExp.ToPartiallyEvaluatedString()}");
                     }
 
-                    return Faction.HasContactWith(polityEntity.Polity);
+                    return Faction.HasContactWithPolity(polityEntity.Polity);
                 });
 
         return attribute;
