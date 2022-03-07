@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class ProminenceAttribute : ValueEntityAttribute<float>
+public class ProminenceValueAttribute : ValueEntityAttribute<float>
 {
     private GroupEntity _groupEntity;
 
     private readonly IValueExpression<IEntity> _argumentExp;
 
-    public ProminenceAttribute(GroupEntity groupEntity, IExpression[] arguments)
-        : base(GroupEntity.ProminenceAttributeId, groupEntity, arguments, 1)
+    public ProminenceValueAttribute(GroupEntity groupEntity, IExpression[] arguments)
+        : base(GroupEntity.ProminenceValueAttributeId, groupEntity, arguments, 1)
     {
         _groupEntity = groupEntity;
 

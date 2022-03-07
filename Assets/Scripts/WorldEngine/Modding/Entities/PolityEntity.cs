@@ -8,6 +8,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string GetRandomGroupAttributeId = "get_random_group";
     public const string GetRandomContactAttributeId = "get_random_contact";
     public const string GetContactAttributeId = "get_contact";
+    public const string ContactsAttributeId = "contacts";
     public const string DominantFactionAttributeId = "dominant_faction";
     public const string TransferInfluenceAttributeId = "transfer_influence";
     public const string TypeAttributeId = "type";
@@ -16,9 +17,10 @@ public class PolityEntity : DelayedSetEntity<Polity>
     public const string FactionCountAttributeId = "faction_count";
     public const string SplitAttributeId = "split";
     public const string MergeAttributeId = "merge";
-    public const string AccessibleNeighborRegionsAttributeId = "accessible_neighbor_regions";
+    public const string NeighborRegionsAttributeId = "neighbor_regions";
     public const string AddCoreRegionAttributeId = "add_core_region";
     public const string CoreRegionSaturationAttributeId = "core_region_saturation";
+    public const string GetFactionsAttributeId = "get_factions";
 
     public virtual Polity Polity
     {
@@ -39,7 +41,14 @@ public class PolityEntity : DelayedSetEntity<Polity>
     private AgentEntity _leaderEntity = null;
     private FactionEntity _dominantFactionEntity = null;
 
-    private RegionCollectionEntity _accessibleNeighborRegionsEntity = null;
+    private RegionCollectionEntity _neighborRegionsEntity = null;
+
+    private ContactCollectionEntity _contactsEntity = null;
+
+    private int _factionCollectionIndex = 0;
+
+    private List<FactionCollectionEntity> _factionCollectionEntitiesToSet =
+        new List<FactionCollectionEntity>();
 
     private readonly List<GroupEntity>
         _groupEntitiesToSet = new List<GroupEntity>();
@@ -57,13 +66,13 @@ public class PolityEntity : DelayedSetEntity<Polity>
         return Polity.Name.BoldText;
     }
 
-    public PolityEntity(Context c, string id) : base(c, id)
+    public PolityEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
     public PolityEntity(
-        ValueGetterMethod<Polity> getterMethod, Context c, string id)
-        : base(getterMethod, c, id)
+        ValueGetterMethod<Polity> getterMethod, Context c, string id, IEntity parent)
+        : base(getterMethod, c, id, parent)
     {
     }
 
@@ -73,20 +82,34 @@ public class PolityEntity : DelayedSetEntity<Polity>
             _dominantFactionEntity ?? new FactionEntity(
             GetDominantFaction,
             Context,
-            BuildAttributeId(DominantFactionAttributeId));
+            BuildAttributeId(DominantFactionAttributeId),
+            this);
 
-        return _dominantFactionEntity.GetThisEntityAttribute(this);
+        return _dominantFactionEntity.GetThisEntityAttribute();
     }
 
-    public EntityAttribute GetAccessibleNeighborRegionsAttribute()
+    public EntityAttribute GetNeighborRegionsAttribute()
     {
-        _accessibleNeighborRegionsEntity =
-            _accessibleNeighborRegionsEntity ?? new RegionCollectionEntity(
-            GetAccessibleNeighborRegions,
+        _neighborRegionsEntity =
+            _neighborRegionsEntity ?? new RegionCollectionEntity(
+            GetNeighborRegions,
             Context,
-            BuildAttributeId(AccessibleNeighborRegionsAttributeId));
+            BuildAttributeId(NeighborRegionsAttributeId), 
+            this);
 
-        return _accessibleNeighborRegionsEntity.GetThisEntityAttribute(this);
+        return _neighborRegionsEntity.GetThisEntityAttribute();
+    }
+
+    public EntityAttribute GetContactsAttribute()
+    {
+        _contactsEntity =
+            _contactsEntity ?? new ContactCollectionEntity(
+            GetContacts,
+            Context,
+            BuildAttributeId(ContactsAttributeId),
+            this);
+
+        return _contactsEntity.GetThisEntityAttribute();
     }
 
     public EntityAttribute GetLeaderAttribute()
@@ -95,9 +118,10 @@ public class PolityEntity : DelayedSetEntity<Polity>
             _leaderEntity ?? new AgentEntity(
                 GetLeader,
                 Context,
-                BuildAttributeId(LeaderAttributeId));
+                BuildAttributeId(LeaderAttributeId),
+                this);
 
-        return _leaderEntity.GetThisEntityAttribute(this);
+        return _leaderEntity.GetThisEntityAttribute();
     }
 
     private EntityAttribute GenerateGetRandomGroupEntityAttribute()
@@ -111,11 +135,30 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 return Polity.GetRandomGroup(offset);
             },
             Context,
-            BuildAttributeId("random_group_" + index));
+            BuildAttributeId("random_group_" + index),
+            this);
 
         _groupEntitiesToSet.Add(entity);
 
-        return entity.GetThisEntityAttribute(this);
+        return entity.GetThisEntityAttribute();
+    }
+
+    public static PolityType ConvertToType(string typeStr)
+    {
+        typeStr = typeStr.ToLowerInvariant();
+
+        if (string.IsNullOrWhiteSpace(typeStr))
+        {
+            return PolityType.Any;
+        }
+
+        switch (typeStr)
+        {
+            case "tribe":
+                return PolityType.Tribe;
+            default:
+                throw new System.Exception($"Unhandled polity type: {typeStr}");
+        }
     }
 
     private EntityAttribute GenerateGetRandomContactEntityAttribute()
@@ -129,11 +172,12 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 return Polity.GetRandomPolityContact(offset);
             },
             Context,
-            BuildAttributeId("random_contact_" + index));
+            BuildAttributeId("random_contact_" + index),
+            this);
 
         _contactEntitiesToSet.Add(entity);
 
-        return entity.GetThisEntityAttribute(this);
+        return entity.GetThisEntityAttribute();
     }
 
     private EntityAttribute GenerateGetContactEntityAttribute(IExpression[] arguments)
@@ -144,7 +188,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 GetContactAttributeId + ": number of arguments given less than 1");
         }
 
-        IValueExpression<IEntity> polityArgument =
+        var polityArgument =
             ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
 
         int index = _contactIndex++;
@@ -164,18 +208,122 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 return Polity.GetContact(polityEntity.Polity);
             },
             Context,
-            BuildAttributeId("contact_" + index));
+            BuildAttributeId("contact_" + index),
+            this);
 
         _contactEntitiesToSet.Add(entity);
 
-        return entity.GetThisEntityAttribute(this);
+        return entity.GetThisEntityAttribute();
     }
 
     public Faction GetDominantFaction() => Polity.DominantFaction;
 
-    public ICollection<Region> GetAccessibleNeighborRegions() => Polity.AccessibleNeighborRegions;
+    public ICollection<Region> GetNeighborRegions() => Polity.NeighborRegions;
+
+    public ICollection<PolityContact> GetContacts() => Polity.GetContacts();
 
     public Agent GetLeader() => Polity.CurrentLeader;
+
+    public ParametricSubcontext BuildGetFactionsAttributeSubcontext(
+        Context parentContext,
+        string[] paramIds)
+    {
+        int index = _factionCollectionIndex;
+
+        if ((paramIds == null) || (paramIds.Length < 1))
+        {
+            throw new System.ArgumentException(
+                $"{GetFactionsAttributeId}: expected at least one parameter identifier");
+        }
+
+        var subcontext =
+            new ParametricSubcontext(
+                $"{GetFactionsAttributeId}_{index}",
+                parentContext);
+
+        var factionEntity = new FactionEntity(subcontext, paramIds[0], this);
+        subcontext.AddEntity(factionEntity);
+
+        return subcontext;
+    }
+
+    public override ParametricSubcontext BuildParametricSubcontext(
+        Context parentContext,
+        string attributeId,
+        string[] paramIds)
+    {
+        switch (attributeId)
+        {
+            case GetFactionsAttributeId:
+                return BuildGetFactionsAttributeSubcontext(parentContext, paramIds);
+        }
+
+        return base.BuildParametricSubcontext(parentContext, attributeId, paramIds);
+    }
+
+    public EntityAttribute GetFactionsAttribute(
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments)
+    {
+        int index = _factionCollectionIndex++;
+
+        if ((paramIds == null) || (paramIds.Length < 1))
+        {
+            throw new System.ArgumentException(
+                GetFactionsAttributeId + ": expected one parameter identifier");
+        }
+
+        var paramEntity = subcontext.GetEntity(paramIds[0]) as FactionEntity;
+
+        if ((arguments == null) || (arguments.Length < 1))
+        {
+            throw new System.ArgumentException(
+                GetFactionsAttributeId + ": expected one condition argument");
+        }
+
+        var conditionExp = ValueExpressionBuilder.ValidateValueExpression<bool>(arguments[0]);
+
+        var collectionEntity = new FactionCollectionEntity(
+            () =>
+            {
+                var selectedFactions = new HashSet<Faction>();
+
+                foreach (var faction in Polity.GetFactions())
+                {
+                    paramEntity.Set(faction);
+
+                    if (conditionExp.Value)
+                    {
+                        selectedFactions.Add(faction);
+                    }
+                }
+
+                return selectedFactions;
+            },
+            Context,
+            BuildAttributeId($"factions_collection_{index}"),
+            this);
+
+        _factionCollectionEntitiesToSet.Add(collectionEntity);
+
+        return collectionEntity.GetThisEntityAttribute();
+    }
+
+    public override EntityAttribute GetParametricAttribute(
+        string attributeId,
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments)
+    {
+        switch (attributeId)
+        {
+            case GetFactionsAttributeId:
+                return GetFactionsAttribute(subcontext, paramIds, arguments);
+        }
+
+        return base.GetParametricAttribute(attributeId, subcontext, paramIds, arguments);
+    }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
@@ -184,7 +332,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
             case TypeAttributeId:
                 _typeAttribute =
                     _typeAttribute ?? new ValueGetterEntityAttribute<string>(
-                        TypeAttributeId, this, () => Polity.Type);
+                        TypeAttributeId, this, () => Polity.TypeStr);
                 return _typeAttribute;
 
             case ContactCountAttributeId:
@@ -223,8 +371,11 @@ public class PolityEntity : DelayedSetEntity<Polity>
             case MergeAttributeId:
                 return new MergePolityAttribute(this, arguments);
 
-            case AccessibleNeighborRegionsAttributeId:
-                return GetAccessibleNeighborRegionsAttribute();
+            case NeighborRegionsAttributeId:
+                return GetNeighborRegionsAttribute();
+
+            case ContactsAttributeId:
+                return GetContactsAttribute();
 
             case AddCoreRegionAttributeId:
                 return new AddCoreRegionAttribute(this, arguments);
@@ -253,8 +404,14 @@ public class PolityEntity : DelayedSetEntity<Polity>
             contactEntity.Reset();
         }
 
+        foreach (var entity in _factionCollectionEntitiesToSet)
+        {
+            entity.Reset();
+        }
+
         _leaderEntity?.Reset();
         _dominantFactionEntity?.Reset();
-        _accessibleNeighborRegionsEntity?.Reset();
+        _neighborRegionsEntity?.Reset();
+        _contactsEntity?.Reset();
     }
 }

@@ -5,9 +5,12 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class PolityProminence // : IKeyedValue<Identifier>
+public class PolityProminence
 {
     public const float MaxCoreDistance = 1000000000000f;
+
+    public const float MaxAdminCost = 
+        PolityProminenceCluster.MaxAdminCost / PolityProminenceCluster.MaxSize;
 
     [XmlAttribute("V")]
     public float Value = 0;
@@ -16,15 +19,18 @@ public class PolityProminence // : IKeyedValue<Identifier>
     [XmlAttribute("PD")]
     public float PolityCoreDistance = -1;
 
+    [XmlAttribute("P")]
+    public bool StillPresent = true;
+
     #region ClosestFactionId
     [XmlAttribute("CFId")]
     public string ClosestFactionIdStr
     {
-        get { return ClosestFactionId; }
-        set { ClosestFactionId = value; }
+        get => ClosestFactionId;
+        set => ClosestFactionId = value;
     }
     [XmlIgnore]
-    public Identifier ClosestFactionId;
+    public Identifier ClosestFactionId = null;
     #endregion
 
     #region PolityId
@@ -53,7 +59,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
     public PolityProminenceCluster Cluster = null;
 
     [XmlIgnore]
-    public Faction ClosestFaction;
+    public Faction ClosestFaction = null;
     [XmlIgnore]
     public Polity Polity;
 
@@ -61,6 +67,9 @@ public class PolityProminence // : IKeyedValue<Identifier>
     public CellGroup Group;
     [XmlIgnore]
     public World World;
+
+    [XmlIgnore]
+    public float MigrationPressure = 0;
 
     [XmlIgnore]
     public float AdministrativeCost
@@ -78,6 +87,26 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
     private bool _adminCostUpdateNeeded = true;
     private float _adminCost = 0;
+
+    [XmlIgnore]
+    public readonly HashSet<PolityProminence> NeighborProminences = new HashSet<PolityProminence>();
+
+    // Not necessarily ordered, do not use during serialization or algorithms that
+    // have a dependency on consistent order
+    [XmlIgnore]
+    public IEnumerable<KeyValuePair<Direction, PolityProminence>> NeighborProminencesInPolity
+    {
+        get
+        {
+            foreach (var pair in Group.Neighbors)
+            {
+                if (pair.Value.TryGetPolityProminence(Polity, out PolityProminence p))
+                {
+                    yield return new KeyValuePair<Direction, PolityProminence>(pair.Key, p);
+                }
+            }
+        }
+    }
 
     /// <summary>
     /// Constructs a new polity prominence object (only used by XML deserializer)
@@ -100,23 +129,56 @@ public class PolityProminence // : IKeyedValue<Identifier>
         Polity = polity;
         PolityId = polity.Id;
         Value = initialValue;
+
+        SetAllNeighborProminences();
     }
 
-    // Not necessarily ordered, do not use during serialization or algorithms that
-    // have a dependency on consistent order
-    [XmlIgnore]
-    public IEnumerable<KeyValuePair<Direction, PolityProminence>> NeighborProminences
+    public void Destroy()
     {
-        get
+        InitDestruction();
+        FinishDestruction();
+    }
+
+    public void InitDestruction(bool validateFaction = true)
+    {
+        if (validateFaction && (ClosestFaction != null) && (ClosestFaction.PolityId != PolityId))
         {
-            foreach (var pair in Group.Neighbors)
-            {
-                if (pair.Value.TryGetPolityProminence(Polity, out PolityProminence p))
-                {
-                    yield return new KeyValuePair<Direction, PolityProminence>(pair.Key, p);
-                }
-            }
+            throw new System.Exception(
+                $"Closest faction doesn't belong to same polity as prominence, " +
+                $"group: {Id}, " +
+                $"faction: {ClosestFaction.Id}, " +
+                $"faction's polity: {ClosestFaction.PolityId}, " +
+                $"prom's polity: {PolityId}");
         }
+
+        StillPresent = false;
+    }
+
+    public void FinishDestruction()
+    {
+        ResetNeighborCoreDistances();
+
+        UnsetAllNeighborProminences();
+
+        ClosestFaction?.RemoveProminence(this);
+    }
+
+    public void SetDefaultClosestFaction()
+    {
+        SetClosestFaction(Polity.DominantFaction);
+    }
+
+    public void SetClosestFaction(Faction faction)
+    {
+        if (ClosestFaction == faction)
+            return;
+
+        ClosestFaction?.RemoveProminence(this);
+
+        ClosestFaction = faction;
+        ClosestFactionId = faction?.Id;
+
+        faction?.AddProminence(this);
     }
 
     /// <summary>
@@ -137,8 +199,8 @@ public class PolityProminence // : IKeyedValue<Identifier>
         {
             FactionCoreDistance = newFactionCoreDistance;
             PolityCoreDistance = newPolityCoreDistance;
-            ClosestFaction = closestFaction;
-            ClosestFactionId = closestFaction.Id;
+
+            SetClosestFaction(closestFaction);
 
 #if DEBUG
             PrevCoreDistanceSet = LastCoreDistanceSet;
@@ -161,6 +223,8 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
             Manager.AddUpdatedCell(
                 Group.Cell, CellUpdateType.Group, CellUpdateSubType.CoreDistance);
+
+            Polity.World.RemovePromToSetCoreDistFor(this);
 
             return true;
         }
@@ -242,7 +306,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
         float shortestDistance = MaxCoreDistance;
         closestFaction = Polity.DominantFaction;
 
-        foreach (KeyValuePair<Direction, PolityProminence> pair in NeighborProminences)
+        foreach (var pair in NeighborProminencesInPolity)
         {
             float distanceToCoreFromNeighbor =
                 pair.Value.GetCurrentCoreDistance(toFactionCore);
@@ -277,9 +341,11 @@ public class PolityProminence // : IKeyedValue<Identifier>
     {
         float polityPopulation = Group.Population * Value;
 
-        float distanceFactor = 500 + FactionCoreDistance;
+        float distConst = 500;
+        float distanceFactor = (distConst + FactionCoreDistance) / distConst;
 
-        _adminCost = polityPopulation * distanceFactor * 0.001f;
+        _adminCost = polityPopulation * distanceFactor;
+        _adminCost = Mathf.Min(_adminCost, MaxAdminCost);
 
         if (_adminCost < 0)
         {
@@ -298,7 +364,7 @@ public class PolityProminence // : IKeyedValue<Identifier>
         Identifier idFactionBeingReset = ClosestFactionId;
         float minFactionDistance = FactionCoreDistance;
 
-        foreach (KeyValuePair<Direction, PolityProminence> pair in NeighborProminences)
+        foreach (var pair in NeighborProminencesInPolity)
         {
             PolityProminence prom = pair.Value;
 
@@ -310,23 +376,6 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
             prom.ResetCoreDistances(idFactionBeingReset, minFactionDistance);
         }
-
-//#if DEBUG
-        //if (Group.Position.Equals(7, 144))
-        //{
-        //    string list = "\n";
-
-        //    foreach (KeyValuePair<Direction, PolityProminence> pair in NeighborProminences)
-        //    {
-        //        list += pair.Value.Group.Cell.Position + ", Id: " +
-        //            pair.Value.Group.Id + "\n";
-        //    }
-
-        //    Debug.LogWarning("DEBUG: ResetNeighborCoreDistances: " + Group.Position
-        //        + "\n\n-- list -- " + list
-        //        + "\nstack: " + new System.Diagnostics.StackTrace() + "\n");
-        //}
-//#endif
     }
 
     /// <summary>
@@ -361,8 +410,8 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
             prom.FactionCoreDistance = MaxCoreDistance;
             prom.PolityCoreDistance = MaxCoreDistance;
-            prom.ClosestFaction = Polity.DominantFaction;
-            prom.ClosestFactionId = Polity.DominantFactionId;
+
+            prom.SetClosestFaction(null);
 
 #if DEBUG
             prom.LastCoreDistanceReset = Manager.CurrentWorld.CurrentDate;
@@ -370,17 +419,13 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
             bool isExpansionLimit = false;
 
-            foreach (var pair in prom.NeighborProminences)
+            foreach (var pair in prom.NeighborProminencesInPolity)
             {
                 PolityProminence nProm = pair.Value;
 
-                if (nProm.ClosestFactionId != idFactionBeingReset)
-                {
-                    isExpansionLimit = true;
-                    continue;
-                }
-
-                if (nProm.FactionCoreDistance < minFactionDistance)
+                if (!nProm.StillPresent ||
+                    (nProm.ClosestFactionId != idFactionBeingReset) || 
+                    (nProm.FactionCoreDistance < minFactionDistance))
                 {
                     isExpansionLimit = true;
                     continue;
@@ -393,15 +438,12 @@ public class PolityProminence // : IKeyedValue<Identifier>
                 prominencesToResetSet.Add(nProm);
             }
 
-            if (isExpansionLimit)
-            {
-                Polity.World.AddPromToCalculateCoreDistFor(prom);
-            }
+            Polity.World.AddPromToSetCoreDistFor(prom, isExpansionLimit);
         }
 
         if (addToRecalcs)
         {
-            Polity.World.AddPromToCalculateCoreDistFor(this);
+            Polity.World.AddPromToSetCoreDistFor(this);
         }
     }
 
@@ -424,14 +466,101 @@ public class PolityProminence // : IKeyedValue<Identifier>
 
         if (Cluster != null)
         {
-            // Indicate that the cluster this prominence belongs too will require a
+            // Indicate that the cluster this prominence belongs to will require a
             // new census
             Cluster.RequireNewCensus(true);
         }
     }
 
-    //public Identifier GetKey()
-    //{
-    //    return PolityId;
-    //}
+    public void SetAllNeighborProminences(bool bidirectional = true)
+    {
+        SetNeighborProminencesFromGroup(Group, bidirectional);
+
+        foreach (var nGroup in Group.NeighborGroups)
+        {
+            SetNeighborProminencesFromGroup(nGroup, bidirectional);
+        }
+    }
+
+    private void SetNeighborProminencesFromGroup(CellGroup group, bool bidirectional = true)
+    {
+        foreach (PolityProminence p in group.GetPolityProminences())
+        {
+            if (p == this)
+            {
+                continue;
+            }
+
+            SetProminenceAsNeighbors(p, this, bidirectional);
+        }
+    }
+
+    private static void SetProminenceAsNeighbors(PolityProminence a, PolityProminence b, bool bidirectional = true)
+    {
+        if (a == b)
+        {
+            throw new System.ArgumentException($"Both a and b are the same prominence");
+        }
+
+        a.AddNeighborProminence(b);
+
+        if (bidirectional)
+        {
+            b.AddNeighborProminence(a);
+        }
+    }
+
+    private void AddNeighborProminence(PolityProminence p)
+    {
+        if (!NeighborProminences.Add(p))
+        {
+            throw new System.ArgumentException($"trying to add prominence twice. this:{Id}, p:{p.Id}");
+        }
+        
+        ClosestFaction?.AddNeighborFaction(p.ClosestFaction);
+    }
+
+    private void UnsetAllNeighborProminences()
+    {
+        UnsetNeighborProminencesFromGroup(Group);
+
+        foreach (var nGroup in Group.NeighborGroups)
+        {
+            UnsetNeighborProminencesFromGroup(nGroup);
+        }
+    }
+
+    private void UnsetNeighborProminencesFromGroup(CellGroup group)
+    {
+        foreach (PolityProminence p in group.GetPolityProminences())
+        {
+            if (p == this)
+            {
+                continue;
+            }
+
+            UnsetProminenceAsNeighbors(p, this);
+        }
+    }
+
+    private static void UnsetProminenceAsNeighbors(PolityProminence a, PolityProminence b)
+    {
+        if (a == b)
+        {
+            throw new System.ArgumentException($"Both a and b are the same prominence");
+        }
+
+        a.RemoveNeighborProminence(b);
+        b.RemoveNeighborProminence(a);
+    }
+
+    private void RemoveNeighborProminence(PolityProminence p)
+    {
+        if (!NeighborProminences.Remove(p))
+        {
+            throw new System.ArgumentException($"trying to remove prominence twice. this:{Id}, p:{p.Id}");
+        }
+
+        ClosestFaction?.RemoveNeighborFaction(p.ClosestFaction);
+    }
 }

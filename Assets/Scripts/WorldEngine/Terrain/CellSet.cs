@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public delegate bool CanAddCellDelegate(TerrainCell cell);
 
-public class CellSet : ICellCollectionGetter
+public class CellSet : ICellSet
 {
     public World World;
 
@@ -14,13 +14,16 @@ public class CellSet : ICellCollectionGetter
     public TerrainCell Left;
     public TerrainCell Right;
 
+    private int _top;
+    private int _bottom;
+    private int _left;
+    private int _right;
+
     public int RectArea = 0;
     public int RectWidth = 0;
     public int RectHeight = 0;
 
     public int Area = 0;
-
-    public bool WrapsAround = false;
 
     public bool NeedsUpdate = false;
 
@@ -30,7 +33,8 @@ public class CellSet : ICellCollectionGetter
     {
         CellArea area = new CellArea()
         {
-            World = World
+            World = World,
+            Cells = Cells
         };
 
         return area;
@@ -53,53 +57,79 @@ public class CellSet : ICellCollectionGetter
             Left = cell;
             Right = cell;
 
+            _top = cell.Latitude;
+            _bottom = cell.Latitude;
+            _left = cell.Longitude;
+            _right = cell.Longitude;
+
             _initialized = true;
             return;
         }
 
-        if ((cell.Longitude - Left.Longitude) == -1)
-        {
-            Left = cell;
-        }
-        else if ((cell.Longitude - Left.Longitude - Manager.WorldWidth) == -1)
-        {
-            Left = cell;
-            WrapsAround = true;
-        }
-
-        if ((cell.Longitude - Right.Longitude) == 1)
-        {
-            Right = cell;
-        }
-        else if ((cell.Longitude - Right.Longitude + Manager.WorldWidth) == 1)
-        {
-            Right = cell;
-            WrapsAround = true;
-        }
-
-        if ((cell.Latitude - Top.Latitude) == 1)
+        if (cell.Latitude > _top)
         {
             Top = cell;
+            _top = cell.Latitude;
         }
 
-        if ((cell.Latitude - Bottom.Latitude) == -1)
+        if (cell.Latitude < _bottom)
         {
             Bottom = cell;
+            _bottom = cell.Latitude;
+        }
+
+        if (cell.Longitude < _left)
+        {
+            int modLong = cell.Longitude + Manager.WorldWidth;
+            int leftDiff = _left - cell.Longitude;
+            int rightDiff = Mathf.Abs(_right - modLong);
+
+            if (rightDiff < leftDiff)
+            {
+                if (modLong > _right)
+                {
+                    Right = cell;
+                    _right = modLong;
+                }
+            }
+            else
+            {
+                Left = cell;
+                _left = cell.Longitude;
+            }
+        }
+
+        if (cell.Longitude > _right)
+        {
+            int modLong = cell.Longitude - Manager.WorldWidth;
+            int leftDiff = Mathf.Abs(modLong - _left);
+            int rightDiff = cell.Longitude - _right;
+
+            if (rightDiff > leftDiff)
+            {
+                if (modLong < _left)
+                {
+                    Left = cell;
+                    _left = modLong;
+                }
+            }
+            else
+            {
+                Right = cell;
+                _right = cell.Longitude;
+            }
         }
     }
 
     public void Update()
     {
-        int top = Top.Latitude;
-        int bottom = Bottom.Latitude;
-        int left = Left.Longitude;
-        int right = Right.Longitude;
+        if (!_initialized)
+        {
+            throw new System.Exception("CellSet not initialized");
+        }
 
-        // adjust for world wrap
-        if (WrapsAround) right += Manager.WorldWidth;
-
-        RectHeight = top - bottom + 1;
-        RectWidth = right - left + 1;
+        RectHeight = _top - _bottom + 1;
+        RectWidth = _right - _left + 1;
 
         RectArea = RectWidth * RectHeight;
 
@@ -110,23 +140,9 @@ public class CellSet : ICellCollectionGetter
 
     public bool IsCellEnclosed(TerrainCell cell)
     {
-        int top = Top.Latitude;
-        int bottom = Bottom.Latitude;
-        int left = Left.Longitude;
-        int right = Right.Longitude;
+        if (!cell.Latitude.IsInsideRange(_bottom, _top)) return false;
 
-        // adjust for world wrap
-        if (WrapsAround) right += Manager.WorldWidth;
-
-        if (!cell.Latitude.IsInsideRange(bottom, top)) return false;
-
-        int longitude = cell.Longitude;
-
-        if (longitude.IsInsideRange(left, right)) return true;
-
-        longitude += Manager.WorldWidth;
-
-        if (longitude.IsInsideRange(left, right)) return true;
+        if (cell.Longitude.IsInsideRange(_left, _right)) return true;
 
         return false;
     }
@@ -135,61 +151,29 @@ public class CellSet : ICellCollectionGetter
     {
         Cells.UnionWith(sourceSet.Cells);
 
-        if (Top.Latitude < sourceSet.Top.Latitude)
+        if (_top < sourceSet._top)
         {
             Top = sourceSet.Top;
+            _top = sourceSet._top;
         }
 
-        if (Bottom.Latitude > sourceSet.Bottom.Latitude)
+        if (_bottom > sourceSet._bottom)
         {
             Bottom = sourceSet.Bottom;
+            _bottom = sourceSet._bottom;
         }
 
-        bool offsetNeeded = false;
-        bool rightOffsetDone = false;
-        bool sourceSetRightOffsetDone = false;
-
-        int rigthLongitude = Right.Longitude;
-        if (WrapsAround)
-        {
-            rigthLongitude += Manager.WorldWidth;
-            offsetNeeded = true;
-            rightOffsetDone = true;
-        }
-
-        int sourceSetRigthLongitude = sourceSet.Right.Longitude;
-        if (sourceSet.WrapsAround)
-        {
-            sourceSetRigthLongitude += Manager.WorldWidth;
-            offsetNeeded = true;
-            sourceSetRightOffsetDone = true;
-        }
-
-        int leftLongitude = Left.Longitude;
-        if (offsetNeeded && !rightOffsetDone)
-        {
-            rigthLongitude += Manager.WorldWidth;
-            leftLongitude += Manager.WorldWidth;
-        }
-
-        int sourceSetLeftLongitude = sourceSet.Left.Longitude;
-        if (offsetNeeded && !sourceSetRightOffsetDone)
-        {
-            sourceSetRigthLongitude += Manager.WorldWidth;
-            sourceSetLeftLongitude += Manager.WorldWidth;
-        }
-
-        if (leftLongitude > sourceSetLeftLongitude)
+        if (_left > sourceSet._left)
         {
             Left = sourceSet.Left;
+            _left = sourceSet._left;
         }
 
-        if (rigthLongitude < sourceSetRigthLongitude)
+        if (_right > sourceSet._right)
         {
             Right = sourceSet.Right;
+            _right = sourceSet._right;
         }
-
-        WrapsAround |= sourceSet.WrapsAround;
 
         NeedsUpdate = true;
     }
@@ -201,11 +185,6 @@ public class CellSet : ICellCollectionGetter
         float maxScaleDiff,
         float minRectAreaPercent)
     {
-//#if DEBUG
-//        Debug.Log("Spliting set with area: " + cellSet.Area + ", width: " +
-//            cellSet.RectWidth + ", height: " + cellSet.RectHeight);
-//#endif
-
         int majorLength = Mathf.Max(cellSet.RectHeight, cellSet.RectWidth);
         int minorLength = Mathf.Min(cellSet.RectHeight, cellSet.RectWidth);
         float scaleDiff = majorLength / (float)minorLength;
@@ -220,10 +199,6 @@ public class CellSet : ICellCollectionGetter
 
         if (noNeedToSplit)
         {
-//#if DEBUG
-//            Debug.Log("Returning set with area: " + cellSet.Area);
-//#endif
-
             yield return cellSet;
         }
         else if (majorLength == cellSet.RectHeight)
@@ -244,11 +219,6 @@ public class CellSet : ICellCollectionGetter
             topCellSet.Update();
             bottomCellSet.Update();
 
-//#if DEBUG
-//            Debug.Log("topCellSet area: " + topCellSet.Area);
-//            Debug.Log("bottomCellSet area: " + bottomCellSet.Area);
-//#endif
-
             foreach (CellSet subset in SplitIntoSubsets(
                 topCellSet, maxMajorLength, minMajorLength, maxScaleDiff, minRectAreaPercent))
             {
@@ -263,14 +233,25 @@ public class CellSet : ICellCollectionGetter
         }
         else
         {
-            int middleLongitude = (cellSet.Left.Longitude + cellSet.Right.Longitude) / 2;
+            int middleLongitude = (cellSet._left + cellSet._right) / 2;
 
             CellSet leftCellSet = new CellSet();
             CellSet rightCellSet = new CellSet();
 
             foreach (TerrainCell cell in cellSet.Cells)
             {
-                if (cell.Longitude > middleLongitude)
+                int longitude = cell.Longitude;
+
+                if (longitude < cellSet._left)
+                {
+                    longitude += Manager.WorldWidth;
+                }
+                else if (longitude > cellSet._right)
+                {
+                    longitude -= Manager.WorldWidth;
+                }
+
+                if (longitude > middleLongitude)
                     rightCellSet.AddCell(cell);
                 else
                     leftCellSet.AddCell(cell);
@@ -278,11 +259,6 @@ public class CellSet : ICellCollectionGetter
 
             leftCellSet.Update();
             rightCellSet.Update();
-
-//#if DEBUG
-//            Debug.Log("leftCellSet area: " + leftCellSet.Area);
-//            Debug.Log("rightCellSet area: " + rightCellSet.Area);
-//#endif
 
             foreach (CellSet subset in SplitIntoSubsets(
                 leftCellSet, maxMajorLength, minMajorLength, maxScaleDiff, minRectAreaPercent))
@@ -387,5 +363,34 @@ public class CellSet : ICellCollectionGetter
     public ICollection<TerrainCell> GetCells()
     {
         return Cells;
+    }
+
+    public RectInt GetBoundingRectangle()
+    {
+        return new RectInt(_left, _bottom, _right - _left, _top - _bottom);
+    }
+
+    public static RectInt GetBoundingRectangle(ICollection<TerrainCell> cells)
+    {
+        RectInt rect = new RectInt();
+        bool first = true;
+
+        foreach (var cell in cells)
+        {
+            var pos = cell.Position;
+
+            if (first)
+            {
+                rect.position = cell.Position;
+                rect.size = Vector2Int.one;
+
+                first = false;
+                continue;
+            }
+
+            rect.Extend(cell.Position, Manager.WorldWidth);
+        }
+
+        return rect;
     }
 }

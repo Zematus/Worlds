@@ -192,6 +192,8 @@ public class World : ISynchronizable, IWorldDateGetter
     public Region HoveredRegion = null;
     [XmlIgnore]
     public Territory HoveredTerritory = null;
+    [XmlIgnore]
+    public Faction HoveredFaction = null;
 
     [XmlIgnore]
     public Faction GuidedFaction = null;
@@ -303,9 +305,13 @@ public class World : ISynchronizable, IWorldDateGetter
 
     private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
+    private HashSet<CellGroup> _groupsToApplyEventsTo = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
+    private HashSet<CellGroup> _groupsWithPolityCountChange = new HashSet<CellGroup>();
+    private HashSet<CellGroup> _groupsWithCoreCountChange = new HashSet<CellGroup>();
 
     private HashSet<PolityProminence> _promsWithCoreDistToCalculate = new HashSet<PolityProminence>();
+    private HashSet<PolityProminence> _promsWithCoreDistToDefault = new HashSet<PolityProminence>();
 
     private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup>();
     private HashSet<CellGroup> _groupsToCleanupAfterUpdate = new HashSet<CellGroup>();
@@ -317,6 +323,7 @@ public class World : ISynchronizable, IWorldDateGetter
 
     private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
     private HashSet<Faction> _factionsWithStatusChanges = new HashSet<Faction>();
+    private HashSet<Faction> _factionsToAssignEventsTo = new HashSet<Faction>();
     private HashSet<Faction> _factionsToCleanup = new HashSet<Faction>();
     private HashSet<Faction> _factionsToRemove = new HashSet<Faction>();
 
@@ -354,7 +361,7 @@ public class World : ISynchronizable, IWorldDateGetter
 
     private float _cellMaxSideLength;
 
-    private long _dateToSkipTo;
+    private long _dateToSkipTo = long.MaxValue;
 
     private bool _justLoaded = false;
 
@@ -640,11 +647,11 @@ public class World : ISynchronizable, IWorldDateGetter
         }
 
 #if DEBUG
-        string debugMsg = "Total Groups: " + _cellGroups.Count + "\nSerialized event types:";
+        string debugMsg = $"Total Groups: {_cellGroups.Count}\nSerialized event types:";
 
         foreach (KeyValuePair<System.Type, int> pair in eventTypes)
         {
-            debugMsg += "\n\t" + pair.Key + " : " + pair.Value;
+            debugMsg += $"\n\t{pair.Key} : {pair.Value}";
         }
 
         Debug.Log(debugMsg);
@@ -997,13 +1004,15 @@ public class World : ISynchronizable, IWorldDateGetter
 
     private void CalculateProminenceDistancesToCores()
     {
-        Queue<PolityProminence> promsToCalculate = new Queue<PolityProminence>();
-        HashSet<PolityProminence> promsToCalculateSet = new HashSet<PolityProminence>();
+        var promsToCalculate = new Queue<PolityProminence>();
+        var promsToCalculateSet = new HashSet<PolityProminence>();
 
-        foreach (PolityProminence polityProminence in _promsWithCoreDistToCalculate)
+        foreach (var polityProminence in _promsWithCoreDistToCalculate)
         {
-            if (!polityProminence.Group.StillPresent)
+            if (!polityProminence.StillPresent)
+            {
                 continue;
+            }
 
             promsToCalculate.Enqueue(polityProminence);
             promsToCalculateSet.Add(polityProminence);
@@ -1020,8 +1029,7 @@ public class World : ISynchronizable, IWorldDateGetter
             float currentFactionCoreDist = polityProminence.FactionCoreDistance;
             float currentPolityCoreDist = polityProminence.PolityCoreDistance;
 
-            foreach (KeyValuePair<Direction, PolityProminence> pair in
-                polityProminence.NeighborProminences)
+            foreach (var pair in polityProminence.NeighborProminencesInPolity)
             {
                 if (promsToCalculateSet.Contains(pair.Value))
                     continue;
@@ -1035,7 +1043,18 @@ public class World : ISynchronizable, IWorldDateGetter
             }
         }
 
+        foreach (var polityProminence in _promsWithCoreDistToDefault)
+        {
+            if (!polityProminence.StillPresent)
+            {
+                continue;
+            }
+
+            polityProminence.SetDefaultClosestFaction();
+        }
+
         _promsWithCoreDistToCalculate.Clear();
+        _promsWithCoreDistToDefault.Clear();
     }
 
     /// <summary>
@@ -1109,6 +1128,20 @@ public class World : ISynchronizable, IWorldDateGetter
         }
 
         _groupsToPostUpdate_afterPolityUpdates.Clear();
+
+        foreach (CellGroup group in _groupsWithPolityCountChange)
+        {
+            group.OnPolityCountChange();
+        }
+
+        _groupsWithPolityCountChange.Clear();
+
+        foreach (CellGroup group in _groupsWithCoreCountChange)
+        {
+            group.OnCoreCountChange();
+        }
+
+        _groupsWithCoreCountChange.Clear();
     }
 
     private void AfterUpdateGroupCleanup() // This function cleans up flags and other properties of cell groups set by events or faction/polity updates
@@ -1134,6 +1167,26 @@ public class World : ISynchronizable, IWorldDateGetter
         }
 
         _factionsToUpdate.Clear();
+    }
+
+    private void TryAssignFactionEvents()
+    {
+        foreach (Faction faction in _factionsToAssignEventsTo)
+        {
+            faction.TryAssignEvents();
+        }
+
+        _factionsToAssignEventsTo.Clear();
+    }
+
+    private void TryAssignGroupEvents()
+    {
+        foreach (CellGroup group in _groupsToApplyEventsTo)
+        {
+            group.TryAssignEvents();
+        }
+
+        _groupsToApplyEventsTo.Clear();
     }
 
     private void ApplyFactionStatusChanges()
@@ -1295,144 +1348,138 @@ public class World : ISynchronizable, IWorldDateGetter
     /// <summary>
     /// Tries to evaluate any event that should happen at the current world date
     /// </summary>
-    /// <returns></returns>
-    public bool EvaluateEventsToHappen()
+    public void EvaluateEventsToHappen()
     {
         if (CellGroupCount <= 0)
-            return false;
+            return;
 
         //
         // Evaluate Events that will happen at the current date
         //
 
-        _dateToSkipTo = CurrentDate + 1;
+        _dateToSkipTo = CurrentDate + (Manager.SimulationPerformingStep ? 1 : MaxTimeToSkip);
 
         Profiler.BeginSample("Evaluate Events");
 
-        while (true)
+        Profiler.BeginSample("Find Leftmost");
+
+        // This will clean up any leftmost event which is no longer valid
+        _eventsToHappen.FindLeftmost(ValidateEventsToHappenNode, InvalidEventsToHappenNodeEffect);
+
+        Profiler.EndSample();// ("Find Leftmost");
+
+        // FindLeftMost() might have removed events so we need to check if there are events to happen left
+        if (_eventsToHappen.Count <= 0)
         {
-            //if (_eventsToHappen.Count <= 0) break;
-
-            Profiler.BeginSample("Find Leftmost");
-
-            _eventsToHappen.FindLeftmost(ValidateEventsToHappenNode, InvalidEventsToHappenNodeEffect);
-
-            Profiler.EndSample();
-
-            // FindLeftMost() might have removed events so we need to check if there are events to happen left
-            if (_eventsToHappen.Count <= 0) break;
-
-            WorldEvent eventToHappen = _eventsToHappen.Leftmost;
-
-            if (eventToHappen.TriggerDate < CurrentDate)
-            {
-                throw new System.Exception("World.EvaluateEventsToHappen - eventToHappen.TriggerDate (" + eventToHappen.TriggerDate +
-                    ") less than CurrentDate (" + CurrentDate + "), eventToHappen: " + eventToHappen);
-            }
-            else if (eventToHappen.TriggerDate > MaxSupportedDate)
-            {
-                throw new System.Exception("World.EvaluateEventsToHappen - eventToHappen.TriggerDate (" + eventToHappen.TriggerDate +
-                    ") greater than MaxSupportedDate (" + MaxSupportedDate + "), eventToHappen: " + eventToHappen);
-            }
-
-            //Profiler.BeginSample("eventToHappen.TriggerDate > CurrentDate");
-
-            if (eventToHappen.TriggerDate > CurrentDate)
-            {
-#if DEBUG
-                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-                {
-                    string message = "TriggerDate: " + eventToHappen.TriggerDate +
-                        ", event type: " + eventToHappen.GetType();
-
-                    message += ", current date: " + CurrentDate;
-
-                    SaveLoadTest.DebugMessage debugMessage =
-                        new SaveLoadTest.DebugMessage("EvaluateEventsToHappen.eventToHappen - Id: " + eventToHappen.Id, message);
-
-                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                }
-#endif
-
-                long maxDate = CurrentDate + MaxTimeToSkip;
-
-                if (Manager.SimulationPerformingStep)
-                {
-                    // move date ahead by one single step instead
-                    maxDate = CurrentDate + 1;
-                    Manager.SetToPerformSimulationStep(false);
-                }
-
-                if (maxDate >= MaxSupportedDate)
-                {
-                    Debug.LogWarning("World.EvaluateEventsToHappen - 'maxDate' is greater than " + MaxSupportedDate + " (date = " + maxDate + ")");
-                }
-
-                if (maxDate < 0)
-                {
-                    throw new System.Exception("Surpassed date limit (Int64.MaxValue)");
-                }
-
-                _dateToSkipTo = (eventToHappen.TriggerDate < maxDate) ? eventToHappen.TriggerDate : maxDate;
-                break;
-            }
-
-            //Profiler.EndSample();
-
-            Profiler.BeginSample("Remove Leftmost Event");
-
-            _eventsToHappen.RemoveLeftmost();
-            EventsToHappenCount--;
-
-            Profiler.EndSample();
-
-#if DEBUG
-            string eventTypeName = eventToHappen.GetType().ToString();
-
-            Profiler.BeginSample("Event CanTrigger");
-            Profiler.BeginSample("Event CanTrigger - " + eventTypeName);
-#endif
-
-            bool canTrigger = eventToHappen.CanTrigger();
-
-#if DEBUG
-            Profiler.EndSample();
-            Profiler.EndSample();
-#endif
-
-            if (canTrigger)
-            {
-                _eventsToHappenNow.Add(eventToHappen);
-            }
-            else
-            {
-                Profiler.BeginSample("Event failed to trigger");
-
-                eventToHappen.FailedToTrigger = true;
-                eventToHappen.Destroy();
-
-                Profiler.EndSample();
-            }
-
-            IncreaseEvaluatedEventCount(eventToHappen);
+            Profiler.EndSample();// ("Evaluate Events");
+            return;
         }
 
-        foreach (WorldEvent eventToHappen in _eventsToHappenNow)
+        WorldEvent eventToHappen = _eventsToHappen.Leftmost;
+
+        if (eventToHappen.TriggerDate < CurrentDate)
+        {
+            throw new System.Exception(
+                $"World.EvaluateEventsToHappen - eventToHappen.TriggerDate " +
+                $"({eventToHappen.TriggerDate}) less than CurrentDate ({CurrentDate})" +
+                $", eventToHappen: {eventToHappen}");
+        }
+        else if (eventToHappen.TriggerDate > MaxSupportedDate)
+        {
+            throw new System.Exception(
+                $"World.EvaluateEventsToHappen - eventToHappen.TriggerDate " +
+                $"({eventToHappen.TriggerDate}) greater than MaxSupportedDate " +
+                $"({MaxSupportedDate}), eventToHappen: {eventToHappen}");
+        }
+
+        if (eventToHappen.TriggerDate > CurrentDate)
         {
 #if DEBUG
-            string eventTypeName = eventToHappen.GetType().ToString();
+            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+            {
+                string message =
+                    $"TriggerDate: {eventToHappen.TriggerDate}, " +
+                    $"event type: {eventToHappen.GetType()}";
 
+                message += $", current date: {CurrentDate}";
+
+                SaveLoadTest.DebugMessage debugMessage =
+                    new SaveLoadTest.DebugMessage(
+                        $"EvaluateEventsToHappen.eventToHappen - Id: {eventToHappen.Id}", message);
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+#endif
+
+            long maxDate = CurrentDate + MaxTimeToSkip;
+
+            if (Manager.SimulationPerformingStep)
+            {
+                // move date ahead by one single step instead
+                maxDate = CurrentDate + 1;
+                Manager.SetToPerformSimulationStep(false);
+            }
+
+            if (maxDate >= MaxSupportedDate)
+            {
+                Debug.LogWarning(
+                    $"World.EvaluateEventsToHappen - 'maxDate' is greater than " +
+                    $"{MaxSupportedDate} (date = {maxDate})");
+            }
+
+            if (maxDate < 0)
+            {
+                throw new System.Exception($"'maxDate' is invalid: {maxDate}");
+            }
+
+            _dateToSkipTo =
+                (eventToHappen.TriggerDate < maxDate) ? eventToHappen.TriggerDate : maxDate;
+
+            Profiler.EndSample();// ("Evaluate Events");
+            return;
+        }
+
+        Profiler.BeginSample("Remove Leftmost Event");
+
+        _eventsToHappen.RemoveLeftmost();
+        EventsToHappenCount--;
+
+        Profiler.EndSample();// ("Remove Leftmost Event");
+
+#if DEBUG
+        string eventTypeName = eventToHappen.GetType().ToString();
+
+        Profiler.BeginSample("Event CanTrigger");
+        Profiler.BeginSample($"Event CanTrigger - {eventTypeName}");
+#endif
+
+        bool canTrigger = eventToHappen.CanTrigger();
+
+#if DEBUG
+        Profiler.EndSample();// ("Event CanTrigger - {eventTypeName}"");
+        Profiler.EndSample();// ("Event CanTrigger");
+#endif
+
+        Profiler.EndSample();// ("Destroy Event");
+
+        IncreaseEvaluatedEventCount(eventToHappen);
+
+        Profiler.EndSample();// ("Evaluate Events");
+
+        if (canTrigger)
+        {
+#if DEBUG
             if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
             {
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "EvaluateEventsToHappen eventToHappen.Id: " + eventToHappen.Id + ", eventTypeName: " + eventTypeName,
-                    "eventToHappen.SpawnDate: " + eventToHappen.SpawnDate, CurrentDate);
+                    $"EvaluateEventsToHappen eventToHappen.Id: {eventToHappen.Id}, eventTypeName: {eventTypeName}",
+                    $"eventToHappen.SpawnDate: {eventToHappen.SpawnDate}", CurrentDate);
 
                 Manager.RegisterDebugEvent("DebugMessage", debugMessage);
             }
 
             Profiler.BeginSample("Event Trigger");
-            Profiler.BeginSample("Event Trigger - " + eventTypeName);
+            Profiler.BeginSample($"Event Trigger - {eventTypeName}");
 #endif
 
             eventToHappen.Trigger();
@@ -1440,28 +1487,37 @@ public class World : ISynchronizable, IWorldDateGetter
             IncreaseTriggeredEventCount(eventToHappen);
 
 #if DEBUG
-            Profiler.EndSample();
-            Profiler.EndSample();
+            Profiler.EndSample();// ("Event Trigger");
+            Profiler.EndSample();// ($"Event Trigger - {eventTypeName}");
 #endif
-
-            Profiler.BeginSample("Destroy Event");
-
-            eventToHappen.Destroy();
-
-            Profiler.EndSample();
         }
 
-        _eventsToHappenNow.Clear();
+        eventToHappen.FailedToTrigger = !canTrigger;
 
-        Profiler.EndSample();
+        Profiler.BeginSample("Destroy Event");
 
-        return true;
+        eventToHappen.Destroy();
     }
 
     public long Update()
     {
         if (CellGroupCount <= 0)
             return 0;
+
+        Profiler.BeginSample("Find Leftmost");
+
+        // This will clean up any leftmost event which is no longer valid
+        _eventsToHappen.FindLeftmost(ValidateEventsToHappenNode, InvalidEventsToHappenNodeEffect);
+
+        Profiler.EndSample();// ("Find Leftmost");
+
+        if ((_eventsToHappen.Count > 0) &&
+            (_eventsToHappen.Leftmost.TriggerDate == CurrentDate))
+        {
+            // Avoid updating anything if there are events that still
+            // need to happen at the current date
+            return 0;
+        }
 
         //Profiler.BeginSample("UpdateGroups");
 
@@ -1561,9 +1617,28 @@ public class World : ISynchronizable, IWorldDateGetter
 
         //Profiler.EndSample();
 
+        //Profiler.BeginSample("TryAssignGroupEvents");
+
+        TryAssignGroupEvents();
+
+        //Profiler.EndSample();
+
+        //Profiler.BeginSample("TryAssignFactionEvents");
+
+        TryAssignFactionEvents();
+
+        //Profiler.EndSample();
+
         //
         // Skip to Next Event's Date
         //
+
+        Profiler.BeginSample("Find Leftmost");
+
+        // This will clean up any leftmost event which is no longer valid
+        _eventsToHappen.FindLeftmost(ValidateEventsToHappenNode, InvalidEventsToHappenNodeEffect);
+
+        Profiler.EndSample();// ("Find Leftmost");
 
         if (_eventsToHappen.Count > 0)
         {
@@ -1775,9 +1850,42 @@ public class World : ISynchronizable, IWorldDateGetter
         _groupsToUpdate.Add(group);
     }
 
-    public void AddPromToCalculateCoreDistFor(PolityProminence prominence)
+    public void AddPromToSetCoreDistFor(PolityProminence prominence, bool calculateFirst = true)
     {
-        _promsWithCoreDistToCalculate.Add(prominence);
+        if ((prominence == null) || !prominence.StillPresent)
+        {
+            throw new System.ArgumentException("prominence is null or no longer present");
+        }
+
+        if (calculateFirst)
+        {
+            _promsWithCoreDistToCalculate.Add(prominence);
+        }
+        else
+        {
+            _promsWithCoreDistToDefault.Add(prominence);
+        }
+    }
+
+    public void RemovePromToSetCoreDistFor(PolityProminence prominence)
+    {
+        if (prominence == null)
+        {
+            throw new System.ArgumentException("prominence is null");
+        }
+        
+        _promsWithCoreDistToCalculate.Remove(prominence);
+        _promsWithCoreDistToDefault.Remove(prominence);
+    }
+
+    public void AddGroupWithPolityCountChange(CellGroup group)
+    {
+        _groupsWithPolityCountChange.Add(group);
+    }
+
+    public void AddGroupWithCoreCountChange(CellGroup group)
+    {
+        _groupsWithCoreCountChange.Add(group);
     }
 
     public void AddGroupToRemove(CellGroup group)
@@ -1925,9 +2033,26 @@ public class World : ISynchronizable, IWorldDateGetter
         {
             Debug.LogWarning(
                 "Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+            return;
         }
 
         _factionsToUpdate.Add(faction);
+    }
+
+    public void AddGroupToAssignEventsTo(CellGroup group)
+    {
+        if (!group.StillPresent)
+            return;
+
+        _groupsToApplyEventsTo.Add(group);
+    }
+
+    public void AddFactionToAssignEventsTo(Faction faction)
+    {
+        if (!faction.StillPresent)
+            return;
+
+        _factionsToAssignEventsTo.Add(faction);
     }
 
     /// <summary>
@@ -1963,6 +2088,17 @@ public class World : ISynchronizable, IWorldDateGetter
     public void AddFactionToRemove(Faction faction)
     {
         _factionsToRemove.Add(faction);
+    }
+
+    public IEnumerable<Polity> GetActivePolities()
+    {
+        foreach (var polityInfo in _polityInfos.Values)
+        {
+            if (polityInfo.Polity != null)
+            {
+                yield return polityInfo.Polity;
+            }
+        }
     }
 
     public void AddPolityInfo(Polity polity)

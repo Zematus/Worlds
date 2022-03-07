@@ -7,16 +7,14 @@ public class SplitPolityAttribute : EffectEntityAttribute
 {
     private PolityEntity _polityEntity;
 
-    private readonly IValueExpression<string> _newPolityTypeExp;
     private readonly IValueExpression<IEntity> _splittingFactionExp;
 
     public SplitPolityAttribute(PolityEntity polityEntity, IExpression[] arguments)
-        : base(PolityEntity.SplitAttributeId, polityEntity, arguments, 2)
+        : base(PolityEntity.SplitAttributeId, polityEntity, arguments, 1)
     {
         _polityEntity = polityEntity;
 
-        _newPolityTypeExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
-        _splittingFactionExp = ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[1]);
+        _splittingFactionExp = ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
     }
 
     public override void Apply(IEffectTrigger trigger)
@@ -28,21 +26,9 @@ public class SplitPolityAttribute : EffectEntityAttribute
             throw new System.ArgumentException(
                 "split: invalid splitting faction: " +
                 "\n - expression: " + ToString() +
-                "\n - new polity type: " + _newPolityTypeExp.ToPartiallyEvaluatedString() +
                 "\n - splitting faction: " + _splittingFactionExp.ToPartiallyEvaluatedString());
         }
 
-        string typeValue = _newPolityTypeExp.Value;
-
-        if (!Polity.ValidateType(typeValue))
-        {
-            throw new System.ArgumentException(
-                "split: invalid polity type: " +
-                "\n - expression: " + ToString() +
-                "\n - new polity type: " + _newPolityTypeExp.ToPartiallyEvaluatedString() +
-                "\n - splitting faction: " + _splittingFactionExp.ToPartiallyEvaluatedString());
-        }
-
-        _polityEntity.Polity.Split(typeValue, factionEntity.Faction);
+        _polityEntity.Polity.Split(Tribe.PolityTypeStr, factionEntity.Faction);
     }
 }

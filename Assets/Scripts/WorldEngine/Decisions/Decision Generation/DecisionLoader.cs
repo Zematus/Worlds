@@ -22,6 +22,7 @@ public class DecisionLoader
         {
             public string id;
             public string type;
+            public string defaultValue;
         }
 
         [Serializable]
@@ -55,6 +56,7 @@ public class DecisionLoader
         public LoadedParameter[] parameters;
         public LoadedOptionalDescription[] description;
         public LoadedOption[] options;
+        public bool debugPlayerGuidance;
     }
 
 #pragma warning restore 0649
@@ -230,40 +232,96 @@ public class DecisionLoader
 
     private static Entity CreateParameterEntity(Context c, LoadedDecision.LoadedParameter p)
     {
+        string dvExceptionMsg = $"'defaultValue' not supported for type: {p.type}";
+
         switch (p.type)
         {
             case "group":
-                return new GroupEntity(c, p.id);
+                if (p.defaultValue != null) 
+                    throw new Exception(dvExceptionMsg);
+
+                return new GroupEntity(c, p.id, null);
+
+            case "group_collection":
+                if (p.defaultValue != null)
+                    throw new Exception(dvExceptionMsg);
+
+                return new GroupCollectionEntity(c, p.id, null);
 
             case "faction":
-                return new FactionEntity(c, p.id);
+                if (p.defaultValue != null)
+                    throw new Exception(dvExceptionMsg);
+
+                return new FactionEntity(c, p.id, null);
 
             case "polity":
-                return new PolityEntity(c, p.id);
+                if (p.defaultValue != null)
+                    throw new Exception(dvExceptionMsg);
+
+                return new PolityEntity(c, p.id, null);
 
             case "cell":
-                return new CellEntity(c, p.id);
+                if (p.defaultValue != null)
+                    throw new Exception(dvExceptionMsg);
+
+                return new CellEntity(c, p.id, null);
 
             case "agent":
-                return new AgentEntity(c, p.id);
+                if (p.defaultValue != null)
+                    throw new Exception(dvExceptionMsg);
+
+                return new AgentEntity(c, p.id, null);
 
             case "region":
-                return new RegionEntity(c, p.id);
+                if (p.defaultValue != null)
+                    throw new Exception(dvExceptionMsg);
+
+                return new RegionEntity(c, p.id, null);
 
             case "string":
-                return new ValueEntity<string>(c, p.id);
+                if (p.defaultValue != null)
+                {
+                    return new ValueEntity<string>(c, p.id, null, p.defaultValue);
+                }
+
+                return new ValueEntity<string>(c, p.id, null);
 
             case "text":
-                return new ValueEntity<string>(c, p.id);
+                if (p.defaultValue != null)
+                {
+                    return new ValueEntity<string>(c, p.id, null, p.defaultValue);
+                }
+
+                return new ValueEntity<string>(c, p.id, null);
 
             case "number":
-                return new ValueEntity<float>(c, p.id);
+                if (p.defaultValue != null)
+                {
+                    if (!MathUtility.TryParseCultureInvariant(p.defaultValue, out float defaultValue))
+                    {
+                        throw new Exception($"Unable to parse 'defaultValue' as a valid number: {p.defaultValue}");
+                    }
+
+                    return new ValueEntity<float>(c, p.id, null, defaultValue);
+                }
+
+                return new ValueEntity<float>(c, p.id, null);
 
             case "boolean":
-                return new ValueEntity<bool>(c, p.id);
+                if (p.defaultValue != null)
+                {
+                    if (!bool.TryParse(p.defaultValue, out bool defaultValue))
+                    {
+                        throw new Exception($"Unable to parse 'defaultValue' as a valid boolean value: {p.defaultValue}");
+                    }
+
+                    return new ValueEntity<bool>(c, p.id, null, defaultValue);
+                }
+
+                return new ValueEntity<bool>(c, p.id, null);
 
             default:
-                throw new Exception("Unhandled parameter type: " + p.type);
+                throw new Exception($"Unhandled parameter type: {p.type}");
         }
     }
 
@@ -341,6 +399,7 @@ public class DecisionLoader
         decision.Name = d.name;
         decision.DescriptionSegments = segments;
         decision.Options = options;
+        decision.DebugPlayerGuidance = d.debugPlayerGuidance;
 
         return decision;
     }

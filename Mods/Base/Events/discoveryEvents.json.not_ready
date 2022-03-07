@@ -1,0 +1,28 @@
+{
+  "events": [
+    {
+      "id": "boat_making_discovery",
+      "name": "boat making discovery",
+      "target": "group",
+      "assignOn": ["spawn"],
+      "properties": [
+        { "id": "target_cell", "value": "target.cell" },
+        { "id": "cell_water_presence", "value": "target_cell.biome_type_presence(water)" },
+        { "id": "neighborhood_water_presence", "value": "target_cell.neighbors.sum<n>(n.biome_type_presence(water))" },
+        { "id": "area_water_presence", "value": "(cell_water_presence + neighborhood_water_presence) / 9" },
+        { "id": "cell_wood_presence", "value": "target_cell.biome_trait_presence(wood)" }
+      ],
+      "assignmentConditions": [
+        "!target.knowledges.contains(shipbuilding)",
+        "cell_wood_presence > 0.3",
+        "cell_water_presence > 0",
+        "neighborhood_water_presence > 0"
+      ],
+      "timeToTrigger": "9125 + random(456250000 * (1 - area_water_presence) * (1 - cell_wood_presence))",
+      "effects": [
+        "target.add_discovery(boat_making)"
+      ],
+      "repeatable": true
+    }
+  ]
+}

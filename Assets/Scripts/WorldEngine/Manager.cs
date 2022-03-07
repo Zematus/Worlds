@@ -44,11 +44,15 @@ public enum PlanetOverlay
     FactionCoreDistance,
     PolityProminence,
     PolityContacts,
+    PolityCoreRegions,
     PolityCulturalPreference,
     PolityCulturalActivity,
     PolityCulturalSkill,
     PolityCulturalKnowledge,
     PolityCulturalDiscovery,
+    PolityAdminCost,
+    PolitySelection,
+    FactionSelection,
     Temperature,
     Rainfall,
     DrainageBasins,
@@ -59,11 +63,15 @@ public enum PlanetOverlay
     Layer,
     Region,
     RegionSelection,
+    CellSelection,
     Language,
     PopChange,
+    MigrationPressure,
+    PolityMigrationPressure,
     UpdateSpan,
     Migration,
-    PolityCluster
+    PolityCluster,
+    ClusterAdminCost
 }
 
 public enum OverlayColorId
@@ -122,11 +130,6 @@ public class Manager
 
     public static RegisterDebugEventDelegate RegisterDebugEvent = null;
 
-    //AutoSave variable and function
-    public static AutoSaveMode AutoSaveMode = AutoSaveMode.Deactivate;
-    public static float RealWorldAutoSaveInterval = 600f; //600f = every 10 minutes
-    public static long AutoSaveInterval = 365000000; //365000000 = every one millon year
-
     public class Debug_TracingData
     {
         public Identifier GroupId;
@@ -149,7 +152,8 @@ public class Manager
 
     //	public static IRecorder Recorder = DefaultRecorder.Default;
 
-    public const string NoOverlaySubtype = "None";
+    public const string NoOverlaySubtype = "none";
+    public const string GroupProminenceOverlaySubtype = "prominence";
 
     public const int WorldWidth = 400;
     public const int WorldHeight = 200;
@@ -169,6 +173,11 @@ public class Manager
 
     public const int MaxEditorBrushRadius = 25;
     public const int MinEditorBrushRadius = 1;
+
+    //AutoSave variable and function
+    public static AutoSaveMode AutoSaveMode = AutoSaveMode.Deactivate;
+    public static float RealWorldAutoSaveInterval = 600f; //600f = every 10 minutes
+    public static long AutoSaveInterval = 365000000; //365000000 = every one millon year
 
     public static bool LayersPresent = false;
 
@@ -258,9 +267,9 @@ public class Manager
 #if DEBUG
     public static bool Debug_PauseSimRequested = false;
     public static bool Debug_BreakRequested = false;
-    public static Identifier Debug_IdentifierOfInterest;
-    public static Identifier Debug_IdentifierOfInterest2;
-    public static Identifier Debug_IdentifierOfInterest3;
+    public static Identifier Debug_IdentifierOfInterest = "147918939:7115485649982034428";
+    public static Identifier Debug_IdentifierOfInterest2 = "97371564:7301682472976039088";
+    public static Identifier Debug_IdentifierOfInterest3 = "111147064:7417435791841258610";
     public static Identifier Debug_IdentifierOfInterest4;
 
     public static bool Debug_Flag1 = false;
@@ -271,6 +280,9 @@ public class Manager
     public static bool SimulationRunning { get; private set; }
     public static bool WorldIsReady { get; private set; }
 
+    public static long CurrentMaxUpdateSpan = 0;
+    public static float CurrentMaxAdminCost = 0;
+
     private static bool _isLoadReady = false;
 
     private static string _debugLogFilename = "debug";
@@ -278,7 +290,7 @@ public class Manager
     private static StreamWriter _debugLogStream = null;
     private static bool _backupDebugLog = false;
 
-    private static HashSet<TerrainCell> _lastUpdatedCells;
+    private static HashSet<TerrainCell> _lastUpdatedCells = new HashSet<TerrainCell>();
 
     private static int _resolutionWidthWindowed = 1600;
     private static int _resolutionHeightWindowed = 900;
@@ -292,17 +304,17 @@ public class Manager
 
     private static PlanetView _planetView = PlanetView.Biomes;
     private static PlanetOverlay _planetOverlay = PlanetOverlay.None;
-    private static string _planetOverlaySubtype = "None";
+    private static string _planetOverlaySubtype = NoOverlaySubtype;
 
     private static HighlightMode _highlightMode = HighlightMode.None;
 
-    private delegate bool FilterCollectionDelegate(ICellCollectionGetter getter);
+    private delegate bool FilterCollectionDelegate(ICellSet getter);
 
     private static FilterCollectionDelegate _filterHighlightCollection = null;
 
-    private static List<Color> _biomePalette = new List<Color>();
-    private static List<Color> _mapPalette = new List<Color>();
-    private static List<Color> _overlayPalette = new List<Color>();
+    private static readonly List<Color> _biomePalette = new List<Color>();
+    private static readonly List<Color> _mapPalette = new List<Color>();
+    private static readonly List<Color> _overlayPalette = new List<Color>();
 
     private static int _totalLoadTicks = 0;
     private static int _loadTicks = 0;
@@ -349,8 +361,6 @@ public class Manager
 
     private float?[,] _currentCellSlants;
 
-    private long _currentMaxUpdateSpan = 0;
-
     private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 
     public XmlAttributeOverrides AttributeOverrides { get; private set; }
@@ -394,8 +404,6 @@ public class Manager
         HighlightedCells = new HashSet<TerrainCell>();
         UpdatedCells = new HashSet<TerrainCell>();
         TerrainUpdatedCells = new HashSet<TerrainCell>();
-
-        _lastUpdatedCells = new HashSet<TerrainCell>();
 
         /// static initalizations
 
@@ -672,7 +680,7 @@ public class Manager
 
         if (CurrentWorld != null)
         {
-            worldInfoStr += "[Date: " + GetDateString(CurrentWorld.CurrentDate) + "] - ";
+            worldInfoStr += $"[Date: {CurrentWorld.CurrentDate}] - ";
         }
 
         logString = logString.Replace("\n", "\n\t");
@@ -950,9 +958,9 @@ public class Manager
         }
     }
 
-    public static Vector2 GetUVFromMapCoordinates(WorldPosition mapPosition)
+    public static Vector2 GetUVFromMapCoordinates(Vector2 mapPosition)
     {
-        return new Vector2(mapPosition.Longitude / (float)CurrentWorld.Width, mapPosition.Latitude / (float)CurrentWorld.Height);
+        return new Vector2(mapPosition.x / CurrentWorld.Width, mapPosition.y / CurrentWorld.Height);
     }
 
     /// <summary>Generates a texture based on the current map and overlay and exports it to an image file.</summary>
@@ -1164,9 +1172,8 @@ public class Manager
     /// Adds a cell that has just been selected to the list of cells to highlight on the map
     /// </summary>
     /// <param name="cell">the selected cell</param>
-    /// <param name="updateType">the type of update on which to highlight the cell</param>
     private static void AddSelectedCellToHighlight(
-        TerrainCell cell, CellUpdateType updateType)
+        TerrainCell cell)
     {
         if ((_highlightMode & HighlightMode.OnSelectedCell) == HighlightMode.OnSelectedCell)
         {
@@ -1181,9 +1188,8 @@ public class Manager
     /// Adds a cell that has just been hovered to the list of cells to highlight on the map
     /// </summary>
     /// <param name="cell">the hovered cell</param>
-    /// <param name="updateType">the type of update on which to highlight the cell</param>
     private static void AddHoveredCellToHighlight(
-        TerrainCell cell, CellUpdateType updateType)
+        TerrainCell cell)
     {
         if ((_highlightMode & HighlightMode.OnHoveredCell) == HighlightMode.OnHoveredCell)
         {
@@ -1199,9 +1205,8 @@ public class Manager
     /// highlight on the map
     /// </summary>
     /// <param name="cellsGetter">the cell collection getter</param>
-    /// <param name="updateType">the type of update on which to highlight the cells</param>
     private static void AddSelectedCellsToHighlight(
-        ICellCollectionGetter cellsGetter, CellUpdateType updateType)
+        ICellSet cellsGetter)
     {
         if ((_highlightMode & HighlightMode.OnSelectedCollection) != HighlightMode.OnSelectedCollection)
             return;
@@ -1224,9 +1229,8 @@ public class Manager
     /// highlight on the map
     /// </summary>
     /// <param name="cellsGetter">the cell collection getter</param>
-    /// <param name="updateType">the type of update on which to highlight the cells</param>
     private static void AddHoveredCellsToHighlight(
-        ICellCollectionGetter cellsGetter, CellUpdateType updateType)
+        ICellSet cellsGetter)
     {
         if ((_highlightMode & HighlightMode.OnHoveredCollection) != HighlightMode.OnHoveredCollection)
             return;
@@ -1322,7 +1326,9 @@ public class Manager
 
         _manager._currentWorld = world;
         _manager._currentCellSlants = new float?[world.Width, world.Height];
-        _manager._currentMaxUpdateSpan = 0;
+
+        CurrentMaxUpdateSpan = 0;
+        CurrentMaxAdminCost = 0;
 
         WorldIsReady = true;
 
@@ -1387,7 +1393,9 @@ public class Manager
         world.FinishInitialization();
 
         _manager._currentCellSlants = new float?[world.Width, world.Height];
-        _manager._currentMaxUpdateSpan = 0;
+
+        CurrentMaxUpdateSpan = 0;
+        CurrentMaxAdminCost = 0;
 
         WorldIsReady = true;
 
@@ -1581,7 +1589,9 @@ public class Manager
 
         _manager._currentWorld = world;
         _manager._currentCellSlants = new float?[world.Width, world.Height];
-        _manager._currentMaxUpdateSpan = 0;
+
+        CurrentMaxUpdateSpan = 0;
+        CurrentMaxAdminCost = 0;
 
         WorldBeingLoaded = null;
 
@@ -1661,7 +1671,7 @@ public class Manager
         _progressCastMethod?.Invoke(Mathf.Min(1, value));
     }
 
-    private static void SetObservableUpdateTypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
+    private static void SetObservableUpdateTypes(PlanetOverlay overlay, string planetOverlaySubtype = NoOverlaySubtype)
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
@@ -1672,7 +1682,8 @@ public class Manager
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.DrainageBasins) ||
             (overlay == PlanetOverlay.Temperature) ||
-            (overlay == PlanetOverlay.FarmlandDistribution))
+            (overlay == PlanetOverlay.FarmlandDistribution) ||
+            (overlay == PlanetOverlay.CellSelection))
         {
             _observableUpdateTypes = CellUpdateType.Cell;
         }
@@ -1682,7 +1693,8 @@ public class Manager
         {
             _observableUpdateTypes = CellUpdateType.Region;
         }
-        else if (overlay == PlanetOverlay.PolityCluster)
+        else if ((overlay == PlanetOverlay.PolityCluster) ||
+            (overlay == PlanetOverlay.ClusterAdminCost))
         {
             _observableUpdateTypes = CellUpdateType.Cluster;
         }
@@ -1692,11 +1704,15 @@ public class Manager
         }
         else if ((overlay == PlanetOverlay.PolityTerritory) ||
             (overlay == PlanetOverlay.PolityContacts) ||
+            (overlay == PlanetOverlay.PolityCoreRegions) ||
             (overlay == PlanetOverlay.PolityCulturalPreference) ||
             (overlay == PlanetOverlay.PolityCulturalActivity) ||
             (overlay == PlanetOverlay.PolityCulturalDiscovery) ||
             (overlay == PlanetOverlay.PolityCulturalKnowledge) ||
-            (overlay == PlanetOverlay.PolityCulturalSkill))
+            (overlay == PlanetOverlay.PolityCulturalSkill) ||
+            (overlay == PlanetOverlay.PolityAdminCost) ||
+            (overlay == PlanetOverlay.PolitySelection) ||
+            (overlay == PlanetOverlay.FactionSelection))
         {
             _observableUpdateTypes = CellUpdateType.Territory;
         }
@@ -1710,7 +1726,7 @@ public class Manager
         }
     }
 
-    private static void SetObservableUpdateSubtypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
+    private static void SetObservableUpdateSubtypes(PlanetOverlay overlay, string planetOverlaySubtype = NoOverlaySubtype)
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
@@ -1727,6 +1743,7 @@ public class Manager
         }
         else if (
             (overlay == PlanetOverlay.Region) ||
+            (overlay == PlanetOverlay.PolityCoreRegions) ||
             (overlay == PlanetOverlay.RegionSelection) ||
             (overlay == PlanetOverlay.PolityCluster) ||
             (overlay == PlanetOverlay.Language))
@@ -1741,7 +1758,9 @@ public class Manager
         {
             _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.CoreDistance;
         }
-        else if (overlay == PlanetOverlay.PolityContacts)
+        else if (
+            (overlay == PlanetOverlay.PolityContacts) ||
+            (overlay == PlanetOverlay.PolitySelection))
         {
             _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.Relationship;
         }
@@ -1763,10 +1782,32 @@ public class Manager
         }
     }
 
-    private static bool FilterSelectableRegion(ICellCollectionGetter getter)
+    private static bool FilterSelectableRegion(ICellSet getter)
     {
         if ((getter is Region region) &&
-            (region.AssignedFilterType == Region.FilterType.Selectable))
+            (region.SelectionFilterType == Region.FilterType.Selectable))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool FilterSelectableTerritory(ICellSet getter)
+    {
+        if ((getter is Territory territory) &&
+            (territory.SelectionFilterType == Territory.FilterType.Selectable))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool FilterSelectableFaction(ICellSet getter)
+    {
+        if ((getter is Faction faction) &&
+            (faction.SelectionFilterType == Faction.FilterType.Selectable))
         {
             return true;
         }
@@ -1783,7 +1824,22 @@ public class Manager
             _highlightMode = HighlightMode.OnHoveredCollection;
             _filterHighlightCollection = FilterSelectableRegion;
         }
-        else if (overlay == PlanetOverlay.PolityContacts)
+        else if (overlay == PlanetOverlay.PolitySelection)
+        {
+            _highlightMode = HighlightMode.OnHoveredCollection;
+            _filterHighlightCollection = FilterSelectableTerritory;
+        }
+        else if (overlay == PlanetOverlay.FactionSelection)
+        {
+            _highlightMode = HighlightMode.OnHoveredCollection;
+            _filterHighlightCollection = FilterSelectableFaction;
+        }
+        else if (overlay == PlanetOverlay.CellSelection)
+        {
+            _highlightMode = HighlightMode.OnHoveredCell;
+        }
+        else if ((overlay == PlanetOverlay.PolityContacts) ||
+            (overlay == PlanetOverlay.PolityCoreRegions))
         {
             _highlightMode = HighlightMode.OnSelectedCell;
         }
@@ -1793,12 +1849,53 @@ public class Manager
         }
     }
 
+    public static void AddedCoreRegion(Polity polity, Region region)
+    {
+        if ((_planetOverlay == PlanetOverlay.PolityCoreRegions) &&
+            (CurrentWorld.SelectedTerritory == polity.Territory))
+        {
+            UpdatedCells.UnionWith(region.GetCells());
+            region.SelectionFilterType = Region.FilterType.Core;
+        }
+    }
+
+    public static void RemovedCoreRegion(Polity polity, Region region)
+    {
+        if ((_planetOverlay == PlanetOverlay.PolityCoreRegions) &&
+            (CurrentWorld.SelectedTerritory == polity.Territory))
+        {
+            UpdatedCells.UnionWith(region.GetCells());
+            region.SelectionFilterType = Region.FilterType.None;
+        }
+    }
+
     public static void SetPlanetOverlay(PlanetOverlay overlay, string planetOverlaySubtype = "None")
     {
         SetOverlayHighlightMode(overlay);
 
         SetObservableUpdateTypes(overlay, planetOverlaySubtype);
         SetObservableUpdateSubtypes(overlay, planetOverlaySubtype);
+
+        if (overlay != _planetOverlay)
+        {
+            if (CurrentWorld.SelectedTerritory != null)
+            {
+                if (_planetOverlay == PlanetOverlay.PolityCoreRegions)
+                {
+                    foreach (Region region in CurrentWorld.SelectedTerritory.Polity.CoreRegions)
+                    {
+                        region.SelectionFilterType = Region.FilterType.None;
+                    }
+                }
+                else if (overlay == PlanetOverlay.PolityCoreRegions)
+                {
+                    foreach (Region region in CurrentWorld.SelectedTerritory.Polity.CoreRegions)
+                    {
+                        region.SelectionFilterType = Region.FilterType.Core;
+                    }
+                }
+            }
+        }
 
         _planetOverlay = overlay;
         _planetOverlaySubtype = planetOverlaySubtype;
@@ -1838,7 +1935,7 @@ public class Manager
     {
         if (CurrentWorld.SelectedRegion != null)
         {
-            AddSelectedCellsToHighlight(CurrentWorld.SelectedRegion, CellUpdateType.Region);
+            AddSelectedCellsToHighlight(CurrentWorld.SelectedRegion);
 
             CurrentWorld.SelectedRegion.IsSelected = false;
             CurrentWorld.SelectedRegion = null;
@@ -1849,7 +1946,7 @@ public class Manager
             CurrentWorld.SelectedRegion = region;
             region.IsSelected = true;
 
-            AddSelectedCellsToHighlight(region, CellUpdateType.Region);
+            AddSelectedCellsToHighlight(region);
         }
     }
 
@@ -1857,7 +1954,7 @@ public class Manager
     {
         if (CurrentWorld.HoveredRegion != null)
         {
-            AddHoveredCellsToHighlight(CurrentWorld.HoveredRegion, CellUpdateType.Region);
+            AddHoveredCellsToHighlight(CurrentWorld.HoveredRegion);
 
             CurrentWorld.HoveredRegion.IsHovered = false;
             CurrentWorld.HoveredRegion = null;
@@ -1868,7 +1965,32 @@ public class Manager
             CurrentWorld.HoveredRegion = region;
             region.IsHovered = true;
 
-            AddHoveredCellsToHighlight(region, CellUpdateType.Region);
+            AddHoveredCellsToHighlight(region);
+        }
+    }
+
+    private static void SetSelectedTerritory_HandleUpdate(Territory territory, Region.FilterType type)
+    {
+        if (_planetOverlay == PlanetOverlay.PolityContacts)
+        {
+            // Add to updated cells to make sure that it gets displayed correctly
+            UpdatedCells.UnionWith(territory.GetCells());
+
+            foreach (PolityContact contact in territory.Polity.GetContacts())
+            {
+                UpdatedCells.UnionWith(contact.NeighborPolity.Territory.GetCells());
+            }
+        }
+        else if (_planetOverlay == PlanetOverlay.PolityCoreRegions)
+        {
+            // Add to updated cells to make sure that it gets displayed correctly
+            UpdatedCells.UnionWith(territory.GetCells());
+
+            foreach (Region region in territory.Polity.CoreRegions)
+            {
+                UpdatedCells.UnionWith(region.GetCells());
+                region.SelectionFilterType = type;
+            }
         }
     }
 
@@ -1876,18 +1998,9 @@ public class Manager
     {
         if (CurrentWorld.SelectedTerritory != null)
         {
-            AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory, CellUpdateType.Territory);
+            AddSelectedCellsToHighlight(CurrentWorld.SelectedTerritory);
 
-            if (_planetOverlay == PlanetOverlay.PolityContacts)
-            {
-                // Add to updated cells to make sure that it gets displayed correctly
-                UpdatedCells.UnionWith(CurrentWorld.SelectedTerritory.GetCells());
-
-                foreach (PolityContact contact in CurrentWorld.SelectedTerritory.Polity.GetContacts())
-                {
-                    UpdatedCells.UnionWith(contact.NeighborPolity.Territory.GetCells());
-                }
-            }
+            SetSelectedTerritory_HandleUpdate(CurrentWorld.SelectedTerritory, Region.FilterType.None);
 
             CurrentWorld.SelectedTerritory.IsSelected = false;
             CurrentWorld.SelectedTerritory = null;
@@ -1898,17 +2011,17 @@ public class Manager
             CurrentWorld.SelectedTerritory = territory;
             territory.IsSelected = true;
 
-            AddSelectedCellsToHighlight(territory, CellUpdateType.Territory);
+            AddSelectedCellsToHighlight(territory);
 
-            if (_planetOverlay == PlanetOverlay.PolityContacts)
+            SetSelectedTerritory_HandleUpdate(territory, Region.FilterType.Core);
+        }
+
+        if ((_planetOverlay == PlanetOverlay.PolityCluster) ||
+            (_planetOverlay == PlanetOverlay.ClusterAdminCost))
+        {
+            foreach (var polity in CurrentWorld.GetActivePolities())
             {
-                // Add to updated cells to make sure that it gets displayed correctly
-                UpdatedCells.UnionWith(territory.GetCells());
-
-                foreach (PolityContact contact in territory.Polity.GetContacts())
-                {
-                    UpdatedCells.UnionWith(contact.NeighborPolity.Territory.GetCells());
-                }
+                AddSelectedCellsToHighlight(polity.Territory);
             }
         }
     }
@@ -1917,7 +2030,7 @@ public class Manager
     {
         if (CurrentWorld.HoveredTerritory != null)
         {
-            AddHoveredCellsToHighlight(CurrentWorld.HoveredTerritory, CellUpdateType.Territory);
+            AddHoveredCellsToHighlight(CurrentWorld.HoveredTerritory);
 
             CurrentWorld.HoveredTerritory.IsHovered = false;
             CurrentWorld.HoveredTerritory = null;
@@ -1928,7 +2041,26 @@ public class Manager
             CurrentWorld.HoveredTerritory = territory;
             territory.IsHovered = true;
 
-            AddHoveredCellsToHighlight(territory, CellUpdateType.Territory);
+            AddHoveredCellsToHighlight(territory);
+        }
+    }
+
+    public static void SetHoveredFaction(Faction faction)
+    {
+        if (CurrentWorld.HoveredFaction != null)
+        {
+            AddHoveredCellsToHighlight(CurrentWorld.HoveredFaction);
+
+            CurrentWorld.HoveredFaction.IsHovered = false;
+            CurrentWorld.HoveredFaction = null;
+        }
+
+        if (faction != null)
+        {
+            CurrentWorld.HoveredFaction = faction;
+            faction.IsHovered = true;
+
+            AddHoveredCellsToHighlight(faction);
         }
     }
 
@@ -1936,7 +2068,7 @@ public class Manager
     {
         if (CurrentWorld.SelectedCell != null)
         {
-            AddSelectedCellToHighlight(CurrentWorld.SelectedCell, CellUpdateType.All);
+            AddSelectedCellToHighlight(CurrentWorld.SelectedCell);
 
             CurrentWorld.SelectedCell.IsSelected = false;
             CurrentWorld.SelectedCell = null;
@@ -1948,7 +2080,7 @@ public class Manager
         CurrentWorld.SelectedCell = cell;
         cell.IsSelected = true;
 
-        AddSelectedCellToHighlight(cell, CellUpdateType.All);
+        AddSelectedCellToHighlight(cell);
 
         SetSelectedRegion(cell.Region);
         SetSelectedTerritory(cell.EncompassingTerritory);
@@ -1958,7 +2090,7 @@ public class Manager
     {
         if (CurrentWorld.HoveredCell != null)
         {
-            AddHoveredCellToHighlight(CurrentWorld.HoveredCell, CellUpdateType.All);
+            AddHoveredCellToHighlight(CurrentWorld.HoveredCell);
 
             CurrentWorld.HoveredCell.IsHovered = false;
             CurrentWorld.HoveredCell = null;
@@ -1966,20 +2098,23 @@ public class Manager
 
         Region region = null;
         Territory territory = null;
+        Faction faction = null;
 
         if (cell != null)
         {
             CurrentWorld.HoveredCell = cell;
             cell.IsHovered = true;
 
-            AddHoveredCellToHighlight(cell, CellUpdateType.All);
+            AddHoveredCellToHighlight(cell);
 
             region = cell.Region;
             territory = cell.EncompassingTerritory;
+            faction = cell.GetMostProminentClosestFaction();
         }
 
         SetHoveredRegion(region);
         SetHoveredTerritory(territory);
+        SetHoveredFaction(faction);
     }
 
     public static void SetFocusOnPolity(Polity polity)
@@ -2588,11 +2723,23 @@ public class Manager
                 return true;
             }
 
-            if (((_highlightMode & HighlightMode.OnHoveredCollection) ==
+            if (((_highlightMode & HighlightMode.OnHoveredCollection) == 
                 HighlightMode.OnHoveredCollection) && cell.EncompassingTerritory.IsHovered &&
                 (_filterHighlightCollection?.Invoke(cell.EncompassingTerritory) ?? true))
             {
                 return true;
+            }
+
+            var faction = cell.GetClosestFaction(cell.EncompassingTerritory.Polity);
+
+            if (faction != null)
+            {
+                if (((_highlightMode & HighlightMode.OnHoveredCollection) ==
+                    HighlightMode.OnHoveredCollection) && faction.IsHovered &&
+                    (_filterHighlightCollection?.Invoke(faction) ?? true))
+                {
+                    return true;
+                }
             }
         }
 
@@ -2998,6 +3145,8 @@ public class Manager
         return value;
     }
 
+    public static bool ResolvingPlayerInvolvedDecisionChain { get; set; }
+
     private static bool IsCoastWater(TerrainCell cell)
     {
         if (cell.WaterBiomePresence < 0.5f)
@@ -3098,8 +3247,16 @@ public class Manager
                 color = SetPolityTerritoryOverlayColor(cell, color);
                 break;
 
+            case PlanetOverlay.PolityAdminCost:
+                color = SetPolityAdminCostOverlayColor(cell, color);
+                break;
+
             case PlanetOverlay.PolityCluster:
                 color = SetPolityClusterOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.ClusterAdminCost:
+                color = SetClusterAdminCostOverlayColor(cell, color);
                 break;
 
             case PlanetOverlay.FactionCoreDistance:
@@ -3112,6 +3269,10 @@ public class Manager
 
             case PlanetOverlay.PolityContacts:
                 color = SetPolityContactsOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.PolityCoreRegions:
+                color = SetPolityCoreRegionsOverlayColor(cell, color);
                 break;
 
             case PlanetOverlay.PolityCulturalPreference:
@@ -3132,6 +3293,10 @@ public class Manager
 
             case PlanetOverlay.PolityCulturalDiscovery:
                 color = SetPolityCulturalDiscoveryOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.PolitySelection:
+                color = SetPolitySelectionOverlayColor(cell, color);
                 break;
 
             case PlanetOverlay.Temperature:
@@ -3174,12 +3339,32 @@ public class Manager
                 color = SetRegionSelectionOverlayColor(cell, color);
                 break;
 
+            case PlanetOverlay.FactionSelection:
+                color = SetFactionSelectionOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.CellSelection:
+                if (_planetOverlaySubtype == GroupProminenceOverlaySubtype)
+                    color = SetGroupSelectionByProminenceOverlayColor(cell, color);
+                else
+                    throw new System.Exception(
+                        $"Unsupported Planet Overlay Subtype: {_planetOverlaySubtype}");
+                break;
+
             case PlanetOverlay.Language:
                 color = SetLanguageOverlayColor(cell, color);
                 break;
 
             case PlanetOverlay.PopChange:
                 color = SetPopulationChangeOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.MigrationPressure:
+                color = SetMigrationPressureOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.PolityMigrationPressure:
+                color = SetPolityMigrationPressureOverlayColor(cell, color);
                 break;
 
             case PlanetOverlay.UpdateSpan:
@@ -3191,7 +3376,8 @@ public class Manager
                 break;
 
             default:
-                throw new System.Exception("Unsupported Planet Overlay Type");
+                throw new System.Exception(
+                    $"Unsupported Planet Overlay Type: {_planetOverlay}");
         }
 
         return color;
@@ -3206,34 +3392,41 @@ public class Manager
     {
         if (_displayRoutes && cell.HasCrossingRoutes)
         {
-            float maxRouteChance = float.MinValue;
+            float maxRouteChance = 0;
+
+            bool hasUsedRoute = false;
 
             foreach (Route route in cell.CrossingRoutes)
             {
-                if (route.Used)
+                CellGroup travelGroup = route.FirstCell.Group;
+
+                if (travelGroup != null)
                 {
-                    CellGroup travelGroup = route.FirstCell.Group;
+                    float travelFactor = travelGroup.SeaTravelFactor;
 
-                    if (travelGroup != null)
-                    {
-                        float travelFactor = travelGroup.SeaTravelFactor;
+                    float routeLength = route.Length;
+                    float routeLengthFactor = Mathf.Pow(routeLength, 2);
 
-                        float routeLength = route.Length;
-                        float routeLengthFactor = Mathf.Pow(routeLength, 2);
+                    float successChance = travelFactor / (travelFactor + routeLengthFactor);
 
-                        float successChance = travelFactor / (travelFactor + routeLengthFactor);
-
-                        maxRouteChance = Mathf.Max(maxRouteChance, successChance);
-                    }
+                    maxRouteChance = Mathf.Max(maxRouteChance, successChance);
                 }
+
+                hasUsedRoute |= route.Used;
             }
 
             if (maxRouteChance > 0)
             {
                 float alpha = MathUtility.ToPseudoLogaritmicScale01(maxRouteChance, 1f);
 
-                Color color = GetOverlayColor(OverlayColorId.ActiveRoute);
-                color.a = alpha;
+                Color color = GetOverlayColor(OverlayColorId.InactiveRoute);
+                color.a = alpha * 0.5f;
+
+                if (hasUsedRoute)
+                {
+                    color = GetOverlayColor(OverlayColorId.ActiveRoute);
+                    color.a = alpha;
+                }
 
                 return color;
             }
@@ -3417,17 +3610,10 @@ public class Manager
             throw new System.Exception("Can't generate overlay without an active guided faction");
         }
 
-        var request = CurrentInputRequest as RegionSelectionRequest;
-
-        if (request == null)
-        {
-            throw new System.Exception("Can't generate overlay without an region selection request");
-        }
-
         Region region = cell.Region;
 
         if ((region != null) &&
-            (region.AssignedFilterType != Region.FilterType.None))
+            (region.SelectionFilterType != Region.FilterType.None))
         {
             Color regionColor = GenerateColorFromId(region.Id);
 
@@ -3436,11 +3622,11 @@ public class Manager
 
             bool isRegionBorder = IsRegionBorder(region, cell);
 
-            if (region.AssignedFilterType == Region.FilterType.Core)
+            if (region.SelectionFilterType == Region.FilterType.Core)
             {
                 regionColor = (0.4f * regionColor) + 0.6f * Color.blue;
             }
-            else if (region.AssignedFilterType == Region.FilterType.Selectable)
+            else if (region.SelectionFilterType == Region.FilterType.Selectable)
             {
                 regionColor = (0.4f * regionColor) + 0.6f * Color.cyan;
             }
@@ -3453,6 +3639,122 @@ public class Manager
             regionColor.a = 0.5f;
 
             color = regionColor;
+        }
+
+        return color;
+    }
+
+    private static Color SetPolitySelectionOverlayColor(TerrainCell cell, Color color)
+    {
+        var territory = cell.EncompassingTerritory;
+
+        if ((territory != null) &&
+            (territory.SelectionFilterType != Territory.FilterType.None))
+        {
+            Color polityColor = GenerateColorFromId(territory.Polity.Id);
+
+            bool isTerritoryBorder = IsTerritoryBorder(territory, cell);
+
+            if (territory.SelectionFilterType == Territory.FilterType.Core)
+            {
+                polityColor = (0.2f * polityColor) + 0.8f * Color.blue;
+            }
+            else if (territory.SelectionFilterType == Territory.FilterType.Selectable)
+            {
+                polityColor = (0.2f * polityColor) + 0.8f * Color.cyan;
+            }
+
+            if (!isTerritoryBorder)
+            {
+                polityColor /= 1.5f;
+            }
+
+            polityColor.a = 0.5f;
+
+            color = polityColor;
+        }
+
+        return color;
+    }
+
+    private static Color SetFactionSelectionOverlayColor(TerrainCell cell, Color color)
+    {
+        var territory = cell.EncompassingTerritory;
+
+        if ((territory != null) &&
+            (territory.SelectionFilterType != Territory.FilterType.None))
+        {
+            bool isTerritoryBorder = IsTerritoryBorder(territory, cell);
+
+            Faction faction = cell.GetClosestFaction(territory.Polity);
+
+            bool isSelectableFaction = false;
+
+            if ((faction != null) && 
+                ((faction.SelectionFilterType == Faction.FilterType.Selectable) ||
+                (faction.SelectionFilterType == Faction.FilterType.Related)))
+            {
+                color = GenerateColorFromId(faction.Id);
+
+                if (faction.SelectionFilterType == Faction.FilterType.Related)
+                {
+                    color = (0.3f * color) + 0.7f * Color.yellow;
+                }
+                else if (faction.SelectionFilterType == Faction.FilterType.Selectable)
+                {
+                    color = (0.3f * color) + 0.7f * Color.cyan;
+                    isSelectableFaction = true;
+                }
+            }
+            else
+            {
+                color = GenerateColorFromId(territory.Polity.Id);
+
+                if (territory.SelectionFilterType == Territory.FilterType.Core)
+                {
+                    color = (0.3f * color) + 0.7f * Color.blue;
+                }
+                else if (territory.SelectionFilterType == Territory.FilterType.Involved)
+                {
+                    color = (0.3f * color) + 0.7f * Color.yellow;
+                }
+            }
+
+            if (!isTerritoryBorder)
+            {
+                color /= 1.5f;
+            }
+
+            if (isSelectableFaction)
+            {
+                color.a = 0.5f;
+            }
+            else
+            {
+                color.a = 0.2f;
+            }
+        }
+
+        return color;
+    }
+
+    private static Color SetGroupSelectionByProminenceOverlayColor(TerrainCell cell, Color color)
+    {
+        if (CurrentWorld.GuidedFaction == null)
+            throw new System.Exception("Can't generate overlay without an active guided faction");
+
+        if (!(CurrentInputRequest is GroupSelectionRequest))
+            throw new System.Exception("Can't generate overlay without an region selection request");
+
+        color = SetPolityProminenceOverlayColor(cell, color);
+
+        if (cell.SelectionFilterType == TerrainCell.FilterType.None)
+        {
+            color *= 0.37f;
+        }
+        else if (cell.SelectionFilterType == TerrainCell.FilterType.Core)
+        {
+            color = (color * 0.5f) + (Color.white * 0.5f);
         }
 
         return color;
@@ -3567,23 +3869,112 @@ public class Manager
 
     private static Color SetPolityClusterOverlayColor(TerrainCell cell, Color color)
     {
-        if (cell.Group != null)
+        CellGroup group = cell.Group;
+
+        if (group != null)
         {
+            bool useSelected = CurrentWorld.SelectedTerritory != null;
+
             if (cell.EncompassingTerritory != null)
             {
                 Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
-                PolityProminence prominence = cell.Group.GetPolityProminence(territoryPolity);
+                PolityProminence prominence = group.GetPolityProminence(territoryPolity);
+                bool isSelected = cell.EncompassingTerritory.IsSelected;
+
+                if (useSelected && !isSelected)
+                {
+                    foreach (var localProminence in group.GetPolityProminences())
+                    {
+                        if (localProminence.Polity.Territory.IsSelected)
+                        {
+                            isSelected = true;
+                            prominence = localProminence;
+                            break;
+                        }
+                    }
+                }
 
                 if (prominence?.Cluster != null)
                 {
                     color = GenerateColorFromId(prominence.Cluster.Id);
+
+                    if (useSelected && !isSelected)
+                    {
+                        color *= 0.5f;
+                        color.a = 1;
+                    }
                 }
             }
             else
             {
                 color = GetUnincorporatedGroupColor();
             }
+        }
+
+        return color;
+    }
+
+    private static Color SetClusterAdminCostOverlayColor(TerrainCell cell, Color color)
+    {
+        CellGroup group = cell?.Group;
+
+        if (group != null)
+        {
+            color = GetUnincorporatedGroupColor();
+
+            bool foundCluster = false;
+            bool isSelected = false;
+            float maxAdminCost = 0;
+            bool useSelected = CurrentWorld.SelectedTerritory != null;
+
+            foreach (var prominence in group.GetPolityProminences())
+            {
+                foundCluster = true;
+
+                if (prominence.Polity.Territory.IsSelected)
+                    isSelected = true;
+
+                float adminCost =
+                    Mathf.Min(prominence.Cluster.TotalAdministrativeCost, PolityProminenceCluster.MaxAdminCost);
+
+                if (isSelected)
+                {
+                    maxAdminCost = adminCost;
+                    break;
+                }
+                else
+                {
+                    maxAdminCost = Mathf.Max(adminCost, maxAdminCost);
+                }
+            }
+
+            if (foundCluster)
+            {
+                if (CurrentMaxAdminCost < maxAdminCost)
+                    CurrentMaxAdminCost = maxAdminCost;
+
+                float value = 0;
+                if (maxAdminCost > 0)
+                {
+                    value = maxAdminCost / CurrentMaxAdminCost;
+                    value = MathUtility.ToPseudoLogaritmicScale01(value, 1f);
+                }
+
+                value = 0.25f + 0.75f * Mathf.Clamp01(value);
+
+                if (useSelected && !isSelected)
+                {
+                    color = (Color.cyan + Color.yellow) * value / 2;
+                }
+                else
+                {
+                    color = Color.yellow * value;
+                }
+                color.a = 1;
+            }
+
+            return color;
         }
 
         return color;
@@ -3624,7 +4015,7 @@ public class Manager
             float totalProminenceValueFactor = 0;
 
             Color mixedPolityColor = Color.black;
-            foreach (PolityProminence p in cell.Group.GetPolityProminences())
+            foreach (PolityProminence p in cell.PolityProminences)
             {
                 polityCount++;
 
@@ -3737,7 +4128,7 @@ public class Manager
 
         float contactValue = 0;
 
-        Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
+        Territory selectedTerritory = CurrentWorld.SelectedTerritory;
 
         bool isSelectedTerritory = false;
         bool isInContact = false;
@@ -3751,11 +4142,11 @@ public class Manager
 
             if (selectedTerritory != territory)
             {
-                int contactGroupCount = selectedPolity.GetContactGroupCount(polity);
+                int count = selectedPolity.GetContactCount(polity);
 
-                contactValue = MathUtility.ToPseudoLogaritmicScale01(contactGroupCount);
+                contactValue = MathUtility.ToPseudoLogaritmicScale01(count);
 
-                isInContact = (contactValue > 0);
+                isInContact = (count > 0);
             }
             else
             {
@@ -3795,9 +4186,80 @@ public class Manager
         return color;
     }
 
+    private static Color SetPolityCoreRegionsOverlayColor(TerrainCell cell, Color color)
+    {
+        float unselectedAlpha = 0.4f;
+
+        Territory territory = cell.EncompassingTerritory;
+        Region region = cell.Region;
+
+        Color backColor = color;
+
+        if (territory != null)
+        {
+            backColor = GenerateColorFromId(territory.Polity.Id);
+
+            if (IsTerritoryBorder(territory, cell))
+            {
+                backColor /= 1.25f;
+            }
+
+            if (!territory.IsSelected)
+            {
+                backColor.a *= unselectedAlpha;
+            }
+        }
+        else if (cell.Group != null)
+        {
+            backColor = GetUnincorporatedGroupColor();
+        }
+        else if ((region == null) ||
+            (region.SelectionFilterType != Region.FilterType.Core))
+        {
+            return color;
+        }
+
+        color = backColor;
+
+        Polity selectedPolity = CurrentWorld.SelectedTerritory?.Polity;
+
+        if ((selectedPolity != null) &&
+            (territory != CurrentWorld.SelectedTerritory) &&
+            (region != null) &&
+            (region.SelectionFilterType == Region.FilterType.Core))
+        {
+            Color regionColor = GenerateColorFromId(region.Id);
+            Color selPolityColor = GenerateColorFromId(selectedPolity.Id);
+            selPolityColor.a *= unselectedAlpha;
+
+            Biome mostPresentBiome = Biome.Biomes[region.BiomeWithMostPresence];
+            regionColor = Color.white * 0.2f + mostPresentBiome.Color * 0.65f + regionColor * 0.15f;
+
+            regionColor.a *= unselectedAlpha;
+
+            if (territory != null)
+            {
+                regionColor = (0.1f * regionColor) + (0.1f * backColor) + (0.8f * selPolityColor);
+            }
+            else
+            {
+                regionColor = (0.2f * regionColor) + (0.8f * selPolityColor);
+            }
+
+            if (IsRegionBorder(region, cell))
+            {
+                regionColor.a *= 0.8f;
+            }
+
+            color = regionColor;
+        }
+
+        return color;
+    }
+
     private static Color SetPopulationChangeOverlayColor(TerrainCell cell, Color color)
     {
-        float deltaLimitFactor = 0.1f;
+        float deltaLimitFactor = 1f;
 
         float prevPopulation = 0;
         float population = 0;
@@ -3816,6 +4278,7 @@ public class Manager
         {
             float value = delta / (population * deltaLimitFactor);
             value = Mathf.Clamp01(value);
+            value = MathUtility.ToPseudoLogaritmicScale01(value, 1);
 
             color = Color.green * value;
         }
@@ -3823,8 +4286,60 @@ public class Manager
         {
             float value = -delta / (prevPopulation * deltaLimitFactor);
             value = Mathf.Clamp01(value);
+            value = MathUtility.ToPseudoLogaritmicScale01(value, 1);
 
             color = Color.red * value;
+        }
+
+        return color;
+    }
+
+    private static Color SetMigrationPressureOverlayColor(TerrainCell cell, Color color)
+    {
+        CellGroup group = cell.Group;
+
+        if (group == null)
+        {
+            return color;
+        }
+
+        color = Color.red * group.MigrationPressure;
+
+        return color;
+    }
+
+    private static Color SetPolityMigrationPressureOverlayColor(TerrainCell cell, Color color)
+    {
+        CellGroup group = cell.Group;
+
+        if (group == null)
+        {
+            return color;
+        }
+
+        Territory territory = cell.EncompassingTerritory;
+
+        PolityProminence prominence = null;
+        Color polityColor = Color.black;
+
+        if (territory != null)
+        {
+            Polity polity = territory.Polity;
+
+            polityColor = GenerateColorFromId(polity.Id);
+            prominence = group.GetPolityProminence(polity);
+        }
+
+        if (prominence != null)
+        {
+            float nonPolPressure = group.MigrationPressure - prominence.MigrationPressure;
+            Color pColor = (Color.white * nonPolPressure) + (polityColor * prominence.MigrationPressure);
+
+            color = (0.5f * polityColor) + (0.5f * pColor);
+        }
+        else
+        {
+            color = Color.red * group.MigrationPressure * 0.5f;
         }
 
         return color;
@@ -3886,7 +4401,7 @@ public class Manager
 
     private static Color SetPopCulturalPreferenceOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         if (cell.Group != null)
@@ -3903,7 +4418,7 @@ public class Manager
 
     private static Color SetPolityCulturalPreferenceOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
         {
             if (cell.Group == null)
                 return color;
@@ -3931,9 +4446,45 @@ public class Manager
         return color;
     }
 
+    private static Color SetPolityAdminCostOverlayColor(TerrainCell cell, Color color)
+    {
+        Territory territory = cell.EncompassingTerritory;
+
+        if (territory == null)
+        {
+            if (cell.Group == null)
+                return color;
+
+            return GetUnincorporatedGroupColor();
+        }
+
+        float adminCost =
+            Mathf.Min(territory.Polity.TotalAdministrativeCost, Polity.MaxAdminCost);
+
+        if (CurrentMaxAdminCost < adminCost)
+            CurrentMaxAdminCost = adminCost;
+
+        float value = 0;
+        if (adminCost > 0)
+        {
+            value = adminCost / CurrentMaxAdminCost;
+            value = MathUtility.ToPseudoLogaritmicScale01(value, 1f);
+        }
+
+        Color baseColor = GetUnincorporatedGroupColor();
+
+        color = IsTerritoryBorder(territory, cell) ? new Color(1, 0.75f, 0f) : Color.yellow;
+
+        value = 0.25f + 0.75f * Mathf.Clamp01(value);
+
+        color = (baseColor * (1 - value)) + (color * value);
+
+        return color;
+    }
+
     private static Color SetPopCulturalActivityOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         if (cell.Group != null)
@@ -3953,7 +4504,7 @@ public class Manager
 
     private static Color SetPolityCulturalActivityOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
         {
             if (cell.Group == null)
                 return color;
@@ -3983,7 +4534,7 @@ public class Manager
 
     private static Color SetPopCulturalSkillOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         if (cell.Group != null)
@@ -4003,7 +4554,7 @@ public class Manager
 
     private static Color SetPolityCulturalSkillOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
         {
             if (cell.Group == null)
                 return color;
@@ -4033,7 +4584,7 @@ public class Manager
 
     private static Color SetPopCulturalKnowledgeOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         if (cell.Group != null)
@@ -4060,7 +4611,7 @@ public class Manager
 
     private static Color SetPolityCulturalKnowledgeOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
         {
             if (cell.Group == null)
                 return color;
@@ -4099,7 +4650,7 @@ public class Manager
 
     private static Color SetPopCulturalDiscoveryOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         if (cell.Group != null)
@@ -4115,7 +4666,7 @@ public class Manager
 
     private static Color SetPolityCulturalDiscoveryOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
         {
             if (cell.Group == null)
                 return color;
@@ -4204,7 +4755,7 @@ public class Manager
 
     private static Color SetBiomeTraitPresenceOverlayColor(TerrainCell cell, Color color)
     {
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         color = GetLowMedHighColor(cell.GetBiomeTraitPresence(_planetOverlaySubtype) * (1 - cell.FarmlandPercentage));
@@ -4236,7 +4787,7 @@ public class Manager
         color = Color.black;
         color.a = baseAlpha;
 
-        if (_planetOverlaySubtype == "None")
+        if (_planetOverlaySubtype == NoOverlaySubtype)
             return color;
 
         Layer layer = Layer.Layers[_planetOverlaySubtype];
@@ -4355,16 +4906,14 @@ public class Manager
             long nextUpdateDate = cell.Group.NextUpdateDate;
             long updateSpan = nextUpdateDate - lastUpdateDate;
 
-            if (_manager._currentMaxUpdateSpan < updateSpan)
-                _manager._currentMaxUpdateSpan = updateSpan;
+            if (CurrentMaxUpdateSpan < updateSpan)
+                CurrentMaxUpdateSpan = updateSpan;
 
-            float maxUpdateSpan = CellGroup.MaxUpdateSpan;
+            float maxUpdateSpan =
+                Mathf.Min(CurrentMaxUpdateSpan, CellGroup.MaxUpdateSpan);
 
-            maxUpdateSpan = Mathf.Min(_manager._currentMaxUpdateSpan, maxUpdateSpan);
-
-            normalizedValue = 1f - updateSpan / maxUpdateSpan;
-
-            normalizedValue = Mathf.Clamp01(normalizedValue);
+            normalizedValue = Mathf.Clamp01(updateSpan / maxUpdateSpan);
+            normalizedValue = 1 - MathUtility.ToPseudoLogaritmicScale01(normalizedValue, 1f);
         }
 
         if ((population > 0) && (normalizedValue > 0))

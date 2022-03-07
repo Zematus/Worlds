@@ -91,7 +91,6 @@ public class BinaryTree<TKey, TValue>
         Count++;
         int level = 0;
 
-        //		BinaryTreeNode<TKey, TValue> item = SetFreeNode (key, value);
         BinaryTreeNode<TKey, TValue> item = new BinaryTreeNode<TKey, TValue>(key, value);
 
         if (nodeAssociation != null)

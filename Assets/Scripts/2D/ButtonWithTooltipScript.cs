@@ -10,9 +10,26 @@ public class ButtonWithTooltipScript : MonoBehaviour
 
     public GameObject TooltipPanel;
 
+    bool canShow = true;
+
+    public void Init(string text, string tooltipText = "")
+    {
+        ButtonText.text = text;
+        TooltipText.text = tooltipText;
+        TooltipPanel.gameObject.SetActive(false);
+
+        canShow = !string.IsNullOrWhiteSpace(tooltipText);
+    }
+
+    public void UpdateTooltip(string tooltipText)
+    {
+        TooltipText.text = tooltipText;
+        canShow = !string.IsNullOrWhiteSpace(tooltipText);
+    }
+
     public void PointerEnterHandler()
     {
-        TooltipPanel.gameObject.SetActive(true);
+        TooltipPanel.gameObject.SetActive(canShow);
     }
 
     public void PointerExitHandler()

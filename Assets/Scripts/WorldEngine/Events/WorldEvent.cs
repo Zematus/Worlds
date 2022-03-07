@@ -179,9 +179,17 @@ public abstract class WorldEvent : ISynchronizable, IEffectTrigger
     }
 
     /// <summary>
-    /// Performs subclass-specific cleanup tasks before destroying the object
+    /// Performs subclass-specific destroy tasks
     /// </summary>
     protected virtual void DestroyInternal()
+    {
+        Cleanup();
+    }
+
+    /// <summary>
+    /// Performs subclass-specific cleanup
+    /// </summary>
+    public virtual void Cleanup()
     {
 
     }
@@ -191,7 +199,9 @@ public abstract class WorldEvent : ISynchronizable, IEffectTrigger
         TriggerDate = newTriggerDate;
         SpawnDate = World.CurrentDate;
 
+#if DEBUG
         PrevId = Id;
+#endif
         Id = newId;
 
         FailedToTrigger = false;

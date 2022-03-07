@@ -71,7 +71,7 @@ public abstract class CellCulturalSkill : CulturalSkill
     /// <param name="percentage">percentage amount to merge</param>
     public void Unmerge(CulturalSkill skill, float percentage)
     {
-        _newValue = MathUtility.ReverseLerp(_newValue, skill.Value, percentage);
+        _newValue = MathUtility.UnLerp(_newValue, skill.Value, percentage);
     }
 
     /// <summary>
@@ -231,7 +231,8 @@ public abstract class CellCulturalSkill : CulturalSkill
 
     protected void RecalculateAdaptation(float targetValue)
     {
-        AdaptationLevel = MathUtility.RoundToSixDecimals(1 - Mathf.Abs(Value - targetValue));
+        float adaptation = (Value + 0.001f) / (targetValue + 0.001f);
+        AdaptationLevel = MathUtility.RoundToSixDecimals(Mathf.Clamp01(adaptation));
     }
 
     public void PostUpdate()

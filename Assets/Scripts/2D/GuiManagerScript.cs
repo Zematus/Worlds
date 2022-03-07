@@ -217,7 +217,7 @@ public class GuiManagerScript : MonoBehaviour
     private Stack<string> _tempOverlaySubtypeStack =
         new Stack<string>();
 
-    private string _planetOverlaySubtype = "None";
+    private string _planetOverlaySubtype = Manager.NoOverlaySubtype;
 
     private List<PlanetOverlay> _popOverlays = new List<PlanetOverlay>()
     {
@@ -236,13 +236,16 @@ public class GuiManagerScript : MonoBehaviour
         PlanetOverlay.PolityTerritory,
         PlanetOverlay.PolityProminence,
         PlanetOverlay.PolityContacts,
+        PlanetOverlay.PolityCoreRegions,
         PlanetOverlay.PolityCulturalPreference,
         PlanetOverlay.PolityCulturalActivity,
         PlanetOverlay.PolityCulturalSkill,
         PlanetOverlay.PolityCulturalKnowledge,
         PlanetOverlay.PolityCulturalDiscovery,
+        PlanetOverlay.PolityAdminCost,
         PlanetOverlay.FactionCoreDistance,
-        PlanetOverlay.PolityCluster
+        PlanetOverlay.PolityCluster,
+        PlanetOverlay.ClusterAdminCost
     };
     private int _currentPolityOverlay = 0;
 
@@ -265,7 +268,9 @@ public class GuiManagerScript : MonoBehaviour
     {
         PlanetOverlay.PopChange,
         PlanetOverlay.UpdateSpan,
-        PlanetOverlay.Migration
+        PlanetOverlay.Migration,
+        PlanetOverlay.MigrationPressure,
+        PlanetOverlay.PolityMigrationPressure
     };
     private int _currentDebugOverlay = 0;
 
@@ -301,7 +306,6 @@ public class GuiManagerScript : MonoBehaviour
     private long _simulationDateSpan = 0;
 
     private bool _willFinishResolvingDecision = false;
-    private bool _resolvedDecision = false;
 
     private int _mapUpdateCount = 0;
     private int _pixelUpdateCount = 0;
@@ -497,9 +501,13 @@ public class GuiManagerScript : MonoBehaviour
             //GenerateWorld(false, 405241319);
             //GenerateWorld(false, 2139853335);
             //GenerateWorld(false, 1119291416);
-            //GenerateWorld(false, 2028655149);
+            ///GenerateWorld(false, 2028655149);
             //GenerateWorld(false, 1963172103);
-            GenerateWorld(false, 283647159);
+            //GenerateWorld(false, 283647159);
+            //GenerateWorld(false, 252308385);
+            ///GenerateWorld(false, 113741282);
+            //GenerateWorld(false, 92288943);
+            GenerateWorld(false, 940983664);
         }
         else
         {
@@ -639,6 +647,11 @@ public class GuiManagerScript : MonoBehaviour
 
         TryResolvePendingAction();
 
+        if (!_resolvingEffects && !_resolvingDecision)
+        {
+            Manager.ResolvingPlayerInvolvedDecisionChain = false;
+        }
+
 #if DEBUG
         if (Manager.Debug_PauseSimRequested)
         {
@@ -663,13 +676,16 @@ public class GuiManagerScript : MonoBehaviour
 
             if (_accDeltaTime > _maxAccTime)
             {
-                _accDeltaTime -= _maxAccTime;
+                int d = (int)(_accDeltaTime / _maxAccTime);
+                _accDeltaTime -= _maxAccTime * d;
+
                 _simulationDateSpan = 0;
             }
 
             int maxSimulationDateSpan = (int)Mathf.Ceil(selectedSpeed * _accDeltaTime);
 
-            // Simulate additional iterations if we haven't reached the max amount of iterations allowed per the percentage of transpired real time during this cycle
+            // Simulate additional iterations if we haven't reached the max amount of iterations
+            // allowed per the percentage of transpired real time during this cycle
             if (_simulationDateSpan < maxSimulationDateSpan)
             {
                 long maxDateSpanBetweenUpdates = (int)Mathf.Ceil(selectedSpeed * MaxDeltaTimeIterations);
@@ -682,15 +698,7 @@ public class GuiManagerScript : MonoBehaviour
                 // Simulate up to the max amout of iterations allowed per frame
                 while ((lastUpdateDate + maxDateSpanBetweenUpdates) > world.CurrentDate)
                 {
-                    // If we just resolved a decision then skip event evaluation
-                    if (_resolvedDecision)
-                    {
-                        _resolvedDecision = false;
-                    }
-                    else
-                    {
-                        world.EvaluateEventsToHappen();
-                    }
+                    world.EvaluateEventsToHappen();
 
                     if (!TryResolvePendingDecisions())
                     {
@@ -1113,7 +1121,8 @@ public class GuiManagerScript : MonoBehaviour
     {
         if ((Manager.CurrentDevMode == DevMode.None) &&
             ((_polityOverlays[_currentPolityOverlay] == PlanetOverlay.FactionCoreDistance) ||
-            (_polityOverlays[_currentPolityOverlay] == PlanetOverlay.PolityCluster)))
+            (_polityOverlays[_currentPolityOverlay] == PlanetOverlay.PolityCluster) ||
+            (_polityOverlays[_currentPolityOverlay] == PlanetOverlay.ClusterAdminCost)))
         {
             _currentPolityOverlay = 0;
         }
@@ -1213,8 +1222,11 @@ public class GuiManagerScript : MonoBehaviour
             (overlay == PlanetOverlay.PolityCulturalPreference) ||
             (overlay == PlanetOverlay.PolityCulturalKnowledge) ||
             (overlay == PlanetOverlay.PolityCulturalDiscovery) ||
+            (overlay == PlanetOverlay.PolityAdminCost) ||
             (overlay == PlanetOverlay.PolityTerritory) ||
             (overlay == PlanetOverlay.PolityContacts) ||
+            (overlay == PlanetOverlay.PolitySelection) ||
+            (overlay == PlanetOverlay.PolityCoreRegions) ||
             (overlay == PlanetOverlay.General);
     }
 
@@ -1245,21 +1257,28 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void ShiftSurfaceToPosition(WorldPosition mapPosition)
+    public void ZoomAndShiftMap(float scale, WorldPosition mapPosition)
     {
-        if (Manager.ViewingGlobe)
-        {
-            PlanetScript.ShiftSurfaceToPosition(mapPosition);
-        }
-        else
-        {
-            MapScript.ShiftSurfaceToPosition(mapPosition);
-        }
+        PlanetScript.ZoomAndCenterCamera(Mathf.Clamp01(scale * 1.4f), mapPosition, 1);
+        MapScript.ZoomAndShiftMap(scale, mapPosition, 1);
+    }
+
+    private void CenterAndZoomOnRect(RectInt rect)
+    {
+        float hScale = rect.width / (float)Manager.CurrentWorld.Width;
+        float vScale = rect.height / (float)Manager.CurrentWorld.Height;
+
+        float scale = Mathf.Max(hScale, vScale);
+
+        // zoom in if the rect is very small but only parthway thru
+        scale = Mathf.Clamp01(Mathf.Lerp(scale, 2f, 0.1f));
+
+        ZoomAndShiftMap(scale, rect.center);
     }
 
     private void SelectAndCenterOnCell(WorldPosition position)
     {
-        ShiftSurfaceToPosition(position);
+        ZoomAndShiftMap(0.5f, position);
 
         Manager.SetSelectedCell(position);
 
@@ -1727,26 +1746,135 @@ public class GuiManagerScript : MonoBehaviour
             _doneHandlingRequest = TryCompleteRegionSelectionRequest(rsRequest, clickedCell);
             return;
         }
+        else if (Manager.CurrentInputRequest is ContactSelectionRequest csRequest)
+        {
+            _doneHandlingRequest = TryCompleteContactSelectionRequest(csRequest, clickedCell);
+            return;
+        }
+        else if (Manager.CurrentInputRequest is GroupSelectionRequest gsRequest)
+        {
+            _doneHandlingRequest = TryCompleteGroupSelectionRequest(gsRequest, clickedCell);
+            return;
+        }
+        else if (Manager.CurrentInputRequest is FactionSelectionRequest fsRequest)
+        {
+            _doneHandlingRequest = TryCompleteFactionSelectionRequest(fsRequest, clickedCell);
+            return;
+        }
+
+        throw new System.NotImplementedException(
+            $"No method defined to complete input request of type: {Manager.CurrentInputRequest.GetType()}");
+    }
+
+    private void CompleteSelectRequestTargetOp()
+    {
+        HideNonBlockingMessage.Invoke();
+
+        RevertTempPlanetOverlay();
+
+        _mapLeftClickOp -= ClickOp_SelectRequestTarget;
+    }
+
+    private bool TryCompleteContactSelectionRequest(
+        ContactSelectionRequest request,
+        TerrainCell targetCell)
+    {
+        var guidedFaction = Manager.CurrentWorld.GuidedFaction;
+
+        if (guidedFaction == null)
+        {
+            throw new System.Exception("Can't satisfy request without an active guided faction");
+        }
+
+        var guidedPolity = guidedFaction.Polity;
+
+        var targetTerritory = targetCell.EncompassingTerritory;
+
+        if ((targetTerritory != null) &&
+            (targetTerritory.SelectionFilterType == Territory.FilterType.Selectable))
+        {
+            var targetPolity = targetTerritory.Polity;
+
+            var targetContact = guidedPolity.GetContact(targetPolity);
+
+            if (targetContact == null)
+            {
+                throw new System.Exception($"Unable to find contact between {guidedPolity.Id} and {targetPolity.Id}");
+            }
+
+            request.Set(targetContact);
+            request.Close();
+
+            CompleteSelectRequestTargetOp();
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryCompleteFactionSelectionRequest(
+        FactionSelectionRequest request,
+        TerrainCell targetCell)
+    {
+        var guidedFaction = Manager.CurrentWorld.GuidedFaction;
+
+        if (guidedFaction == null)
+        {
+            throw new System.Exception("Can't satisfy request without an active guided faction");
+        }
+
+        var targetTerritory = targetCell.EncompassingTerritory;
+
+        if ((targetTerritory != null) &&
+            (targetTerritory.SelectionFilterType == Territory.FilterType.Involved))
+        {
+            var targetFaction = targetCell.GetClosestFaction(targetTerritory.Polity);
+
+            if (targetFaction.SelectionFilterType == Faction.FilterType.Selectable)
+            {
+                request.Set(targetFaction);
+                request.Close();
+
+                CompleteSelectRequestTargetOp();
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private bool TryCompleteRegionSelectionRequest(
-        RegionSelectionRequest rsRequest,
+        RegionSelectionRequest request,
         TerrainCell targetCell)
     {
         Region targetRegion = targetCell.Region;
 
         if ((targetRegion != null) &&
-            (targetRegion.AssignedFilterType == Region.FilterType.Selectable))
+            (targetRegion.SelectionFilterType == Region.FilterType.Selectable))
         {
-            rsRequest.Set(targetRegion);
-            rsRequest.Close();
+            request.Set(targetRegion);
+            request.Close();
 
-            HideNonBlockingMessage.Invoke();
+            CompleteSelectRequestTargetOp();
+            return true;
+        }
 
-            RevertTempPlanetOverlay();
+        return false;
+    }
 
-            _mapLeftClickOp -= ClickOp_SelectRequestTarget;
+    private bool TryCompleteGroupSelectionRequest(
+        GroupSelectionRequest request,
+        TerrainCell targetCell)
+    {
+        CellGroup targetGroup = targetCell.Group;
 
+        if ((targetGroup != null) &&
+            (targetCell.SelectionFilterType == TerrainCell.FilterType.Selectable))
+        {
+            request.Set(targetGroup);
+            request.Close();
+
+            CompleteSelectRequestTargetOp();
             return true;
         }
 
@@ -1964,7 +2092,10 @@ public class GuiManagerScript : MonoBehaviour
                 planetOverlayStr = "_polity_territories";
                 break;
             case PlanetOverlay.PolityCluster:
-                planetOverlayStr = "_polity_vlusters";
+                planetOverlayStr = "_polity_clusters";
+                break;
+            case PlanetOverlay.ClusterAdminCost:
+                planetOverlayStr = "_cluster_admin_cost";
                 break;
             case PlanetOverlay.FactionCoreDistance:
                 planetOverlayStr = "_faction_core_distances";
@@ -1977,6 +2108,9 @@ public class GuiManagerScript : MonoBehaviour
                 break;
             case PlanetOverlay.PolityContacts:
                 planetOverlayStr = "_polity_contacts";
+                break;
+            case PlanetOverlay.PolityCoreRegions:
+                planetOverlayStr = "_polity_core_regions";
                 break;
             case PlanetOverlay.PolityCulturalPreference:
                 planetOverlayStr = "_polity_cultural_preference_" + _planetOverlaySubtype;
@@ -1992,6 +2126,12 @@ public class GuiManagerScript : MonoBehaviour
                 break;
             case PlanetOverlay.PolityCulturalDiscovery:
                 planetOverlayStr = "_polity_cultural_discovery_" + _planetOverlaySubtype;
+                break;
+            case PlanetOverlay.PolityAdminCost:
+                planetOverlayStr = "_polity_admin_cost";
+                break;
+            case PlanetOverlay.PolitySelection:
+                planetOverlayStr = "_polity_select";
                 break;
             case PlanetOverlay.Temperature:
                 planetOverlayStr = "_temperature";
@@ -2023,8 +2163,20 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.RegionSelection:
                 planetOverlayStr = "_region_select";
                 break;
+            case PlanetOverlay.CellSelection:
+                planetOverlayStr = "_cell_select";
+                break;
+            case PlanetOverlay.FactionSelection:
+                planetOverlayStr = "_faction_select";
+                break;
             case PlanetOverlay.PopChange:
                 planetOverlayStr = "_population_change";
+                break;
+            case PlanetOverlay.MigrationPressure:
+                planetOverlayStr = "_migration_pressure";
+                break;
+            case PlanetOverlay.PolityMigrationPressure:
+                planetOverlayStr = "_polity_migration_pressure";
                 break;
             case PlanetOverlay.UpdateSpan:
                 planetOverlayStr = "_update_span";
@@ -2329,7 +2481,6 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ResetSimulationState()
     {
-        _resolvedDecision = false;
         _resolvingDecision = false;
         _willFinishResolvingDecision = false;
         _doneHandlingRequest = false;
@@ -2411,9 +2562,19 @@ public class GuiManagerScript : MonoBehaviour
 
             Faction targetFaction = initializer.TargetFaction;
 
+            if (decisionToResolve.DebugPlayerGuidance &&
+                !targetFaction.IsUnderPlayerGuidance &&
+                (Manager.CurrentDevMode == DevMode.Advanced))
+            {
+                Manager.SetGuidedFaction(targetFaction);
+            }
+
             if (targetFaction.IsUnderPlayerGuidance)
             {
                 RequestModDecisionResolution(decisionToResolve);
+
+                Manager.ResolvingPlayerInvolvedDecisionChain = true;
+
                 return false;
             }
             else
@@ -2530,6 +2691,8 @@ public class GuiManagerScript : MonoBehaviour
         {
             SetResolvingEffects(true);
 
+            Manager.ResolvingPlayerInvolvedDecisionChain = true;
+
             return false;
         }
 
@@ -2573,14 +2736,41 @@ public class GuiManagerScript : MonoBehaviour
     {
         Manager.CurrentInputRequest = request;
 
+        if (request is IMapEntitySelectionRequest mapRequest)
+        {
+            DisplayNonBlockingMessage.Invoke(mapRequest.Text.GetFormattedString());
+
+            _mapLeftClickOp += ClickOp_SelectRequestTarget;
+
+            CenterAndZoomOnRect(mapRequest.GetEncompassingRectangle());
+        }
+
         if (request is RegionSelectionRequest rsRequest)
         {
             ChangePlanetOverlay(PlanetOverlay.RegionSelection, temporary: true);
-
-            DisplayNonBlockingMessage.Invoke(rsRequest.Text.GetFormattedString());
-
-            _mapLeftClickOp += ClickOp_SelectRequestTarget;
+            return;
         }
+        else if (request is GroupSelectionRequest gsRequest)
+        {
+            ChangePlanetOverlay(
+                PlanetOverlay.CellSelection, 
+                Manager.GroupProminenceOverlaySubtype, 
+                temporary: true);
+            return;
+        }
+        else if (request is ContactSelectionRequest csRequest)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PolitySelection, temporary: true);
+            return;
+        }
+        else if (request is FactionSelectionRequest fsRequest)
+        {
+            ChangePlanetOverlay(PlanetOverlay.FactionSelection, temporary: true);
+            return;
+        }
+
+        throw new System.NotImplementedException(
+            $"No method defined to handle input request of type: {request.GetType()}");
     }
 
     /// <summary>
@@ -2635,7 +2825,6 @@ public class GuiManagerScript : MonoBehaviour
 
         _willFinishResolvingDecision = false;
         _resolvingDecision = false;
-        _resolvedDecision = true;
     }
 
     public void ChangePlanetOverlayToSelected()
@@ -2688,6 +2877,10 @@ public class GuiManagerScript : MonoBehaviour
         {
             ChangePlanetOverlay(PlanetOverlay.PolityCluster, false);
         }
+        else if (OverlayDialogPanelScript.ClusterAdminCostToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.ClusterAdminCost, false);
+        }
         else if (OverlayDialogPanelScript.DistancesToCoresToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.FactionCoreDistance, false);
@@ -2699,6 +2892,10 @@ public class GuiManagerScript : MonoBehaviour
         else if (OverlayDialogPanelScript.ContactsToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.PolityContacts, false);
+        }
+        else if (OverlayDialogPanelScript.CoreRegionsToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PolityCoreRegions, false);
         }
         else if (OverlayDialogPanelScript.PolityCulturalPreferenceToggle.isOn)
         {
@@ -2719,6 +2916,10 @@ public class GuiManagerScript : MonoBehaviour
         else if (OverlayDialogPanelScript.PolityCulturalDiscoveryToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.PolityCulturalDiscovery, false);
+        }
+        else if (OverlayDialogPanelScript.PolityAdminCostToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PolityAdminCost, false);
         }
         else if (OverlayDialogPanelScript.TemperatureToggle.isOn)
         {
@@ -2771,6 +2972,14 @@ public class GuiManagerScript : MonoBehaviour
         else if (OverlayDialogPanelScript.MigrationToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.Migration, false);
+        }
+        else if (OverlayDialogPanelScript.MigrationPressureToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.MigrationPressure, false);
+        }
+        else if (OverlayDialogPanelScript.PolityMigrationPressureToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PolityMigrationPressure, false);
         }
         else
         {
@@ -3069,7 +3278,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         if (!_planetOverlaySubtypeCache.TryGetValue(overlay, out string currentOverlaySubtype))
         {
-            currentOverlaySubtype = "None";
+            currentOverlaySubtype = Manager.NoOverlaySubtype;
         }
 
         ChangePlanetOverlay(overlay, currentOverlaySubtype, invokeEvent, temporary);
@@ -3383,15 +3592,15 @@ public class GuiManagerScript : MonoBehaviour
             Manager.UnsetFocusOnPolity(selectedTerritory.Polity);
     }
 
-    private bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowWrap = false)
+    private bool TryGetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowWrap = false)
     {
         if (Manager.ViewingGlobe)
         {
-            return PlanetScript.GetMapCoordinatesFromPointerPosition(pointerPosition, out mapPosition);
+            return PlanetScript.TryGetMapCoordinatesFromPointerPosition(pointerPosition, out mapPosition);
         }
         else
         {
-            return MapScript.GetMapCoordinatesFromPointerPosition(pointerPosition, out mapPosition, allowWrap);
+            return MapScript.TryGetMapCoordinatesFromPointerPosition(pointerPosition, out mapPosition, allowWrap);
         }
     }
 
@@ -3399,7 +3608,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         Vector2 mapCoordinates;
 
-        if (!GetMapCoordinatesFromPointerPosition(position, out mapCoordinates, allowWrap))
+        if (!TryGetMapCoordinatesFromPointerPosition(position, out mapCoordinates, allowWrap))
             return null;
 
         int longitude = (int)mapCoordinates.x;
@@ -3427,7 +3636,7 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    private void ShowCellInfoToolTip_PolityTerritory(TerrainCell cell)
+    private void ShowCellInfoToolTip_Territory(TerrainCell cell)
     {
         if (cell.EncompassingTerritory == _lastHoveredOverTerritory)
             return;
@@ -3467,7 +3676,13 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.PolityTerritory:
                 ShowCellInfoToolTip_PolityTerritory(polity, tooltipPos);
                 break;
+            case PlanetOverlay.PolityAdminCost:
+                ShowCellInfoToolTip_PolityAdminCost(polity, tooltipPos);
+                break;
             case PlanetOverlay.PolityContacts:
+                ShowCellInfoToolTip_PolityContacts(polity, tooltipPos);
+                break;
+            case PlanetOverlay.PolitySelection:
                 ShowCellInfoToolTip_PolityContacts(polity, tooltipPos);
                 break;
             case PlanetOverlay.PolityCulturalPreference:
@@ -3493,7 +3708,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ShowCellInfoToolTip_PolityTerritory(Polity polity, Vector3 position, float fadeStart = 5)
     {
-        string text = polity.Name.Text + " " + polity.Type.ToLower() + "\n\nFaction Influences:";
+        string text = polity.Name.Text + " " + polity.TypeStr.ToLower() + "\n\nFaction Influences:";
 
         foreach (Faction faction in polity.GetFactions())
         {
@@ -3505,28 +3720,27 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ShowCellInfoToolTip_PolityContacts(Polity polity, Vector3 position, float fadeStart = 5)
     {
-        string polityTitle = polity.Name.Text + " " + polity.Type.ToLower();
+        string polityTitle = polity.Name.Text + " " + polity.TypeStr.ToLower();
 
         string text;
 
         Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
 
-        float relationshipValue = 0;
-        int groupCount = 0;
+        float strength = 0;
 
         if ((polity.Territory != selectedTerritory) && (selectedTerritory != null))
         {
-            groupCount = selectedTerritory.Polity.GetContactGroupCount(polity);
+            strength = selectedTerritory.Polity.GetContactStrength(polity);
         }
 
-        if (groupCount > 0)
+        if (strength > 0)
         {
-            relationshipValue = selectedTerritory.Polity.GetRelationshipValue(polity);
+            float relationshipValue = selectedTerritory.Polity.GetRelationshipValue(polity);
 
             text = "Neighboring polity: " + polityTitle;
 
             text += "\n\nRelationship Value: " + relationshipValue.ToString("0.000");
-            text += "\n\nOverlaping groups: " + groupCount;
+            text += "\n\nContact Strength: " + strength;
 
         }
         else
@@ -3547,7 +3761,7 @@ public class GuiManagerScript : MonoBehaviour
 
             foreach (Faction faction in polity.GetFactions())
             {
-                float value = faction.GetPreferenceValue(_planetOverlaySubtype);
+                float value = faction.Culture.GetPreferenceValue(_planetOverlaySubtype);
 
                 text += "\n " + faction.Name.Text + ": " + value.ToString("0.00");
             }
@@ -3559,6 +3773,22 @@ public class GuiManagerScript : MonoBehaviour
         {
             InfoTooltipScript.SetVisible(false);
         }
+    }
+
+    private void ShowCellInfoToolTip_PolityAdminCost(Polity polity, Vector3 position, float fadeStart = 5)
+    {
+        float value = polity.TotalAdministrativeCost;
+
+        string text = $"Total Admin Cost: {value:0.00}\n\nFaction Admin Loads:";
+
+        foreach (Faction faction in polity.GetFactions())
+        {
+            value = faction.AdministrativeLoad;
+
+            text += $"\n {faction.Name.Text}: {value:0.00}";
+        }
+
+        InfoTooltipScript.DisplayTip(text, position, fadeStart);
     }
 
     private void ShowCellInfoToolTip_PolityCulturalActivity(Polity polity, Vector3 position, float fadeStart = 5)
@@ -3648,6 +3878,15 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
+    private void ShowCellInfoToolTip_LastHoveredRegion()
+    {
+        var cellPosition = _lastHoveredOverRegion.GetMostCenteredCell().Position;
+
+        Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(cellPosition) + _tooltipOffset;
+
+        InfoTooltipScript.DisplayTip(_lastHoveredOverRegion.Name.Text, tooltipPos);
+    }
+
     private void ShowCellInfoToolTip_Region(TerrainCell cell)
     {
         if (cell.Region == _lastHoveredOverRegion)
@@ -3661,46 +3900,106 @@ public class GuiManagerScript : MonoBehaviour
             return;
         }
 
-        WorldPosition regionCenterCellPosition = _lastHoveredOverRegion.GetMostCenteredCell().Position;
-
-        Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(regionCenterCellPosition) + _tooltipOffset;
-
-        InfoTooltipScript.DisplayTip(_lastHoveredOverRegion.Name.Text, tooltipPos);
+        ShowCellInfoToolTip_LastHoveredRegion();
     }
 
     private void ShowCellInfoToolTip_RegionSelection(TerrainCell cell)
     {
-        Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
-
-        if (guidedFaction == null)
-        {
-            throw new System.Exception("Can't show tooltip without an active guided faction");
-        }
-
         if (cell.Region == _lastHoveredOverRegion)
             return;
-
-        RegionSelectionRequest request = Manager.CurrentInputRequest as RegionSelectionRequest;
-
-        if (request == null)
-        {
-            throw new System.Exception("Can't show tooltip without an region selection request");
-        }
 
         _lastHoveredOverRegion = cell.Region;
 
         if ((_lastHoveredOverRegion == null) ||
-            (_lastHoveredOverRegion.AssignedFilterType != Region.FilterType.Selectable))
+            (_lastHoveredOverRegion.SelectionFilterType != Region.FilterType.Selectable))
         {
             InfoTooltipScript.SetVisible(false);
             return;
         }
 
-        WorldPosition regionCenterCellPosition = _lastHoveredOverRegion.GetMostCenteredCell().Position;
+        ShowCellInfoToolTip_LastHoveredRegion();
+    }
 
-        Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(regionCenterCellPosition) + _tooltipOffset;
+    private void ShowCellInfoToolTip_FactionSelection(TerrainCell cell)
+    {
+        if (cell.Group == null)
+        {
+            InfoTooltipScript.SetVisible(false);
+            return;
+        }
 
-        InfoTooltipScript.DisplayTip(_lastHoveredOverRegion.Name.Text, tooltipPos);
+        Faction firstFaction = null;
+        string factionNames = "";
+
+        foreach (var faction in cell.GetClosestFactions())
+        {
+            if ((faction.SelectionFilterType != Faction.FilterType.Selectable))
+            {
+                continue;
+            }
+
+            if (firstFaction == null)
+            {
+                firstFaction = faction;
+                factionNames = faction.Name.Text;
+            }
+            else
+            {
+                factionNames += $"\n{faction.Name.Text}";
+            }
+        }
+
+        if (firstFaction == null)
+        {
+            InfoTooltipScript.SetVisible(false);
+            return;
+        }
+
+        WorldPosition cellPosition = firstFaction.CoreGroup.Position;
+
+        Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(cellPosition) + _tooltipOffset;
+
+        InfoTooltipScript.DisplayTip(factionNames, tooltipPos);
+    }
+
+    private int ComparePromValuesDescending(PolityProminence a, PolityProminence b)
+    {
+        if (a.Value > b.Value) return -1;
+        if (a.Value < b.Value) return 1;
+        return 0;
+    }
+
+    private void ShowCellInfoToolTip_GroupProminenceSelection(TerrainCell cell)
+    {
+        Faction guidedFaction = Manager.CurrentWorld.GuidedFaction ??
+            throw new System.Exception("Can't show tooltip without an active guided faction");
+
+        if (!(Manager.CurrentInputRequest is GroupSelectionRequest))
+            throw new System.Exception("Can't show tooltip without an group selection request");
+
+        if ((_lastHoveredCell == null) ||
+            (_lastHoveredCell.SelectionFilterType != TerrainCell.FilterType.Selectable))
+        {
+            InfoTooltipScript.SetVisible(false);
+            return;
+        }
+
+        Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(cell.Position) + _tooltipOffset;
+
+        CellGroup group = cell.Group ??
+            throw new System.Exception($"Terrain cell {cell.Position} has no group");
+
+        string text = "Prominence Values:";
+
+        var prominences = new List<PolityProminence>(group.GetPolityProminences());
+        prominences.Sort(ComparePromValuesDescending);
+
+        foreach (var prominence in prominences)
+        {
+            text += $"\n\t{prominence.Polity.Name.Text}: {prominence.Value:0.000}";
+        }
+
+        InfoTooltipScript.DisplayTip(text, tooltipPos);
     }
 
     public void BeginDrag(BaseEventData data)
@@ -3763,7 +4062,7 @@ public class GuiManagerScript : MonoBehaviour
 
         Vector2 mapPosition;
 
-        if (!GetMapCoordinatesFromPointerPosition(pointerData.position, out mapPosition))
+        if (!TryGetMapCoordinatesFromPointerPosition(pointerData.position, out mapPosition))
             return;
 
         if (_mapLeftClickOp != null)
@@ -3796,10 +4095,17 @@ public class GuiManagerScript : MonoBehaviour
             return;
 
         if (IsPolityOverlay(_planetOverlay))
-            ShowCellInfoToolTip_PolityTerritory(hoveredCell);
+            ShowCellInfoToolTip_Territory(hoveredCell);
         else if (_planetOverlay == PlanetOverlay.Region)
             ShowCellInfoToolTip_Region(hoveredCell);
         else if (_planetOverlay == PlanetOverlay.RegionSelection)
             ShowCellInfoToolTip_RegionSelection(hoveredCell);
+        else if (_planetOverlay == PlanetOverlay.FactionSelection)
+            ShowCellInfoToolTip_FactionSelection(hoveredCell);
+        else if (_planetOverlay == PlanetOverlay.CellSelection)
+        {
+            if (_planetOverlaySubtype == Manager.GroupProminenceOverlaySubtype)
+                ShowCellInfoToolTip_GroupProminenceSelection(hoveredCell);
+        }
     }
 }

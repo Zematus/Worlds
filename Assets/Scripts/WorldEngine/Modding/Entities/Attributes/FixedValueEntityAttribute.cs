@@ -7,7 +7,7 @@ public class FixedValueEntityAttribute<T> : ValueEntityAttribute<T>
 {
     protected readonly T _attrValue;
 
-    public FixedValueEntityAttribute(T attrValue, string id, Entity entity)
+    public FixedValueEntityAttribute(T attrValue, string id, IEntity entity)
         : base(id, entity, null)
     {
         _attrValue = attrValue;

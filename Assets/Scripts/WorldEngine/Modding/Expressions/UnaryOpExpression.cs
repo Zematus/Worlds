@@ -23,17 +23,12 @@ public abstract class UnaryOpExpression<T> : IValueExpression<T>
         _expression = expression;
     }
 
-    public override string ToString()
-    {
-        return "(" + _opStr + _expression + ")";
-    }
+    public override string ToString() => $"({_opStr}{_expression})";
 
-    public virtual string ToPartiallyEvaluatedString(bool evaluate)
-    {
-        return "(" + _opStr + _expression.ToPartiallyEvaluatedString(evaluate) + ")";
-    }
+    public virtual string ToPartiallyEvaluatedString(int depth = -1) =>
+        $"({_opStr}{_expression.ToPartiallyEvaluatedString(depth)})";
 
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
+    public string GetFormattedString() => Value.ToFormattedString();
 
     public bool TryGetRequest(out InputRequest request) =>
         _expression.TryGetRequest(out request);

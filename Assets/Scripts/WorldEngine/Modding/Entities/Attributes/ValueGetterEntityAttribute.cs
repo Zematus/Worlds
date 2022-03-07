@@ -22,8 +22,8 @@ public class ValueGetterEntityAttribute<T> : ValueEntityAttribute<T>
 
     public override T Value => _getterMethod();
 
-    public override string ToPartiallyEvaluatedString(bool evaluate)
+    public override string ToPartiallyEvaluatedString(int depth = -1)
     {
-        return _partialEvalStringConverter?.Invoke(evaluate) ?? Value.ToString();
+        return _partialEvalStringConverter?.Invoke(depth) ?? Value.ToString();
     }
 }

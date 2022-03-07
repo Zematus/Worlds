@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class SaturationFunctionExpression : FunctionExpression, IValueExpression<float>
+public class SaturationFunctionExpression : FunctionExpressionWithOutput<float>
 {
     public const string FunctionId = "saturation";
 
@@ -17,7 +17,7 @@ public class SaturationFunctionExpression : FunctionExpression, IValueExpression
         _maxSatArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
     }
 
-    public float Value
+    public override float Value
     {
         get
         {
@@ -36,8 +36,4 @@ public class SaturationFunctionExpression : FunctionExpression, IValueExpression
             return value / (value + _maxSatArg.Value);
         }
     }
-
-    public object ValueObject => Value;
-
-    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 }

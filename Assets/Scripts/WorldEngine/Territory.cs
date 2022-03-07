@@ -4,8 +4,16 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class Territory : ISynchronizable, ICellCollectionGetter
+public class Territory : ISynchronizable, ICellSet
 {
+    public enum FilterType
+    {
+        None,
+        Core,
+        Selectable,
+        Involved
+    }
+
     public List<WorldPosition> CellPositions;
     public List<CellArea> EnclosedAreas;
 
@@ -22,6 +30,9 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     [XmlIgnore]
     public Polity Polity;
+
+    [XmlIgnore]
+    public FilterType SelectionFilterType = FilterType.None;
 
     private HashSet<TerrainCell> _cells = new HashSet<TerrainCell>();
 
@@ -118,14 +129,6 @@ public class Territory : ISynchronizable, ICellCollectionGetter
                 if (HasThisHighestPolityProminence(cell))
                     continue;
 
-//#if DEBUG
-//                if (cell.Position.Equals(6, 111))
-//                {
-//                    Debug.LogWarning("Debugging RemoveInvalidatedEnclosedAreas, cell: " + cell.Position + ", group: " +
-//                        cell.Group + ", polity: " + Polity.Id);
-//                }
-//#endif
-
                 RemoveCell(cell);
 
                 // make sure we test the removed cells again as they might end up 
@@ -139,10 +142,7 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     private bool HasThisHighestPolityProminence(TerrainCell cell)
     {
-        return
-            (cell.Group != null) &&
-            (cell.Group.HighestPolityProminence != null) &&
-            (cell.Group.HighestPolityProminence.Polity == Polity);
+        return cell.Group?.HighestPolityProminence?.Polity == Polity;
     }
 
     private void TestOuterBorderCell(TerrainCell cell)
@@ -151,21 +151,7 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         {
             InvalidateEnclosedArea(cell);
 
-//#if DEBUG
-//            if (cell.Position.Equals(395, 134))
-//            {
-//                //if (debugCounter2 >= 90)
-//                //{
-//                    Debug.LogWarning("Debugging TestOuterBorderCell on cell " + cell.Position +
-//                        ", attempt: " + debugCounter2);
-//                //}
-
-//                debugCounter2++;
-//            }
-//#endif
-
             _outerBorderCellsToValidate.Add(cell);
-            return;
         }
     }
 
@@ -179,18 +165,9 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     public void SetCellToAdd(TerrainCell cell)
     {
-
-//#if DEBUG
-//        if (cell.Position.Equals(6, 111))
-//        {
-//            Debug.LogWarning("Debugging SetCellToAdd, cell: " + cell.Position + ", group: "+
-//                cell.Group + ", polity: " + Polity.Id);
-//        }
-//#endif
-
         if (_cellsToRemove.Contains(cell))
         {
-            // This cell is part of an already enclosed piece of land. No need to add again
+            // This cell is being removed
             _cellsToRemove.Remove(cell);
             return;
         }
@@ -200,18 +177,6 @@ public class Territory : ISynchronizable, ICellCollectionGetter
             // This cell is part of an already enclosed piece of land. No need to
             // add it again
             return;
-        }
-
-        if ((cell.TerritoryToAddTo != null) &&
-            (cell.TerritoryToAddTo != this))
-        {
-            //// If this cell was to be added to another territory, override that
-            //cell.TerritoryToAddTo.RemoveCellToAdd(cell);
-
-            // We should avoid this scenario
-            throw new System.Exception(
-                "We are already attempting to add this cell " + cell.Position +
-                " to the territory of polity " + cell.TerritoryToAddTo.Polity.Id);
         }
 
         if (_cells.Contains(cell))
@@ -227,28 +192,23 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         World.AddTerritoryToUpdate(this);
     }
 
-    public void RemoveCellToAdd(TerrainCell cell)
+    public bool TryRemoveCellToAdd(TerrainCell cell)
     {
-        cell.TerritoryToAddTo = null;
-        _cellsToAdd.Remove(cell);
+        if (_cellsToAdd.Contains(cell))
+        {
+            cell.TerritoryToAddTo = null;
+            _cellsToAdd.Remove(cell);
+
+            return true;
+        }
+
+        return false;
     }
 
     public void SetCellToRemove(TerrainCell cell)
     {
-
-//#if DEBUG
-//        if (cell.Position.Equals(6, 111))
-//        {
-//            Debug.LogWarning("Debugging SetCellToRemove, cell: " + cell.Position + ", group: " +
-//                cell.Group + ", polity: " + Polity.Id);
-//        }
-//#endif
-
-        if (_cellsToAdd.Contains(cell))
-        {
-            RemoveCellToAdd(cell);
+        if (TryRemoveCellToAdd(cell))
             return;
-        }
 
         if (!_cells.Contains(cell))
         {
@@ -278,7 +238,10 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         {
             PrepareToAddNonEnclosedCell(cell);
 
-            AddCell(cell);
+            if (!TryAddCell(cell))
+            {
+                throw new System.Exception($"Failed to add cell {cell.Position}");
+            }
         }
 
         _cellsToAdd.Clear();
@@ -288,7 +251,12 @@ public class Territory : ISynchronizable, ICellCollectionGetter
     {
         foreach (TerrainCell cell in _cellsToRemove)
         {
+            // Test to invalidate any enclosed area it might 
+            // have been part of
             TestOuterBorderCell(cell);
+
+            // Also test neighbors
+            TestNeighborsForBorders(cell);
 
             _enclosedCells.Remove(cell);
 
@@ -300,6 +268,9 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     public bool IsPartOfOuterBorder(TerrainCell cell)
     {
+        if (HasThisHighestPolityProminence(cell))
+            return false;
+
         foreach (TerrainCell nCell in cell.NeighborList)
         {
             if (HasThisHighestPolityProminence(nCell))
@@ -310,11 +281,6 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
         return false;
     }
-
-//#if DEBUG
-//    private int debugCounter1 = 1;
-//    private int debugCounter2 = 1;
-//#endif
 
     public Border BuildOuterBorder(TerrainCell startCell)
     {
@@ -328,19 +294,6 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         while (cellsToExplore.Count > 0)
         {
             TerrainCell cell = cellsToExplore.Dequeue();
-
-//#if DEBUG
-//            if (cell.Position.Equals(395, 134))
-//            {
-//                if (debugCounter1 >= 90)
-//                {
-//                    Debug.LogWarning("Debugging BuildOuterBorder on cell " + cell.Position +
-//                        ", attempt: " + debugCounter1);
-//                }
-
-//                debugCounter1++;
-//            }
-//#endif
 
             foreach (TerrainCell nCell in cell.NonDiagonalNeighbors.Values)
             {
@@ -390,11 +343,6 @@ public class Territory : ISynchronizable, ICellCollectionGetter
             return false;
 
         return cell.Group == null;
-
-        //if (cell.Group == null)
-        //    return true;
-
-        //return cell.Group.TotalPolityProminenceValue <= 0;
     }
 
     public void AddEnclosedAreas()
@@ -405,23 +353,35 @@ public class Territory : ISynchronizable, ICellCollectionGetter
                 _cells,
                 out CellSet enclosedSet,
                 CanAddCellToEnclosedArea))
+            {
                 continue;
+            }
 
             _enclosedAreas.Add(enclosedSet.GetArea());
 
-            foreach (TerrainCell cell in enclosedSet.Cells)
+            List<TerrainCell> cellsToTryToAddAgain = new List<TerrainCell>();
+
+            foreach (var cell in enclosedSet.Cells)
             {
                 _enclosedCells.Add(cell);
 
-//#if DEBUG
-//                if (cell.Position.Equals(6, 111))
-//                {
-//                    Debug.LogWarning("Debugging AddEnclosedAreas, cell: " + cell.Position + ", group: " +
-//                        cell.Group + ", polity: " + Polity.Id);
-//                }
-//#endif
+                if (!TryAddCell(cell))
+                {
+                    // Sometimes a land region can't be generated from this cell (rivers),
+                    // so we can delay adding this cell until a it has already been added
+                    // to a region
+                    cellsToTryToAddAgain.Add(cell);
+                }
+            }
 
-                AddCell(cell);
+            foreach (var cell in cellsToTryToAddAgain)
+            {
+                if (!TryAddCell(cell))
+                {
+                    // No land region could be generated that encompasses this cell, so we can't
+                    // add it to the territory.
+                    Debug.LogWarning($"Failed to add enclosed cell {cell.Position} after second attempt");
+                }
             }
         }
 
@@ -437,20 +397,299 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         AddEnclosedAreas();
     }
 
-    private void AddCell(TerrainCell cell)
-    {
-//#if DEBUG
-//        if (cell.Position.Equals(123, 93) && (Polity.Id == "0000000000237445853:2799754581787250256"))
-//        {
-//            Debug.LogWarning("Debugging AddCell, cell: " + cell.Position + ", group: " +
-//                cell.Group + ", polity: " + Polity.Id);
-//        }
-//#endif
+    private Dictionary<int, int> _longitudes = new Dictionary<int, int>();
+    private Dictionary<int, int> _latitudes = new Dictionary<int, int>();
 
+    private int _leftmost = -1;
+    private int _rightmost = -1;
+    private int _top = -1;
+    private int _bottom = -1;
+
+    private bool _validLeftmost = false;
+    private bool _validRightmost = false;
+    private bool _validTop = false;
+    private bool _validBottom = false;
+
+    private void AddLatitude(int latitude)
+    {
+        if (_latitudes.ContainsKey(latitude))
+        {
+            _latitudes[latitude]++;
+        }
+        else
+        {
+            _latitudes[latitude] = 1;
+        }
+
+        if (_top == -1)
+        {
+            _top = latitude;
+            _validTop = true;
+        }
+
+        if (_bottom == -1)
+        {
+            _bottom = latitude;
+            _validBottom = true;
+        }
+
+        if ((latitude - _top) > 0)
+        {
+            _top = latitude;
+            _validTop = true;
+        }
+
+        if ((latitude - _bottom) < 0)
+        {
+            _bottom = latitude;
+            _validBottom = true;
+        }
+    }
+
+    private void RemoveLatitude(int latitude)
+    {
+        if (!_latitudes.ContainsKey(latitude))
+        {
+            throw new System.Exception($"Tryin to remove missing latitude: {latitude}, polity: {Polity.Id}");
+        }
+
+        _latitudes[latitude]--;
+
+        if (_latitudes[latitude] == 0)
+        {
+            _latitudes.Remove(latitude);
+
+            if (latitude == _top)
+                _validTop = false;
+
+            if (latitude == _bottom)
+                _validBottom = false;
+        }
+    }
+
+    private void UpdateLatitudeEdges()
+    {
+        if (_validBottom && _validTop)
+            return;
+
+        _top = 0;
+        _bottom = 0;
+
+        bool first = true;
+        foreach (int latitude in _latitudes.Keys)
+        {
+            if (first)
+            {
+                _top = latitude;
+                _bottom = latitude;
+                first = false;
+                continue;
+            }
+
+            if (_bottom > latitude)
+            {
+                _bottom = latitude;
+            }
+
+            if (_top < latitude)
+            {
+                _top = latitude;
+            }
+        }
+
+        _validBottom = true;
+        _validTop = true;
+    }
+
+    private void AddLongitude(int longitude)
+    {
+        if (_leftmost == -1)
+        {
+            _leftmost = longitude;
+            _validLeftmost = true;
+        }
+        if (_rightmost == -1)
+        {
+            _rightmost = longitude;
+            _validRightmost = true;
+        }
+
+        if (longitude < _leftmost)
+        {
+            int modLong = longitude + Manager.WorldWidth;
+            var leftDiff = _leftmost - longitude;
+            var rightDiff = Mathf.Abs(_rightmost - modLong);
+
+            if (rightDiff < leftDiff)
+            {
+                if (modLong > _rightmost)
+                {
+                    _rightmost = modLong;
+                    _validRightmost = true;
+                }
+            }
+            else
+            {
+                _leftmost = longitude;
+                _validLeftmost = true;
+            }
+        }
+
+        if (_rightmost < longitude)
+        {
+            int modLong = longitude - Manager.WorldWidth;
+            var leftDiff = Mathf.Abs(_leftmost - modLong);
+            var rightDiff = longitude - _rightmost;
+
+            if (rightDiff < leftDiff)
+            {
+                if (modLong > _rightmost)
+                {
+                    _leftmost = longitude;
+                    _validLeftmost = true;
+                }
+            }
+            else
+            {
+                _rightmost = longitude;
+                _validRightmost = true;
+
+            }
+        }
+
+        if (_longitudes.ContainsKey(longitude))
+        {
+            _longitudes[longitude]++;
+        }
+        else
+        {
+            _longitudes[longitude] = 1;
+        }
+    }
+
+    private void RemoveLongitude(int longitude)
+    {
+        if (!_longitudes.ContainsKey(longitude))
+        {
+            throw new System.Exception($"Tryin to remove missing longitude: {longitude}, polity: {Polity.Id}");
+        }
+
+        _longitudes[longitude]--;
+
+        if (_longitudes[longitude] == 0)
+        {
+            _longitudes.Remove(longitude);
+
+            if (longitude == _leftmost)
+                _validLeftmost = false;
+
+            if (longitude == _rightmost)
+                _validRightmost = false;
+
+            if ((longitude + Manager.WorldWidth) == _rightmost)
+                _validRightmost = false;
+        }
+    }
+
+    private void UpdateLongitudeEdges()
+    {
+        if (_validLeftmost && _validRightmost)
+            return;
+
+        _leftmost = 0;
+        _rightmost = 0;
+        bool first = true;
+        foreach (int longitude in _longitudes.Keys)
+        {
+            if (first)
+            {
+                _leftmost = longitude;
+                _rightmost = longitude;
+                first = false;
+                continue;
+            }
+
+            if (longitude < _leftmost)
+            {
+                int modLong = longitude + Manager.WorldWidth;
+                var leftDiff = _leftmost - longitude;
+                var rightDiff = Mathf.Abs(_rightmost - modLong);
+
+                if (rightDiff < leftDiff)
+                {
+                    if (modLong > _rightmost)
+                    {
+                        _rightmost = modLong;
+                    }
+                }
+                else
+                {
+                    _leftmost = longitude;
+                }
+            }
+
+            if (_rightmost < longitude)
+            {
+                int modLong = longitude - Manager.WorldWidth;
+                var leftDiff = Mathf.Abs(_leftmost - modLong);
+                var rightDiff = longitude - _rightmost;
+
+                if (rightDiff < leftDiff)
+                {
+                    if (modLong > _rightmost)
+                    {
+                        _leftmost = longitude;
+                    }
+                }
+                else
+                {
+                    _rightmost = longitude;
+
+                }
+            }
+        }
+
+        _validLeftmost = true;
+        _validRightmost = true;
+    }
+
+    private bool AddCellInternal(TerrainCell cell)
+    {
         if (!_cells.Add(cell))
+            return false;
+
+        AddLatitude(cell.Latitude);
+        AddLongitude(cell.Longitude);
+
+        return true;
+    }
+
+    private bool RemoveCellInternal(TerrainCell cell)
+    {
+        if (!_cells.Remove(cell))
+        {
+            return false;
+        }
+
+        RemoveLongitude(cell.Longitude);
+        RemoveLatitude(cell.Latitude);
+
+        return true;
+    }
+
+    private bool TryAddCell(TerrainCell cell)
+    {
+        if (!AddCellInternal(cell))
         {
             // the cell has already been added, there's nothing else that needs to be done
-            return;
+            return true;
+        }
+
+        Region region = cell.GetRegion(Polity.Culture.Language);
+
+        if (region == null)
+        {
+            return false;
         }
 
         cell.EncompassingTerritory = this;
@@ -473,14 +712,6 @@ public class Territory : ISynchronizable, ICellCollectionGetter
             }
         }
 
-        Region region = cell.GetRegion(Polity.Culture.Language);
-
-        if (region == null)
-        {
-            throw new System.Exception(
-                "Unable to generate region for cell " + cell.Position);
-        }
-
         IncreaseAccessToRegion(region);
 
         foreach (TerrainCell nCell in cell.NeighborList)
@@ -495,20 +726,13 @@ public class Territory : ISynchronizable, ICellCollectionGetter
                 IncreaseAccessToRegion(region);
             }
         }
+
+        return true;
     }
 
     private void RemoveCell(TerrainCell cell)
     {
-
-//#if DEBUG
-//        if (cell.Position.Equals(395, 134))
-//        {
-//            Debug.LogWarning("Debugging RemoveCell, cell: " + cell.Position + ", group: " +
-//                cell.Group + ", polity: " + Polity.Id);
-//        }
-//#endif
-
-        if (!_cells.Remove(cell))
+        if (!RemoveCellInternal(cell))
         {
             // the cell has already been removed, there's nothing else that needs to be done
             return;
@@ -595,7 +819,7 @@ public class Territory : ISynchronizable, ICellCollectionGetter
                 throw new System.Exception("Cell missing at position " + position.Longitude + "," + position.Latitude);
             }
 
-            _cells.Add(cell);
+            AddCellInternal(cell);
 
             cell.EncompassingTerritory = this;
         }
@@ -634,6 +858,11 @@ public class Territory : ISynchronizable, ICellCollectionGetter
 
     private void DecreaseAccessToRegion(Region region)
     {
+        if (region == null)
+        {
+            throw new System.ArgumentNullException($"region can't be null");
+        }
+
         if (!_regionAccesses.TryGetValue(region, out var regionAccess))
         {
             throw new System.Exception(
@@ -650,5 +879,18 @@ public class Territory : ISynchronizable, ICellCollectionGetter
         }
 
         _regionAccesses[region].Count--;
+    }
+
+    public RectInt GetBoundingRectangle()
+    {
+        if (_cells.Count == 0)
+        {
+            return default;
+        }
+
+        UpdateLongitudeEdges();
+        UpdateLatitudeEdges();
+
+        return new RectInt(_leftmost, _bottom, _rightmost - _leftmost, _top - _bottom);
     }
 }

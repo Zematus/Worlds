@@ -1,5 +1,6 @@
 ﻿using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine;
 
 /// <summary>
 /// Identifies if the migration is over land or water
@@ -96,6 +97,8 @@ public class MigratePopulationEvent : CellGroupEvent
         if (!base.CanTrigger())
             return false;
 
+        float promValue = 0;
+
         Polity = null;
         if (!(PolityId is null))
         {
@@ -106,29 +109,60 @@ public class MigratePopulationEvent : CellGroupEvent
                 return false;
 
             Polity = prominence.Polity;
-
-            _prominenceValueDelta = ProminencePercent * prominence.Value;
+            promValue = prominence.Value;
         }
         else
         {
-            float prominenceValue = Group.GetUBandsProminenceValue();
-
-            _prominenceValueDelta = ProminencePercent * prominenceValue;
+            promValue = Group.GetUBandsProminenceValue();
         }
 
-        _population = (int)(Group.Population * _prominenceValueDelta);
+        float promPop = Group.ExactPopulation * promValue;
+
+        if (promPop < CellGroup.MinProminencePopulation)
+        {
+#if DEBUG
+            Debug.LogWarning($"Too small a population to migrate. " +
+                $"Prominence Population: {promPop}" +
+                $", Group Exact Population: {Group.ExactPopulation}" +
+                $", promValue: {promValue}");
+#endif
+            return false;
+        }
+
+        float extraPopThatCanMigrate = promPop - CellGroup.MinProminencePopulation;
+        float popToMigrate =
+            (extraPopThatCanMigrate * ProminencePercent) + CellGroup.MinProminencePopulation;
+        _population = (int)popToMigrate;
 
         if (_population <= 0)
-            return false;
+        {
+            new System.Exception($"Trying to migrate zero population. " +
+                $"Group population: {Group.Population}" +
+                $", popToMigrate: {popToMigrate}");
+        }
+
+        ProminencePercent = _population / promPop;
+        _prominenceValueDelta = ProminencePercent * promValue;
 
         return true;
     }
 
     public override void Trigger()
     {
+        if (MigrationType == MigrationType.Sea)
+        {
+            if (Group.SeaMigrationRoute == null)
+            {
+                throw new System.Exception("Sea Migration Route is Null. Group: " + Group.Id);
+            }
+
+            Group.SeaMigrationRoute.Used = true;
+        }
+
         Group.SetMigratingPopulation(
             TargetCell,
             MigrationDirection,
+            MigrationType,
             ProminencePercent,
             _prominenceValueDelta,
             _population,
@@ -155,7 +189,7 @@ public class MigratePopulationEvent : CellGroupEvent
         Group.PopulationMigrationEvent = this;
     }
 
-    protected override void DestroyInternal()
+    public override void Cleanup()
     {
         if (Group != null)
         {
@@ -167,7 +201,7 @@ public class MigratePopulationEvent : CellGroupEvent
             }
         }
 
-        base.DestroyInternal();
+        base.Cleanup();
     }
 
     /// <summary>

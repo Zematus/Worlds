@@ -5,7 +5,7 @@ using System.Linq;
 
 [XmlInclude(typeof(CellRegion))]
 [XmlInclude(typeof(SuperRegion))]
-public abstract class Region : ISynchronizable, ICellCollectionGetter
+public abstract class Region : ISynchronizable, ICellSet
 {
     public enum FilterType
     {
@@ -24,7 +24,7 @@ public abstract class Region : ISynchronizable, ICellCollectionGetter
     public bool IsHovered = false;
 
     [XmlIgnore]
-    public FilterType AssignedFilterType = FilterType.None;
+    public FilterType SelectionFilterType = FilterType.None;
 
     [XmlIgnore]
     public Region Parent = null;
@@ -188,4 +188,6 @@ public abstract class Region : ISynchronizable, ICellCollectionGetter
     }
 
     public abstract TerrainCell GetMostCenteredCell();
+
+    public abstract RectInt GetBoundingRectangle();
 }

@@ -48,7 +48,7 @@ public class ModAction : Context, IDebugLogger, IEffectTrigger
     /// <summary>
     /// Conditions that decide if this action can be used with the target
     /// </summary>
-    public IValueExpression<bool>[] ExecuteConditions;
+    public JustifiedCondition[] ExecuteConditions;
 
     /// <summary>
     /// Effects to occur after the action triggers
@@ -73,6 +73,9 @@ public class ModAction : Context, IDebugLogger, IEffectTrigger
         _lastUseDates[expression] = date;
     }
 #endif
+
+    private long _lastSetDate = -1;
+    private Faction _guidedFaction = null;
 
     /// <summary>
     /// First UId to use for actions loaded from mods
@@ -104,7 +107,7 @@ public class ModAction : Context, IDebugLogger, IEffectTrigger
     {
         DebugType = "Action";
 
-        Target = new FactionEntity(this, TargetEntityId);
+        Target = new FactionEntity(this, TargetEntityId, null);
 
         // Add the target to the context's entity map
         AddEntity(Target);
@@ -141,26 +144,26 @@ public class ModAction : Context, IDebugLogger, IEffectTrigger
 
     public bool CanExecute()
     {
-        OpenDebugOutput("Evaluating Use Conditions:");
+        OpenDebugOutput("Evaluating Execute Conditions:");
 
         // Always check that the target is still valid
         if (!CanAccess())
         {
-            CloseDebugOutput("Use Result: False");
+            CloseDebugOutput("Execute Result: False");
             return false;
         }
 
         if (ExecuteConditions != null)
         {
-            foreach (IValueExpression<bool> exp in ExecuteConditions)
+            foreach (var exp in ExecuteConditions)
             {
-                bool value = exp.Value;
+                bool value = exp.Condition.Value;
 
-                AddExpDebugOutput("Condition", exp);
+                AddExpDebugOutput("Condition", exp.Condition);
 
                 if (!value)
                 {
-                    CloseDebugOutput("Use Result: False");
+                    CloseDebugOutput("Execute Result: False");
                     return false;
                 }
             }
@@ -168,6 +171,35 @@ public class ModAction : Context, IDebugLogger, IEffectTrigger
 
         CloseDebugOutput("Use Result: True");
         return true;
+    }
+
+    public string BuildExecuteInfoText()
+    {
+        string text = string.Empty;
+
+        // Always check that the target is still valid
+        if (!CanAccess())
+        {
+            return text;
+        }
+
+        bool first = true;
+        if (ExecuteConditions != null)
+        {
+            foreach (var exp in ExecuteConditions)
+            {
+                if (first)
+                {
+                    text = $"• {exp.Info.GetFormattedString()}";
+                    first = false;
+                    continue;
+                }
+
+                text += $"\n• {exp.Info.GetFormattedString()}";
+            }
+        }
+
+        return text;
     }
 
     public void SetEffectsToResolve()
@@ -188,9 +220,21 @@ public class ModAction : Context, IDebugLogger, IEffectTrigger
             throw new System.ArgumentNullException("faction is set to null");
         }
 
+        if ((_lastSetDate == Manager.CurrentWorld.CurrentDate) &&
+            (_guidedFaction == faction) &&
+            Manager.ResolvingPlayerInvolvedDecisionChain)
+        {
+            // We shouldn't reset the target if we are in the middle of resolving a
+            // decision chain and neither the target nor the current date have changed
+            return;
+        }
+
+        _lastSetDate = Manager.CurrentWorld.CurrentDate;
+        _guidedFaction = faction;
+
         Reset();
 
-        Target.Set(faction);
+        Target.Set(_guidedFaction);
     }
 
     public override int GetNextRandomInt(int iterOffset, int maxValue) =>

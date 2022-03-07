@@ -3,14 +3,14 @@ using System.Xml.Serialization;
 
 public enum PolityType
 {
-    None,
+    Any,
     Tribe
 }
 
 public class PolityInfo : Identifiable, ISynchronizable
 {
     [XmlAttribute("T")]
-	public string Type;
+	public string TypeStr;
 
     public Name Name;
     
@@ -20,7 +20,7 @@ public class PolityInfo : Identifiable, ISynchronizable
 
     private string _nameFormat;
 
-    private PolityType _type;
+    public PolityType Type;
 
     public PolityInfo()
     {
@@ -48,18 +48,18 @@ public class PolityInfo : Identifiable, ISynchronizable
 
     private void SetType(string typeStr)
     {
-        Type = typeStr;
+        TypeStr = typeStr;
 
-        _type = GetPolityType(typeStr);
+        Type = GetPolityType(typeStr);
 
-        switch (_type)
+        switch (Type)
         {
             case PolityType.Tribe:
-                _type = PolityType.Tribe;
+                Type = PolityType.Tribe;
                 _nameFormat = Tribe.PolityNameFormat;
                 break;
             default:
-                throw new System.Exception("PolityInfo: Unhandled polity type: " + _type);
+                throw new System.Exception("PolityInfo: Unhandled polity type: " + Type);
         }
     }
 
@@ -78,7 +78,7 @@ public class PolityInfo : Identifiable, ISynchronizable
         if (Polity != null)
             Polity.FinalizeLoad();
         
-        SetType(Type);
+        SetType(TypeStr);
     }
 
     public void Synchronize()

@@ -31,6 +31,6 @@ public class ValueEntityAttributeExpression<T>
             return e.GetFormattedString();
         }
 
-        return Value.ToString().ToBoldFormat();
-    } 
+        return Value.ToFormattedString();
+    }
 }

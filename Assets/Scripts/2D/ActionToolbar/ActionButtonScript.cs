@@ -10,21 +10,28 @@ public class ActionButtonScript : MonoBehaviour
 
     private ModAction _action;
 
-    private long _lastDate = -1;
-
     public void Update()
     {
         if (!gameObject.activeInHierarchy)
             return;
 
-        if (_lastDate == Manager.CurrentWorld.CurrentDate)
+        if (Manager.ResolvingPlayerInvolvedDecisionChain)
             return;
-
-        _lastDate = Manager.CurrentWorld.CurrentDate;
 
         _action.SetTarget(Manager.CurrentWorld.GuidedFaction);
 
-        Button.interactable = _action.CanExecute();
+        bool canExecute = _action.CanExecute();
+        Button.interactable = canExecute;
+
+        ButtonWithTooltipScript buttonScript = Button.GetComponent<ButtonWithTooltipScript>();
+        if (canExecute)
+        {
+            buttonScript.UpdateTooltip(null);
+        }
+        else
+        {
+            buttonScript.UpdateTooltip(_action.BuildExecuteInfoText());
+        }
     }
 
     private void AddActionToExecute()
@@ -34,11 +41,10 @@ public class ActionButtonScript : MonoBehaviour
 
     public void SetAction(ModAction action)
     {
-        Text.text = action.Name;
+        ButtonWithTooltipScript buttonScript = Button.GetComponent<ButtonWithTooltipScript>();
+        buttonScript.Init(action.Name);
 
         _action = action;
-
-        _lastDate = -1;
 
         Button.onClick.AddListener(AddActionToExecute);
     }

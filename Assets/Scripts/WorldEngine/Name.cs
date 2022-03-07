@@ -149,20 +149,11 @@ public class Name : ISynchronizable
         TaggedMeaning = taggedMeaning;
     }
 
-    public string BoldText
-    {
-        get { return Value.Text.ToBoldFormat(); }
-    }
+    public string BoldText => Value.Text.ToBoldString();
 
-    public string Text
-    {
-        get { return Value.Text; }
-    }
+    public string Text => Value.Text;
 
-    public string Meaning
-    {
-        get { return Value.Meaning; }
-    }
+    public string Meaning => Value.Meaning;
 
 
     public void Synchronize()

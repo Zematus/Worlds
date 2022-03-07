@@ -17,9 +17,18 @@ public static class ModParseUtility
     public const string AccessorRegexPart = @"\.";
 
     /// <summary>
+    /// Regex used to capture base values like numbers, booleans and identifiers
+    /// </summary>
+    public const string ValueRegexPart =
+        @"(?:" + NumberRegexPart +
+        @")|(?:" + BooleanRegexPart +
+        @")|(?:" + IdentifierRegexPart +
+        @")";
+
+    /// <summary>
     /// Regex used to capture base elements like numbers, booleans and identifiers
     /// </summary>
-    public const string BaseStatementRegexPart = 
+    public const string BaseStatementRegexPart =
         @"(?<number>" + NumberRegexPart +
         @")|(?<boolean>" + BooleanRegexPart +
         @")|(?<identifierStatement>" + IdentifierStatementRegexPart +
@@ -92,13 +101,35 @@ public static class ModParseUtility
         @"(?(open)(?!))";
 
     /// <summary>
-    /// Regex used to indetify the first argument within a set of arguments (used recursively)
+    /// Regex used to select the first argument within a set of arguments (used recursively)
     /// </summary>
     public const string ArgumentListRegex =
         @"^\s*" +
         @"(?<argument>" + ArgumentRegexPart + @")\s*" +
         @"(?:," +
             @"(?<otherArgs>" +
+                @".*" +
+            @")" +
+        @")?$";
+
+    /// <summary>
+    /// Regex used to indentify a set of parameter identifiers given to a function
+    /// </summary>
+    public const string ParamIdsRegexPart =
+        @"(?:\[" +
+            @"(?<paramIds>" + IdentifierRegexPart + @"\s*" + 
+                @"(?:,\s*" + IdentifierRegexPart  + @"\s*)*" + 
+            @")" + 
+        @"\])";
+
+    /// <summary>
+    /// Regex used to select the first identifier within a set of identifiers (used recursively)
+    /// </summary>
+    public const string IdentifierListRegex =
+        @"^\s*" +
+        @"(?<identifier>" + IdentifierRegexPart + @")\s*" +
+        @"(?:," +
+            @"(?<otherIds>" +
                 @".*" +
             @")" +
         @")?$";
@@ -148,6 +179,7 @@ public static class ModParseUtility
     /// </summary>
     public const string IdentifierStatementRegexPart =
         @"(?<identifier>" + IdentifierRegexPart + @")\s*" +
+        @"(?:" + ParamIdsRegexPart + @")?\s*" +
         @"(?:" + ArgumentsRegexPart + @")?";
 
     /// <summary>
@@ -202,6 +234,14 @@ public static class ModParseUtility
         @")" +
         AccessorRegexPart +
         @"(?<attribute>" + IdentifierStatementRegexPart + @")";
+
+    /// <summary>
+    /// Regex used to capture assign on statement
+    /// </summary>
+    public const string AssignOnRegex =
+        @"^\s*(?<identifier>" + IdentifierRegexPart +
+        @")(?:\s*:\s*(?<value>" + ValueRegexPart +
+        @"))?\s*$";
 
     /// <summary>
     /// Regex used to indentify an access operation (bounded)

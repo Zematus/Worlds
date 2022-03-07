@@ -34,12 +34,12 @@ public abstract class BinaryOpExpression : IExpression
         return "(" + _expressionA + " " + _opStr + " " + _expressionB + ")";
     }
 
-    public virtual string ToPartiallyEvaluatedString(bool evaluate = true)
+    public virtual string ToPartiallyEvaluatedString(int depth = -1)
     {
-        string expAPartial = _expressionA.ToPartiallyEvaluatedString(evaluate);
-        string expBPartial = _expressionB.ToPartiallyEvaluatedString(evaluate);
+        string expAPartial = _expressionA.ToPartiallyEvaluatedString(depth);
+        string expBPartial = _expressionB.ToPartiallyEvaluatedString(depth);
 
-        return "(" + expAPartial + " " + _opStr + " " + expBPartial + ")";
+        return $"({expAPartial} {_opStr} {expBPartial})";
     }
 
     public bool TryGetRequest(out InputRequest request) =>

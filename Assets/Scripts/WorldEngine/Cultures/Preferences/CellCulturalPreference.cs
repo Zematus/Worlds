@@ -15,13 +15,15 @@ public class CellCulturalPreference : CulturalPreference
 
     private float _newValue;
 
+#if DEBUG
+    private long _lastUpdateDate = Manager.CurrentWorld.CurrentDate;
+#endif
+
     [XmlIgnore]
     public override float Value
     {
-        set
-        {
-            _newValue = value;
-        }
+        get => ValueInternal;
+        set => _newValue = value;
     }
 
     public CellCulturalPreference()
@@ -31,8 +33,6 @@ public class CellCulturalPreference : CulturalPreference
     public CellCulturalPreference(CellGroup group, string id, string name, int rngOffset, float value = 0) : base(id, name, rngOffset, value)
     {
         Group = group;
-
-        _newValue = value;
     }
 
     public static CellCulturalPreference CreateCellInstance(CellGroup group, CulturalPreference basePreference)
@@ -54,7 +54,7 @@ public class CellCulturalPreference : CulturalPreference
     /// <param name="percentage">percentage amount to merge</param>
     public void Unmerge(CulturalPreference preference, float percentage)
     {
-        _newValue = MathUtility.ReverseLerp(_newValue, preference.Value, percentage);
+        _newValue = MathUtility.UnLerp(_newValue, preference.Value, percentage);
     }
 
     /// <summary>

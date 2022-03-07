@@ -4,5 +4,5 @@
 /// </summary>
 public interface IExpression : IInputRequester
 {
-    string ToPartiallyEvaluatedString(bool evaluate = true);
+    string ToPartiallyEvaluatedString(int depth = -1);
 }

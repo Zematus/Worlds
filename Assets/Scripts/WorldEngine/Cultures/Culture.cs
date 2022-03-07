@@ -39,6 +39,10 @@ public class Culture : ISynchronizable
     protected Dictionary<string, CulturalSkill> _skills = new Dictionary<string, CulturalSkill>();
     protected Dictionary<string, CulturalKnowledge> _knowledges = new Dictionary<string, CulturalKnowledge>();
 
+    // preference references hardcoded for performance reasons
+    private CulturalPreference _aggressionPreference;
+    private CulturalPreference _isolationPreference;
+
     public Culture()
     {
     }
@@ -79,7 +83,7 @@ public class Culture : ISynchronizable
     }
 
     /// <summary>
-    /// Adds a new preference if not already present to the ulture
+    /// Adds a new preference if not already present to the culture
     /// </summary>
     /// <param name="preference">The preference to try to add</param>
     public void AddPreference(CulturalPreference preference)
@@ -90,10 +94,24 @@ public class Culture : ISynchronizable
         World.AddExistingCulturalPreferenceInfo(preference);
 
         _preferences.Add(preference.Id, preference);
+
+        switch (preference.Id)
+        {
+            case CulturalPreference.AggressionPreferenceId:
+
+                _aggressionPreference = preference;
+                break;
+
+            case CulturalPreference.IsolationPreferenceId:
+
+                _isolationPreference = preference;
+                break;
+        }
     }
 
     /// <summary>
-    /// Removes a preference from the culture
+    /// Removes a preference from the culture.
+    /// Note: Some preferences can't be removed
     /// </summary>
     /// <param name="preference">The preference to remove</param>
     public void RemovePreference(CulturalPreference preference)
@@ -101,17 +119,14 @@ public class Culture : ISynchronizable
         if (!_preferences.ContainsKey(preference.Id))
             return;
 
+        if ((preference.Id == CulturalPreference.AggressionPreferenceId) ||
+            (preference.Id == CulturalPreference.IsolationPreferenceId))
+        {
+            throw new System.Exception(
+                "Illegal Op: Preference with id:" + preference.Id + " can't be removed");
+        }
+
         _preferences.Remove(preference.Id);
-    }
-
-    public void RemovePreference(string preferenceId)
-    {
-        CulturalPreference preference = GetPreference(preferenceId);
-
-        if (preference == null)
-            return;
-
-        RemovePreference(preference);
     }
 
     public void ResetPreferences()
@@ -234,6 +249,28 @@ public class Culture : ISynchronizable
             return null;
 
         return preference;
+    }
+
+    /// <summary>
+    /// Returns the current value for the preference for aggression.
+    /// Note: This function exists for performance reasons and assumes the
+    /// preference is always present (which should be)
+    /// </summary>
+    /// <returns>the aggression preference value</returns>
+    public float GetAggressionPreferenceValue()
+    {
+        return _aggressionPreference.Value;
+    }
+
+    /// <summary>
+    /// Returns the current value for the preference for isolation.
+    /// Note: This function exists for performance reasons and assumes the
+    /// preference is always present (which should be)
+    /// </summary>
+    /// <returns>the isolation preference value</returns>
+    public float GetIsolationPreferenceValue()
+    {
+        return _isolationPreference.Value;
     }
 
     /// <summary>
@@ -435,7 +472,7 @@ public class Culture : ISynchronizable
     {
         foreach (CulturalPreference p in Preferences)
         {
-            _preferences.Add(p.Id, p);
+            AddPreference(p);
         }
     }
 
@@ -443,7 +480,7 @@ public class Culture : ISynchronizable
     {
         foreach (CulturalActivity a in Activities)
         {
-            _activities.Add(a.Id, a);
+            AddActivity(a);
         }
     }
 
@@ -451,7 +488,7 @@ public class Culture : ISynchronizable
     {
         foreach (CulturalSkill s in Skills)
         {
-            _skills.Add(s.Id, s);
+            AddSkill(s);
         }
     }
 
@@ -459,7 +496,7 @@ public class Culture : ISynchronizable
     {
         foreach (CulturalKnowledge k in Knowledges)
         {
-            _knowledges.Add(k.Id, k);
+            AddKnowledge(k);
         }
     }
 
@@ -499,5 +536,17 @@ public class Culture : ISynchronizable
 
             Discoveries.Add(discoveryId, discovery);
         }
+    }
+
+    public static float CalculateAggressionDiff(Culture cultureA, Culture cultureB)
+    {
+        Profiler.BeginSample("CalculateAggressionTowards");
+
+        float aggrPrefB = cultureB.GetAggressionPreferenceValue();
+        float aggrPrefA = cultureA.GetAggressionPreferenceValue();
+
+        Profiler.EndSample(); // ("CalculateAggressionTowards");
+
+        return aggrPrefA - aggrPrefB;
     }
 }
