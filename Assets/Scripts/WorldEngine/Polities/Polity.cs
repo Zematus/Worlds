@@ -576,6 +576,11 @@ public abstract class Polity : ISynchronizable
 
     public Faction GetFaction(Identifier id)
     {
+        if (id == null)
+        {
+            throw new System.Exception($"faction id can't be null");
+        }
+
         _factions.TryGetValue(id, out Faction faction);
 
         return faction;

@@ -212,7 +212,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         if (parentFaction != null)
         {
             PolityProminence polityProminence = CoreGroup.GetPolityProminence(PolityId);
-            World.AddPromToCalculateCoreDistFor(polityProminence);
+            World.AddPromToSetCoreDistFor(polityProminence);
         }
     }
 
@@ -644,7 +644,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
 
         group.AddFactionCore(this);
         var prom = group.GetPolityProminence(PolityId);
-        World.AddPromToCalculateCoreDistFor(prom);
+        World.AddPromToSetCoreDistFor(prom);
 
         if (IsDominant)
         {

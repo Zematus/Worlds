@@ -3192,7 +3192,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             TotalPolityProminenceValue += initialValue;
         }
 
-        World.AddPromToCalculateCoreDistFor(prominence);
+        World.AddPromToSetCoreDistFor(prominence);
         World.AddGroupWithPolityCountChange(this);
     }
 
@@ -3460,6 +3460,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             if (Cell == null)
             {
                 throw new System.Exception("Cell can't be null");
+            }
+
+            if (p.ClosestFactionId == null)
+            {
+                throw new System.Exception(
+                    $"Missing ClosestFactionId for prominence {Id} of Polity {p.PolityId}");
             }
 
             _polityProminences.Add(p.PolityId, p);

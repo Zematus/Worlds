@@ -26,8 +26,8 @@ public class PolityProminence
     [XmlAttribute("CFId")]
     public string ClosestFactionIdStr
     {
-        get { return ClosestFactionId; }
-        set { ClosestFactionId = value; }
+        get => ClosestFactionId;
+        set => ClosestFactionId = value;
     }
     [XmlIgnore]
     public Identifier ClosestFactionId = null;
@@ -163,6 +163,11 @@ public class PolityProminence
         ClosestFaction?.RemoveProminence(this);
     }
 
+    public void SetDefaultClosestFaction()
+    {
+        SetClosestFaction(Polity.DominantFaction);
+    }
+
     public void SetClosestFaction(Faction faction)
     {
         if (ClosestFaction == faction)
@@ -218,6 +223,8 @@ public class PolityProminence
 
             Manager.AddUpdatedCell(
                 Group.Cell, CellUpdateType.Group, CellUpdateSubType.CoreDistance);
+
+            Polity.World.RemovePromToSetCoreDistFor(this);
 
             return true;
         }
@@ -431,15 +438,12 @@ public class PolityProminence
                 prominencesToResetSet.Add(nProm);
             }
 
-            if (isExpansionLimit)
-            {
-                Polity.World.AddPromToCalculateCoreDistFor(prom);
-            }
+            Polity.World.AddPromToSetCoreDistFor(prom, isExpansionLimit);
         }
 
         if (addToRecalcs)
         {
-            Polity.World.AddPromToCalculateCoreDistFor(this);
+            Polity.World.AddPromToSetCoreDistFor(this);
         }
     }
 
