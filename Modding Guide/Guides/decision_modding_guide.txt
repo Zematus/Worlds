@@ -10,9 +10,9 @@ files must have the .json extension and have the following file structure:
     {
       "id":                         -- (required) Unique decision identifier (see note 2).
 
-      "name":                       -- (required) Name of event.
+      "name":                       -- (required) Name of decision.
 
-      "target":                     -- (required) Target entity type for the event.
+      "target":                     -- (required) Target entity type for the decision.
                                        For now, the only acceptable value is "faction".
 
       "parameters":                 -- (optional) List of parameters that are required
@@ -37,7 +37,7 @@ files must have the .json extension and have the following file structure:
                                        to the decision definition. Properties are
                                        predefined values and expressions that can be
                                        reused in different places within the definition.
-                                       Please read properties_guide.txt for more details
+                                       Please read properties_guide.md for more details
                                        on how to define valid properties.
 
       "description":                -- (required) List of DESCRIPTION objects. These

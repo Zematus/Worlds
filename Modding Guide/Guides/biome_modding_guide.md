@@ -1,9 +1,10 @@
----- Biome Modding guide ----
+# Biome Modding guide
 
-Biome modding files are located within the 'Biomes' folder. To be valid, mod files must have the .json extension and have the following file structure:
+**Biome** mod files are located within the *Biomes* folder. To be valid, mod files must have the **.json** extension and have the following file structure:
 
--- File Structure --
+### File Structure
 
+```
 {
   "biomes": [ -- list of biomes --
     {
@@ -39,17 +40,18 @@ Biome modding files are located within the 'Biomes' folder. To be valid, mod fil
         }
       ]
     },
-    ... -- additional biomes --
+    ...                             -- additional biomes --
   ]
 }
+```
 
--- Notes --
+## Notes
 1. Remove any trailing commas or the file won't be parsed
-2. Optional 'min' attribute values (altitude/rainfall/temperature) not defined will be assigned the minimum attribute value of its category
-3. Optional 'max' attribute values (altitude/rainfall/temperature) not defined will be assigned the maximum attribute value of its category
-4. Only set a minValue if the biome is not supposed to be present at values less than minValue. Otherwise do not add this constraint property
-5. Only set a maxValue if the biome is not supposed to be present at values greater than maxValue. Otherwise do not add this constraint property
-6. A layer constraint's minValue or maxValue shouldn't be greater than the specific layer's maxPossibleValue
-7. Saturation represents how close is particular biome from filling a particular cell and it helps calculate the relative strength of a particular biome in regards to others within a single cell. The saturation slope indicates how quickly a particular biome reaches it's saturation point within a cell. A saturation slope of 0 indicates that the biome never increases it's saturation level above 0. A  slope of 1 indicates that the biome reaches it's maximum saturation at the exact midpoint between the minimum and maximum values of a particular property. A slope greater than 1 indicates the biome reaches it's maximum saturation faster. A slope less than 1 indicates the biome won't reach it's saturation point. When undefined, the default saturation slope is 1
+2. Optional **min** attribute values (altitude/rainfall/temperature) not defined will be assigned the minimum attribute value of its category
+3. Optional **max** attribute values (altitude/rainfall/temperature) not defined will be assigned the maximum attribute value of its category
+4. Only set a **minValue** if the biome is not supposed to be present at values less than minValue. Otherwise do not add this constraint property
+5. Only set a **maxValue** if the biome is not supposed to be present at values greater than maxValue. Otherwise do not add this constraint property
+6. A layer constraint's **minValue** or **maxValue** shouldn't be greater than the specific layer's **maxPossibleValue**
+7. **Saturation** represents how close is particular biome from filling a particular cell and it helps calculate the relative strength of a particular biome in regards to others within a single cell. The saturation slope indicates how quickly a particular biome reaches its saturation point within a cell. A saturation slope of **0** indicates that the biome never increases its saturation level above **0**. A  slope of **1** indicates that the biome reaches its maximum saturation at the exact midpoint between the minimum and maximum values of a particular property. A slope greater than **1** indicates the biome reaches its maximum saturation faster. A slope less than **1** indicates the biome won't reach its saturation point. When undefined, the default saturation slope is **1**
 
 --

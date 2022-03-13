@@ -10,6 +10,7 @@ Additionally, a mod must contain at least one component folder containing mod de
 
 - Adjectives
 - Biomes
+- Actions
 - Decisions
 - Discoveries
 - Elements
@@ -32,7 +33,11 @@ Adjective definitions are used to define the possible adjectives used in languag
 
 Biome definitions are used to define the biomes assigned to each cell on a newly generated planet. You can find more information on how to write a biome mod within the *biome_modding_guide.txt* file located in the *Guides* folder.
 
-### Decisions Mods
+### Action Mods
+
+Action definitions are used to define the possible action that player led factions can use during a game. You can find more information on how to write a discovery mod within the *action_modding_guide.txt* file located in the *Guides* folder.
+
+### Decision Mods
 
 Decision definitions are used to define the possible decisions that player and non-player led factions can be confronted with during a game. You can find more information on how to write a discovery mod within the *decision_modding_guide.txt* file located in the *Guides* folder.
 

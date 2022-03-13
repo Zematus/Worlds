@@ -24,7 +24,7 @@ must have the .json extension and have the following file structure:
                                        to the event definition. Properties are predefined
                                        values and expressions that can be reused in
                                        different places within the definition. Please
-                                       read properties_guide.txt for more details on
+                                       read properties_guide.md for more details on
                                        how to define valid properties.
 
       "assignmentConditions":       -- (optional) List of BOOLEAN EXPRESSIONS to

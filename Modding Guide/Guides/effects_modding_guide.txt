@@ -15,7 +15,7 @@ following structure:
                                        to the effect definition. Properties are predefined
                                        values and expressions that can be reused in
                                        different places within the definition. Please
-                                       read properties_guide.txt for more details
+                                       read properties_guide.md for more details
                                        on how to define valid properties.
 
       "text":                       -- (required) Text to generate when this effect
