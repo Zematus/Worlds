@@ -49,7 +49,7 @@ public class Adjective
         Adjectives = new Dictionary<string, Adjective>();
     }
 
-    public static void LoadAdjectivesFile(string filename)
+    public static void LoadAdjectivesFile033(string filename)
     {
         foreach (Adjective adjective in AdjectiveLoader.Load(filename))
         {

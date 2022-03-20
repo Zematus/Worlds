@@ -5115,7 +5115,7 @@ public class Manager
         RegionAttribute.ResetAttributes();
         Element.ResetElements();
 
-        Discovery.ResetDiscoveries();
+        Discovery033.ResetDiscoveries();
         Knowledge.ResetKnowledges();
 
         PreferenceGenerator.ResetPreferenceGenerators();
@@ -5145,7 +5145,7 @@ public class Manager
         }
 
         PreferenceGenerator.InitializePreferenceGenerators();
-        Discovery.InitializeDiscoveries();
+        Discovery033.InitializeDiscoveries();
 
         EventGenerator.InitializeGenerators();
     }
@@ -5205,13 +5205,13 @@ public class Manager
 
         float progressPerSegment = progressPerMod / 9f;
 
-        TryLoadModFiles(Layer.LoadLayersFile, Path.Combine(path, @"Layers"), progressPerSegment);
-        TryLoadModFiles(Biome.LoadBiomesFile, Path.Combine(path, @"Biomes"), progressPerSegment);
-        TryLoadModFiles(Adjective.LoadAdjectivesFile, Path.Combine(path, @"Adjectives"), progressPerSegment);
-        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
-        TryLoadModFiles(Element.LoadElementsFile, Path.Combine(path, @"Elements"), progressPerSegment);
+        TryLoadModFiles(Layer.LoadLayersFile033, Path.Combine(path, @"Layers"), progressPerSegment);
+        TryLoadModFiles(Biome.LoadBiomesFile033, Path.Combine(path, @"Biomes"), progressPerSegment);
+        TryLoadModFiles(Adjective.LoadAdjectivesFile033, Path.Combine(path, @"Adjectives"), progressPerSegment);
+        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile033, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
+        TryLoadModFiles(Element.LoadElementsFile033, Path.Combine(path, @"Elements"), progressPerSegment);
         TryLoadModFiles(PreferenceGenerator.LoadPreferencesFile, Path.Combine(path, @"Preferences"), progressPerSegment);
-        TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
+        TryLoadModFiles(Discovery033.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
         TryLoadModFiles(EventGenerator.LoadEventFile, Path.Combine(path, @"Events"), progressPerSegment);
         TryLoadModFiles(ActionCategory.LoadActionCategoryFile, Path.Combine(path, @"Actions", @"Categories"), progressPerSegment);
         TryLoadModFiles(ModAction.LoadActionFile, Path.Combine(path, @"Actions"), progressPerSegment);
@@ -5227,12 +5227,12 @@ public class Manager
 
         float progressPerSegment = progressPerMod / 6f;
 
-        TryLoadModFiles(Layer.LoadLayersFile, Path.Combine(path, @"Layers"), progressPerSegment);
-        TryLoadModFiles(Biome.LoadBiomesFile, Path.Combine(path, @"Biomes"), progressPerSegment);
-        TryLoadModFiles(Adjective.LoadAdjectivesFile, Path.Combine(path, @"Adjectives"), progressPerSegment);
-        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
-        TryLoadModFiles(Element.LoadElementsFile, Path.Combine(path, @"Elements"), progressPerSegment);
-        TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
+        TryLoadModFiles(Layer.LoadLayersFile033, Path.Combine(path, @"Layers"), progressPerSegment);
+        TryLoadModFiles(Biome.LoadBiomesFile033, Path.Combine(path, @"Biomes"), progressPerSegment);
+        TryLoadModFiles(Adjective.LoadAdjectivesFile033, Path.Combine(path, @"Adjectives"), progressPerSegment);
+        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile033, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
+        TryLoadModFiles(Element.LoadElementsFile033, Path.Combine(path, @"Elements"), progressPerSegment);
+        TryLoadModFiles(Discovery033.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
     }
 
     public static void InvokeGuidedFactionStatusChangeEvent()

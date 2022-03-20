@@ -34,7 +34,7 @@ public class ModTest
         Debug.Log("loading biome mod file...");
 
         Biome.ResetBiomes();
-        Biome.LoadBiomesFile(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
+        Biome.LoadBiomesFile033(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
     }
 
     [Test]
@@ -79,7 +79,7 @@ public class ModTest
         Debug.Log("loading layer mod file...");
 
         Layer.ResetLayers();
-        Layer.LoadLayersFile(Path.Combine("Mods", "WeirdBiomesMod", "Layers", "weirdLayers.json"));
+        Layer.LoadLayersFile033(Path.Combine("Mods", "WeirdBiomesMod", "Layers", "weirdLayers.json"));
 
         foreach (Layer layer in Layer.Layers.Values)
         {
@@ -93,7 +93,7 @@ public class ModTest
 
         Adjective.ResetAdjectives();
         RegionAttribute.ResetAttributes();
-        RegionAttribute.LoadRegionAttributesFile(Path.Combine("Mods", "Base", "RegionAttributes", "region_attributes.json"));
+        RegionAttribute.LoadRegionAttributesFile033(Path.Combine("Mods", "Base", "RegionAttributes", "region_attributes.json"));
     }
 
     [Test]
@@ -115,7 +115,7 @@ public class ModTest
 
         Adjective.ResetAdjectives();
         Element.ResetElements();
-        Element.LoadElementsFile(Path.Combine("Mods", "Base", "Elements", "elements.json"));
+        Element.LoadElementsFile033(Path.Combine("Mods", "Base", "Elements", "elements.json"));
     }
 
     [Test]

@@ -10,14 +10,14 @@ public class DiscoveryEventMessage : CellEventMessage
     public string DiscoveryId;
 
     [XmlIgnore]
-    public Discovery Discovery;
+    public Discovery033 Discovery;
 
     public DiscoveryEventMessage()
     {
 
     }
 
-    public DiscoveryEventMessage(Discovery discovery, TerrainCell cell, long id, long date) : base(cell, id, date)
+    public DiscoveryEventMessage(Discovery033 discovery, TerrainCell cell, long id, long date) : base(cell, id, date)
     {
         DiscoveryId = discovery.Id;
         Discovery = discovery;

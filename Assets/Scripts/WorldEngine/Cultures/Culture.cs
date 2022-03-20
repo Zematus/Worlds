@@ -32,7 +32,7 @@ public class Culture : ISynchronizable
     public Language Language { get; set; }
 
     [XmlIgnore]
-    public Dictionary<string, Discovery> Discoveries = new Dictionary<string, Discovery>();
+    public Dictionary<string, IDiscovery> Discoveries = new Dictionary<string, IDiscovery>();
 
     protected Dictionary<string, CulturalPreference> _preferences = new Dictionary<string, CulturalPreference>();
     protected Dictionary<string, CulturalActivity> _activities = new Dictionary<string, CulturalActivity>();
@@ -76,7 +76,7 @@ public class Culture : ISynchronizable
             AddKnowledge(new CulturalKnowledge(k));
         }
 
-        foreach (Discovery d in sourceCulture.Discoveries.Values)
+        foreach (Discovery033 d in sourceCulture.Discoveries.Values)
         {
             AddDiscovery(d);
         }
@@ -215,7 +215,7 @@ public class Culture : ISynchronizable
         }
     }
 
-    protected void AddDiscovery(Discovery discovery)
+    protected void AddDiscovery(IDiscovery discovery)
     {
         if (Discoveries.ContainsKey(discovery.Id))
             return;
@@ -225,7 +225,7 @@ public class Culture : ISynchronizable
         Discoveries.Add(discovery.Id, discovery);
     }
 
-    protected void RemoveDiscovery(Discovery discovery)
+    protected void RemoveDiscovery(IDiscovery discovery)
     {
         if (!Discoveries.ContainsKey(discovery.Id))
             return;
@@ -406,9 +406,9 @@ public class Culture : ISynchronizable
         return false;
     }
 
-    public Discovery GetDiscovery(string id)
+    public IDiscovery GetDiscovery(string id)
     {
-        if (!Discoveries.TryGetValue(id, out Discovery discovery))
+        if (!Discoveries.TryGetValue(id, out var discovery))
             return null;
 
         return discovery;
@@ -416,7 +416,7 @@ public class Culture : ISynchronizable
 
     public bool HasDiscovery(string id)
     {
-        Discovery discovery = GetDiscovery(id);
+        var discovery = GetDiscovery(id);
 
         if (discovery != null)
             return true;
@@ -532,7 +532,7 @@ public class Culture : ISynchronizable
 
         foreach (string discoveryId in DiscoveryIds)
         {
-            Discovery discovery = Discovery.GetDiscovery(discoveryId);
+            Discovery033 discovery = Discovery033.GetDiscovery(discoveryId);
 
             Discoveries.Add(discoveryId, discovery);
         }

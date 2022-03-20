@@ -143,7 +143,7 @@ public class World : ISynchronizable, IWorldDateGetter
     [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
         XmlArrayItem(Type = typeof(MigratePopulationEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
-        XmlArrayItem(Type = typeof(Discovery.DiscoveryEvent)),
+        XmlArrayItem(Type = typeof(Discovery033.DiscoveryEvent033)),
         XmlArrayItem(Type = typeof(FactionModEvent)),
         XmlArrayItem(Type = typeof(CellGroupModEvent))]
     public List<WorldEvent> EventsToHappen;
@@ -282,7 +282,7 @@ public class World : ISynchronizable, IWorldDateGetter
 #endif
 
     [XmlIgnore]
-    public Dictionary<string, Discovery> ExistingDiscoveries = new Dictionary<string, Discovery>();
+    public Dictionary<string, IDiscovery> ExistingDiscoveries = new Dictionary<string, IDiscovery>();
 
     private Dictionary<Identifier, FactionInfo> _factionInfos =
         new Dictionary<Identifier, FactionInfo>();
@@ -825,7 +825,7 @@ public class World : ISynchronizable, IWorldDateGetter
         _culturalKnowledgeIdList.Add(baseInfo.Id);
     }
 
-    public void AddExistingDiscovery(Discovery discovery)
+    public void AddExistingDiscovery(IDiscovery discovery)
     {
         if (ExistingDiscoveries.ContainsKey(discovery.Id))
             return;
@@ -2494,7 +2494,7 @@ public class World : ISynchronizable, IWorldDateGetter
 
         foreach (string id in ExistingDiscoveryIds)
         {
-            Discovery discovery = Discovery.GetDiscovery(id);
+            Discovery033 discovery = Discovery033.GetDiscovery(id);
 
             if (discovery == null)
             {

@@ -104,7 +104,7 @@ public class BufferCulture : Culture
             }
         }
 
-        foreach (Discovery d in sourceCulture.Discoveries.Values)
+        foreach (var d in sourceCulture.Discoveries.Values)
         {
             AddDiscovery(d);
         }

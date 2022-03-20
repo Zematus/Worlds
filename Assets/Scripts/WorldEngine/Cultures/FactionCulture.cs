@@ -58,7 +58,7 @@ public class FactionCulture : Culture
             AddKnowledge(new CulturalKnowledge(k));
         }
 
-        foreach (Discovery d in coreCulture.Discoveries.Values)
+        foreach (Discovery033 d in coreCulture.Discoveries.Values)
         {
             AddDiscovery(d);
         }
@@ -219,14 +219,14 @@ public class FactionCulture : Culture
     /// <param name="coreCulture">the culture from the faction's core cell</param>
     private void UpdateDiscoveries(CellCulture coreCulture)
     {
-        foreach (Discovery d in coreCulture.Discoveries.Values)
+        foreach (Discovery033 d in coreCulture.Discoveries.Values)
         {
             AddDiscovery(d);
         }
 
-        List<Discovery> discoveriesToTryToRemove = new List<Discovery>(Discoveries.Values);
+        List<Discovery033> discoveriesToTryToRemove = new List<Discovery033>(Discoveries.Values);
 
-        foreach (Discovery d in discoveriesToTryToRemove)
+        foreach (Discovery033 d in discoveriesToTryToRemove)
         {
             if (!coreCulture.Discoveries.ContainsKey(d.Id))
             {
