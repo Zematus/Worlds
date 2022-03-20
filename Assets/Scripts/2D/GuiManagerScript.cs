@@ -3390,7 +3390,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         SelectionPanelScript.Title.text = "Discoveries";
 
-        foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
+        foreach (var discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
         {
             AddSelectionPanelOption(discovery.Name, discovery.Id);
         }
@@ -3484,7 +3484,7 @@ public class GuiManagerScript : MonoBehaviour
         }
         else if (_planetOverlay == PlanetOverlay.PopCulturalDiscovery)
         {
-            foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
+            foreach (var discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
             {
                 AddSelectionPanelOption(discovery.Name, discovery.Id);
             }
@@ -3519,7 +3519,7 @@ public class GuiManagerScript : MonoBehaviour
         }
         else if (_planetOverlay == PlanetOverlay.PolityCulturalDiscovery)
         {
-            foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
+            foreach (var discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
             {
                 AddSelectionPanelOption(discovery.Name, discovery.Id);
             }
@@ -3866,7 +3866,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ShowCellInfoToolTip_PolityCulturalDiscovery(Polity polity, Vector3 position, float fadeStart = 5)
     {
-        Discovery discovery = polity.Culture.GetDiscovery(_planetOverlaySubtype) as Discovery;
+        var discovery = polity.Culture.GetDiscovery(_planetOverlaySubtype);
 
         if (discovery != null)
         {

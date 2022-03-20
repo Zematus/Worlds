@@ -206,7 +206,7 @@ public class RegionAttribute
         }
     }
 
-    public static void LoadRegionAttributesFile(string filename)
+    public static void LoadRegionAttributesFile033(string filename)
     {
         foreach (RegionAttribute attribute in RegionAttributeLoader.Load(filename))
         {

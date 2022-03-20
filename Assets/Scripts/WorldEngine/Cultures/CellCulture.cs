@@ -19,13 +19,13 @@ public class CellCulture : Culture
     [XmlIgnore]
     public Dictionary<string, CellCulturalKnowledge> KnowledgesToLearn = new Dictionary<string, CellCulturalKnowledge>();
     [XmlIgnore]
-    public Dictionary<string, Discovery> DiscoveriesToFind = new Dictionary<string, Discovery>();
+    public Dictionary<string, IDiscovery> DiscoveriesToFind = new Dictionary<string, IDiscovery>();
 
     private HashSet<CellCulturalPreference> _preferencesToLose = new HashSet<CellCulturalPreference>();
     private HashSet<CellCulturalActivity> _activitiesToStop = new HashSet<CellCulturalActivity>();
     private HashSet<CellCulturalSkill> _skillsToLose = new HashSet<CellCulturalSkill>();
     private HashSet<CellCulturalKnowledge> _knowledgesToLose = new HashSet<CellCulturalKnowledge>();
-    private HashSet<Discovery> _discoveriesToLose = new HashSet<Discovery>();
+    private HashSet<IDiscovery> _discoveriesToLose = new HashSet<IDiscovery>();
 
     public CellCulture()
     {
@@ -55,7 +55,7 @@ public class CellCulture : Culture
             AddSkill(CellCulturalSkill.CreateCellInstance(group, s));
         }
 
-        foreach (Discovery d in sourceCulture.Discoveries.Values)
+        foreach (var d in sourceCulture.Discoveries.Values)
         {
             AddDiscovery(d);
         }
@@ -94,7 +94,7 @@ public class CellCulture : Culture
 
     public void Initialize()
     {
-        foreach (Discovery d in Discoveries.Values)
+        foreach (var d in Discoveries.Values)
         {
             d.OnGain(Group);
         }
@@ -165,7 +165,7 @@ public class CellCulture : Culture
         return knowledge;
     }
 
-    public void AddDiscoveryToFind(Discovery discovery)
+    public void AddDiscoveryToFind(IDiscovery discovery)
     {
         if (Discoveries.ContainsKey(discovery.Id))
             return;
@@ -334,7 +334,7 @@ public class CellCulture : Culture
             knowledge.Merge(k.Value, percentage);
         }
 
-        foreach (Discovery d in sourceCulture.Discoveries.Values)
+        foreach (var d in sourceCulture.Discoveries.Values)
         {
             AddDiscoveryToFind(d);
         }
@@ -440,7 +440,7 @@ public class CellCulture : Culture
             cellKnowledge.AddPolityProminenceEffect(polityKnowledge, polityProminence, timeSpan);
         }
 
-        foreach (Discovery polityDiscovery in polityCulture.Discoveries.Values)
+        foreach (var polityDiscovery in polityCulture.Discoveries.Values)
         {
             AddDiscoveryToFind(polityDiscovery);
         }
@@ -471,7 +471,7 @@ public class CellCulture : Culture
     public void PostUpdateRemoveAttributes()
     {
         // We need to handle discoveries before anything else as they might trigger removal of other cultural attributes
-        foreach (Discovery d in _discoveriesToLose)
+        foreach (var d in _discoveriesToLose)
         {
             RemoveDiscovery(d);
             d.OnLoss(Group);
@@ -498,9 +498,12 @@ public class CellCulture : Culture
         }
 
         // This should be done only after knowledges have been removed as there are some dependencies
-        foreach (Discovery d in _discoveriesToLose)
+        foreach (var d in _discoveriesToLose)
         {
-            d.RetryAssignAfterLoss(Group);
+            if (d is Discovery033 d033)
+            {
+                d033.RetryAssignAfterLoss(Group);
+            }
         }
 
         _preferencesToLose.Clear();
@@ -513,7 +516,7 @@ public class CellCulture : Culture
     public void PostUpdateAddAttributes()
     {
         // We need to handle discoveries before everything else as these can add other type of cultural attributes
-        foreach (Discovery discovery in DiscoveriesToFind.Values)
+        foreach (var discovery in DiscoveriesToFind.Values)
         {
             AddDiscovery(discovery);
             discovery.OnGain(Group);
@@ -647,12 +650,17 @@ public class CellCulture : Culture
             //#endif
         }
 
-        foreach (Discovery discovery in Discoveries.Values)
+        foreach (var d in Discoveries.Values)
         {
-            if (discovery.CanBeHeld(Group))
-                continue;
+            if (d is Discovery033 d033)
+            {
+                if (d033.CanBeHeld(Group))
+                {
+                    continue;
+                }
 
-            _discoveriesToLose.Add(discovery);
+                _discoveriesToLose.Add(d);
+            }
         }
     }
 

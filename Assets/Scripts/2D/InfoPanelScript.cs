@@ -1224,7 +1224,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstDiscovery = true;
 
-        foreach (Discovery discovery in polityProminence.Polity.Culture.Discoveries.Values)
+        foreach (var discovery in polityProminence.Polity.Culture.Discoveries.Values)
         {
             if (firstDiscovery)
             {
@@ -1261,7 +1261,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstDiscovery = true;
 
-        foreach (Discovery discovery in cell.Group.Culture.Discoveries.Values)
+        foreach (var discovery in cell.Group.Culture.Discoveries.Values)
         {
             if (firstDiscovery)
             {

@@ -80,7 +80,7 @@ public class Biome
         Biomes = new Dictionary<string, Biome>();
     }
 
-    public static void LoadBiomesFile(string filename)
+    public static void LoadBiomesFile033(string filename)
     {
         foreach (Biome biome in BiomeLoader.Load(filename))
         {

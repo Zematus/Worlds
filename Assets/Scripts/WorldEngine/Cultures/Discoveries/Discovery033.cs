@@ -4,20 +4,20 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class Discovery : ICellGroupEventGenerator
+public class Discovery033 : IDiscovery, ICellGroupEventGenerator
 {
     //TODO: Events that produce discoveries should be separated and use 0.3.4 Event Generators
     [System.Obsolete]
-    public class DiscoveryEvent : CellGroupEventGeneratorEvent
+    public class DiscoveryEvent033 : CellGroupEventGeneratorEvent
     {
-        private Discovery _discovery;
+        private Discovery033 _discovery;
 
-        public DiscoveryEvent()
+        public DiscoveryEvent033()
         {
         }
 
-        public DiscoveryEvent(
-            Discovery discovery,
+        public DiscoveryEvent033(
+            Discovery033 discovery,
             CellGroup group,
             long triggerDate,
             long eventTypeId) :
@@ -75,21 +75,21 @@ public class Discovery : ICellGroupEventGenerator
         {
             base.FinalizeLoad();
 
-            _discovery = Generator as Discovery;
+            _discovery = Generator as Discovery033;
         }
     }
 
-    public static Dictionary<string, Discovery> Discoveries;
+    public static Dictionary<string, Discovery033> Discoveries;
 
     public static int CurrentUId = 0;
     
-    public string Id;
-    public string Name;
+    public string Id { get; set; }
+    public string Name { get; set; }
 
     public string EventGeneratorId;
 
     public int IdHash;
-    public int UId;
+    public int UId { get; set; }
 
     public string EventSetFlag { get; private set; }
 
@@ -104,13 +104,12 @@ public class Discovery : ICellGroupEventGenerator
 
     public static void ResetDiscoveries()
     {
-        Discoveries = new Dictionary<string, Discovery>();
+        Discoveries = new Dictionary<string, Discovery033>();
     }
 
-    [System.Obsolete]
     public static void LoadDiscoveriesFile033(string filename)
     {
-        foreach (Discovery discovery in DiscoveryLoader033.Load(filename))
+        foreach (Discovery033 discovery in DiscoveryLoader033.Load(filename))
         {
             if (Discoveries.ContainsKey(discovery.Id))
             {
@@ -125,15 +124,15 @@ public class Discovery : ICellGroupEventGenerator
 
     public static void InitializeDiscoveries()
     {
-        foreach (Discovery discovery in Discoveries.Values)
+        foreach (Discovery033 discovery in Discoveries.Values)
         {
             discovery.Initialize();
         }
     }
 
-    public static Discovery GetDiscovery(string id)
+    public static Discovery033 GetDiscovery(string id)
     {
-        Discovery d;
+        Discovery033 d;
 
         if (!Discoveries.TryGetValue(id, out d))
         {
@@ -321,7 +320,7 @@ public class Discovery : ICellGroupEventGenerator
                 triggerDate);
         }
 
-        originalEvent = new DiscoveryEvent(this, group, triggerDate, IdHash);
+        originalEvent = new DiscoveryEvent033(this, group, triggerDate, IdHash);
 
         group.World.InsertEventToHappen(originalEvent);
 
