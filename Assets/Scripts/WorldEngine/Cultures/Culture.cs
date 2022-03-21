@@ -76,7 +76,7 @@ public class Culture : ISynchronizable
             AddKnowledge(new CulturalKnowledge(k));
         }
 
-        foreach (Discovery033 d in sourceCulture.Discoveries.Values)
+        foreach (var d in sourceCulture.Discoveries.Values)
         {
             AddDiscovery(d);
         }
@@ -532,7 +532,9 @@ public class Culture : ISynchronizable
 
         foreach (string discoveryId in DiscoveryIds)
         {
-            Discovery033 discovery = Discovery033.GetDiscovery(discoveryId);
+            IDiscovery discovery = null;
+
+            discovery = Discovery033.GetDiscovery(discoveryId);
 
             Discoveries.Add(discoveryId, discovery);
         }
