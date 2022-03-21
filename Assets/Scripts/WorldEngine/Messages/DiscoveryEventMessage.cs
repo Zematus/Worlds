@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
+﻿using System.Xml;
 using System.Xml.Serialization;
 
 public class DiscoveryEventMessage : CellEventMessage
@@ -10,14 +7,14 @@ public class DiscoveryEventMessage : CellEventMessage
     public string DiscoveryId;
 
     [XmlIgnore]
-    public Discovery033 Discovery;
+    public IDiscovery Discovery;
 
     public DiscoveryEventMessage()
     {
 
     }
 
-    public DiscoveryEventMessage(Discovery033 discovery, TerrainCell cell, long id, long date) : base(cell, id, date)
+    public DiscoveryEventMessage(IDiscovery discovery, TerrainCell cell, long id, long date) : base(cell, id, date)
     {
         DiscoveryId = discovery.Id;
         Discovery = discovery;
@@ -25,15 +22,15 @@ public class DiscoveryEventMessage : CellEventMessage
 
     protected override string GenerateMessage()
     {
-        string prefix = Discovery.Name + " discovered";
+        string prefix = $"{Discovery.Name} discovered";
 
         Territory territory = World.GetCell(Position).EncompassingTerritory;
 
         if (territory != null)
         {
-            return prefix + " in " + territory.Polity.Name.BoldText + " at " + Position;
+            return $"{prefix} in {territory.Polity.Name.BoldText} at {Position}";
         }
 
-        return prefix + " at " + Position;
+        return $"{prefix} at {Position}";
     }
 }

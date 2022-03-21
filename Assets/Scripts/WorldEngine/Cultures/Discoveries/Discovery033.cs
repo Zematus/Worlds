@@ -7,7 +7,6 @@ using System.Xml.Serialization;
 public class Discovery033 : IDiscovery, ICellGroupEventGenerator
 {
     //TODO: Events that produce discoveries should be separated and use 0.3.4 Event Generators
-    [System.Obsolete]
     public class DiscoveryEvent033 : CellGroupEventGeneratorEvent
     {
         private Discovery033 _discovery;

@@ -2494,7 +2494,9 @@ public class World : ISynchronizable, IWorldDateGetter
 
         foreach (string id in ExistingDiscoveryIds)
         {
-            Discovery033 discovery = Discovery033.GetDiscovery(id);
+            IDiscovery discovery = null;
+
+            discovery = Discovery033.GetDiscovery(id);
 
             if (discovery == null)
             {

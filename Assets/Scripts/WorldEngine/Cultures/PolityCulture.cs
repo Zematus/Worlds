@@ -198,7 +198,7 @@ public class PolityCulture : Culture
             }
         }
 
-        foreach (Discovery033 d in faction.Culture.Discoveries.Values)
+        foreach (var d in faction.Culture.Discoveries.Values)
         {
             AddDiscovery(d);
         }
