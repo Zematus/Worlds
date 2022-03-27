@@ -7,6 +7,8 @@ public abstract class CollectionEntity<T> : Entity
     public const string CountAttributeId = "count";
     public const string RequestSelectionAttributeId = "request_selection";
     public const string SelectRandomAttributeId = "select_random";
+    public const string SelectAttributeId = "select";
+    public const string SubsetAttributeId = "subset";
 
     private CollectionGetterMethod<T> _getterMethod = null;
 

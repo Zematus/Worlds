@@ -38,9 +38,6 @@ public abstract class Polity : ISynchronizable
     [XmlAttribute("NC")]
     public bool NeedsNewCensus = true;
 
-    [XmlAttribute("FC")]
-    public int FactionCount { get; set; }
-
     [XmlAttribute("SP")]
     public bool StillPresent = true;
 
@@ -555,8 +552,6 @@ public abstract class Polity : ISynchronizable
         }
 
         World.AddFactionToUpdate(faction);
-
-        FactionCount++;
     }
 
     public void RemoveFaction(Faction faction)
@@ -570,8 +565,6 @@ public abstract class Polity : ISynchronizable
         }
 
         World.AddPolityToUpdate(this);
-
-        FactionCount--;
     }
 
     public Faction GetFaction(Identifier id)

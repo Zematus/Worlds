@@ -5,16 +5,12 @@ using System.Text.RegularExpressions;
 
 public class PolityEntity : DelayedSetEntity<Polity>
 {
-    public const string GetRandomGroupAttributeId = "get_random_group";
-    public const string GetRandomContactAttributeId = "get_random_contact";
     public const string GetContactAttributeId = "get_contact";
     public const string ContactsAttributeId = "contacts";
     public const string DominantFactionAttributeId = "dominant_faction";
     public const string TransferInfluenceAttributeId = "transfer_influence";
     public const string TypeAttributeId = "type";
     public const string LeaderAttributeId = "leader";
-    public const string ContactCountAttributeId = "contact_count";
-    public const string FactionCountAttributeId = "faction_count";
     public const string SplitAttributeId = "split";
     public const string MergeAttributeId = "merge";
     public const string NeighborRegionsAttributeId = "neighbor_regions";
@@ -30,12 +26,9 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
     protected override object _reference => Polity;
 
-    private int _groupIndex = 0;
     private int _contactIndex = 0;
 
     private ValueGetterEntityAttribute<string> _typeAttribute;
-    private ValueGetterEntityAttribute<float> _contactCountAttribute;
-    private ValueGetterEntityAttribute<float> _factionCountAttribute;
     private ValueGetterEntityAttribute<float> _coreRegionSaturationAttribute;
 
     private AgentEntity _leaderEntity = null;
@@ -47,8 +40,8 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
     private int _factionCollectionIndex = 0;
 
-    private List<FactionCollectionEntity> _factionCollectionEntitiesToSet =
-        new List<FactionCollectionEntity>();
+    private readonly List<FactionCollectionEntity> 
+        _factionCollectionEntitiesToSet = new List<FactionCollectionEntity>();
 
     private readonly List<GroupEntity>
         _groupEntitiesToSet = new List<GroupEntity>();
@@ -124,25 +117,6 @@ public class PolityEntity : DelayedSetEntity<Polity>
         return _leaderEntity.GetThisEntityAttribute();
     }
 
-    private EntityAttribute GenerateGetRandomGroupEntityAttribute()
-    {
-        int index = _groupIndex++;
-        int iterOffset = Context.GetNextIterOffset() + index;
-
-        GroupEntity entity = new GroupEntity(
-            () => {
-                int offset = Polity.GetHashCode() + iterOffset + Context.GetBaseOffset();
-                return Polity.GetRandomGroup(offset);
-            },
-            Context,
-            BuildAttributeId("random_group_" + index),
-            this);
-
-        _groupEntitiesToSet.Add(entity);
-
-        return entity.GetThisEntityAttribute();
-    }
-
     public static PolityType ConvertToType(string typeStr)
     {
         typeStr = typeStr.ToLowerInvariant();
@@ -159,25 +133,6 @@ public class PolityEntity : DelayedSetEntity<Polity>
             default:
                 throw new System.Exception($"Unhandled polity type: {typeStr}");
         }
-    }
-
-    private EntityAttribute GenerateGetRandomContactEntityAttribute()
-    {
-        int index = _contactIndex++;
-        int iterOffset = Context.GetNextIterOffset() + index;
-
-        ContactEntity entity = new ContactEntity(
-            () => {
-                int offset = Polity.GetHashCode() + iterOffset + Context.GetBaseOffset();
-                return Polity.GetRandomPolityContact(offset);
-            },
-            Context,
-            BuildAttributeId("random_contact_" + index),
-            this);
-
-        _contactEntitiesToSet.Add(entity);
-
-        return entity.GetThisEntityAttribute();
     }
 
     private EntityAttribute GenerateGetContactEntityAttribute(IExpression[] arguments)
@@ -335,26 +290,8 @@ public class PolityEntity : DelayedSetEntity<Polity>
                         TypeAttributeId, this, () => Polity.TypeStr);
                 return _typeAttribute;
 
-            case ContactCountAttributeId:
-                _contactCountAttribute =
-                    _contactCountAttribute ?? new ValueGetterEntityAttribute<float>(
-                        ContactCountAttributeId, this, () => Polity.GetContacts().Count);
-                return _contactCountAttribute;
-
-            case FactionCountAttributeId:
-                _factionCountAttribute =
-                    _factionCountAttribute ?? new ValueGetterEntityAttribute<float>(
-                        FactionCountAttributeId, this, () => Polity.FactionCount);
-                return _factionCountAttribute;
-
             case LeaderAttributeId:
                 return GetLeaderAttribute();
-
-            case GetRandomGroupAttributeId:
-                return GenerateGetRandomGroupEntityAttribute();
-
-            case GetRandomContactAttributeId:
-                return GenerateGetRandomContactEntityAttribute();
 
             case DominantFactionAttributeId:
                 return GetDominantFactionAttribute();

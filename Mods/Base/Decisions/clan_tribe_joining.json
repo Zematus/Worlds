@@ -22,7 +22,7 @@
         {
           "id": "description_polity_will_dissapear",
           "text": "\nThe <<contact_polity>> tribe will dissapear if they accept.",
-          "conditions": [ "contact_polity.faction_count < 2" ]
+          "conditions": [ "contact_polity.factions.count < 2" ]
         }
       ],
       "options": [
