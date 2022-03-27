@@ -7,6 +7,7 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
 {
     public const string BiomeTraitPresenceAttributeId = "biome_trait_presence";
     public const string BiomeTypePresenceAttributeId = "biome_type_presence";
+    public const string NeighborsAttributeId = "neighbors";
 
     public virtual TerrainCell Cell
     {
@@ -15,6 +16,8 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
     }
 
     protected override object _reference => Cell;
+
+    private CellCollectionEntity _neighborsEntity = null;
 
     private class BiomeTraitPresenceAttribute : ValueEntityAttribute<float>
     {
@@ -83,6 +86,26 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
     {
     }
 
+    public CellEntity(
+        TryRequestGenMethod<TerrainCell> tryRequestGenMethod, Context c, string id, IEntity parent)
+        : base(tryRequestGenMethod, c, id, parent)
+    {
+    }
+
+    public ICollection<TerrainCell> GetNeighbors() => Cell.NeighborList;
+
+    public EntityAttribute GetNeighborsAttribute()
+    {
+        _neighborsEntity =
+            _neighborsEntity ?? new CellCollectionEntity(
+            GetNeighbors,
+            Context,
+            BuildAttributeId(NeighborsAttributeId),
+            this);
+
+        return _neighborsEntity.GetThisEntityAttribute();
+    }
+
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)
@@ -91,6 +114,8 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
                 return new BiomeTraitPresenceAttribute(this, arguments);
             case BiomeTypePresenceAttributeId:
                 return new BiomeTypePresenceAttribute(this, arguments);
+            case NeighborsAttributeId:
+                return GetNeighborsAttribute();
         }
 
         throw new System.ArgumentException($"Cell: Unable to find attribute: {attributeId}");
@@ -104,5 +129,14 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
     public override string GetFormattedString()
     {
         return Cell.Position.ToBoldString();
+    }
+
+    protected override void ResetInternal()
+    {
+        base.ResetInternal();
+
+        if (_isReset) return;
+
+        _neighborsEntity?.Reset();
     }
 }
