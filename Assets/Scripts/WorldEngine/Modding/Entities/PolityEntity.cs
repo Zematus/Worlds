@@ -324,7 +324,7 @@ public class PolityEntity : DelayedSetEntity<Polity>
                 return _coreRegionSaturationAttribute;
         }
 
-        throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);
+        return base.GetAttribute(attributeId, arguments);
     }
 
     protected override void ResetInternal()

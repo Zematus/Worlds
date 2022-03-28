@@ -8,7 +8,7 @@ public abstract class CollectionEntity<T> : Entity
     public const string RequestSelectionAttributeId = "request_selection";
     public const string SelectRandomAttributeId = "select_random";
     public const string SelectAttributeId = "select";
-    public const string SubsetAttributeId = "subset";
+    public const string GetSubsetAttributeId = "get_subset";
 
     private CollectionGetterMethod<T> _getterMethod = null;
 
@@ -65,6 +65,59 @@ public abstract class CollectionEntity<T> : Entity
     protected abstract EntityAttribute GenerateSelectRandomAttribute();
 
     private float GetCount() => Collection.Count;
+
+    public abstract ParametricSubcontext BuildSelectAttributeSubcontext(
+        Context parentContext,
+        string[] paramIds);
+
+    public abstract ParametricSubcontext BuildGetSubsetAttributeSubcontext(
+        Context parentContext,
+        string[] paramIds);
+
+    public override ParametricSubcontext BuildParametricSubcontext(
+        Context parentContext,
+        string attributeId,
+        string[] paramIds)
+    {
+        switch (attributeId)
+        {
+            case SelectAttributeId:
+                return BuildSelectAttributeSubcontext(parentContext, paramIds);
+
+            case GetSubsetAttributeId:
+                return BuildGetSubsetAttributeSubcontext(parentContext, paramIds);
+        }
+
+        return base.BuildParametricSubcontext(parentContext, attributeId, paramIds);
+    }
+
+    public abstract EntityAttribute GenerateSelectAttribute(
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments);
+
+    public abstract EntityAttribute GenerateGetSubsetAttribute(
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments);
+
+    public override EntityAttribute GetParametricAttribute(
+        string attributeId,
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments)
+    {
+        switch (attributeId)
+        {
+            case SelectAttributeId:
+                return GenerateSelectAttribute(subcontext, paramIds, arguments);
+
+            case GetSubsetAttributeId:
+                return GenerateGetSubsetAttribute(subcontext, paramIds, arguments);
+        }
+
+        return base.GetParametricAttribute(attributeId, subcontext, paramIds, arguments);
+    }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {

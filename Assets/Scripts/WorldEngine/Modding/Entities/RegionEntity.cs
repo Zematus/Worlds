@@ -29,11 +29,6 @@ public class RegionEntity : DelayedSetEntity<Region>
     {
     }
 
-    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
-    {
-        throw new System.ArgumentException(Id + ": Unable to find attribute: " + attributeId);
-    }
-
     public override string GetDebugString()
     {
         return "region:" + Region.Name.Text;

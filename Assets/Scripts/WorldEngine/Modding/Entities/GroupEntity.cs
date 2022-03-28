@@ -268,7 +268,7 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
                 return GenerateGetFactionEntityAttribute(arguments);
         }
 
-        throw new System.ArgumentException("Group: Unable to find attribute: " + attributeId);
+        return base.GetAttribute(attributeId, arguments);
     }
 
     public override string GetDebugString()

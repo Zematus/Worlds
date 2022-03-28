@@ -29,6 +29,18 @@ public class GroupCollectionEntity : EntityCollectionEntity<CellGroup>
         TryRequestGenMethod<CellGroup> tryRequestGenMethod, Context c, string id, IEntity parent)
         => new GroupEntity(tryRequestGenMethod, c, id, parent);
 
+    protected override DelayedSetEntity<CellGroup> ConstructEntity(
+        Context c, string id, IEntity parent)
+        => new GroupEntity(c, id, parent);
+
+    protected override EntityCollectionEntity<CellGroup> ConstructEntitySubsetEntity(
+        Context c, string id, IEntity parent)
+        => new GroupCollectionEntity(c, id, parent);
+
+    protected override EntityCollectionEntity<CellGroup> ConstructEntitySubsetEntity(
+        CollectionGetterMethod<CellGroup> getterMethod, Context c, string id, IEntity parent)
+        => new GroupCollectionEntity(getterMethod, c, id, parent);
+
     protected override DelayedSetEntityInputRequest<CellGroup> ConstructInputRequest(
         ICollection<CellGroup> collection, ModText text)
         => new GroupSelectionRequest(collection, text);
