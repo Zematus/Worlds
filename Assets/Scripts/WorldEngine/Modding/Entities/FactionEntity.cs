@@ -403,7 +403,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
                 throw new System.ArgumentException($"Faction: '{attributeId}' is a parametric attribute");
         }
 
-        throw new System.ArgumentException($"Faction: Unable to find attribute: {attributeId}");
+        return base.GetAttribute(attributeId, arguments);
     }
 
     protected override void ResetInternal()

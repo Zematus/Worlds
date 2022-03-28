@@ -58,7 +58,7 @@ public class ContactEntity : DelayedSetEntity<PolityContact>
                 return _strengthAttribute;
         }
 
-        throw new System.ArgumentException("Group: Unable to find attribute: " + attributeId);
+        return base.GetAttribute(attributeId, arguments);
     }
 
     public override string GetDebugString()

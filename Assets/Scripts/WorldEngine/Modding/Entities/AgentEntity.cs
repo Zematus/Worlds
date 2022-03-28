@@ -46,7 +46,7 @@ public class AgentEntity : DelayedSetEntity<Agent>
                 return _wisdomAttribute;
         }
 
-        throw new System.ArgumentException("Agent: Unable to find attribute: " + attributeId);
+        return base.GetAttribute(attributeId, arguments);
     }
 
     public override string GetDebugString()

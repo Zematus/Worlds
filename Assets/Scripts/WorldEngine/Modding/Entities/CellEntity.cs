@@ -118,7 +118,7 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
                 return GetNeighborsAttribute();
         }
 
-        throw new System.ArgumentException($"Cell: Unable to find attribute: {attributeId}");
+        return base.GetAttribute(attributeId, arguments);
     }
 
     public override string GetDebugString()

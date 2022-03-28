@@ -29,6 +29,18 @@ public class FactionCollectionEntity : EntityCollectionEntity<Faction>
         TryRequestGenMethod<Faction> tryRequestGenMethod, Context c, string id, IEntity parent)
         => new FactionEntity(tryRequestGenMethod, c, id, parent);
 
+    protected override DelayedSetEntity<Faction> ConstructEntity(
+        Context c, string id, IEntity parent)
+        => new FactionEntity(c, id, parent);
+
+    protected override EntityCollectionEntity<Faction> ConstructEntitySubsetEntity(
+        Context c, string id, IEntity parent)
+        => new FactionCollectionEntity(c, id, parent);
+
+    protected override EntityCollectionEntity<Faction> ConstructEntitySubsetEntity(
+        CollectionGetterMethod<Faction> getterMethod, Context c, string id, IEntity parent)
+        => new FactionCollectionEntity(getterMethod, c, id, parent);
+
     protected override DelayedSetEntityInputRequest<Faction> ConstructInputRequest(
         ICollection<Faction> collection, ModText text)
         => new FactionSelectionRequest(collection, text);
