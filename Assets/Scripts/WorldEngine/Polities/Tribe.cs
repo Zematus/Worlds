@@ -64,7 +64,7 @@ public class Tribe : Polity
         base(PolityTypeStr, triggerClan.CoreGroup, triggerClan.GetHashCode())
     {
         var sourcePolity = triggerClan.Polity;
-        var groups = triggerClan.GetGroups();
+        var groups = triggerClan.Groups;
 
         TransferGroups(sourcePolity, groups);
 

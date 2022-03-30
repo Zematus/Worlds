@@ -130,6 +130,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     public Agent CurrentLeader => _currentLeader.Value;
 
     [XmlIgnore]
+    public List<CellGroup> Groups => _groups.Value;
+
+    [XmlIgnore]
     public bool BeingRemoved = false;
 
     [XmlIgnore]
@@ -164,6 +167,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
 
     private DatedValue<float> _administrativeLoad;
     private DatedValue<Agent> _currentLeader;
+    private DatedValue<List<CellGroup>> _groups;
 
     private readonly HashSet<string> _flags = new HashSet<string>();
 
@@ -216,10 +220,16 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         }
     }
 
-    public void Initialize()
+    private void InitDatedValues()
     {
         _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
         _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
+        _groups = new DatedValue<List<CellGroup>>(World, GetGroups);
+    }
+
+    public void Initialize()
+    {
+        InitDatedValues();
 
         InitializeDefaultEvents();
 
@@ -686,8 +696,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
 
     public virtual void FinalizeLoad()
     {
-        _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
-        _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
+        InitDatedValues();
 
         IsInitialized = true;
 
@@ -790,7 +799,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         GenerateGuideSwitchEvents();
     }
 
-    public List<CellGroup> GetGroups()
+    private List<CellGroup> GetGroups()
     {
         var groups = new List<CellGroup>();
 
@@ -817,7 +826,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
 
         if (transferGroups)
         {
-            targetPolity.TransferGroups(Polity, GetGroups());
+            targetPolity.TransferGroups(Polity, Groups);
         }
 
         Polity = targetPolity;

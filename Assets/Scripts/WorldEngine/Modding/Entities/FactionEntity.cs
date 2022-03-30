@@ -17,7 +17,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
     public const string GuideAttributeId = "guide";
     public const string GetRelationshipAttributeId = "get_relationship";
     public const string SetRelationshipAttributeId = "set_relationship";
-    public const string GetGroupsAttributeId = "get_groups";
+    public const string GroupsAttributeId = "groups";
     public const string HasContactWithAttributeId = "has_contact_with";
     public const string ChangePolityAttributeId = "change_polity";
 
@@ -36,12 +36,9 @@ public class FactionEntity : DelayedSetEntity<Faction>
     private PolityEntity _polityEntity = null;
     private GroupEntity _coreGroupEntity = null;
 
+    private GroupCollectionEntity _groupsEntity = null;
+
     private AssignableCulturalPreferencesEntity _preferencesEntity = null;
-
-    private int _groupCollectionIndex = 0;
-
-    private List<GroupCollectionEntity> _groupCollectionEntitiesToSet = 
-        new List<GroupCollectionEntity>();
 
     protected override object _reference => Faction;
 
@@ -70,6 +67,8 @@ public class FactionEntity : DelayedSetEntity<Faction>
         : base(tryRequestGenMethod, c, id, parent)
     {
     }
+
+    public ICollection<CellGroup> GetGroups() => Faction.Groups;
 
     public EntityAttribute GetPreferencesAttribute()
     {
@@ -234,105 +233,16 @@ public class FactionEntity : DelayedSetEntity<Faction>
     public string GetGuide() =>
         Faction.IsUnderPlayerGuidance ? Context.Guide_Player : Context.Guide_Simulation;
 
-    public ParametricSubcontext BuildGetGroupsAttributeSubcontext(
-        Context parentContext,
-        string[] paramIds)
+    public EntityAttribute GetGroupsAttribute()
     {
-        int index = _groupCollectionIndex;
-
-        if ((paramIds == null) || (paramIds.Length < 1))
-        {
-            throw new System.ArgumentException(
-                $"{GetGroupsAttributeId}: expected at least one parameter identifier");
-        }
-
-        var subcontext =
-            new ParametricSubcontext(
-                $"{GetGroupsAttributeId}_{index}",
-                parentContext);
-
-        var groupEntity = new GroupEntity(subcontext, paramIds[0], this);
-        subcontext.AddEntity(groupEntity);
-
-        return subcontext;
-    }
-
-    public EntityAttribute GetGroupsAttribute(
-        ParametricSubcontext subcontext, 
-        string[] paramIds, 
-        IExpression[] arguments)
-    {
-        int index = _groupCollectionIndex++;
-
-        if ((paramIds == null) || (paramIds.Length < 1))
-        {
-            throw new System.ArgumentException(
-                GetGroupsAttributeId + ": expected one parameter identifier");
-        }
-
-        GroupEntity paramGroupEntity = subcontext.GetEntity(paramIds[0]) as GroupEntity;
-
-        if ((arguments == null) || (arguments.Length < 1))
-        {
-            throw new System.ArgumentException(
-                GetGroupsAttributeId + ": expected one condition argument");
-        }
-
-        var conditionExp = ValueExpressionBuilder.ValidateValueExpression<bool>(arguments[0]);
-
-        var collectionEntity = new GroupCollectionEntity(
-            () =>
-            {
-                var selectedGroups = new HashSet<CellGroup>();
-
-                foreach (var prominence in Faction.Prominences)
-                {
-                    paramGroupEntity.Set(prominence.Group);
-
-                    if (conditionExp.Value)
-                    {
-                        selectedGroups.Add(prominence.Group);
-                    }
-                }
-
-                return selectedGroups;
-            },
+        _groupsEntity =
+            _groupsEntity ?? new GroupCollectionEntity(
+            GetGroups,
             Context,
-            BuildAttributeId($"groups_collection_{index}"),
+            BuildAttributeId(GroupsAttributeId),
             this);
 
-        _groupCollectionEntitiesToSet.Add(collectionEntity);
-
-        return collectionEntity.GetThisEntityAttribute();
-    }
-
-    public override ParametricSubcontext BuildParametricSubcontext(
-        Context parentContext,
-        string attributeId, 
-        string[] paramIds)
-    {
-        switch (attributeId)
-        {
-            case GetGroupsAttributeId:
-                return BuildGetGroupsAttributeSubcontext(parentContext, paramIds);
-        }
-
-        return base.BuildParametricSubcontext(parentContext, attributeId, paramIds);
-    }
-
-    public override EntityAttribute GetParametricAttribute(
-        string attributeId,
-        ParametricSubcontext subcontext,
-        string[] paramIds,
-        IExpression[] arguments)
-    {
-        switch (attributeId)
-        {
-            case GetGroupsAttributeId:
-                return GetGroupsAttribute(subcontext, paramIds, arguments);
-        }
-
-        return base.GetParametricAttribute(attributeId, subcontext, paramIds, arguments);
+        return _groupsEntity.GetThisEntityAttribute();
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -399,8 +309,8 @@ public class FactionEntity : DelayedSetEntity<Faction>
             case HasContactWithAttributeId:
                 return GenerateHasContactWithAttribute(arguments);
 
-            case GetGroupsAttributeId:
-                throw new System.ArgumentException($"Faction: '{attributeId}' is a parametric attribute");
+            case GroupsAttributeId:
+                return GetGroupsAttribute();
         }
 
         return base.GetAttribute(attributeId, arguments);
@@ -411,11 +321,6 @@ public class FactionEntity : DelayedSetEntity<Faction>
         if (_isReset)
         {
             return;
-        }
-
-        foreach (var entity in _groupCollectionEntitiesToSet)
-        {
-            entity.Reset();
         }
 
         _leaderEntity?.Reset();
