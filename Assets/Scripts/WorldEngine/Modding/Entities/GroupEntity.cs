@@ -197,18 +197,7 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             () => {
                 if (argumentExp.Value is PolityEntity pEntity)
                 {
-                    Faction faction = Group.GetFaction(pEntity.Polity);
-
-                    if (faction == null)
-                    {
-                        throw new System.Exception(
-                            $"Faction not found. Validate if polity '{pEntity.Polity.Name.Text}' " +
-                            $"is present in Group first, and then validate if the group is part of " +
-                            $"a faction using 'has_faction' property." +
-                            $"\n - {Context.DebugType}: {Context.Id}");
-                    }
-
-                    return faction;
+                    return Group.GetFaction(pEntity.Polity);
                 }
 
                 throw new System.Exception(

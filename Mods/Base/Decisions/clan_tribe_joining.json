@@ -81,7 +81,7 @@
         { "id": "dominant_relationship_value", "value": "target.get_relationship(dominant_faction)" },
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "target_aggression", "value": "target.preferences.aggression" },
-        { "id": "contact_strength", "value": "target.polity.get_contact(attempting_polity).strength" },
+        { "id": "contact_strength", "value": "target.polity.contacts.select[contact](contact.polity == attempting_polity).strength" },
         { "id": "contact_strength_factor", "value": "1.5 - clamp(contact_strength * 5, 0, 1)" },
         { "id": "isolation_factor", "value": "target_isolation * 2" },
         { "id": "attempting_leader_charisma_factor", "value": "2 - attempting_leader_charisma" },

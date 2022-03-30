@@ -113,7 +113,7 @@
       "assignOn": ["core_group_prominence_value_below:0.4"],
       "properties": [
         { "id": "core_prominence_value", "value": "target.core_group.prominence_value(target.polity)" },
-        { "id": "valid_groups", "value": "target.get_groups[group](group.prominence_value(target.polity) >= 0.6)" }
+        { "id": "valid_groups", "value": "target.groups.get_subset[group](group.prominence_value(target.polity) >= 0.6)" }
       ],
       "assignmentConditions": [
         "target.type == clan"
@@ -136,7 +136,7 @@
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "contacts", "value": "target.polity.contacts" },
         { "id": "contact", "value": "contacts.select_random()" },
-        { "id": "near_factions", "value": "contact.polity.get_factions[faction](faction.has_contact_with(target.polity))" },
+        { "id": "near_factions", "value": "contact.polity.factions.get_subset[faction](faction.has_contact_with(target.polity))" },
         { "id": "selected_faction", "value": "near_factions.select_random()" },
         { "id": "relationship_value", "value": "target.get_relationship(selected_faction)" },
         { "id": "contact_strength_factor", "value": "clamp(contact.strength * 5, 0, 1)" },
@@ -166,7 +166,7 @@
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "contacts", "value": "target.polity.contacts" },
         { "id": "contact", "value": "contacts.select_random()" },
-        { "id": "near_factions", "value": "contact.polity.get_factions[faction](faction.has_contact_with(target.polity))" },
+        { "id": "near_factions", "value": "contact.polity.factions.get_subset[faction](faction.has_contact_with(target.polity))" },
         { "id": "selected_faction", "value": "near_factions.select_random()" },
         { "id": "relationship_value", "value": "target.get_relationship(selected_faction)" },
         { "id": "contact_strength_factor", "value": "clamp(contact.strength * 5, 0, 1)" },

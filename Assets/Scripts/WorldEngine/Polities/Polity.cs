@@ -787,10 +787,7 @@ public abstract class Polity : ISynchronizable
         return DominantFaction.GetRelationshipValue(polity.DominantFaction);
     }
 
-    public IEnumerable<Faction> GetFactions()
-    {
-        return _factions.Values;
-    }
+    public ICollection<Faction> GetFactions() => _factions.Values;
 
     public IEnumerable<Faction> GetFactions(string type)
     {
