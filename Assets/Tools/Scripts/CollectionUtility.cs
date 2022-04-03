@@ -130,7 +130,7 @@ public static class CollectionUtility
         int index = getRandomInt(offset, collection.Count + emptyInstances);
 
         if (index >= collection.Count)
-            return default(T);
+            return default;
 
         return collection.ElementAt(index);
     }

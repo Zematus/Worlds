@@ -263,7 +263,7 @@ public class TerrainCell
     {
         if (Group != null)
         {
-            foreach (var faction in Group.GetClosestFactions())
+            foreach (var faction in Group.ClosestFactions)
             {
                 yield return faction;
             }

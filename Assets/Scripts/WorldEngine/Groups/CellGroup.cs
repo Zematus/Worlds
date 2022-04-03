@@ -231,6 +231,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public PolityProminence HighestPolityProminence = null;
     //#endif
 
+    [XmlIgnore]
+    public ICollection<Polity> PresentPolities => GetPresentPolities();
+
+    [XmlIgnore]
+    public ICollection<Faction> ClosestFactions => GetClosestFactions();
+
     private Dictionary<Identifier, PolityProminence> _polityProminences =
         new Dictionary<Identifier, PolityProminence>();
 
@@ -239,8 +245,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     private HashSet<Identifier> _polityProminencesToRemove =
         new HashSet<Identifier>();
-    //private HashSet<Polity> _polityProminencesToAdd =
-    //    new HashSet<Polity>();
 
     private HashSet<string> _flags = new HashSet<string>();
 
@@ -475,6 +479,30 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         }
 
         return null;
+    }
+
+    private ICollection<Polity> GetPresentPolities()
+    {
+        var polities = new List<Polity>();
+
+        foreach (var prominence in _polityProminences.Values)
+        {
+            polities.Add(prominence.Polity);
+        }
+
+        return polities;
+    }
+
+    private ICollection<Faction> GetClosestFactions()
+    {
+        var factions = new List<Faction>();
+
+        foreach (var prominence in _polityProminences.Values)
+        {
+            factions.Add(prominence.ClosestFaction);
+        }
+
+        return factions;
     }
 
     /// <summary>
@@ -2472,17 +2500,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public ICollection<PolityProminence> GetPolityProminences()
     {
         return _polityProminences.Values;
-    }
-
-    public IEnumerable<Faction> GetClosestFactions()
-    {
-        foreach (var prominence in _polityProminences.Values)
-        {
-            if (prominence.ClosestFaction == null)
-                continue;
-
-            yield return prominence.ClosestFaction;
-        }
     }
 
     public Faction GetClosestFaction(Polity polity)
