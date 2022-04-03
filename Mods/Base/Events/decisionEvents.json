@@ -6,10 +6,10 @@
       "target": "group",
       "assignOn": ["spawn", "polity_count_change", "core_count_change"],
       "properties": [
-        { "id": "polity", "value": "target.get_random_polity(tribe)" },
-        { "id": "faction", "value": "target.get_faction(polity)" },
-        { "id": "faction_core_distance", "value": "target.get_faction_core_distance(polity)" },
-        { "id": "polity_prominence_value", "value": "target.prominence_value(polity)" },
+        { "id": "selected_polity", "value": "target.present_polities.get_subset[polity](polity.type == tribe).select_random()" },
+        { "id": "selected_faction", "value": "target.closest_factions.select[faction](faction.polity == selected_polity)" },
+        { "id": "faction_core_distance", "value": "target.get_faction_core_distance(selected_polity)" },
+        { "id": "polity_prominence_value", "value": "target.prominence_value(selected_polity)" },
         { "id": "core_distance_factor", "value": "500 / (faction_core_distance + 500)" }
       ],
       "assignmentConditions": [
@@ -17,18 +17,17 @@
         "target.faction_cores_count == 0"
       ],
       "triggerConditions": [
-        "target.has_faction(polity)",
-        "faction.type == clan",
+        "selected_faction.type == clan",
         "faction_core_distance > 1000",
-        "faction.administrative_load > 500",
-        "faction.preferences.cohesion < 0.65",
-        "target.polity_with_highest_prominence_value == polity",
+        "selected_faction.administrative_load > 500",
+        "selected_faction.preferences.cohesion < 0.65",
+        "target.polity_with_highest_prominence_value == selected_polity",
         "polity_prominence_value > 0.6",
         "target.knowledges.social_organization >= 6"
       ],
       "timeToTrigger": "73000 + random(29200000 * core_distance_factor)",
       "effects": [
-        "faction.trigger_decision(clan_decide_split, target)"
+        "selected_faction.trigger_decision(clan_decide_split, target)"
       ],
       "repeatable": true
     },

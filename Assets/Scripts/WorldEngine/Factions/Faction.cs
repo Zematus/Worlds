@@ -130,7 +130,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     public Agent CurrentLeader => _currentLeader.Value;
 
     [XmlIgnore]
-    public List<CellGroup> Groups => _groups.Value;
+    public List<CellGroup> Groups => GetGroups();
 
     [XmlIgnore]
     public bool BeingRemoved = false;
@@ -167,7 +167,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
 
     private DatedValue<float> _administrativeLoad;
     private DatedValue<Agent> _currentLeader;
-    private DatedValue<List<CellGroup>> _groups;
 
     private readonly HashSet<string> _flags = new HashSet<string>();
 
@@ -224,7 +223,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     {
         _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
         _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
-        _groups = new DatedValue<List<CellGroup>>(World, GetGroups);
     }
 
     public void Initialize()

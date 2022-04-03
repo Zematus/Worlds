@@ -55,6 +55,12 @@ public class PolityEntity : DelayedSetEntity<Polity>
     {
     }
 
+    public PolityEntity(
+        TryRequestGenMethod<Polity> tryRequestGenMethod, Context c, string id, IEntity parent)
+        : base(tryRequestGenMethod, c, id, parent)
+    {
+    }
+
     public EntityAttribute GetDominantFactionAttribute()
     {
         _dominantFactionEntity =
