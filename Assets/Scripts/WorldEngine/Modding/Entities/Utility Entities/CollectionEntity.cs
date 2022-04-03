@@ -8,7 +8,8 @@ public abstract class CollectionEntity<T> : Entity
     public const string RequestSelectionAttributeId = "request_selection";
     public const string SelectRandomAttributeId = "select_random";
     public const string SelectAttributeId = "select";
-    public const string GetSubsetAttributeId = "get_subset";
+    public const string SelectSubsetAttributeId = "select_subset";
+    public const string SelectBestAttributeId = "select_best";
 
     private CollectionGetterMethod<T> _getterMethod = null;
 
@@ -70,7 +71,11 @@ public abstract class CollectionEntity<T> : Entity
         Context parentContext,
         string[] paramIds);
 
-    public abstract ParametricSubcontext BuildGetSubsetAttributeSubcontext(
+    public abstract ParametricSubcontext BuildSelectBestAttributeSubcontext(
+        Context parentContext,
+        string[] paramIds);
+
+    public abstract ParametricSubcontext BuildSelectSubsetAttributeSubcontext(
         Context parentContext,
         string[] paramIds);
 
@@ -84,8 +89,11 @@ public abstract class CollectionEntity<T> : Entity
             case SelectAttributeId:
                 return BuildSelectAttributeSubcontext(parentContext, paramIds);
 
-            case GetSubsetAttributeId:
-                return BuildGetSubsetAttributeSubcontext(parentContext, paramIds);
+            case SelectBestAttributeId:
+                return BuildSelectBestAttributeSubcontext(parentContext, paramIds);
+
+            case SelectSubsetAttributeId:
+                return BuildSelectSubsetAttributeSubcontext(parentContext, paramIds);
         }
 
         return base.BuildParametricSubcontext(parentContext, attributeId, paramIds);
@@ -96,7 +104,12 @@ public abstract class CollectionEntity<T> : Entity
         string[] paramIds,
         IExpression[] arguments);
 
-    public abstract EntityAttribute GenerateGetSubsetAttribute(
+    public abstract EntityAttribute GenerateSelectBestAttribute(
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments);
+
+    public abstract EntityAttribute GenerateSelectSubsetAttribute(
         ParametricSubcontext subcontext,
         string[] paramIds,
         IExpression[] arguments);
@@ -112,8 +125,11 @@ public abstract class CollectionEntity<T> : Entity
             case SelectAttributeId:
                 return GenerateSelectAttribute(subcontext, paramIds, arguments);
 
-            case GetSubsetAttributeId:
-                return GenerateGetSubsetAttribute(subcontext, paramIds, arguments);
+            case SelectBestAttributeId:
+                return GenerateSelectBestAttribute(subcontext, paramIds, arguments);
+
+            case SelectSubsetAttributeId:
+                return GenerateSelectSubsetAttribute(subcontext, paramIds, arguments);
         }
 
         return base.GetParametricAttribute(attributeId, subcontext, paramIds, arguments);

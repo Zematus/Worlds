@@ -2600,6 +2600,25 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return polityProminence.FactionCoreDistance;
     }
 
+    public float GetCoreDistance(Polity polity) => GetPolityCoreDistance(polity);
+
+    public float GetCoreDistance(Faction faction)
+    {
+        var polity = faction.Polity;
+
+        if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
+        {
+            return float.MaxValue;
+        }
+
+        if (polityProminence.ClosestFaction != faction)
+        {
+            return float.MaxValue;
+        }
+
+        return polityProminence.FactionCoreDistance;
+    }
+
     public Faction GetFaction(Polity polity)
     {
         if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))

@@ -7,12 +7,10 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
 {
     public const string CellAttributeId = "cell";
     public const string ProminenceValueAttributeId = "prominence_value";
-    public const string FactionCoresCountAttributeId = "faction_cores_count";
-    public const string GetFactionCoreDistanceAttributeId = "get_faction_core_distance";
+    public const string GetCoreDistanceAttributeId = "get_core_distance";
     public const string PreferencesAttributeId = "preferences";
     public const string KnowledgesAttributeId = "knowledges";
-    public const string PolityWithHighestProminenceValueAttributeId = "polity_with_highest_prominence_value";
-    public const string HasPolityOfTypeAttributeId = "has_polity_of_type";
+    public const string MostProminentPolityAttributeId = "most_prominent_polity";
     public const string PresentPolitiesAttributeId = "present_polities";
     public const string ClosestFactionsAttributeId = "closest_factions";
 
@@ -21,8 +19,6 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
         get => Setable;
         private set => Setable = value;
     }
-
-    private ValueGetterEntityAttribute<float> _factionCoresCountAttribute;
 
     private CellEntity _cellEntity = null;
     private PolityEntity _polityWithHighestProminenceEntity = null;
@@ -58,13 +54,13 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
         return _cellEntity.GetThisEntityAttribute();
     }
 
-    public EntityAttribute GetPolityWithHighestProminenceValueAttribute()
+    public EntityAttribute GetMostProminentPolityAttribute()
     {
         _polityWithHighestProminenceEntity =
             _polityWithHighestProminenceEntity ?? new PolityEntity(
-                GetPolityWithHighestProminenceValue,
+                GetMostProminentPolity,
                 Context,
-                BuildAttributeId(PolityWithHighestProminenceValueAttributeId),
+                BuildAttributeId(MostProminentPolityAttributeId),
                 this);
 
         return _polityWithHighestProminenceEntity.GetThisEntityAttribute();
@@ -92,27 +88,6 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
                 this);
 
         return _knowledgesEntity.GetThisEntityAttribute();
-    }
-
-    private ValueGetterEntityAttribute<bool> GenerateHasPolityOfTypeAttribute(IExpression[] arguments)
-    {
-        IValueExpression<string> argumentExp = null;
-        if (arguments.Length > 0)
-        {
-            argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
-        }
-
-        var attribute =
-            new ValueGetterEntityAttribute<bool>(
-                HasPolityOfTypeAttributeId, 
-                this, 
-                () => {
-                    PolityType type = PolityEntity.ConvertToType(argumentExp?.Value);
-
-                    return Group.HasPolityOfType(type);
-                });
-
-        return attribute;
     }
 
     protected override object _reference => Group;
@@ -159,14 +134,8 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             case ProminenceValueAttributeId:
                 return new ProminenceValueAttribute(this, arguments);
 
-            case FactionCoresCountAttributeId:
-                _factionCoresCountAttribute =
-                    _factionCoresCountAttribute ?? new ValueGetterEntityAttribute<float>(
-                        FactionCoresCountAttributeId, this, () => Group.GetFactionCores().Count);
-                return _factionCoresCountAttribute;
-
-            case GetFactionCoreDistanceAttributeId:
-                return new GetFactionCoreDistanceAttribute(this, arguments);
+            case GetCoreDistanceAttributeId:
+                return new GetCoreDistanceAttribute(this, arguments);
 
             case PreferencesAttributeId:
                 return GetPreferencesAttribute();
@@ -174,11 +143,8 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             case KnowledgesAttributeId:
                 return GetKnowledgesAttribute();
 
-            case PolityWithHighestProminenceValueAttributeId:
-                return GetPolityWithHighestProminenceValueAttribute();
-
-            case HasPolityOfTypeAttributeId:
-                return GenerateHasPolityOfTypeAttribute(arguments);
+            case MostProminentPolityAttributeId:
+                return GetMostProminentPolityAttribute();
 
             case PresentPolitiesAttributeId:
                 return GetPresentPolitiesAttribute();
@@ -216,7 +182,7 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
 
     public TerrainCell GetCell() => Group.Cell;
 
-    public Polity GetPolityWithHighestProminenceValue() => Group.HighestPolityProminence?.Polity;
+    public Polity GetMostProminentPolity() => Group.HighestPolityProminence?.Polity;
 
     public Culture GetCulture() => Group.Culture;
 }

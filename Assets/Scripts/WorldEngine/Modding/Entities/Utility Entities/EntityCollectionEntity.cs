@@ -128,19 +128,42 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
         return subcontext;
     }
 
-    public override ParametricSubcontext BuildGetSubsetAttributeSubcontext(Context parentContext, string[] paramIds)
+    public override ParametricSubcontext BuildSelectBestAttributeSubcontext(Context parentContext, string[] paramIds)
+    {
+        int index = _selectedEntityIndex;
+
+        if ((paramIds == null) || (paramIds.Length < 2))
+        {
+            throw new System.ArgumentException(
+                $"{SelectAttributeId}: expected at least two parameter identifiers");
+        }
+
+        var subcontext =
+            new ParametricSubcontext(
+                $"{SelectAttributeId}_{index}",
+                parentContext);
+
+        var entityA = ConstructEntity(subcontext, paramIds[0], this);
+        var entityB = ConstructEntity(subcontext, paramIds[1], this);
+        subcontext.AddEntity(entityA);
+        subcontext.AddEntity(entityB);
+
+        return subcontext;
+    }
+
+    public override ParametricSubcontext BuildSelectSubsetAttributeSubcontext(Context parentContext, string[] paramIds)
     {
         int index = _entitySubsetIndex;
 
         if ((paramIds == null) || (paramIds.Length < 1))
         {
             throw new System.ArgumentException(
-                $"{GetSubsetAttributeId}: expected at least one parameter identifier");
+                $"{SelectSubsetAttributeId}: expected at least one parameter identifier");
         }
 
         var subcontext =
             new ParametricSubcontext(
-                $"{GetSubsetAttributeId}_{index}",
+                $"{SelectSubsetAttributeId}_{index}",
                 parentContext);
 
         var entity = ConstructEntity(subcontext, paramIds[0], this);
@@ -193,14 +216,71 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
         return entity.GetThisEntityAttribute();
     }
 
-    public override EntityAttribute GenerateGetSubsetAttribute(ParametricSubcontext subcontext, string[] paramIds, IExpression[] arguments)
+    public override EntityAttribute GenerateSelectBestAttribute(ParametricSubcontext subcontext, string[] paramIds, IExpression[] arguments)
+    {
+        int index = _selectedEntityIndex++;
+
+        if ((paramIds == null) || (paramIds.Length < 2))
+        {
+            throw new System.ArgumentException(
+                $"{SelectBestAttributeId}: expected two parameter identifiers");
+        }
+
+        var paramEntityA = subcontext.GetEntity(paramIds[0]) as DelayedSetEntity<T>;
+        var paramEntityB = subcontext.GetEntity(paramIds[1]) as DelayedSetEntity<T>;
+
+        if ((arguments == null) || (arguments.Length < 1))
+        {
+            throw new System.ArgumentException(
+                $"{SelectBestAttributeId}: expected one condition argument");
+        }
+
+        var conditionExp = ValueExpressionBuilder.ValidateValueExpression<bool>(arguments[0]);
+
+        var entity = ConstructEntity(
+            () =>
+            {
+                T bestItem = default;
+                bool first = true;
+
+                foreach (var item in _collection)
+                {
+                    if (first)
+                    {
+                        bestItem = item;
+                        paramEntityA.Set(bestItem);
+                        first = false;
+                        continue;
+                    }
+
+                    paramEntityB.Set(item);
+
+                    if (!conditionExp.Value)
+                    {
+                        bestItem = item;
+                        paramEntityA.Set(bestItem);
+                    }
+                }
+
+                return bestItem;
+            },
+            Context,
+            BuildAttributeId(_selectedEntityPrefix + index),
+            this);
+
+        _entitiesToSet.Add(entity);
+
+        return entity.GetThisEntityAttribute();
+    }
+
+    public override EntityAttribute GenerateSelectSubsetAttribute(ParametricSubcontext subcontext, string[] paramIds, IExpression[] arguments)
     {
         int index = _entitySubsetIndex++;
 
         if ((paramIds == null) || (paramIds.Length < 1))
         {
             throw new System.ArgumentException(
-                $"{GetSubsetAttributeId}: expected one parameter identifier");
+                $"{SelectSubsetAttributeId}: expected one parameter identifier");
         }
 
         var paramEntity = subcontext.GetEntity(paramIds[0]) as DelayedSetEntity<T>;
@@ -208,7 +288,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
         if ((arguments == null) || (arguments.Length < 1))
         {
             throw new System.ArgumentException(
-                $"{GetSubsetAttributeId}: expected one condition argument");
+                $"{SelectSubsetAttributeId}: expected one condition argument");
         }
 
         var conditionExp = ValueExpressionBuilder.ValidateValueExpression<bool>(arguments[0]);
