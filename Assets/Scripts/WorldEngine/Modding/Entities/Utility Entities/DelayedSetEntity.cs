@@ -172,6 +172,6 @@ public abstract class DelayedSetEntity<T> : Entity
                 return _isNullAttribute;
         }
 
-        throw new System.ArgumentException($"{Id}: Unable to find attribute: {attributeId}");
+        throw new System.ArgumentException($"{Id} ({GetType()}): Unable to find attribute: {attributeId}");
     }
 }

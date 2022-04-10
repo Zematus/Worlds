@@ -3,19 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class CulturalKnowledgesEntity : DelayedSetEntity<Culture>
+public class CulturalKnowledgesEntity : CulturalAttributeEntityDictionaryEntity<CulturalKnowledge>
 {
-    public virtual Culture Culture
-    {
-        get => Setable;
-        private set => Setable = value;
-    }
-
-    protected override object _reference => Culture;
-
-    private readonly Dictionary<string, KnowledgeEntity> _knowledgeEntities =
-        new Dictionary<string, KnowledgeEntity>();
-
     public CulturalKnowledgesEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
@@ -26,50 +15,19 @@ public class CulturalKnowledgesEntity : DelayedSetEntity<Culture>
     {
     }
 
-    protected virtual EntityAttribute CreateKnowledgeAttribute(string attributeId)
-    {
-        if (!_knowledgeEntities.TryGetValue(attributeId, out KnowledgeEntity entity))
-        {
-            entity = new KnowledgeEntity(
-                () => Culture.GetKnowledge(attributeId),
-                Context,
-                BuildAttributeId(attributeId),
-                this);
+    public override string GetDebugString() => "cultural_knowledges";
 
-            _knowledgeEntities[attributeId] = entity;
-        }
+    public override string GetFormattedString() => "<i>cultural knowledges</i>";
 
-        return entity.GetThisEntityAttribute();
-    }
+    protected override bool ContainsKey(string key) => Culture.HasKnowledge(key);
 
-    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
-    {
-        if (!Knowledge.Knowledges.ContainsKey(attributeId))
-        {
-            throw new System.ArgumentException(
-                "Unrecognized cultural knowledge in entity attribute: " + attributeId);
-        }
+    protected override DelayedSetEntity<CulturalKnowledge> CreateEntity(string attributeId) =>
+        new KnowledgeEntity(
+            () => Culture.GetKnowledge(attributeId),
+            Context,
+            BuildAttributeId(attributeId),
+            this);
 
-        return CreateKnowledgeAttribute(attributeId);
-    }
-
-    public override string GetDebugString()
-    {
-        return "cultural_knowledges";
-    }
-
-    public override string GetFormattedString()
-    {
-        return "<i>cultural knowledges</i>";
-    }
-
-    protected override void ResetInternal()
-    {
-        if (_isReset) return;
-
-        foreach (KnowledgeEntity entity in _knowledgeEntities.Values)
-        {
-            entity.Reset();
-        }
-    }
+    protected override bool ValidateKeyAtributeId(string attributeId) => 
+        Knowledge.Knowledges.ContainsKey(attributeId);
 }
