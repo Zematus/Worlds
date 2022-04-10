@@ -2,10 +2,12 @@
 
 public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
 {
-    private const string _selectedEntityPrefix = "selected_entity_";
+    private const string _sumPrefix = "sum_";
+    private const string _entityPrefix = "entity_";
     private const string _entitySubsetPrefix = "entity_subset_";
 
-    private int _selectedEntityIndex = 0;
+    private int _sumIndex = 0;
+    private int _entityIndex = 0;
     private int _entitySubsetIndex = 0;
 
     private readonly List<DelayedSetEntity<T>>
@@ -45,7 +47,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
 
     protected override EntityAttribute GenerateRequestSelectionAttribute(IExpression[] arguments)
     {
-        int index = _selectedEntityIndex++;
+        int index = _entityIndex++;
         int iterOffset = Context.GetNextIterOffset() + index;
 
         if ((arguments == null) && (arguments.Length < 1))
@@ -65,7 +67,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
                 return true;
             },
             Context,
-            BuildAttributeId(_selectedEntityPrefix + index),
+            BuildAttributeId(_entityPrefix + index),
             this);
 
         _entitiesToSet.Add(entity);
@@ -75,7 +77,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
 
     protected override EntityAttribute GenerateSelectRandomAttribute()
     {
-        int index = _selectedEntityIndex++;
+        int index = _entityIndex++;
         int iterOffset = Context.GetNextIterOffset() + index;
 
         var entity = ConstructEntity(
@@ -84,7 +86,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
                 return Collection.RandomSelect(Context.GetNextRandomInt, offset);
             },
             Context,
-            BuildAttributeId(_selectedEntityPrefix + index),
+            BuildAttributeId(_entityPrefix + index),
             this);
 
         _entitiesToSet.Add(entity);
@@ -109,7 +111,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
 
     public override ParametricSubcontext BuildSelectAttributeSubcontext(Context parentContext, string[] paramIds)
     {
-        int index = _selectedEntityIndex;
+        int index = _entityIndex;
 
         if ((paramIds == null) || (paramIds.Length < 1))
         {
@@ -128,9 +130,30 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
         return subcontext;
     }
 
+    public override ParametricSubcontext BuildSumAttributeSubcontext(Context parentContext, string[] paramIds)
+    {
+        int index = _sumIndex;
+
+        if ((paramIds == null) || (paramIds.Length < 1))
+        {
+            throw new System.ArgumentException(
+                $"{SumAttributeId}: expected at least one parameter identifier");
+        }
+
+        var subcontext =
+            new ParametricSubcontext(
+                $"{SumAttributeId}_{index}",
+                parentContext);
+
+        var entity = ConstructEntity(subcontext, paramIds[0], this);
+        subcontext.AddEntity(entity);
+
+        return subcontext;
+    }
+
     public override ParametricSubcontext BuildSelectBestAttributeSubcontext(Context parentContext, string[] paramIds)
     {
-        int index = _selectedEntityIndex;
+        int index = _entityIndex;
 
         if ((paramIds == null) || (paramIds.Length < 2))
         {
@@ -174,7 +197,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
 
     public override EntityAttribute GenerateSelectAttribute(ParametricSubcontext subcontext, string[] paramIds, IExpression[] arguments)
     {
-        int index = _selectedEntityIndex++;
+        int index = _entityIndex++;
 
         if ((paramIds == null) || (paramIds.Length < 1))
         {
@@ -208,7 +231,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
                 return default;
             },
             Context,
-            BuildAttributeId(_selectedEntityPrefix + index),
+            BuildAttributeId(_entityPrefix + index),
             this);
 
         _entitiesToSet.Add(entity);
@@ -216,9 +239,57 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
         return entity.GetThisEntityAttribute();
     }
 
+    public override EntityAttribute GenerateSumAttribute(ParametricSubcontext subcontext, string[] paramIds, IExpression[] arguments)
+    {
+        int index = _sumIndex++;
+
+        if ((paramIds == null) || (paramIds.Length < 1))
+        {
+            throw new System.ArgumentException(
+                $"{SumAttributeId}: expected one parameter identifier");
+        }
+
+        var paramEntity = subcontext.GetEntity(paramIds[0]) as DelayedSetEntity<T>;
+
+        if ((arguments == null) || (arguments.Length < 1))
+        {
+            throw new System.ArgumentException(
+                $"{SumAttributeId}: expected one expression argument");
+        }
+
+        var valExpression = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[0]);
+
+        var attribute = new ValueGetterEntityAttribute<float>(
+            BuildAttributeId(_sumPrefix + index),
+            this,
+            () =>
+            {
+                float result = 0;
+                bool first = true;
+
+                foreach (var item in _collection)
+                {
+                    paramEntity.Set(item);
+
+                    if (first)
+                    {
+                        result = valExpression.Value;
+                        first = false;
+                        continue;
+                    }
+
+                    result += valExpression.Value;
+                }
+
+                return result;
+            });
+
+        return attribute;
+    }
+
     public override EntityAttribute GenerateSelectBestAttribute(ParametricSubcontext subcontext, string[] paramIds, IExpression[] arguments)
     {
-        int index = _selectedEntityIndex++;
+        int index = _entityIndex++;
 
         if ((paramIds == null) || (paramIds.Length < 2))
         {
@@ -265,7 +336,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
                 return bestItem;
             },
             Context,
-            BuildAttributeId(_selectedEntityPrefix + index),
+            BuildAttributeId(_entityPrefix + index),
             this);
 
         _entitiesToSet.Add(entity);

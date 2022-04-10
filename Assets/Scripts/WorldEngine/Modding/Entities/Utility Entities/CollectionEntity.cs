@@ -10,6 +10,7 @@ public abstract class CollectionEntity<T> : Entity
     public const string SelectAttributeId = "select";
     public const string SelectSubsetAttributeId = "select_subset";
     public const string SelectBestAttributeId = "select_best";
+    public const string SumAttributeId = "sum";
 
     private CollectionGetterMethod<T> _getterMethod = null;
 
@@ -71,6 +72,10 @@ public abstract class CollectionEntity<T> : Entity
         Context parentContext,
         string[] paramIds);
 
+    public abstract ParametricSubcontext BuildSumAttributeSubcontext(
+        Context parentContext,
+        string[] paramIds);
+
     public abstract ParametricSubcontext BuildSelectBestAttributeSubcontext(
         Context parentContext,
         string[] paramIds);
@@ -89,6 +94,9 @@ public abstract class CollectionEntity<T> : Entity
             case SelectAttributeId:
                 return BuildSelectAttributeSubcontext(parentContext, paramIds);
 
+            case SumAttributeId:
+                return BuildSumAttributeSubcontext(parentContext, paramIds);
+
             case SelectBestAttributeId:
                 return BuildSelectBestAttributeSubcontext(parentContext, paramIds);
 
@@ -100,6 +108,11 @@ public abstract class CollectionEntity<T> : Entity
     }
 
     public abstract EntityAttribute GenerateSelectAttribute(
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments);
+
+    public abstract EntityAttribute GenerateSumAttribute(
         ParametricSubcontext subcontext,
         string[] paramIds,
         IExpression[] arguments);
@@ -124,6 +137,9 @@ public abstract class CollectionEntity<T> : Entity
         {
             case SelectAttributeId:
                 return GenerateSelectAttribute(subcontext, paramIds, arguments);
+
+            case SumAttributeId:
+                return GenerateSumAttribute(subcontext, paramIds, arguments);
 
             case SelectBestAttributeId:
                 return GenerateSelectBestAttribute(subcontext, paramIds, arguments);

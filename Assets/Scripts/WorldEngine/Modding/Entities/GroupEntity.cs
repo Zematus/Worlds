@@ -117,7 +117,7 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             BuildAttributeId(ClosestFactionsAttributeId),
             this);
 
-        return _presentPolitiesEntity.GetThisEntityAttribute();
+        return _closestFactionsEntity.GetThisEntityAttribute();
     }
 
     public ICollection<Polity> GetPresentPolities() => Group.PresentPolities;
