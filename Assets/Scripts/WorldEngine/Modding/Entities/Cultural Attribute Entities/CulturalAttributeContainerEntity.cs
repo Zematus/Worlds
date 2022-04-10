@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class CulturalAttributeEntityDictionaryEntity<T> : DelayedSetEntityDictionaryEntity<T, Culture>
+public abstract class CulturalAttributeContainerEntity : AttributeContainerEntity<Culture>
 {
-    protected virtual Culture Culture
+    public virtual Culture Culture
     {
         get => Setable;
         private set => Setable = value;
@@ -13,11 +13,11 @@ public abstract class CulturalAttributeEntityDictionaryEntity<T> : DelayedSetEnt
 
     protected override object _reference => Culture;
 
-    public CulturalAttributeEntityDictionaryEntity(Context c, string id, IEntity parent) : base(c, id, parent)
+    public CulturalAttributeContainerEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
-    public CulturalAttributeEntityDictionaryEntity(
+    public CulturalAttributeContainerEntity(
         ValueGetterMethod<Culture> getterMethod, Context c, string id, IEntity parent)
         : base(getterMethod, c, id, parent)
     {

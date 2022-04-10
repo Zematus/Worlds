@@ -3,13 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class GroupEntity : DelayedSetEntity<CellGroup>
+public class GroupEntity : CulturalEntity<CellGroup>
 {
     public const string CellAttributeId = "cell";
     public const string ProminenceValueAttributeId = "prominence_value";
     public const string GetCoreDistanceAttributeId = "get_core_distance";
-    public const string PreferencesAttributeId = "preferences";
-    public const string KnowledgesAttributeId = "knowledges";
     public const string MostProminentPolityAttributeId = "most_prominent_polity";
     public const string PresentPolitiesAttributeId = "present_polities";
     public const string ClosestFactionsAttributeId = "closest_factions";
@@ -22,9 +20,6 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
 
     private CellEntity _cellEntity = null;
     private PolityEntity _polityWithHighestProminenceEntity = null;
-
-    private AssignableCulturalPreferencesEntity _preferencesEntity = null;
-    private CulturalKnowledgesEntity _knowledgesEntity = null;
 
     public GroupEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
@@ -64,30 +59,6 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
                 this);
 
         return _polityWithHighestProminenceEntity.GetThisEntityAttribute();
-    }
-
-    public EntityAttribute GetPreferencesAttribute()
-    {
-        _preferencesEntity =
-            _preferencesEntity ?? new AssignableCulturalPreferencesEntity(
-                GetCulture,
-                Context,
-                BuildAttributeId(PreferencesAttributeId),
-                this);
-
-        return _preferencesEntity.GetThisEntityAttribute();
-    }
-
-    public EntityAttribute GetKnowledgesAttribute()
-    {
-        _knowledgesEntity =
-            _knowledgesEntity ?? new CulturalKnowledgesEntity(
-                GetCulture,
-                Context,
-                BuildAttributeId(KnowledgesAttributeId),
-                this);
-
-        return _knowledgesEntity.GetThisEntityAttribute();
     }
 
     protected override object _reference => Group;
@@ -137,12 +108,6 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             case GetCoreDistanceAttributeId:
                 return new GetCoreDistanceAttribute(this, arguments);
 
-            case PreferencesAttributeId:
-                return GetPreferencesAttribute();
-
-            case KnowledgesAttributeId:
-                return GetKnowledgesAttribute();
-
             case MostProminentPolityAttributeId:
                 return GetMostProminentPolityAttribute();
 
@@ -156,15 +121,9 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
         return base.GetAttribute(attributeId, arguments);
     }
 
-    public override string GetDebugString()
-    {
-        return "group:" + Group.Cell.Position.ToString();
-    }
+    public override string GetDebugString() => $"group:{Group.Cell.Position}";
 
-    public override string GetFormattedString()
-    {
-        return Group.Cell.Position.ToBoldString();
-    }
+    public override string GetFormattedString() => Group.Cell.Position.ToBoldString();
 
     protected override void ResetInternal()
     {
@@ -176,13 +135,12 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
         _cellEntity?.Reset();
         _polityWithHighestProminenceEntity?.Reset();
 
-        _preferencesEntity?.Reset();
-        _knowledgesEntity?.Reset();
+        base.ResetInternal();
     }
 
     public TerrainCell GetCell() => Group.Cell;
 
     public Polity GetMostProminentPolity() => Group.HighestPolityProminence?.Polity;
 
-    public Culture GetCulture() => Group.Culture;
+    public override Culture GetCulture() => Group.Culture;
 }
