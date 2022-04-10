@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class PolityEntity : DelayedSetEntity<Polity>
+public class PolityEntity : CulturalEntity<Polity>
 {
     public const string ContactsAttributeId = "contacts";
     public const string DominantFactionAttributeId = "dominant_faction";
@@ -35,15 +35,9 @@ public class PolityEntity : DelayedSetEntity<Polity>
     private ContactCollectionEntity _contactsEntity = null;
     private FactionCollectionEntity _factionsEntity = null;
 
-    public override string GetDebugString()
-    {
-        return "polity:" + Polity.GetName();
-    }
+    public override string GetDebugString() => $"polity:{Polity.GetName()}";
 
-    public override string GetFormattedString()
-    {
-        return Polity.Name.BoldText;
-    }
+    public override string GetFormattedString() => Polity.Name.BoldText;
 
     public PolityEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
@@ -120,6 +114,13 @@ public class PolityEntity : DelayedSetEntity<Polity>
 
         return _leaderEntity.GetThisEntityAttribute();
     }
+
+    protected override CulturalPreferencesEntity CreateCulturalPreferencesEntity() =>
+        new CulturalPreferencesEntity(
+            GetCulture,
+            Context,
+            BuildAttributeId(PreferencesAttributeId),
+            this);
 
     public static PolityType ConvertToType(string typeStr)
     {
@@ -204,5 +205,9 @@ public class PolityEntity : DelayedSetEntity<Polity>
         _dominantFactionEntity?.Reset();
         _neighborRegionsEntity?.Reset();
         _contactsEntity?.Reset();
+
+        base.ResetInternal();
     }
+
+    public override Culture GetCulture() => Polity.Culture;
 }

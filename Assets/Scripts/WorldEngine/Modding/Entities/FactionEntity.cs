@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class FactionEntity : DelayedSetEntity<Faction>
+public class FactionEntity : CulturalEntity<Faction>
 {
     public const string AdministrativeLoadAttributeId = "administrative_load";
     public const string InfluenceAttributeId = "influence";
     public const string LeaderAttributeId = "leader";
     public const string PolityAttributeId = "polity";
-    public const string PreferencesAttributeId = "preferences";
     public const string TriggerDecisionAttributeId = "trigger_decision";
     public const string SplitAttributeId = "split";
     public const string RemoveAttributeId = "remove";
@@ -38,19 +37,11 @@ public class FactionEntity : DelayedSetEntity<Faction>
 
     private GroupCollectionEntity _groupsEntity = null;
 
-    private AssignableCulturalPreferencesEntity _preferencesEntity = null;
-
     protected override object _reference => Faction;
 
-    public override string GetDebugString()
-    {
-        return "faction:" + Faction.GetName();
-    }
+    public override string GetDebugString() => $"faction:{Faction.GetName()}";
 
-    public override string GetFormattedString()
-    {
-        return Faction.GetNameBold();
-    }
+    public override string GetFormattedString() => Faction.GetNameBold();
 
     public FactionEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
@@ -69,18 +60,6 @@ public class FactionEntity : DelayedSetEntity<Faction>
     }
 
     public ICollection<CellGroup> GetGroups() => Faction.Groups;
-
-    public EntityAttribute GetPreferencesAttribute()
-    {
-        _preferencesEntity =
-            _preferencesEntity ?? new AssignableCulturalPreferencesEntity(
-                GetCulture,
-                Context,
-                BuildAttributeId(PreferencesAttributeId),
-                this);
-
-        return _preferencesEntity.GetThisEntityAttribute();
-    }
 
     public EntityAttribute GetLeaderAttribute()
     {
@@ -273,9 +252,6 @@ public class FactionEntity : DelayedSetEntity<Faction>
                         InfluenceAttributeId, this, () => Faction.Influence);
                 return _influenceAttribute;
 
-            case PreferencesAttributeId:
-                return GetPreferencesAttribute();
-
             case TriggerDecisionAttributeId:
                 return new TriggerDecisionAttribute(this, arguments);
 
@@ -327,7 +303,7 @@ public class FactionEntity : DelayedSetEntity<Faction>
         _polityEntity?.Reset();
         _coreGroupEntity?.Reset();
 
-        _preferencesEntity?.Reset();
+        base.ResetInternal();
     }
 
     public Agent GetLeader() => Faction.CurrentLeader;
@@ -336,5 +312,5 @@ public class FactionEntity : DelayedSetEntity<Faction>
 
     public CellGroup GetCoreGroup() => Faction.CoreGroup;
 
-    public Culture GetCulture() => Faction.Culture;
+    public override Culture GetCulture() => Faction.Culture;
 }

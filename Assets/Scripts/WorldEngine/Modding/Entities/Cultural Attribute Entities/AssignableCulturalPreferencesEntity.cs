@@ -15,8 +15,6 @@ public class AssignableCulturalPreferencesEntity : CulturalPreferencesEntity
     {
     }
 
-    protected override EntityAttribute CreatePreferenceAttribute(string attributeId)
-    {
-        return new AssignablePreferenceAttribute(this, attributeId);
-    }
+    protected override EntityAttribute CreateEntryAttribute(string attributeId) => 
+        new AssignablePreferenceAttribute(this, attributeId);
 }
