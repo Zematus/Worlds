@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public delegate bool TryRequestGenMethod<T>(
     out DelayedSetEntityInputRequest<T> request);
 
-public abstract class DelayedSetEntity<T> : Entity
+public abstract class DelayedSetEntity<T> : Entity, IResettableEntity
 {
     public const string IsNullAttributeId = "is_null";
 

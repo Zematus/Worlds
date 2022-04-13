@@ -22,7 +22,7 @@ public class CulturalPreferencesEntity : CulturalAttributeContainerEntity
     protected override EntityAttribute CreateEntryAttribute(string attributeId) => 
         new PreferenceAttribute(this, attributeId);
 
-    protected override bool ValidateKeyAtributeId(string attributeId) => 
+    protected override bool ValidateKey(string attributeId) => 
         PreferenceGenerator.Generators.ContainsKey(attributeId);
 
     protected override bool ContainsKey(string key) => Culture.HasPreference(key);

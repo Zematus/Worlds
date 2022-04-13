@@ -7,7 +7,7 @@
         "target.knowledges.add(shipbuilding, 10)",
         "target.skills.add(seafaring)"
       ],
-      "gainEffects": [
+      "lossEffects": [
         "target.knowledges.remove(shipbuilding)",
         "target.skills.remove(seafaring)"
       ]

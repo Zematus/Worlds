@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-public class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
+public class PropertyEntity<T> : ValueEntity<T>, IResettableEntity
 {
     private bool _evaluated = false;
 

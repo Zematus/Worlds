@@ -19,7 +19,7 @@ public abstract class Context : IDebugLogger
     public const string Guide_Player = "player";
     public const string Guide_All = "all";
 
-    public string Id;
+    public string Id { get; set; }
 
     public bool DebugLogEnabled
     {
@@ -68,8 +68,8 @@ public abstract class Context : IDebugLogger
     readonly protected Dictionary<string, Entity> _entities =
         new Dictionary<string, Entity>();
 
-    readonly private List<IReseteableEntity> _propertyEntities =
-        new List<IReseteableEntity>();
+    readonly private List<IResettableEntity> _propertyEntities =
+        new List<IResettableEntity>();
 
     protected Context()
     {
@@ -103,7 +103,7 @@ public abstract class Context : IDebugLogger
 
     private void AddPropertyEntity(LoadedContext.LoadedProperty p)
     {
-        IReseteableEntity propEntity = PropertyEntityBuilder.BuildPropertyEntity(this, p);
+        IResettableEntity propEntity = PropertyEntityBuilder.BuildPropertyEntity(this, p);
         Entity entity = propEntity as Entity;
 
         _entities.Add(entity.Id, entity);
@@ -112,7 +112,7 @@ public abstract class Context : IDebugLogger
 
     public virtual void Reset()
     {
-        foreach (IReseteableEntity entity in _propertyEntities)
+        foreach (IResettableEntity entity in _propertyEntities)
         {
             entity.Reset();
         }

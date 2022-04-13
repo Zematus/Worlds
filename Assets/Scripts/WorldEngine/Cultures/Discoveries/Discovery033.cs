@@ -79,8 +79,6 @@ public class Discovery033 : IDiscovery, ICellGroupEventGenerator
     }
 
     public static Dictionary<string, Discovery033> Discoveries;
-
-    public static int CurrentUId = 0;
     
     public string Id { get; set; }
     public string Name { get; set; }

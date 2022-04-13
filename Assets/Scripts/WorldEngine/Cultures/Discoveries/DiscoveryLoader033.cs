@@ -93,7 +93,7 @@ public class DiscoveryLoader033
         {
             Id = d.id,
             IdHash = d.id.GetHashCode(),
-            UId = Discovery033.CurrentUId++,
+            UId = Manager.CurrentDiscoveryUid++,
             Name = d.name,
             GainConditions = gainConditions,
             HoldConditions = holdConditions,

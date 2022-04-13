@@ -94,7 +94,7 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
     public override float GetNextRandomFloat(int iterOffset) =>
         _target.Group.GetNextLocalRandomFloat(iterOffset);
 
-    public override int GetBaseOffset() => (int)_target.Group.GetHashCode();
+    public override int GetBaseOffset() => _target.Group.GetHashCode();
 
     public bool TryGenerateEventAndAssign(
         CellGroup group,
