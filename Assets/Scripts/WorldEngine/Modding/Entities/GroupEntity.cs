@@ -91,6 +91,13 @@ public class GroupEntity : CulturalEntity<CellGroup>
         return _closestFactionsEntity.GetThisEntityAttribute();
     }
 
+    protected override ICulturalDiscoveriesEntity CreateCulturalDiscoveriesEntity() =>
+        new ModifiableCulturalDiscoveriesEntity(
+            GetCulture,
+            Context,
+            BuildAttributeId(DiscoveriesAttributeId),
+            this);
+
     public ICollection<Polity> GetPresentPolities() => Group.PresentPolities;
 
     public ICollection<Faction> GetClosestFactions() => Group.ClosestFactions;

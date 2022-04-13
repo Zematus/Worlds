@@ -283,6 +283,8 @@ public class Manager
     public static long CurrentMaxUpdateSpan = 0;
     public static float CurrentMaxAdminCost = 0;
 
+    public static int CurrentDiscoveryUid = 0;
+
     private static bool _isLoadReady = false;
 
     private static string _debugLogFilename = "debug";
@@ -5115,6 +5117,8 @@ public class Manager
         RegionAttribute.ResetAttributes();
         Element.ResetElements();
 
+        CurrentDiscoveryUid = 0;
+        Discovery.ResetDiscoveries();
         Discovery033.ResetDiscoveries();
         Knowledge.ResetKnowledges();
 
@@ -5211,7 +5215,7 @@ public class Manager
         TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile033, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
         TryLoadModFiles(Element.LoadElementsFile033, Path.Combine(path, @"Elements"), progressPerSegment);
         TryLoadModFiles(PreferenceGenerator.LoadPreferencesFile, Path.Combine(path, @"Preferences"), progressPerSegment);
-        //TryLoadModFiles(Discovery033.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
+        TryLoadModFiles(Discovery.LoadDiscoveriesFile, Path.Combine(path, @"Discoveries"), progressPerSegment);
         TryLoadModFiles(EventGenerator.LoadEventFile, Path.Combine(path, @"Events"), progressPerSegment);
         TryLoadModFiles(ActionCategory.LoadActionCategoryFile, Path.Combine(path, @"Actions", @"Categories"), progressPerSegment);
         TryLoadModFiles(ModAction.LoadActionFile, Path.Combine(path, @"Actions"), progressPerSegment);

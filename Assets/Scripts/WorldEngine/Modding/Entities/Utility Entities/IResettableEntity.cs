@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-public interface IReseteableEntity
+public interface IResettableEntity : IEntity
 {
     void Reset();
 }

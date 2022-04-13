@@ -1,8 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-
+﻿
 public abstract class EntryContainerEntity<T> : DelayedSetEntity<T>
 {
     public const string ContainsAttributeId = "contains";

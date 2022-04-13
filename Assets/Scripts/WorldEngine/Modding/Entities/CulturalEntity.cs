@@ -11,7 +11,7 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
 
     private CulturalPreferencesEntity _preferencesEntity = null;
     private CulturalKnowledgesEntity _knowledgesEntity = null;
-    private CulturalDiscoveriesEntity _discoveriesEntity = null;
+    private ICulturalDiscoveriesEntity _discoveriesEntity = null;
 
     public CulturalEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
@@ -56,14 +56,17 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
         return _knowledgesEntity.GetThisEntityAttribute();
     }
 
+    protected virtual ICulturalDiscoveriesEntity CreateCulturalDiscoveriesEntity() =>
+        new CulturalDiscoveriesEntity(
+            GetCulture,
+            Context,
+            BuildAttributeId(DiscoveriesAttributeId),
+            this);
+
     private EntityAttribute GetDiscoveriesAttribute()
     {
         _discoveriesEntity =
-            _discoveriesEntity ?? new CulturalDiscoveriesEntity(
-                GetCulture,
-                Context,
-                BuildAttributeId(DiscoveriesAttributeId),
-                this);
+            _discoveriesEntity ?? CreateCulturalDiscoveriesEntity();
 
         return _discoveriesEntity.GetThisEntityAttribute();
     }

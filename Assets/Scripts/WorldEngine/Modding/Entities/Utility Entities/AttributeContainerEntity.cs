@@ -17,11 +17,11 @@ public abstract class AttributeContainerEntity<T> : EntryContainerEntity<T>
 
     protected abstract EntityAttribute CreateEntryAttribute(string attributeId);
 
-    protected abstract bool ValidateKeyAtributeId(string attributeId);
+    protected abstract bool ValidateKey(string attributeId);
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
-        if (ValidateKeyAtributeId(attributeId))
+        if (ValidateKey(attributeId))
         {
             return CreateEntryAttribute(attributeId);
         }
