@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public abstract class EffectEntityAttribute : EntityAttribute
 {
     public EffectEntityAttribute(
-        string id, IEntity entity, IExpression[] arguments, int minArguments = 0)
+        string id, IEntity entity, IExpression[] arguments = null, int minArguments = 0)
         : base(id, entity, arguments)
     {
         if ((minArguments > 0) && ((arguments == null) || (arguments.Length < minArguments)))

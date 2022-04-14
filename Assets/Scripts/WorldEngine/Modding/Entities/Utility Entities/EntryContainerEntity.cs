@@ -13,7 +13,28 @@ public abstract class EntryContainerEntity<T> : DelayedSetEntity<T>
     {
     }
 
+    protected virtual bool ValidateKey(string attributeId)
+    {
+        return true;
+    }
+
     protected abstract bool ContainsKey(string key);
+
+    protected IValueExpression<string> ValidateKeyArgument(IExpression argument)
+    {
+        var argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(argument);
+
+        if (argumentExp is FixedValueExpression<string>)
+        {
+            if (!ValidateKey(argumentExp.Value))
+            {
+                throw new System.ArgumentException(
+                    $"Not a valid entry: { argumentExp.Value }");
+            }
+        }
+
+        return argumentExp;
+    }
 
     private EntityAttribute GetContainsAttribute(IExpression[] arguments)
     {
@@ -22,7 +43,7 @@ public abstract class EntryContainerEntity<T> : DelayedSetEntity<T>
             throw new System.ArgumentException($"'contains' attribute requires at least 1 argument");
         }
 
-        var argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
+        var argumentExp = ValidateKeyArgument(arguments[0]);
 
         return new ValueGetterEntityAttribute<bool>(
             ContainsAttributeId, this, () => ContainsKey(argumentExp.Value));

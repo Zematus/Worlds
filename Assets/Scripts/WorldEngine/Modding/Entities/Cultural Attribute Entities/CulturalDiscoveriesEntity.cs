@@ -20,4 +20,6 @@ public class CulturalDiscoveriesEntity : CulturalEntryContainerEntity, ICultural
     public override string GetFormattedString() => "<i>cultural discoveries</i>";
 
     protected override bool ContainsKey(string key) => Culture.HasDiscovery(key);
+
+    protected override bool ValidateKey(string attributeId) => Discovery.Discoveries.ContainsKey(attributeId);
 }

@@ -19,15 +19,31 @@ public class ModifiableCulturalDiscoveriesEntity : CulturalEntryModifiableContai
 
     public override string GetFormattedString() => "<i>cultural discoveries</i>";
 
-    protected override bool AddKey(string key)
+    protected override void AddKey(string key)
     {
-        throw new System.NotImplementedException();
+        if (Culture.HasDiscovery(key))
+        {
+            throw new System.Exception($"'key' is already present in group.");
+        }
+
+        var groupCulture = Culture as CellCulture;
+
+        groupCulture.AddDiscoveryToFind(Discovery.Discoveries[key]);
     }
 
     protected override bool ContainsKey(string key) => Culture.HasDiscovery(key);
 
-    protected override bool RemoveKey(string key)
+    protected override bool ValidateKey(string attributeId) => Discovery.Discoveries.ContainsKey(attributeId);
+
+    protected override void RemoveKey(string key)
     {
-        throw new System.NotImplementedException();
+        if (!Culture.HasDiscovery(key))
+        {
+            throw new System.Exception($"'key' is not present in group.");
+        }
+
+        var groupCulture = Culture as CellCulture;
+
+        groupCulture.AddDiscoveryToLose(Discovery.Discoveries[key]);
     }
 }

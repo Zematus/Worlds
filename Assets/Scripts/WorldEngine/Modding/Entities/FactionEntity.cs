@@ -103,8 +103,7 @@ public class FactionEntity : CulturalEntity<Faction>
             new EffectApplierEntityAttribute(
                 RemoveAttributeId,
                 this,
-                () => Faction.SetToRemove(),
-                null);
+                () => Faction.SetToRemove());
 
         return attribute;
     }
@@ -136,8 +135,7 @@ public class FactionEntity : CulturalEntity<Faction>
                     }
 
                     Faction.MigrateCoreToGroup(groupEntity.Group);
-                },
-                arguments);
+                });
 
         return attribute;
     }
@@ -171,8 +169,7 @@ public class FactionEntity : CulturalEntity<Faction>
                     }
 
                     Faction.ChangePolity(polityEntity.Polity, influenceValExp.Value);
-                },
-                arguments);
+                });
 
         return attribute;
     }
