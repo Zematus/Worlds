@@ -18,8 +18,8 @@ public abstract class EntryModifiableContainerEntity<T> : EntryContainerEntity<T
     {
     }
 
-    protected abstract bool AddKey(string key);
-    protected abstract bool RemoveKey(string key);
+    protected abstract void AddKey(string key);
+    protected abstract void RemoveKey(string key);
 
     private EntityAttribute GetAddAttribute(IExpression[] arguments)
     {
@@ -28,9 +28,9 @@ public abstract class EntryModifiableContainerEntity<T> : EntryContainerEntity<T
             throw new System.ArgumentException($"'add' attribute requires at least 1 argument");
         }
 
-        var argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
+        var argumentExp = ValidateKeyArgument(arguments[0]);
 
-        return new ValueGetterEntityAttribute<bool>(
+        return new EffectApplierEntityAttribute(
             AddAttributeId, this, () => AddKey(argumentExp.Value));
     }
 
@@ -41,9 +41,9 @@ public abstract class EntryModifiableContainerEntity<T> : EntryContainerEntity<T
             throw new System.ArgumentException($"'remove' attribute requires at least 1 argument");
         }
 
-        var argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
+        var argumentExp = ValidateKeyArgument(arguments[0]);
 
-        return new ValueGetterEntityAttribute<bool>(
+        return new EffectApplierEntityAttribute(
             RemoveAttributeId, this, () => RemoveKey(argumentExp.Value));
     }
 
