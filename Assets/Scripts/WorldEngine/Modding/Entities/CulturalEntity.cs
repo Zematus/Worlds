@@ -6,10 +6,14 @@ using System.Text.RegularExpressions;
 public abstract class CulturalEntity<T> : DelayedSetEntity<T>
 {
     public const string PreferencesAttributeId = "preferences";
+    public const string SkillsAttributeId = "skills";
+    public const string SkillsActivitiesId = "activities";
     public const string KnowledgesAttributeId = "knowledges";
     public const string DiscoveriesAttributeId = "discoveries";
 
     private CulturalPreferencesEntity _preferencesEntity = null;
+    private CulturalSkillsEntity _skillsEntity = null;
+    private CulturalActivitiesEntity _activitiesEntity = null;
     private CulturalKnowledgesEntity _knowledgesEntity = null;
     private ICulturalDiscoveriesEntity _discoveriesEntity = null;
 
@@ -36,12 +40,27 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
             BuildAttributeId(PreferencesAttributeId),
             this);
 
+    private CulturalSkillsEntity CreateCulturalSkillsEntity() =>
+        new CulturalSkillsEntity(
+            GetCulture,
+            Context,
+            BuildAttributeId(SkillsAttributeId),
+            this);
+
     private EntityAttribute GetPreferencesAttribute()
     {
         _preferencesEntity =
             _preferencesEntity ?? CreateCulturalPreferencesEntity();
 
         return _preferencesEntity.GetThisEntityAttribute();
+    }
+
+    private EntityAttribute GetSkillsAttribute()
+    {
+        _skillsEntity =
+            _skillsEntity ?? CreateCulturalSkillsEntity();
+
+        return _skillsEntity.GetThisEntityAttribute();
     }
 
     private EntityAttribute GetKnowledgesAttribute()
@@ -77,6 +96,9 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
         {
             case PreferencesAttributeId:
                 return GetPreferencesAttribute();
+
+            case SkillsAttributeId:
+                return GetSkillsAttribute();
 
             case KnowledgesAttributeId:
                 return GetKnowledgesAttribute();

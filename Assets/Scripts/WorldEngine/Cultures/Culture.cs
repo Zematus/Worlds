@@ -332,6 +332,8 @@ public class Culture : ISynchronizable
         return false;
     }
 
+    public bool HasSkill(string id) => _skills.ContainsKey(id);
+
     public ICollection<CulturalKnowledge> GetKnowledges() => _knowledges.Values;
 
     public CulturalKnowledge GetKnowledge(string id)

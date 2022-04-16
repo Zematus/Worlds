@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class CulturalEntryContainerEntity : EntryContainerEntity<Culture>
+public abstract class CulturalEntryContainerEntity : EntryContainerEntity<Culture>, ICulturalEntryContainerEntity
 {
-    protected virtual Culture Culture
+    public virtual Culture Culture
     {
         get => Setable;
         private set => Setable = value;
