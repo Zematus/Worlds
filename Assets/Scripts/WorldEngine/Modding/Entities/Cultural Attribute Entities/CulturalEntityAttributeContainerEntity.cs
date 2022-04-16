@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class CulturalEntityAttributeContainerEntity<T> : DelayedSetEntityAttributeContainerEntity<T, Culture>
+public abstract class CulturalEntityAttributeContainerEntity<T> : DelayedSetEntityAttributeContainerEntity<T, Culture>, ICulturalEntryContainerEntity
 {
-    protected virtual Culture Culture
+    public virtual Culture Culture
     {
         get => Setable;
         private set => Setable = value;
