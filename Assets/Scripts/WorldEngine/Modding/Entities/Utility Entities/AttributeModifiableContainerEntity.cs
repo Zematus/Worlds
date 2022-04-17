@@ -1,8 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-
+﻿
 public abstract class AttributeModifiableContainerEntity<T> : EntryModifiableContainerEntity<T>
 {
     public AttributeModifiableContainerEntity(Context c, string id, IEntity parent) : base(c, id, parent)
