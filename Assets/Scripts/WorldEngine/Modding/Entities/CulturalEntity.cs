@@ -7,7 +7,7 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
 {
     public const string PreferencesAttributeId = "preferences";
     public const string SkillsAttributeId = "skills";
-    public const string SkillsActivitiesId = "activities";
+    public const string ActivitiesAttributeId = "activities";
     public const string KnowledgesAttributeId = "knowledges";
     public const string DiscoveriesAttributeId = "discoveries";
 
@@ -47,6 +47,20 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
             BuildAttributeId(SkillsAttributeId),
             this);
 
+    private CulturalActivitiesEntity CreateCulturalActivitiesEntity() =>
+        new CulturalActivitiesEntity(
+            GetCulture,
+            Context,
+            BuildAttributeId(ActivitiesAttributeId),
+            this);
+
+    private CulturalKnowledgesEntity CreateCulturalKnowledgesEntity() =>
+        new CulturalKnowledgesEntity(
+            GetCulture,
+            Context,
+            BuildAttributeId(KnowledgesAttributeId),
+            this);
+
     private EntityAttribute GetPreferencesAttribute()
     {
         _preferencesEntity =
@@ -63,14 +77,18 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
         return _skillsEntity.GetThisEntityAttribute();
     }
 
+    private EntityAttribute GetActivitiesAttribute()
+    {
+        _activitiesEntity =
+            _activitiesEntity ?? CreateCulturalActivitiesEntity();
+
+        return _activitiesEntity.GetThisEntityAttribute();
+    }
+
     private EntityAttribute GetKnowledgesAttribute()
     {
         _knowledgesEntity =
-            _knowledgesEntity ?? new CulturalKnowledgesEntity(
-                GetCulture,
-                Context,
-                BuildAttributeId(KnowledgesAttributeId),
-                this);
+            _knowledgesEntity ?? CreateCulturalKnowledgesEntity();
 
         return _knowledgesEntity.GetThisEntityAttribute();
     }
@@ -99,6 +117,9 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
 
             case SkillsAttributeId:
                 return GetSkillsAttribute();
+
+            case ActivitiesAttributeId:
+                return GetActivitiesAttribute();
 
             case KnowledgesAttributeId:
                 return GetKnowledgesAttribute();

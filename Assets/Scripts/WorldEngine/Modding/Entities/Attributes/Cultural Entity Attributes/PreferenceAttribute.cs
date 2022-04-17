@@ -2,11 +2,11 @@
 
 public class PreferenceAttribute : ValueEntityAttribute<float>
 {
-    private CulturalPreferencesEntity _preferencesEntity;
+    private ICulturalPreferencesEntity _preferencesEntity;
     private string _preferenceId;
 
     public PreferenceAttribute(
-        CulturalPreferencesEntity preferencesEntity,
+        ICulturalPreferencesEntity preferencesEntity,
         string preferenceId)
         : base(preferenceId, preferencesEntity, null)
     {

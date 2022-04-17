@@ -18,8 +18,7 @@ public class CulturalSkillsEntity : CulturalAttributeContainerEntity, ICulturalS
     protected override EntityAttribute CreateEntryAttribute(string attributeId) => 
         new SkillAttribute(this, attributeId);
 
-    // TODO: These should be validated somehow
-    protected override bool ValidateKey(string attributeId) => true;
+    protected override bool ValidateKey(string attributeId) => CulturalSkill.ValidSkillIds.Contains(attributeId);
 
     protected override bool ContainsKey(string key) => Culture.HasSkill(key);
 }
