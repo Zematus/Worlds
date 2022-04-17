@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 public abstract class CulturalEntryModifiableContainerEntity : EntryModifiableContainerEntity<Culture>
 {
-    protected virtual Culture Culture
+    public virtual Culture Culture
     {
         get => Setable;
         private set => Setable = value;

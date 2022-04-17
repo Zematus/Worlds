@@ -5,5 +5,5 @@ using System.Text.RegularExpressions;
 
 public interface ICulturalEntryContainerEntity : IResettableEntity
 {
-    public Culture Culture { get; }
+    Culture Culture { get; }
 }
