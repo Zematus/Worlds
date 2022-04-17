@@ -5121,6 +5121,8 @@ public class Manager
         Discovery.ResetDiscoveries();
         Discovery033.ResetDiscoveries();
         Knowledge.ResetKnowledges();
+        CulturalSkill.ResetSkills();
+        CulturalActivity.ResetActivities();
 
         PreferenceGenerator.ResetPreferenceGenerators();
         EventGenerator.ResetGenerators();
@@ -5130,6 +5132,8 @@ public class Manager
 
         ModDecision.ResetDecisions();
 
+        CulturalActivity.InitializeActivities();
+        CulturalSkill.InitializeBaseSkills();
         Knowledge.InitializeKnowledges();
 
         float progressPerMod = 0.1f / paths.Count;

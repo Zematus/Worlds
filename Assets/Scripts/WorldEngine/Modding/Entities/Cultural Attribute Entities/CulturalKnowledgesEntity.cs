@@ -28,6 +28,5 @@ public class CulturalKnowledgesEntity : CulturalEntityAttributeContainerEntity<C
             BuildAttributeId(attributeId),
             this);
 
-    protected override bool ValidateKey(string attributeId) => 
-        Knowledge.Knowledges.ContainsKey(attributeId);
+    protected override bool ValidateKey(string attributeId) => Knowledge.Knowledges.ContainsKey(attributeId);
 }

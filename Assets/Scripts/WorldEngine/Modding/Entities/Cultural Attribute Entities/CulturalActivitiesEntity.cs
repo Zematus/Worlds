@@ -18,8 +18,7 @@ public class CulturalActivitiesEntity : CulturalAttributeContainerEntity, ICultu
     protected override EntityAttribute CreateEntryAttribute(string attributeId) => 
         new ActivityAttribute(this, attributeId);
 
-    protected override bool ValidateKey(string attributeId) => 
-        PreferenceGenerator.Generators.ContainsKey(attributeId);
+    protected override bool ValidateKey(string attributeId) => CulturalActivity.ValidActivityIds.Contains(attributeId);
 
-    protected override bool ContainsKey(string key) => Culture.HasPreference(key);
+    protected override bool ContainsKey(string key) => Culture.HasActivity(key);
 }
