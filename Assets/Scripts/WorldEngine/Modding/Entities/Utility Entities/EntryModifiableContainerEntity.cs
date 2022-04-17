@@ -1,8 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-
+﻿
 public abstract class EntryModifiableContainerEntity<T> : EntryContainerEntity<T>
 {
     public const string AddAttributeId = "add";
@@ -18,10 +14,13 @@ public abstract class EntryModifiableContainerEntity<T> : EntryContainerEntity<T
     {
     }
 
-    protected abstract void AddKey(string key);
-    protected abstract void RemoveKey(string key);
+    protected virtual void AddKey(string key)
+    { }
 
-    private EntityAttribute GetAddAttribute(IExpression[] arguments)
+    protected virtual void RemoveKey(string key)
+    { }
+
+    protected virtual EntityAttribute GetAddAttribute(IExpression[] arguments)
     {
         if (arguments.Length < 1)
         {
@@ -34,7 +33,7 @@ public abstract class EntryModifiableContainerEntity<T> : EntryContainerEntity<T
             AddAttributeId, this, () => AddKey(argumentExp.Value));
     }
 
-    private EntityAttribute GetRemoveAttribute(IExpression[] arguments)
+    protected virtual EntityAttribute GetRemoveAttribute(IExpression[] arguments)
     {
         if (arguments.Length < 1)
         {

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class CulturalEntryModifiableContainerEntity : EntryModifiableContainerEntity<Culture>
+public abstract class CulturalEntryModifiableContainerEntity : EntryModifiableContainerEntity<Culture>, ICulturalEntryContainerEntity
 {
     public virtual Culture Culture
     {

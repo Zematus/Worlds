@@ -1,9 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-
-public class CulturalKnowledgesEntity : CulturalEntityAttributeContainerEntity<CulturalKnowledge>
+﻿
+public class CulturalKnowledgesEntity : CulturalEntityAttributeContainerEntity<CulturalKnowledge>, ICulturalKnowledgesEntity
 {
     public CulturalKnowledgesEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
