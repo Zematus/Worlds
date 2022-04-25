@@ -35,27 +35,36 @@ public class ModifiableCulturalKnowledgesEntity : CulturalEntityAttributeModifia
 
         var keyArgExp = ValidateKeyArgument(arguments[0]);
 
-        if (arguments.Length >= 2)
-        {
-            var initialLevelExp = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
+        EffectApplierMethod applierMethod = null;
 
-            return new EffectApplierEntityAttribute(
-                AddAttributeId, this, () => AddKey(keyArgExp.Value, initialLevelExp.Value));
+        if (arguments.Length >= 3)
+        {
+            var limitLevel = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[2]);
+            var initialLevel = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
+
+            applierMethod = () => AddKey(keyArgExp.Value, (int)initialLevel.Value, (int)limitLevel.Value);
+        }
+        else if (arguments.Length == 2)
+        {
+            var initialLevel = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
+
+            applierMethod = () => AddKey(keyArgExp.Value, (int)initialLevel.Value, -1);
         }
         else
         {
-            return new EffectApplierEntityAttribute(
-                AddAttributeId, this, () => AddKey(keyArgExp.Value, 1));
+            applierMethod = () => AddKey(keyArgExp.Value, 0, -1);
         }
+
+        return new EffectApplierEntityAttribute(AddAttributeId, this, applierMethod);
     }
 
-    protected override void RemoveKey(string key)
-    {
-        throw new System.NotImplementedException();
-    }
+    protected override void RemoveKey(string key) => (Culture as CellCulture).AddKnowledgeToLose(key);
 
-    private void AddKey(string key, float initialLevel)
+    private void AddKey(string key, float initialLevel, float limitLevel)
     {
-        throw new System.NotImplementedException();
+        int initialLevelInt = (int)(initialLevel * MathUtility.FloatToIntScalingFactor);
+        int limitLevelInt = (int)(limitLevel * MathUtility.FloatToIntScalingFactor);
+
+        (Culture as CellCulture).TryAddKnowledgeToLearn(key, initialLevelInt, limitLevelInt);
     }
 }

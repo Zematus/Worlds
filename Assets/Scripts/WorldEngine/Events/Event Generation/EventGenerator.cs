@@ -5,6 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 /// <summary>
 /// Object that generates events of a certain type during the simulation run
@@ -21,6 +22,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public const string AssignOnPolityCountChange = "polity_count_change";
     public const string AssignOnCoreCountChange = "core_count_change";
     public const string AssignOnCoreGroupProminenceValueBelow = "core_group_prominence_value_below";
+    public const string AssignOnKnowledgeLevelBelow = "knowledge_level_below";
 
     public const string FactionTargetType = "faction";
     public const string GroupTargetType = "group";
@@ -119,7 +121,8 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public abstract void SetToAssignOnGuideSwitch();
     public abstract void SetToAssignOnPolityCountChange();
     public abstract void SetToAssignOnCoreCountChange();
-    public abstract void SetToAssignOnCoreGroupProminenceValueBelow(string valueStr);
+    public abstract void SetToAssignOnCoreGroupProminenceValueBelow(string[] valueStrs);
+    public abstract void SetToAssignOnKnowledgeLevelBelow(string[] valueStrs);
 
     protected EventGenerator()
     {
@@ -142,7 +145,13 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             }
 
             string idStr = match.Groups["identifier"].Value.Trim();
-            string valueStr = match.Groups["value"].Value.Trim();
+            string valuesStr = match.Groups["values"].Value;
+            string[] valueStrArray = null;
+
+            if (!string.IsNullOrWhiteSpace(valuesStr))
+            {
+                valueStrArray = valuesStr.Split(',').Select((s) => s.Trim()).ToArray();
+            }
 
             switch (idStr)
             {
@@ -183,7 +192,11 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
                     break;
 
                 case AssignOnCoreGroupProminenceValueBelow:
-                    SetToAssignOnCoreGroupProminenceValueBelow(valueStr);
+                    SetToAssignOnCoreGroupProminenceValueBelow(valueStrArray);
+                    break;
+
+                case AssignOnKnowledgeLevelBelow:
+                    SetToAssignOnKnowledgeLevelBelow(valueStrArray);
                     break;
 
                 default:

@@ -8,6 +8,8 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
 {
     private readonly GroupEntity _target;
 
+    public readonly Dictionary<string, float> OnKnowledgeLevelBelowParameterValues = new Dictionary<string, float>();
+
     public CellGroupEventGenerator()
     {
         _target = new GroupEntity(this, TargetEntityId, null);
@@ -67,10 +69,55 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
             "OnAssign does not support 'guide_switch' for Cell Groups");
     }
 
-    public override void SetToAssignOnCoreGroupProminenceValueBelow(string valueStr)
+    public override void SetToAssignOnCoreGroupProminenceValueBelow(string[] valueStrs)
     {
         throw new System.InvalidOperationException(
-            "OnAssign does not support 'core_group_prominence_value_below' for Cell Groups");
+            $"OnAssign does not support '{AssignOnCoreGroupProminenceValueBelow}' for Cell Groups");
+    }
+
+    public override void SetToAssignOnKnowledgeLevelBelow(string[] valueStrs)
+    {
+        if ((valueStrs == null) || (valueStrs.Length < 2))
+        {
+            throw new System.ArgumentException
+                ($"invalid or no parameters for '{AssignOnKnowledgeLevelBelow}'");
+        }
+
+        var knowledgeId = valueStrs[0];
+        var levelStr = valueStrs[1];
+
+        if (string.IsNullOrWhiteSpace(knowledgeId))
+        {
+            throw new System.ArgumentException
+                ($"knowledge id for '{AssignOnKnowledgeLevelBelow}' is empty");
+        }
+
+        if (!Knowledge.Knowledges.ContainsKey(knowledgeId))
+        {
+            throw new System.ArgumentException
+                ($"knowledge id for '{AssignOnKnowledgeLevelBelow}' is not recognized: {knowledgeId}");
+        }
+
+        if (string.IsNullOrWhiteSpace(levelStr))
+        {
+            throw new System.ArgumentException
+                ($"level value for '{AssignOnKnowledgeLevelBelow}' is empty");
+        }
+
+        if (!MathUtility.TryParseCultureInvariant(levelStr, out float level))
+        {
+            throw new System.ArgumentException
+                ($"level value for '{AssignOnKnowledgeLevelBelow}' is not a valid number: {level}");
+        }
+
+        OnKnowledgeLevelBelowParameterValues[knowledgeId] = level;
+
+        if (!CellGroup.OnKnowledgeLevelBelowEventGenerators.ContainsKey(knowledgeId))
+        {
+            CellGroup.OnKnowledgeLevelBelowEventGenerators.Add(knowledgeId, new List<IWorldEventGenerator>());
+        }
+
+        CellGroup.OnKnowledgeLevelBelowEventGenerators[knowledgeId].Add(this);
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)

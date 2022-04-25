@@ -63,29 +63,43 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
             "OnAssign does not support 'core_count_change' for Factions");
     }
 
-    public override void SetToAssignOnCoreGroupProminenceValueBelow(string valueStr)
+    public override void SetToAssignOnCoreGroupProminenceValueBelow(string[] valueStrs)
     {
+        if ((valueStrs == null) || (valueStrs.Length < 1))
+        {
+            throw new System.ArgumentException
+                ($"parameter for '{AssignOnCoreGroupProminenceValueBelow}' is empty");
+        }
+
+        var valueStr = valueStrs[0];
+
         if (string.IsNullOrWhiteSpace(valueStr))
         {
             throw new System.ArgumentException
-                ($"parameter for 'core_group_prominence_value_below' is empty");
+                ($"parameter for '{AssignOnCoreGroupProminenceValueBelow}' is empty");
         }
 
         if (!MathUtility.TryParseCultureInvariant(valueStr, out float value))
         {
             throw new System.ArgumentException
-                ($"parameter for 'core_group_prominence_value_below' is not a valid number: {valueStr}");
+                ($"parameter for '{AssignOnCoreGroupProminenceValueBelow}' is not a valid number: {valueStr}");
         }
 
         if (!value.IsInsideRange(0, 1))
         {
             throw new System.ArgumentException
-                ($"parameter for 'core_group_prominence_value_below', '{valueStr}' is not a value between 0 and 1");
+                ($"parameter for '{AssignOnCoreGroupProminenceValueBelow}', '{valueStr}' is not a value between 0 and 1");
         }
 
         OnCoreGroupProminenceValueBelowParameterValue = value;
 
         Faction.OnCoreGroupProminenceValueBelowEventGenerators.Add(this);
+    }
+
+    public override void SetToAssignOnKnowledgeLevelBelow(string[] valueStrs)
+    {
+        throw new System.InvalidOperationException(
+            $"OnAssign does not support '{AssignOnKnowledgeLevelBelow}' for Factions");
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)

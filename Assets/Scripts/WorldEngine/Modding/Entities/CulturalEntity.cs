@@ -11,10 +11,10 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
     public const string KnowledgesAttributeId = "knowledges";
     public const string DiscoveriesAttributeId = "discoveries";
 
-    private CulturalPreferencesEntity _preferencesEntity = null;
-    private CulturalSkillsEntity _skillsEntity = null;
-    private CulturalActivitiesEntity _activitiesEntity = null;
-    private CulturalKnowledgesEntity _knowledgesEntity = null;
+    private ICulturalPreferencesEntity _preferencesEntity = null;
+    private ICulturalSkillsEntity _skillsEntity = null;
+    private ICulturalActivitiesEntity _activitiesEntity = null;
+    private ICulturalKnowledgesEntity _knowledgesEntity = null;
     private ICulturalDiscoveriesEntity _discoveriesEntity = null;
 
     public CulturalEntity(Context c, string id, IEntity parent) : base(c, id, parent)
@@ -33,32 +33,39 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
     {
     }
 
-    protected virtual CulturalPreferencesEntity CreateCulturalPreferencesEntity() => 
+    protected virtual ICulturalPreferencesEntity CreateCulturalPreferencesEntity() => 
         new AssignableCulturalPreferencesEntity(
             GetCulture,
             Context,
             BuildAttributeId(PreferencesAttributeId),
             this);
 
-    private CulturalSkillsEntity CreateCulturalSkillsEntity() =>
+    private ICulturalSkillsEntity CreateCulturalSkillsEntity() =>
         new CulturalSkillsEntity(
             GetCulture,
             Context,
             BuildAttributeId(SkillsAttributeId),
             this);
 
-    private CulturalActivitiesEntity CreateCulturalActivitiesEntity() =>
+    private ICulturalActivitiesEntity CreateCulturalActivitiesEntity() =>
         new CulturalActivitiesEntity(
             GetCulture,
             Context,
             BuildAttributeId(ActivitiesAttributeId),
             this);
 
-    private CulturalKnowledgesEntity CreateCulturalKnowledgesEntity() =>
+    protected virtual ICulturalKnowledgesEntity CreateCulturalKnowledgesEntity() =>
         new CulturalKnowledgesEntity(
             GetCulture,
             Context,
             BuildAttributeId(KnowledgesAttributeId),
+            this);
+
+    protected virtual ICulturalDiscoveriesEntity CreateCulturalDiscoveriesEntity() =>
+        new CulturalDiscoveriesEntity(
+            GetCulture,
+            Context,
+            BuildAttributeId(DiscoveriesAttributeId),
             this);
 
     private EntityAttribute GetPreferencesAttribute()
@@ -92,13 +99,6 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
 
         return _knowledgesEntity.GetThisEntityAttribute();
     }
-
-    protected virtual ICulturalDiscoveriesEntity CreateCulturalDiscoveriesEntity() =>
-        new CulturalDiscoveriesEntity(
-            GetCulture,
-            Context,
-            BuildAttributeId(DiscoveriesAttributeId),
-            this);
 
     private EntityAttribute GetDiscoveriesAttribute()
     {
