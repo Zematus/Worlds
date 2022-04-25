@@ -4,7 +4,7 @@
       "id": "boat_making",
       "name": "boat making",
       "gainEffects": [
-        "target.knowledges.add(shipbuilding, 10)"
+        "target.knowledges.add(shipbuilding, 1, 10)"
       ],
       "lossEffects": [
         "target.knowledges.remove(shipbuilding)"

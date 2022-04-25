@@ -115,7 +115,7 @@ public class PolityEntity : CulturalEntity<Polity>
         return _leaderEntity.GetThisEntityAttribute();
     }
 
-    protected override CulturalPreferencesEntity CreateCulturalPreferencesEntity() =>
+    protected override ICulturalPreferencesEntity CreateCulturalPreferencesEntity() =>
         new CulturalPreferencesEntity(
             GetCulture,
             Context,
