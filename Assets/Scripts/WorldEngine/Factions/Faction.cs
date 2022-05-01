@@ -886,6 +886,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         OnStatusChangeEventGenerators = new List<IWorldEventGenerator>();
         OnGuideSwitchEventGenerators = new List<IWorldEventGenerator>();
         OnCoreGroupProminenceValueFallsBelowEventGenerators = new List<IWorldEventGenerator>();
+        EventGeneratorsThatNeedCleanup = new HashSet<FactionEventGenerator>();
     }
 
     public void AddGeneratorToTestAssignmentFor(IFactionEventGenerator generator)
