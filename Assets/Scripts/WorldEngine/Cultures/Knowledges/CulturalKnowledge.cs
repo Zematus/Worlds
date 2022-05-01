@@ -37,10 +37,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
         Value = baseKnowledge.Value;
     }
 
-    public float ScaledValue
-    {
-        get { return Value * MathUtility.IntToFloatScalingFactor; }
-    }
+    public float ScaledValue => Value * MathUtility.IntToFloatScalingFactor;
 
     public int GetHighestLimit()
     {

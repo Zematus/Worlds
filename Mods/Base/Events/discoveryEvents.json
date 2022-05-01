@@ -27,7 +27,7 @@
       "id": "lose_boat_making_discovery",
       "name": "lose boat making discovery",
       "target": "group",
-      "assignOn": ["knowledge_level_below:shipbuilding,0.1"],
+      "assignOn": ["knowledge_level_falls_below:shipbuilding,0.1"],
       "assignmentConditions": [
         "target.knowledges.contains(shipbuilding)",
         "target.discoveries.contains(boat_making)",

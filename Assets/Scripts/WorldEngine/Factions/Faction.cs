@@ -22,7 +22,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     public static List<IWorldEventGenerator> OnSpawnEventGenerators;
     public static List<IWorldEventGenerator> OnStatusChangeEventGenerators;
     public static List<IWorldEventGenerator> OnGuideSwitchEventGenerators;
-    public static List<IWorldEventGenerator> OnCoreGroupProminenceValueBelowEventGenerators;
+    public static List<IWorldEventGenerator> OnCoreGroupProminenceValueFallsBelowEventGenerators;
+
+    public static HashSet<FactionEventGenerator> EventGeneratorsThatNeedCleanup;
 
     [XmlAttribute("Inf")]
     public float InfluenceInternal;
@@ -297,6 +299,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         foreach (FactionRelationship relationship in relationshipsToRemove)
         {
             relationship.Faction.RemoveRelationship(this);
+        }
+
+        foreach (var generator in EventGeneratorsThatNeedCleanup)
+        {
+            generator.RemoveReferences(this);
         }
 
         Info.Faction = null;
@@ -878,7 +885,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         OnSpawnEventGenerators = new List<IWorldEventGenerator>();
         OnStatusChangeEventGenerators = new List<IWorldEventGenerator>();
         OnGuideSwitchEventGenerators = new List<IWorldEventGenerator>();
-        OnCoreGroupProminenceValueBelowEventGenerators = new List<IWorldEventGenerator>();
+        OnCoreGroupProminenceValueFallsBelowEventGenerators = new List<IWorldEventGenerator>();
     }
 
     public void AddGeneratorToTestAssignmentFor(IFactionEventGenerator generator)
@@ -959,10 +966,10 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     /// </summary>
     public void GenerateCoreGroupProminenceValueBelowEvents(float prominenceValue)
     {
-        foreach (var generator in OnCoreGroupProminenceValueBelowEventGenerators)
+        foreach (var generator in OnCoreGroupProminenceValueFallsBelowEventGenerators)
         {
             if ((generator is FactionEventGenerator fGenerator) &&
-                (prominenceValue < fGenerator.OnCoreGroupProminenceValueBelowParameterValue))
+                fGenerator.TestOnCoreGroupProminenceValueFallsBelow(this, prominenceValue))
             {
                 AddGeneratorToTestAssignmentFor(fGenerator);
             }
