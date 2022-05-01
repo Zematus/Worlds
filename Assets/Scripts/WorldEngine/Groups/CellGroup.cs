@@ -36,7 +36,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public static List<IWorldEventGenerator> OnCoreHighestProminenceChangeEventGenerators;
     public static List<IWorldEventGenerator> OnPolityCountChangeEventGenerators;
     public static List<IWorldEventGenerator> OnCoreCountChangeEventGenerators;
-    public static Dictionary<string, List<IWorldEventGenerator>> OnKnowledgeLevelBelowEventGenerators;
+    public static Dictionary<string, List<IWorldEventGenerator>> OnKnowledgeLevelFallsBelowEventGenerators;
+
+    public static HashSet<CellGroupEventGenerator> EventGeneratorsThatNeedCleanup;
 
     [XmlAttribute("MT")]
     public bool MigrationTagged = false;
@@ -704,7 +706,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         OnCoreHighestProminenceChangeEventGenerators = new List<IWorldEventGenerator>();
         OnCoreCountChangeEventGenerators = new List<IWorldEventGenerator>();
         OnPolityCountChangeEventGenerators = new List<IWorldEventGenerator>();
-        OnKnowledgeLevelBelowEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
+        OnKnowledgeLevelFallsBelowEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
     }
 
     private void InitializeOnSpawnEvents()
@@ -1660,6 +1662,11 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         Cell.FarmlandPercentage = 0;
         Cell.Accessibility = Cell.BaseAccessibility;
         Cell.Arability = Cell.BaseArability;
+
+        foreach (var generator in EventGeneratorsThatNeedCleanup)
+        {
+            generator.RemoveReferences(this);
+        }
 
         _cellUpdateType |= CellUpdateType.Cell;
         _cellUpdateSubtype |= CellUpdateSubType.Terrain;
@@ -2727,15 +2734,15 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// </summary>
     public void GenerateKnowledgeLevelBelowEvents(string knowledgeId, float scaledValue)
     {
-        if (!OnKnowledgeLevelBelowEventGenerators.ContainsKey(knowledgeId))
+        if (!OnKnowledgeLevelFallsBelowEventGenerators.ContainsKey(knowledgeId))
         {
             return;
         }
 
-        foreach (var generator in OnKnowledgeLevelBelowEventGenerators[knowledgeId])
+        foreach (var generator in OnKnowledgeLevelFallsBelowEventGenerators[knowledgeId])
         {
             if ((generator is CellGroupEventGenerator gGenerator) &&
-                (scaledValue < gGenerator.OnKnowledgeLevelBelowParameterValues[knowledgeId]))
+                gGenerator.TestOnKnowledgeLevelFallsBelow(knowledgeId, this, scaledValue))
             {
                 AddGeneratorToTestAssignmentFor(gGenerator);
             }

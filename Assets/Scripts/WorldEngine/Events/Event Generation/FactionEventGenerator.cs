@@ -1,11 +1,34 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
 using UnityEngine.Profiling;
 
 public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 {
     public readonly FactionEntity Target;
 
-    public float OnCoreGroupProminenceValueBelowParameterValue;
+    private float _onCoreGroupProminenceValueFallsBelow_parameterValue;
+    private readonly HashSet<Faction> _onCoreGroupProminenceValueFallsBelow_factionsToTest = new HashSet<Faction>();
+
+    public bool TestOnCoreGroupProminenceValueFallsBelow(Faction faction, float prominenceValue)
+    {
+        if (prominenceValue >= _onCoreGroupProminenceValueFallsBelow_parameterValue)
+        {
+            _onCoreGroupProminenceValueFallsBelow_factionsToTest.Add(faction);
+            return false;
+        }
+        else if (!_onCoreGroupProminenceValueFallsBelow_factionsToTest.Contains(faction))
+        {
+            return false;
+        }
+
+        _onCoreGroupProminenceValueFallsBelow_factionsToTest.Remove(faction);
+
+        return true;
+    }
+
+    public void RemoveReferences(Faction faction)
+    {
+        _onCoreGroupProminenceValueFallsBelow_factionsToTest.Remove(faction);
+    }
 
     public FactionEventGenerator()
     {
@@ -63,12 +86,12 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
             "OnAssign does not support 'core_count_change' for Factions");
     }
 
-    public override void SetToAssignOnCoreGroupProminenceValueBelow(string[] valueStrs)
+    public override void SetToAssignOnCoreGroupProminenceValueFallsBelow(string[] valueStrs)
     {
         if ((valueStrs == null) || (valueStrs.Length < 1))
         {
             throw new System.ArgumentException
-                ($"parameter for '{AssignOnCoreGroupProminenceValueBelow}' is empty");
+                ($"parameter for '{AssignOnCoreGroupProminenceValueFallsBelow}' is empty");
         }
 
         var valueStr = valueStrs[0];
@@ -76,30 +99,31 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         if (string.IsNullOrWhiteSpace(valueStr))
         {
             throw new System.ArgumentException
-                ($"parameter for '{AssignOnCoreGroupProminenceValueBelow}' is empty");
+                ($"parameter for '{AssignOnCoreGroupProminenceValueFallsBelow}' is empty");
         }
 
         if (!MathUtility.TryParseCultureInvariant(valueStr, out float value))
         {
             throw new System.ArgumentException
-                ($"parameter for '{AssignOnCoreGroupProminenceValueBelow}' is not a valid number: {valueStr}");
+                ($"parameter for '{AssignOnCoreGroupProminenceValueFallsBelow}' is not a valid number: {valueStr}");
         }
 
         if (!value.IsInsideRange(0, 1))
         {
             throw new System.ArgumentException
-                ($"parameter for '{AssignOnCoreGroupProminenceValueBelow}', '{valueStr}' is not a value between 0 and 1");
+                ($"parameter for '{AssignOnCoreGroupProminenceValueFallsBelow}', '{valueStr}' is not a value between 0 and 1");
         }
 
-        OnCoreGroupProminenceValueBelowParameterValue = value;
+        _onCoreGroupProminenceValueFallsBelow_parameterValue = value;
 
-        Faction.OnCoreGroupProminenceValueBelowEventGenerators.Add(this);
+        Faction.OnCoreGroupProminenceValueFallsBelowEventGenerators.Add(this);
+        Faction.EventGeneratorsThatNeedCleanup.Add(this);
     }
 
-    public override void SetToAssignOnKnowledgeLevelBelow(string[] valueStrs)
+    public override void SetToAssignOnKnowledgeLevelFallsBelow(string[] valueStrs)
     {
         throw new System.InvalidOperationException(
-            $"OnAssign does not support '{AssignOnKnowledgeLevelBelow}' for Factions");
+            $"OnAssign does not support '{AssignOnKnowledgeLevelFallsBelow}' for Factions");
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)

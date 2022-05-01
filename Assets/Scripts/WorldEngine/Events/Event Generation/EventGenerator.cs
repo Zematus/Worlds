@@ -21,8 +21,8 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public const string AssignOnGuideSwitch = "guide_switch";
     public const string AssignOnPolityCountChange = "polity_count_change";
     public const string AssignOnCoreCountChange = "core_count_change";
-    public const string AssignOnCoreGroupProminenceValueBelow = "core_group_prominence_value_below";
-    public const string AssignOnKnowledgeLevelBelow = "knowledge_level_below";
+    public const string AssignOnCoreGroupProminenceValueFallsBelow = "core_group_prominence_value_falls_below";
+    public const string AssignOnKnowledgeLevelFallsBelow = "knowledge_level_falls_below";
 
     public const string FactionTargetType = "faction";
     public const string GroupTargetType = "group";
@@ -121,8 +121,8 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public abstract void SetToAssignOnGuideSwitch();
     public abstract void SetToAssignOnPolityCountChange();
     public abstract void SetToAssignOnCoreCountChange();
-    public abstract void SetToAssignOnCoreGroupProminenceValueBelow(string[] valueStrs);
-    public abstract void SetToAssignOnKnowledgeLevelBelow(string[] valueStrs);
+    public abstract void SetToAssignOnCoreGroupProminenceValueFallsBelow(string[] valueStrs);
+    public abstract void SetToAssignOnKnowledgeLevelFallsBelow(string[] valueStrs);
 
     protected EventGenerator()
     {
@@ -191,12 +191,12 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
                     SetToAssignOnGuideSwitch();
                     break;
 
-                case AssignOnCoreGroupProminenceValueBelow:
-                    SetToAssignOnCoreGroupProminenceValueBelow(valueStrArray);
+                case AssignOnCoreGroupProminenceValueFallsBelow:
+                    SetToAssignOnCoreGroupProminenceValueFallsBelow(valueStrArray);
                     break;
 
-                case AssignOnKnowledgeLevelBelow:
-                    SetToAssignOnKnowledgeLevelBelow(valueStrArray);
+                case AssignOnKnowledgeLevelFallsBelow:
+                    SetToAssignOnKnowledgeLevelFallsBelow(valueStrArray);
                     break;
 
                 default:

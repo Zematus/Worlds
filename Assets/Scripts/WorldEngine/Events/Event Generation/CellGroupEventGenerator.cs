@@ -8,7 +8,33 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
 {
     private readonly GroupEntity _target;
 
-    public readonly Dictionary<string, float> OnKnowledgeLevelBelowParameterValues = new Dictionary<string, float>();
+    private readonly Dictionary<string, float> _onKnowledgeLevelFallsBelow_parameterValues = new Dictionary<string, float>();
+    private readonly Dictionary<string, HashSet<CellGroup>> _onKnowledgeLevelFallsBelow_groupsToTest = new Dictionary<string, HashSet<CellGroup>>();
+
+    public bool TestOnKnowledgeLevelFallsBelow(string knowledge, CellGroup group, float scaledValue)
+    {
+        if (scaledValue >= _onKnowledgeLevelFallsBelow_parameterValues[knowledge])
+        {
+            _onKnowledgeLevelFallsBelow_groupsToTest[knowledge].Add(group);
+            return false;
+        }
+        else if (!_onKnowledgeLevelFallsBelow_groupsToTest[knowledge].Contains(group))
+        {
+            return false;
+        }
+
+        _onKnowledgeLevelFallsBelow_groupsToTest[knowledge].Remove(group);
+
+        return true;
+    }
+
+    public void RemoveReferences(CellGroup group)
+    {
+        foreach (var groupsToTestSet in _onKnowledgeLevelFallsBelow_groupsToTest.Values)
+        {
+            groupsToTestSet.Remove(group);
+        }
+    }
 
     public CellGroupEventGenerator()
     {
@@ -69,18 +95,18 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
             "OnAssign does not support 'guide_switch' for Cell Groups");
     }
 
-    public override void SetToAssignOnCoreGroupProminenceValueBelow(string[] valueStrs)
+    public override void SetToAssignOnCoreGroupProminenceValueFallsBelow(string[] valueStrs)
     {
         throw new System.InvalidOperationException(
-            $"OnAssign does not support '{AssignOnCoreGroupProminenceValueBelow}' for Cell Groups");
+            $"OnAssign does not support '{AssignOnCoreGroupProminenceValueFallsBelow}' for Cell Groups");
     }
 
-    public override void SetToAssignOnKnowledgeLevelBelow(string[] valueStrs)
+    public override void SetToAssignOnKnowledgeLevelFallsBelow(string[] valueStrs)
     {
         if ((valueStrs == null) || (valueStrs.Length < 2))
         {
             throw new System.ArgumentException
-                ($"invalid or no parameters for '{AssignOnKnowledgeLevelBelow}'");
+                ($"invalid or no parameters for '{AssignOnKnowledgeLevelFallsBelow}'");
         }
 
         var knowledgeId = valueStrs[0];
@@ -89,35 +115,37 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         if (string.IsNullOrWhiteSpace(knowledgeId))
         {
             throw new System.ArgumentException
-                ($"knowledge id for '{AssignOnKnowledgeLevelBelow}' is empty");
+                ($"knowledge id for '{AssignOnKnowledgeLevelFallsBelow}' is empty");
         }
 
         if (!Knowledge.Knowledges.ContainsKey(knowledgeId))
         {
             throw new System.ArgumentException
-                ($"knowledge id for '{AssignOnKnowledgeLevelBelow}' is not recognized: {knowledgeId}");
+                ($"knowledge id for '{AssignOnKnowledgeLevelFallsBelow}' is not recognized: {knowledgeId}");
         }
 
         if (string.IsNullOrWhiteSpace(levelStr))
         {
             throw new System.ArgumentException
-                ($"level value for '{AssignOnKnowledgeLevelBelow}' is empty");
+                ($"level value for '{AssignOnKnowledgeLevelFallsBelow}' is empty");
         }
 
         if (!MathUtility.TryParseCultureInvariant(levelStr, out float level))
         {
             throw new System.ArgumentException
-                ($"level value for '{AssignOnKnowledgeLevelBelow}' is not a valid number: {level}");
+                ($"level value for '{AssignOnKnowledgeLevelFallsBelow}' is not a valid number: {level}");
         }
 
-        OnKnowledgeLevelBelowParameterValues[knowledgeId] = level;
+        _onKnowledgeLevelFallsBelow_parameterValues[knowledgeId] = level;
+        _onKnowledgeLevelFallsBelow_groupsToTest[knowledgeId] = new HashSet<CellGroup>();
 
-        if (!CellGroup.OnKnowledgeLevelBelowEventGenerators.ContainsKey(knowledgeId))
+        if (!CellGroup.OnKnowledgeLevelFallsBelowEventGenerators.ContainsKey(knowledgeId))
         {
-            CellGroup.OnKnowledgeLevelBelowEventGenerators.Add(knowledgeId, new List<IWorldEventGenerator>());
+            CellGroup.OnKnowledgeLevelFallsBelowEventGenerators.Add(knowledgeId, new List<IWorldEventGenerator>());
         }
 
-        CellGroup.OnKnowledgeLevelBelowEventGenerators[knowledgeId].Add(this);
+        CellGroup.OnKnowledgeLevelFallsBelowEventGenerators[knowledgeId].Add(this);
+        CellGroup.EventGeneratorsThatNeedCleanup.Add(this);
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)
