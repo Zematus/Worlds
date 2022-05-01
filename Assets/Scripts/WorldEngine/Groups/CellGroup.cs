@@ -707,6 +707,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         OnCoreCountChangeEventGenerators = new List<IWorldEventGenerator>();
         OnPolityCountChangeEventGenerators = new List<IWorldEventGenerator>();
         OnKnowledgeLevelFallsBelowEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
+        EventGeneratorsThatNeedCleanup = new HashSet<CellGroupEventGenerator>();
     }
 
     private void InitializeOnSpawnEvents()
