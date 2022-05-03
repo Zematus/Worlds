@@ -19,7 +19,11 @@ public class GroupEntity : CulturalEntity<CellGroup>
     }
 
     private CellEntity _cellEntity = null;
-    private PolityEntity _polityWithHighestProminenceEntity = null;
+    private PolityEntity _mostProminentPolityEntity = null;
+    private PolityCollectionEntity _presentPolitiesEntity = null;
+    private FactionCollectionEntity _closestFactionsEntity = null;
+
+    protected override object _reference => Group;
 
     public GroupEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
@@ -51,21 +55,15 @@ public class GroupEntity : CulturalEntity<CellGroup>
 
     public EntityAttribute GetMostProminentPolityAttribute()
     {
-        _polityWithHighestProminenceEntity =
-            _polityWithHighestProminenceEntity ?? new PolityEntity(
+        _mostProminentPolityEntity =
+            _mostProminentPolityEntity ?? new PolityEntity(
                 GetMostProminentPolity,
                 Context,
                 BuildAttributeId(MostProminentPolityAttributeId),
                 this);
 
-        return _polityWithHighestProminenceEntity.GetThisEntityAttribute();
+        return _mostProminentPolityEntity.GetThisEntityAttribute();
     }
-
-    protected override object _reference => Group;
-
-    private PolityCollectionEntity _presentPolitiesEntity = null;
-
-    private FactionCollectionEntity _closestFactionsEntity = null;
 
     public EntityAttribute GetPresentPolitiesAttribute()
     {
@@ -147,7 +145,9 @@ public class GroupEntity : CulturalEntity<CellGroup>
         }
 
         _cellEntity?.Reset();
-        _polityWithHighestProminenceEntity?.Reset();
+        _mostProminentPolityEntity?.Reset();
+        _presentPolitiesEntity?.Reset();
+        _closestFactionsEntity?.Reset();
 
         base.ResetInternal();
     }

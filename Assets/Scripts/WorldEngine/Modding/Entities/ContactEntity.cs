@@ -73,6 +73,8 @@ public class ContactEntity : DelayedSetEntity<PolityContact>
         if (_isReset) return;
 
         _polityEntity?.Reset();
+
+        base.ResetInternal();
     }
 
     public float GetStrength()

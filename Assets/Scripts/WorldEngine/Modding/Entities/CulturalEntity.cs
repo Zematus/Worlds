@@ -136,6 +136,10 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
         _preferencesEntity?.Reset();
         _knowledgesEntity?.Reset();
         _discoveriesEntity?.Reset();
+        _skillsEntity?.Reset();
+        _activitiesEntity?.Reset();
+
+        base.ResetInternal();
     }
 
     public abstract Culture GetCulture();

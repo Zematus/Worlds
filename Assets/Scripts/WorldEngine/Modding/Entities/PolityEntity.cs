@@ -205,6 +205,7 @@ public class PolityEntity : CulturalEntity<Polity>
         _dominantFactionEntity?.Reset();
         _neighborRegionsEntity?.Reset();
         _contactsEntity?.Reset();
+        _factionsEntity?.Reset();
 
         base.ResetInternal();
     }
