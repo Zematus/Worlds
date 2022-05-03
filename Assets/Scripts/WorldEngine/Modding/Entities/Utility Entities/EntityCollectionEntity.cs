@@ -218,7 +218,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
         var entity = ConstructEntity(
             () =>
             {
-                foreach (var item in _collection)
+                foreach (var item in Collection)
                 {
                     paramEntity.Set(item);
 
@@ -267,7 +267,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
                 float result = 0;
                 bool first = true;
 
-                foreach (var item in _collection)
+                foreach (var item in Collection)
                 {
                     paramEntity.Set(item);
 
@@ -314,7 +314,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
                 T bestItem = default;
                 bool first = true;
 
-                foreach (var item in _collection)
+                foreach (var item in Collection)
                 {
                     if (first)
                     {
@@ -369,7 +369,7 @@ public abstract class EntityCollectionEntity<T> : CollectionEntity<T>
             {
                 var items = new HashSet<T>();
 
-                foreach (var item in _collection)
+                foreach (var item in Collection)
                 {
                     paramEntity.Set(item);
 
