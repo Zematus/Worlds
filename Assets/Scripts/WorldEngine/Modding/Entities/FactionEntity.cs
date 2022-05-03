@@ -34,7 +34,6 @@ public class FactionEntity : CulturalEntity<Faction>
     private AgentEntity _leaderEntity = null;
     private PolityEntity _polityEntity = null;
     private GroupEntity _coreGroupEntity = null;
-
     private GroupCollectionEntity _groupsEntity = null;
 
     protected override object _reference => Faction;
@@ -299,6 +298,7 @@ public class FactionEntity : CulturalEntity<Faction>
         _leaderEntity?.Reset();
         _polityEntity?.Reset();
         _coreGroupEntity?.Reset();
+        _groupsEntity?.Reset();
 
         base.ResetInternal();
     }
