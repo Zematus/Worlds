@@ -49,4 +49,56 @@ public static class ValueAssignmentExpressionBuilder
             expressionB.GetType() + "), original: " +
             expressionAStr + " = " + expressionBStr);
     }
+
+    public static IExpression BuildValueAddExpression(
+        Context context,
+        string expressionAStr,
+        string expressionBStr,
+        bool allowInputRequesters = false)
+    {
+        IExpression expressionA =
+            ExpressionBuilder.BuildExpression(
+                context, expressionAStr, allowInputRequesters);
+        IBaseValueExpression expressionB =
+            ValueExpressionBuilder.BuildValueExpression(
+                context, expressionBStr, allowInputRequesters);
+
+        if ((expressionA is IAssignableValueExpression<float>) &&
+            (expressionB is IValueExpression<float>))
+        {
+            return new ValueAddExpression(expressionA, expressionB);
+        }
+
+        throw new System.Exception(
+            "Unhandled value assignment expression type combination: (" +
+            expressionA.GetType() + ", " +
+            expressionB.GetType() + "), original: " +
+            expressionAStr + " += " + expressionBStr);
+    }
+
+    public static IExpression BuildValueSubstractExpression(
+        Context context,
+        string expressionAStr,
+        string expressionBStr,
+        bool allowInputRequesters = false)
+    {
+        IExpression expressionA =
+            ExpressionBuilder.BuildExpression(
+                context, expressionAStr, allowInputRequesters);
+        IBaseValueExpression expressionB =
+            ValueExpressionBuilder.BuildValueExpression(
+                context, expressionBStr, allowInputRequesters);
+
+        if ((expressionA is IAssignableValueExpression<float>) &&
+            (expressionB is IValueExpression<float>))
+        {
+            return new ValueSubstractExpression(expressionA, expressionB);
+        }
+
+        throw new System.Exception(
+            "Unhandled value assignment expression type combination: (" +
+            expressionA.GetType() + ", " +
+            expressionB.GetType() + "), original: " +
+            expressionAStr + " -= " + expressionBStr);
+    }
 }

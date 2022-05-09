@@ -375,6 +375,12 @@ public static class ExpressionBuilder
             case "=":
                 return ValueAssignmentExpressionBuilder.BuildValueAssignmentExpression(
                     context, expressionAStr, expressionBStr, allowInputRequesters);
+            case "+=":
+                return ValueAssignmentExpressionBuilder.BuildValueAddExpression(
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
+            case "-=":
+                return ValueAssignmentExpressionBuilder.BuildValueSubstractExpression(
+                    context, expressionAStr, expressionBStr, allowInputRequesters);
             case "==":
                 return EqualsExpressionBuilder.BuildEqualsExpression(
                     context, expressionAStr, expressionBStr, allowInputRequesters);
