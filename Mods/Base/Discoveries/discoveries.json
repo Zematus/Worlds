@@ -9,6 +9,16 @@
       "lossEffects": [
         "target.knowledges.remove(shipbuilding)"
       ]
+    },
+    {
+      "id": "rudders",
+      "name": "rudders",
+      "gainEffects": [
+        "target.knowledges.shipbuilding.limit += 5"
+      ],
+      "lossEffects": [
+        "target.knowledges.shipbuilding.limit -= 5"
+      ]
     }
   ]
 }
