@@ -52,15 +52,6 @@ public abstract class DelayedSetValueEntity<T, S> : DelayedSetEntity<T>, IValueE
             "DelayedSetValueEntity: Unable to find attribute: " + attributeId);
     }
 
-    public override EntityAttribute GetThisEntityAttribute()
-    {
-        _thisAttribute =
-            _thisAttribute ?? new FixedValueEntityAttribute<IValueEntity<S>>(
-                this, Id, Parent);
-
-        return _thisAttribute;
-    }
-
     public override string GetDebugString()
     {
         return Value.ToString();
