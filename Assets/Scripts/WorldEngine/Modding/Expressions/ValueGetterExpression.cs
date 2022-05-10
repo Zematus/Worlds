@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 public delegate T ValueGetterMethod<T>();
+public delegate void ValueSetterMethod<T>(T value);
 public delegate string PartiallyEvaluatedStringConverter(int depth = -1);
 
 public class ValueGetterExpression<T> : IValueExpression<T>
