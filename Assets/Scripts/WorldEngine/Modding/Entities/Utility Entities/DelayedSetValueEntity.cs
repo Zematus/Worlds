@@ -49,7 +49,7 @@ public abstract class DelayedSetValueEntity<T, S> : DelayedSetEntity<T>, IValueE
         }
 
         throw new System.ArgumentException(
-            "DelayedSetValueEntity: Unable to find attribute: " + attributeId);
+            $"{Id}: Unable to find attribute: {attributeId}");
     }
 
     public override string GetDebugString()

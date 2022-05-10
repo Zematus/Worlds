@@ -90,7 +90,7 @@ public class GroupEntity : CulturalEntity<CellGroup>
     }
 
     protected override ICulturalKnowledgesEntity CreateCulturalKnowledgesEntity() =>
-        new ModifiableCulturalKnowledgesEntity(
+        new ModifiableCellCulturalKnowledgesEntity(
             GetCulture,
             Context,
             BuildAttributeId(KnowledgesAttributeId),

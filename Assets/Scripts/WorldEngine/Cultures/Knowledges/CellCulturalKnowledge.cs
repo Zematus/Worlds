@@ -100,7 +100,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     public float ScaledLimit
     {
-        get { return Limit * MathUtility.IntToFloatScalingFactor; }
+        get => Limit * MathUtility.IntToFloatScalingFactor;
+        set => Limit = (int)(value * MathUtility.FloatToIntScalingFactor);
     }
 
     public void UpdateProgressLevel()

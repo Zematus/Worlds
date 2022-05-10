@@ -36,11 +36,6 @@ public class KnowledgeEntity : DelayedSetValueEntity<CulturalKnowledge,float>
     {
     }
 
-    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
-    {
-        return base.GetAttribute(attributeId, arguments);
-    }
-
     public override string GetFormattedString()
     {
         return "<i>" + Knowledge.Name + "</i>";
