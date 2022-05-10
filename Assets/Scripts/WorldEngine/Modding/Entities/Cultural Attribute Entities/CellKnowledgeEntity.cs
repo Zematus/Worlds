@@ -5,8 +5,6 @@ using System.Text.RegularExpressions;
 
 public class CellKnowledgeEntity : KnowledgeEntity
 {
-    public const string LimitAttributeId = "limit";
-
     private ValueGetterSetterEntityAttribute<float> _limitAttribute;
 
     public virtual CellCulturalKnowledge CellKnowledge
