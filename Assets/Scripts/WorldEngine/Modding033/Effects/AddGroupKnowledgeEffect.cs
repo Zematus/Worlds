@@ -37,7 +37,7 @@ public class AddGroupKnowledgeEffect : Effect
 
     public override void Apply(CellGroup group)
     {
-        group.Culture.TryAddKnowledgeToLearn(KnowledgeId, _initialValue, LimitLevel);
+        group.Culture.AddKnowledgeToLearn(KnowledgeId, _initialValue, LimitLevel);
     }
 
     public override string ToString()

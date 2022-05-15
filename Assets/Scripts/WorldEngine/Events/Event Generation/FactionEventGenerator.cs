@@ -126,6 +126,12 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
             $"OnAssign does not support '{AssignOnKnowledgeLevelFallsBelow}' for Factions");
     }
 
+    public override void SetToAssignOnKnowledgeLevelRaisesAbove(string[] valueStrs)
+    {
+        throw new System.InvalidOperationException(
+            $"OnAssign does not support '{AssignOnKnowledgeLevelRaisesAbove}' for Factions");
+    }
+
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
         FactionModEvent modEvent = new FactionModEvent(this, Target.Faction, triggerDate);

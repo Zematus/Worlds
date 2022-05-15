@@ -37,6 +37,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public static List<IWorldEventGenerator> OnPolityCountChangeEventGenerators;
     public static List<IWorldEventGenerator> OnCoreCountChangeEventGenerators;
     public static Dictionary<string, List<IWorldEventGenerator>> OnKnowledgeLevelFallsBelowEventGenerators;
+    public static Dictionary<string, List<IWorldEventGenerator>> OnKnowledgeLevelRaisesAboveEventGenerators;
 
     public static HashSet<CellGroupEventGenerator> EventGeneratorsThatNeedCleanup;
 
@@ -707,6 +708,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         OnCoreCountChangeEventGenerators = new List<IWorldEventGenerator>();
         OnPolityCountChangeEventGenerators = new List<IWorldEventGenerator>();
         OnKnowledgeLevelFallsBelowEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
+        OnKnowledgeLevelRaisesAboveEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
         EventGeneratorsThatNeedCleanup = new HashSet<CellGroupEventGenerator>();
     }
 
@@ -878,7 +880,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         if (initialGroup)
         {
-            Culture.TryAddKnowledgeToLearn(SocialOrganizationKnowledge.KnowledgeId, SocialOrganizationKnowledge.InitialValue);
+            Culture.AddKnowledgeToLearn(SocialOrganizationKnowledge.KnowledgeId, SocialOrganizationKnowledge.InitialValue);
         }
     }
 
@@ -2733,7 +2735,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <summary>
     /// Tries to generate and apply all events related to knowledges going below a minimun value
     /// </summary>
-    public void GenerateKnowledgeLevelBelowEvents(string knowledgeId, float scaledValue)
+    public void GenerateKnowledgeLevelFallsBelowEvents(string knowledgeId, float scaledValue)
     {
         if (!OnKnowledgeLevelFallsBelowEventGenerators.ContainsKey(knowledgeId))
         {
@@ -2744,6 +2746,26 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         {
             if ((generator is CellGroupEventGenerator gGenerator) &&
                 gGenerator.TestOnKnowledgeLevelFallsBelow(knowledgeId, this, scaledValue))
+            {
+                AddGeneratorToTestAssignmentFor(gGenerator);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tries to generate and apply all events related to knowledges going above a maximum value
+    /// </summary>
+    public void GenerateKnowledgeLevelRaisesAboveEvents(string knowledgeId, float scaledValue)
+    {
+        if (!OnKnowledgeLevelRaisesAboveEventGenerators.ContainsKey(knowledgeId))
+        {
+            return;
+        }
+
+        foreach (var generator in OnKnowledgeLevelRaisesAboveEventGenerators[knowledgeId])
+        {
+            if ((generator is CellGroupEventGenerator gGenerator) &&
+                gGenerator.TestOnKnowledgeLevelRaisesAbove(knowledgeId, this, scaledValue))
             {
                 AddGeneratorToTestAssignmentFor(gGenerator);
             }

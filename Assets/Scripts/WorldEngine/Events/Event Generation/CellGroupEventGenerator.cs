@@ -9,7 +9,10 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
     private readonly GroupEntity _target;
 
     private readonly Dictionary<string, float> _onKnowledgeLevelFallsBelow_parameterValues = new Dictionary<string, float>();
+    private readonly Dictionary<string, float> _onKnowledgeLevelRaisesAbove_parameterValues = new Dictionary<string, float>();
+
     private readonly Dictionary<string, HashSet<CellGroup>> _onKnowledgeLevelFallsBelow_groupsToTest = new Dictionary<string, HashSet<CellGroup>>();
+    private readonly Dictionary<string, HashSet<CellGroup>> _onKnowledgeLevelRaisesAbove_groupsToTest = new Dictionary<string, HashSet<CellGroup>>();
 
     public bool TestOnKnowledgeLevelFallsBelow(string knowledge, CellGroup group, float scaledValue)
     {
@@ -28,9 +31,31 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         return true;
     }
 
+    public bool TestOnKnowledgeLevelRaisesAbove(string knowledge, CellGroup group, float scaledValue)
+    {
+        if (scaledValue <= _onKnowledgeLevelRaisesAbove_parameterValues[knowledge])
+        {
+            _onKnowledgeLevelRaisesAbove_groupsToTest[knowledge].Add(group);
+            return false;
+        }
+        else if (!_onKnowledgeLevelRaisesAbove_groupsToTest[knowledge].Contains(group))
+        {
+            return false;
+        }
+
+        _onKnowledgeLevelRaisesAbove_groupsToTest[knowledge].Remove(group);
+
+        return true;
+    }
+
     public void RemoveReferences(CellGroup group)
     {
         foreach (var groupsToTestSet in _onKnowledgeLevelFallsBelow_groupsToTest.Values)
+        {
+            groupsToTestSet.Remove(group);
+        }
+
+        foreach (var groupsToTestSet in _onKnowledgeLevelRaisesAbove_groupsToTest.Values)
         {
             groupsToTestSet.Remove(group);
         }
@@ -145,6 +170,53 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         }
 
         CellGroup.OnKnowledgeLevelFallsBelowEventGenerators[knowledgeId].Add(this);
+        CellGroup.EventGeneratorsThatNeedCleanup.Add(this);
+    }
+
+    public override void SetToAssignOnKnowledgeLevelRaisesAbove(string[] valueStrs)
+    {
+        if ((valueStrs == null) || (valueStrs.Length < 2))
+        {
+            throw new System.ArgumentException
+                ($"invalid or no parameters for '{AssignOnKnowledgeLevelRaisesAbove}'");
+        }
+
+        var knowledgeId = valueStrs[0];
+        var levelStr = valueStrs[1];
+
+        if (string.IsNullOrWhiteSpace(knowledgeId))
+        {
+            throw new System.ArgumentException
+                ($"knowledge id for '{AssignOnKnowledgeLevelRaisesAbove}' is empty");
+        }
+
+        if (!Knowledge.Knowledges.ContainsKey(knowledgeId))
+        {
+            throw new System.ArgumentException
+                ($"knowledge id for '{AssignOnKnowledgeLevelRaisesAbove}' is not recognized: {knowledgeId}");
+        }
+
+        if (string.IsNullOrWhiteSpace(levelStr))
+        {
+            throw new System.ArgumentException
+                ($"level value for '{AssignOnKnowledgeLevelRaisesAbove}' is empty");
+        }
+
+        if (!MathUtility.TryParseCultureInvariant(levelStr, out float level))
+        {
+            throw new System.ArgumentException
+                ($"level value for '{AssignOnKnowledgeLevelRaisesAbove}' is not a valid number: {level}");
+        }
+
+        _onKnowledgeLevelRaisesAbove_parameterValues[knowledgeId] = level;
+        _onKnowledgeLevelRaisesAbove_groupsToTest[knowledgeId] = new HashSet<CellGroup>();
+
+        if (!CellGroup.OnKnowledgeLevelRaisesAboveEventGenerators.ContainsKey(knowledgeId))
+        {
+            CellGroup.OnKnowledgeLevelRaisesAboveEventGenerators.Add(knowledgeId, new List<IWorldEventGenerator>());
+        }
+
+        CellGroup.OnKnowledgeLevelRaisesAboveEventGenerators[knowledgeId].Add(this);
         CellGroup.EventGeneratorsThatNeedCleanup.Add(this);
     }
 

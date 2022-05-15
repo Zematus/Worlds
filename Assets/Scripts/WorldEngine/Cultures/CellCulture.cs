@@ -132,30 +132,24 @@ public class CellCulture : Culture
         _skillsToLearn.Add(skill.Id, skill);
     }
 
-    public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, int initialValue = 0, int initialLimit = -1)
+    public CellCulturalKnowledge AddKnowledgeToLearn(string id, int initialValue = 0, int initialLimit = -1)
     {
-        CellCulturalKnowledge knowledge = GetKnowledge(id) as CellCulturalKnowledge;
+        var knowledge = GetKnowledge(id) as CellCulturalKnowledge;
+
+        if (knowledge == null)
+        {
+            _knowledgesToLearn.TryGetValue(id, out knowledge);
+        }
 
         if (knowledge != null)
         {
             knowledge.SetLevelLimit(initialLimit);
-            return knowledge;
         }
-
-        CellCulturalKnowledge tempKnowledge;
-
-        if (_knowledgesToLearn.TryGetValue(id, out tempKnowledge))
-        {
-            tempKnowledge.SetLevelLimit(initialLimit);
-            return tempKnowledge;
-        }
-
-        if (knowledge == null)
+        else
         {
             knowledge = CellCulturalKnowledge.CreateCellInstance(id, Group, initialValue, initialLimit);
+            _knowledgesToLearn.Add(id, knowledge);
         }
-
-        _knowledgesToLearn.Add(id, knowledge);
 
         return knowledge;
     }
@@ -180,6 +174,19 @@ public class CellCulture : Culture
             return;
 
         _discoveriesToLose.Add(discovery);
+    }
+
+    public CellCulturalKnowledge GetLearnedKnowledgeOrToLearn(string id)
+    {
+        var knowledge = GetKnowledge(id) as CellCulturalKnowledge;
+
+        if (knowledge != null)
+            return knowledge;
+
+        if (_knowledgesToLearn.TryGetValue(id, out knowledge))
+            return knowledge;
+
+        return null;
     }
 
     public CellCulturalPreference GetAcquiredPreferenceOrToAcquire(string id)
@@ -336,7 +343,7 @@ public class CellCulture : Culture
 
         foreach (CulturalKnowledge k in sourceCulture.GetKnowledges())
         {
-            CellCulturalKnowledge knowledge = TryAddKnowledgeToLearn(k.Id);
+            CellCulturalKnowledge knowledge = AddKnowledgeToLearn(k.Id);
             knowledge.Merge(k.Value, percentage);
         }
 
@@ -441,7 +448,7 @@ public class CellCulture : Culture
             //            }
             //#endif
 
-            CellCulturalKnowledge cellKnowledge = TryAddKnowledgeToLearn(polityKnowledge.Id);
+            CellCulturalKnowledge cellKnowledge = AddKnowledgeToLearn(polityKnowledge.Id);
 
             cellKnowledge.AddPolityProminenceEffect(polityKnowledge, polityProminence, timeSpan);
         }

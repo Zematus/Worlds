@@ -65,6 +65,6 @@ public class ModifiableCulturalKnowledgesEntity : CulturalEntityAttributeModifia
         int initialLevelInt = (int)(initialLevel * MathUtility.FloatToIntScalingFactor);
         int limitLevelInt = (int)(limitLevel * MathUtility.FloatToIntScalingFactor);
 
-        (Culture as CellCulture).TryAddKnowledgeToLearn(key, initialLevelInt, limitLevelInt);
+        (Culture as CellCulture).AddKnowledgeToLearn(key, initialLevelInt, limitLevelInt);
     }
 }

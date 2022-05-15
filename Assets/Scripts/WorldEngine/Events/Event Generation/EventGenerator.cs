@@ -23,6 +23,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public const string AssignOnCoreCountChange = "core_count_change";
     public const string AssignOnCoreGroupProminenceValueFallsBelow = "core_group_prominence_value_falls_below";
     public const string AssignOnKnowledgeLevelFallsBelow = "knowledge_level_falls_below";
+    public const string AssignOnKnowledgeLevelRaisesAbove = "knowledge_level_raises_above";
 
     public const string FactionTargetType = "faction";
     public const string GroupTargetType = "group";
@@ -123,6 +124,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public abstract void SetToAssignOnCoreCountChange();
     public abstract void SetToAssignOnCoreGroupProminenceValueFallsBelow(string[] valueStrs);
     public abstract void SetToAssignOnKnowledgeLevelFallsBelow(string[] valueStrs);
+    public abstract void SetToAssignOnKnowledgeLevelRaisesAbove(string[] valueStrs);
 
     protected EventGenerator()
     {
@@ -197,6 +199,10 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
                 case AssignOnKnowledgeLevelFallsBelow:
                     SetToAssignOnKnowledgeLevelFallsBelow(valueStrArray);
+                    break;
+
+                case AssignOnKnowledgeLevelRaisesAbove:
+                    SetToAssignOnKnowledgeLevelRaisesAbove(valueStrArray);
                     break;
 
                 default:
