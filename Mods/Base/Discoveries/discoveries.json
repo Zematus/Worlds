@@ -19,6 +19,16 @@
       "lossEffects": [
         "target.knowledges.shipbuilding.limit -= 5"
       ]
+    },
+    {
+      "id": "sailing",
+      "name": "sailing",
+      "gainEffects": [
+        "target.knowledges.shipbuilding.limit += 15"
+      ],
+      "lossEffects": [
+        "target.knowledges.shipbuilding.limit -= 15"
+      ]
     }
   ]
 }

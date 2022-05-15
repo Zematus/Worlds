@@ -13,7 +13,7 @@ public class ModifiableCellCulturalKnowledgesEntity : ModifiableCulturalKnowledg
 
     protected override DelayedSetEntity<CulturalKnowledge> CreateEntity(string attributeId) =>
         new CellKnowledgeEntity(
-            () => Culture.GetKnowledge(attributeId),
+            () => (Culture as CellCulture).GetLearnedKnowledgeOrToLearn(attributeId),
             Context,
             BuildAttributeId(attributeId),
             this);

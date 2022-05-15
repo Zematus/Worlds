@@ -12,13 +12,13 @@
         { "id": "cell_wood_presence", "value": "target.cell.biome_trait_presence(wood)" }
       ],
       "assignmentConditions": [
-        "!target.knowledges.contains(shipbuilding)",
         "!target.discoveries.contains(boat_making)",
-        "cell_wood_presence > 0.3",
+        "!target.knowledges.contains(shipbuilding)",
+        "cell_wood_presence > 0",
         "cell_water_presence > 0",
-        "neighborhood_water_presence > 0"
+        "area_water_presence > 0"
       ],
-      "timeToTrigger": "9125 + random(456250000 * (1 - area_water_presence) * (1 - cell_wood_presence))",
+      "timeToTrigger": "9125 + random(456250000 * (1 - area_water_presence) * (1 - (cell_wood_presence * 0.5)))",
       "effects": [
         "target.discoveries.add(boat_making)"
       ]
@@ -36,6 +36,78 @@
       "timeToTrigger": "365 + random(1825)",
       "effects": [
         "target.discoveries.remove(boat_making)"
+      ]
+    },
+    {
+      "id": "gain_rudders_discovery",
+      "name": "gain rudders discovery",
+      "target": "group",
+      "assignOn": ["spawn", "knowledge_level_raises_above:shipbuilding,5"],
+      "properties": [
+        { "id": "cell_water_presence", "value": "target.cell.biome_type_presence(water)" },
+        { "id": "neighborhood_water_presence", "value": "target.cell.neighbors.sum[cell](cell.biome_type_presence(water))" },
+        { "id": "area_water_presence", "value": "(cell_water_presence + neighborhood_water_presence) / 9" },
+        { "id": "cell_wood_presence", "value": "target.cell.biome_trait_presence(wood)" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(rudders)",
+        "target.knowledges.contains(shipbuilding)",
+        "target.knowledges.shipbuilding > 5",
+        "cell_wood_presence > 0",
+        "area_water_presence > 0"
+      ],
+      "timeToTrigger": "9125 + random(456250000 * (1 - area_water_presence) * (1 - (cell_wood_presence * 0.25)))",
+      "effects": [
+        "target.discoveries.add(rudders)"
+      ]
+    },
+    {
+      "id": "lose_rudders_discovery",
+      "name": "lose rudders discovery",
+      "target": "group",
+      "assignOn": ["knowledge_level_falls_below:shipbuilding,3"],
+      "assignmentConditions": [
+        "target.knowledges.contains(shipbuilding)",
+        "target.discoveries.contains(rudders)",
+        "target.knowledges.shipbuilding < 3"
+      ],
+      "timeToTrigger": "365 + random(1825)",
+      "effects": [
+        "target.discoveries.remove(rudders)"
+      ]
+    },
+    {
+      "id": "gain_sailing_discovery",
+      "name": "gain sailing discovery",
+      "target": "group",
+      "assignOn": ["spawn", "knowledge_level_raises_above:shipbuilding,9"],
+      "properties": [
+        { "id": "neighborhood_water_presence", "value": "target.cell.neighbors.sum[cell](cell.biome_type_presence(water))" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(sailing)",
+        "target.knowledges.contains(shipbuilding)",
+        "target.knowledges.shipbuilding > 9",
+        "neighborhood_water_presence > 3"
+      ],
+      "timeToTrigger": "9125 + random(456250000 * (8 - neighborhood_water_presence))",
+      "effects": [
+        "target.discoveries.add(sailing)"
+      ]
+    },
+    {
+      "id": "lose_sailing_discovery",
+      "name": "lose sailing discovery",
+      "target": "group",
+      "assignOn": ["knowledge_level_falls_below:shipbuilding,6"],
+      "assignmentConditions": [
+        "target.knowledges.contains(shipbuilding)",
+        "target.discoveries.contains(sailing)",
+        "target.knowledges.shipbuilding < 6"
+      ],
+      "timeToTrigger": "365 + random(1825)",
+      "effects": [
+        "target.discoveries.remove(sailing)"
       ]
     }
   ]
