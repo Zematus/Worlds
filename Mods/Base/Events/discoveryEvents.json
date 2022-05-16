@@ -27,11 +27,10 @@
       "id": "lose_boat_making_discovery",
       "name": "lose boat making discovery",
       "target": "group",
-      "assignOn": ["knowledge_level_falls_below:shipbuilding,0.1"],
+      "assignOn": ["spawn", "gained_discovery:boat_making", "knowledge_level_falls_below:shipbuilding,0.1"],
       "assignmentConditions": [
-        "target.knowledges.contains(shipbuilding)",
         "target.discoveries.contains(boat_making)",
-        "target.knowledges.shipbuilding < 0.1"
+        "!target.knowledges.contains(shipbuilding) || (target.knowledges.shipbuilding < 0.1)"
       ],
       "timeToTrigger": "365 + random(1825)",
       "effects": [
@@ -65,11 +64,10 @@
       "id": "lose_rudders_discovery",
       "name": "lose rudders discovery",
       "target": "group",
-      "assignOn": ["knowledge_level_falls_below:shipbuilding,3"],
+      "assignOn": ["spawn", "gained_discovery:rudders", "knowledge_level_falls_below:shipbuilding,3"],
       "assignmentConditions": [
-        "target.knowledges.contains(shipbuilding)",
         "target.discoveries.contains(rudders)",
-        "target.knowledges.shipbuilding < 3"
+        "!target.knowledges.contains(shipbuilding) || (target.knowledges.shipbuilding < 3)"
       ],
       "timeToTrigger": "365 + random(1825)",
       "effects": [
@@ -99,11 +97,10 @@
       "id": "lose_sailing_discovery",
       "name": "lose sailing discovery",
       "target": "group",
-      "assignOn": ["knowledge_level_falls_below:shipbuilding,6"],
+      "assignOn": ["spawn", "gained_discovery:sailing", "knowledge_level_falls_below:shipbuilding,6"],
       "assignmentConditions": [
-        "target.knowledges.contains(shipbuilding)",
         "target.discoveries.contains(sailing)",
-        "target.knowledges.shipbuilding < 6"
+        "!target.knowledges.contains(shipbuilding) || (target.knowledges.shipbuilding < 6)"
       ],
       "timeToTrigger": "365 + random(1825)",
       "effects": [
