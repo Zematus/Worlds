@@ -215,7 +215,7 @@ public class Culture : ISynchronizable
         }
     }
 
-    protected void AddDiscovery(IDiscovery discovery)
+    protected virtual void AddDiscovery(IDiscovery discovery)
     {
         if (Discoveries.ContainsKey(discovery.Id))
             return;
@@ -225,7 +225,7 @@ public class Culture : ISynchronizable
         Discoveries.Add(discovery.Id, discovery);
     }
 
-    protected void RemoveDiscovery(IDiscovery discovery)
+    protected virtual void RemoveDiscovery(IDiscovery discovery)
     {
         if (!Discoveries.ContainsKey(discovery.Id))
             return;

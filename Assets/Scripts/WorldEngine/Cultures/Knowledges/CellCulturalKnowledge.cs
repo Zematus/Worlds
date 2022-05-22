@@ -363,12 +363,15 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     public void PostUpdate()
     {
-        Value = _newValue;
+        if (Value != _newValue)
+        {
+            Value = _newValue;
 
-        UpdateProgressLevel();
+            UpdateProgressLevel();
 
-        Group.GenerateKnowledgeLevelFallsBelowEvents(Id, ScaledValue);
-        Group.GenerateKnowledgeLevelRaisesAboveEvents(Id, ScaledValue);
+            Group.GenerateKnowledgeLevelFallsBelowEvents(Id, ScaledValue);
+            Group.GenerateKnowledgeLevelRaisesAboveEvents(Id, ScaledValue);
+        }
     }
 
     public abstract float CalculateExpectedProgressLevel();

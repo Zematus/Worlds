@@ -8,6 +8,12 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
     private float _onCoreGroupProminenceValueFallsBelow_parameterValue;
     private readonly HashSet<Faction> _onCoreGroupProminenceValueFallsBelow_factionsToTest = new HashSet<Faction>();
 
+    private readonly Dictionary<string, float> _onKnowledgeLevelFallsBelow_parameterValues = new Dictionary<string, float>();
+    private readonly Dictionary<string, float> _onKnowledgeLevelRaisesAbove_parameterValues = new Dictionary<string, float>();
+
+    private readonly Dictionary<string, HashSet<Faction>> _onKnowledgeLevelFallsBelow_factionsToTest = new Dictionary<string, HashSet<Faction>>();
+    private readonly Dictionary<string, HashSet<Faction>> _onKnowledgeLevelRaisesAbove_factionsToTest = new Dictionary<string, HashSet<Faction>>();
+
     public bool TestOnCoreGroupProminenceValueFallsBelow(Faction faction, float prominenceValue)
     {
         if (prominenceValue >= _onCoreGroupProminenceValueFallsBelow_parameterValue)
@@ -25,9 +31,53 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         return true;
     }
 
+    public bool TestOnKnowledgeLevelFallsBelow(string knowledge, Faction faction, float scaledValue)
+    {
+        if (scaledValue >= _onKnowledgeLevelFallsBelow_parameterValues[knowledge])
+        {
+            _onKnowledgeLevelFallsBelow_factionsToTest[knowledge].Add(faction);
+            return false;
+        }
+        else if (!_onKnowledgeLevelFallsBelow_factionsToTest[knowledge].Contains(faction))
+        {
+            return false;
+        }
+
+        _onKnowledgeLevelFallsBelow_factionsToTest[knowledge].Remove(faction);
+
+        return true;
+    }
+
+    public bool TestOnKnowledgeLevelRaisesAbove(string knowledge, Faction faction, float scaledValue)
+    {
+        if (scaledValue <= _onKnowledgeLevelRaisesAbove_parameterValues[knowledge])
+        {
+            _onKnowledgeLevelRaisesAbove_factionsToTest[knowledge].Add(faction);
+            return false;
+        }
+        else if (!_onKnowledgeLevelRaisesAbove_factionsToTest[knowledge].Contains(faction))
+        {
+            return false;
+        }
+
+        _onKnowledgeLevelRaisesAbove_factionsToTest[knowledge].Remove(faction);
+
+        return true;
+    }
+
     public void RemoveReferences(Faction faction)
     {
         _onCoreGroupProminenceValueFallsBelow_factionsToTest.Remove(faction);
+
+        foreach (var factionsToTestSet in _onKnowledgeLevelFallsBelow_factionsToTest.Values)
+        {
+            factionsToTestSet.Remove(faction);
+        }
+
+        foreach (var factionsToTestSet in _onKnowledgeLevelRaisesAbove_factionsToTest.Values)
+        {
+            factionsToTestSet.Remove(faction);
+        }
     }
 
     public FactionEventGenerator()
@@ -122,14 +172,126 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 
     public override void SetToAssignOnKnowledgeLevelFallsBelow(string[] valueStrs)
     {
-        throw new System.InvalidOperationException(
-            $"OnAssign does not support '{AssignOnKnowledgeLevelFallsBelow}' for Factions");
+        if ((valueStrs == null) || (valueStrs.Length < 2))
+        {
+            throw new System.ArgumentException
+                ($"invalid or no parameters for '{AssignOnKnowledgeLevelFallsBelow}'");
+        }
+
+        var knowledgeId = valueStrs[0];
+        var levelStr = valueStrs[1];
+
+        if (string.IsNullOrWhiteSpace(knowledgeId))
+        {
+            throw new System.ArgumentException
+                ($"knowledge id for '{AssignOnKnowledgeLevelFallsBelow}' is empty");
+        }
+
+        if (!Knowledge.Knowledges.ContainsKey(knowledgeId))
+        {
+            throw new System.ArgumentException
+                ($"knowledge id for '{AssignOnKnowledgeLevelFallsBelow}' is not recognized: {knowledgeId}");
+        }
+
+        if (string.IsNullOrWhiteSpace(levelStr))
+        {
+            throw new System.ArgumentException
+                ($"level value for '{AssignOnKnowledgeLevelFallsBelow}' is empty");
+        }
+
+        if (!MathUtility.TryParseCultureInvariant(levelStr, out float level))
+        {
+            throw new System.ArgumentException
+                ($"level value for '{AssignOnKnowledgeLevelFallsBelow}' is not a valid number: {level}");
+        }
+
+        _onKnowledgeLevelFallsBelow_parameterValues[knowledgeId] = level;
+        _onKnowledgeLevelFallsBelow_factionsToTest[knowledgeId] = new HashSet<Faction>();
+
+        if (!Faction.OnKnowledgeLevelFallsBelowEventGenerators.ContainsKey(knowledgeId))
+        {
+            Faction.OnKnowledgeLevelFallsBelowEventGenerators.Add(knowledgeId, new List<IWorldEventGenerator>());
+        }
+
+        Faction.OnKnowledgeLevelFallsBelowEventGenerators[knowledgeId].Add(this);
+        Faction.EventGeneratorsThatNeedCleanup.Add(this);
     }
 
     public override void SetToAssignOnKnowledgeLevelRaisesAbove(string[] valueStrs)
     {
-        throw new System.InvalidOperationException(
-            $"OnAssign does not support '{AssignOnKnowledgeLevelRaisesAbove}' for Factions");
+        if ((valueStrs == null) || (valueStrs.Length < 2))
+        {
+            throw new System.ArgumentException
+                ($"invalid or no parameters for '{AssignOnKnowledgeLevelRaisesAbove}'");
+        }
+
+        var knowledgeId = valueStrs[0];
+        var levelStr = valueStrs[1];
+
+        if (string.IsNullOrWhiteSpace(knowledgeId))
+        {
+            throw new System.ArgumentException
+                ($"knowledge id for '{AssignOnKnowledgeLevelRaisesAbove}' is empty");
+        }
+
+        if (!Knowledge.Knowledges.ContainsKey(knowledgeId))
+        {
+            throw new System.ArgumentException
+                ($"knowledge id for '{AssignOnKnowledgeLevelRaisesAbove}' is not recognized: {knowledgeId}");
+        }
+
+        if (string.IsNullOrWhiteSpace(levelStr))
+        {
+            throw new System.ArgumentException
+                ($"level value for '{AssignOnKnowledgeLevelRaisesAbove}' is empty");
+        }
+
+        if (!MathUtility.TryParseCultureInvariant(levelStr, out float level))
+        {
+            throw new System.ArgumentException
+                ($"level value for '{AssignOnKnowledgeLevelRaisesAbove}' is not a valid number: {level}");
+        }
+
+        _onKnowledgeLevelRaisesAbove_parameterValues[knowledgeId] = level;
+        _onKnowledgeLevelRaisesAbove_factionsToTest[knowledgeId] = new HashSet<Faction>();
+
+        if (!Faction.OnKnowledgeLevelRaisesAboveEventGenerators.ContainsKey(knowledgeId))
+        {
+            Faction.OnKnowledgeLevelRaisesAboveEventGenerators.Add(knowledgeId, new List<IWorldEventGenerator>());
+        }
+
+        Faction.OnKnowledgeLevelRaisesAboveEventGenerators[knowledgeId].Add(this);
+        Faction.EventGeneratorsThatNeedCleanup.Add(this);
+    }
+
+    public override void SetToAssignOnGainedDiscovery(string[] valueStrs)
+    {
+        if ((valueStrs == null) || (valueStrs.Length < 1))
+        {
+            throw new System.ArgumentException
+                ($"invalid or no parameters for '{AssignOnGainedDiscovery}'");
+        }
+
+        var discoveryId = valueStrs[0];
+
+        if (string.IsNullOrWhiteSpace(discoveryId))
+        {
+            throw new System.ArgumentException
+                ($"discovery id for '{AssignOnGainedDiscovery}' is empty");
+        }
+
+        if (!Discovery.Discoveries.ContainsKey(discoveryId))
+        {
+            throw new System.ArgumentException
+                ($"discovery id for '{AssignOnGainedDiscovery}' is not recognized: {discoveryId}");
+        }
+
+        if (!Faction.OnGainedDiscoveryEventGenerators.ContainsKey(discoveryId))
+        {
+            Faction.OnGainedDiscoveryEventGenerators.Add(discoveryId, new List<IWorldEventGenerator>());
+        }
+
+        Faction.OnGainedDiscoveryEventGenerators[discoveryId].Add(this);
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)

@@ -220,6 +220,36 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         CellGroup.EventGeneratorsThatNeedCleanup.Add(this);
     }
 
+    public override void SetToAssignOnGainedDiscovery(string[] valueStrs)
+    {
+        if ((valueStrs == null) || (valueStrs.Length < 1))
+        {
+            throw new System.ArgumentException
+                ($"invalid or no parameters for '{AssignOnGainedDiscovery}'");
+        }
+
+        var discoveryId = valueStrs[0];
+
+        if (string.IsNullOrWhiteSpace(discoveryId))
+        {
+            throw new System.ArgumentException
+                ($"discovery id for '{AssignOnGainedDiscovery}' is empty");
+        }
+
+        if (!Discovery.Discoveries.ContainsKey(discoveryId))
+        {
+            throw new System.ArgumentException
+                ($"discovery id for '{AssignOnGainedDiscovery}' is not recognized: {discoveryId}");
+        }
+
+        if (!CellGroup.OnGainedDiscoveryEventGenerators.ContainsKey(discoveryId))
+        {
+            CellGroup.OnGainedDiscoveryEventGenerators.Add(discoveryId, new List<IWorldEventGenerator>());
+        }
+
+        CellGroup.OnGainedDiscoveryEventGenerators[discoveryId].Add(this);
+    }
+
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
         CellGroupModEvent modEvent =
