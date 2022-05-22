@@ -38,6 +38,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public static List<IWorldEventGenerator> OnCoreCountChangeEventGenerators;
     public static Dictionary<string, List<IWorldEventGenerator>> OnKnowledgeLevelFallsBelowEventGenerators;
     public static Dictionary<string, List<IWorldEventGenerator>> OnKnowledgeLevelRaisesAboveEventGenerators;
+    public static Dictionary<string, List<IWorldEventGenerator>> OnGainedDiscoveryEventGenerators;
 
     public static HashSet<CellGroupEventGenerator> EventGeneratorsThatNeedCleanup;
 
@@ -709,6 +710,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         OnPolityCountChangeEventGenerators = new List<IWorldEventGenerator>();
         OnKnowledgeLevelFallsBelowEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
         OnKnowledgeLevelRaisesAboveEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
+        OnGainedDiscoveryEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
         EventGeneratorsThatNeedCleanup = new HashSet<CellGroupEventGenerator>();
     }
 
@@ -2766,6 +2768,25 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         {
             if ((generator is CellGroupEventGenerator gGenerator) &&
                 gGenerator.TestOnKnowledgeLevelRaisesAbove(knowledgeId, this, scaledValue))
+            {
+                AddGeneratorToTestAssignmentFor(gGenerator);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tries to generate and apply all events related to gaining a discovery
+    /// </summary>
+    public void GenerateGainedDiscoveryEvents(string discoveryId)
+    {
+        if (!OnGainedDiscoveryEventGenerators.ContainsKey(discoveryId))
+        {
+            return;
+        }
+
+        foreach (var generator in OnGainedDiscoveryEventGenerators[discoveryId])
+        {
+            if (generator is CellGroupEventGenerator gGenerator)
             {
                 AddGeneratorToTestAssignmentFor(gGenerator);
             }

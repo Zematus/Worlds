@@ -526,6 +526,13 @@ public class CellCulture : Culture
         _discoveriesToLose.Clear();
     }
 
+    protected override void AddDiscovery(IDiscovery discovery)
+    {
+        base.AddDiscovery(discovery);
+
+        Group.GenerateGainedDiscoveryEvents(discovery.Id);
+    }
+
     public void PostUpdateAddAttributes()
     {
         // We need to handle discoveries before everything else as these can add other type of cultural attributes

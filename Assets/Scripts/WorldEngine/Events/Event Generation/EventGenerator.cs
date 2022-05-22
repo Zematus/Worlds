@@ -24,6 +24,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public const string AssignOnCoreGroupProminenceValueFallsBelow = "core_group_prominence_value_falls_below";
     public const string AssignOnKnowledgeLevelFallsBelow = "knowledge_level_falls_below";
     public const string AssignOnKnowledgeLevelRaisesAbove = "knowledge_level_raises_above";
+    public const string AssignOnGainedDiscovery = "gained_discovery";
 
     public const string FactionTargetType = "faction";
     public const string GroupTargetType = "group";
@@ -125,6 +126,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public abstract void SetToAssignOnCoreGroupProminenceValueFallsBelow(string[] valueStrs);
     public abstract void SetToAssignOnKnowledgeLevelFallsBelow(string[] valueStrs);
     public abstract void SetToAssignOnKnowledgeLevelRaisesAbove(string[] valueStrs);
+    public abstract void SetToAssignOnGainedDiscovery(string[] valueStrs);
 
     protected EventGenerator()
     {
@@ -205,6 +207,10 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
                     SetToAssignOnKnowledgeLevelRaisesAbove(valueStrArray);
                     break;
 
+                case AssignOnGainedDiscovery:
+                    SetToAssignOnGainedDiscovery(valueStrArray);
+                    break;
+
                 default:
                     throw new System.Exception(
                         "Unhandled event assignOn type: " + idStr);
@@ -232,13 +238,6 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     protected bool CanAssignEventToTarget(bool displayTargetInfo = true)
     {
-//#if DEBUG
-//        if (DebugEnabled)
-//        {
-//            Debug.LogWarning("Debugging CanAssignEventToTarget");
-//        }
-//#endif
-
         OpenDebugOutput("Evaluating Assignment Conditions:");
 
         if (displayTargetInfo)

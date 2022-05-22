@@ -188,28 +188,37 @@ public class FactionCulture : Culture
                 AddKnowledge(knowledge);
             }
 
-            float addValue = k.Value * timeFactor;
+            int newValue = (int)((knowledge.Value * (1f - timeFactor)) + (k.Value * timeFactor));
 
-            if (addValue < 1) // Always try approaching the core cell knowledge value regardless how small the timeFactor is
+            if (newValue != knowledge.Value)
             {
-                if ((knowledge.Value - k.Value) <= -1)
-                    knowledge.Value++;
-                else if ((knowledge.Value - k.Value) >= 1)
-                    knowledge.Value--;
-            }
-            else
-            {
-                knowledge.Value = (int)((knowledge.Value * (1f - timeFactor)) + addValue);
+                knowledge.Value = newValue;
+                Faction.GenerateKnowledgeLevelFallsBelowEvents(k.Id, knowledge.Value * MathUtility.IntToFloatScalingFactor);
+                Faction.GenerateKnowledgeLevelRaisesAboveEvents(k.Id, knowledge.Value * MathUtility.IntToFloatScalingFactor);
             }
         }
 
         foreach (CulturalKnowledge k in _knowledges.Values)
         {
-            if (coreCulture.GetKnowledge(k.Id) == null)
+            if ((coreCulture.GetKnowledge(k.Id) == null) && (k.Value > 0))
             {
-                k.Value = (int)(k.Value * (1f - timeFactor));
+                int newValue = (int)(k.Value * (1f - timeFactor));
+
+                if (newValue != k.Value)
+                {
+                    k.Value = newValue;
+                    Faction.GenerateKnowledgeLevelFallsBelowEvents(k.Id, k.Value * MathUtility.IntToFloatScalingFactor);
+                    Faction.GenerateKnowledgeLevelRaisesAboveEvents(k.Id, k.Value * MathUtility.IntToFloatScalingFactor);
+                }
             }
         }
+    }
+
+    protected override void AddDiscovery(IDiscovery discovery)
+    {
+        base.AddDiscovery(discovery);
+
+        Faction.GenerateGainedDiscoveryEvents(discovery.Id);
     }
 
     /// <summary>

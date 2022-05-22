@@ -23,6 +23,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     public static List<IWorldEventGenerator> OnStatusChangeEventGenerators;
     public static List<IWorldEventGenerator> OnGuideSwitchEventGenerators;
     public static List<IWorldEventGenerator> OnCoreGroupProminenceValueFallsBelowEventGenerators;
+    public static Dictionary<string, List<IWorldEventGenerator>> OnKnowledgeLevelFallsBelowEventGenerators;
+    public static Dictionary<string, List<IWorldEventGenerator>> OnKnowledgeLevelRaisesAboveEventGenerators;
+    public static Dictionary<string, List<IWorldEventGenerator>> OnGainedDiscoveryEventGenerators;
 
     public static HashSet<FactionEventGenerator> EventGeneratorsThatNeedCleanup;
 
@@ -886,6 +889,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         OnStatusChangeEventGenerators = new List<IWorldEventGenerator>();
         OnGuideSwitchEventGenerators = new List<IWorldEventGenerator>();
         OnCoreGroupProminenceValueFallsBelowEventGenerators = new List<IWorldEventGenerator>();
+        OnKnowledgeLevelFallsBelowEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
+        OnKnowledgeLevelRaisesAboveEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
+        OnGainedDiscoveryEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
         EventGeneratorsThatNeedCleanup = new HashSet<FactionEventGenerator>();
     }
 
@@ -963,6 +969,25 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     }
 
     /// <summary>
+    /// Tries to generate and apply all events related to gaining a discovery
+    /// </summary>
+    public void GenerateGainedDiscoveryEvents(string discoveryId)
+    {
+        if (!OnGainedDiscoveryEventGenerators.ContainsKey(discoveryId))
+        {
+            return;
+        }
+
+        foreach (var generator in OnGainedDiscoveryEventGenerators[discoveryId])
+        {
+            if (generator is FactionEventGenerator fGenerator)
+            {
+                AddGeneratorToTestAssignmentFor(fGenerator);
+            }
+        }
+    }
+
+    /// <summary>
     /// Tries to generate and apply all events related to core group dropping below target value
     /// </summary>
     public void GenerateCoreGroupProminenceValueBelowEvents(float prominenceValue)
@@ -971,6 +996,46 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         {
             if ((generator is FactionEventGenerator fGenerator) &&
                 fGenerator.TestOnCoreGroupProminenceValueFallsBelow(this, prominenceValue))
+            {
+                AddGeneratorToTestAssignmentFor(fGenerator);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tries to generate and apply all events related to knowledges going below a minimun value
+    /// </summary>
+    public void GenerateKnowledgeLevelFallsBelowEvents(string knowledgeId, float scaledValue)
+    {
+        if (!OnKnowledgeLevelFallsBelowEventGenerators.ContainsKey(knowledgeId))
+        {
+            return;
+        }
+
+        foreach (var generator in OnKnowledgeLevelFallsBelowEventGenerators[knowledgeId])
+        {
+            if ((generator is FactionEventGenerator fGenerator) &&
+                fGenerator.TestOnKnowledgeLevelFallsBelow(knowledgeId, this, scaledValue))
+            {
+                AddGeneratorToTestAssignmentFor(fGenerator);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tries to generate and apply all events related to knowledges going above a maximum value
+    /// </summary>
+    public void GenerateKnowledgeLevelRaisesAboveEvents(string knowledgeId, float scaledValue)
+    {
+        if (!OnKnowledgeLevelRaisesAboveEventGenerators.ContainsKey(knowledgeId))
+        {
+            return;
+        }
+
+        foreach (var generator in OnKnowledgeLevelRaisesAboveEventGenerators[knowledgeId])
+        {
+            if ((generator is FactionEventGenerator fGenerator) &&
+                fGenerator.TestOnKnowledgeLevelRaisesAbove(knowledgeId, this, scaledValue))
             {
                 AddGeneratorToTestAssignmentFor(fGenerator);
             }
