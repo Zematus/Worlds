@@ -37,6 +37,23 @@ public class CellKnowledgeEntity : KnowledgeEntity
         return base.GetAttribute(attributeId, arguments);
     }
 
-    private float GetLimit() => CellKnowledge.ScaledLimit;
-    private void SetLimit(float value) => CellKnowledge.ScaledLimit = value;
+    private float GetLimit()
+    {
+        if (CellKnowledge == null)
+        {
+            return 0;
+        }
+
+        return CellKnowledge.ScaledLimit;
+    }
+
+    private void SetLimit(float value)
+    {
+        if (CellKnowledge == null)
+        {
+            return;
+        }
+
+        CellKnowledge.ScaledLimit = value;
+    }
 }
