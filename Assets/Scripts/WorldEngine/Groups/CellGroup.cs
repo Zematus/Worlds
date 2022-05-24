@@ -139,6 +139,13 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     }
 
     [XmlIgnore]
+    public float ScaledNavigationRangeModifier
+    {
+        get => NavigationRangeModifier * MathUtility.IntToFloatScalingFactor;
+        set => NavigationRangeModifier = (int)(value * MathUtility.FloatToIntScalingFactor);
+    }
+
+    [XmlIgnore]
     public float ScaledArabilityModifier
     {
         get

@@ -29,6 +29,16 @@
       "lossEffects": [
         "target.knowledges.shipbuilding.limit -= 15"
       ]
+    },
+    {
+      "id": "keels",
+      "name": "keels",
+      "gainEffects": [
+        "target.navigation_range += 0.5"
+      ],
+      "lossEffects": [
+        "target.navigation_range -= 0.5"
+      ]
     }
   ]
 }

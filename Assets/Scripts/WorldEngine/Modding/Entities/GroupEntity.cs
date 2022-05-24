@@ -11,12 +11,15 @@ public class GroupEntity : CulturalEntity<CellGroup>
     public const string MostProminentPolityAttributeId = "most_prominent_polity";
     public const string PresentPolitiesAttributeId = "present_polities";
     public const string ClosestFactionsAttributeId = "closest_factions";
+    public const string NavigationRangeAttributeId = "navigation_range";
 
     public virtual CellGroup Group
     {
         get => Setable;
         private set => Setable = value;
     }
+
+    private ValueGetterSetterEntityAttribute<float> _navigationRangeAttribute;
 
     private CellEntity _cellEntity = null;
     private PolityEntity _mostProminentPolityEntity = null;
@@ -128,6 +131,15 @@ public class GroupEntity : CulturalEntity<CellGroup>
 
             case ClosestFactionsAttributeId:
                 return GetClosestFactionsAttribute();
+
+            case NavigationRangeAttributeId:
+                _navigationRangeAttribute =
+                    _navigationRangeAttribute ?? new ValueGetterSetterEntityAttribute<float>(
+                        NavigationRangeAttributeId, 
+                        this, 
+                        () => Group.ScaledNavigationRangeModifier, 
+                        (value) => Group.ScaledNavigationRangeModifier = value);
+                return _navigationRangeAttribute;
         }
 
         return base.GetAttribute(attributeId, arguments);
