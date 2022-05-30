@@ -106,6 +106,43 @@
       "effects": [
         "target.discoveries.remove(sailing)"
       ]
+    },
+    {
+      "id": "gain_keels_discovery",
+      "name": "gain keels discovery",
+      "target": "group",
+      "assignOn": ["spawn", "knowledge_level_raises_above:shipbuilding,15"],
+      "properties": [
+        { "id": "cell_water_presence", "value": "target.cell.biome_type_presence(water)" },
+        { "id": "neighborhood_water_presence", "value": "target.cell.neighbors.sum[cell](cell.biome_type_presence(water))" },
+        { "id": "area_water_presence", "value": "(cell_water_presence + neighborhood_water_presence) / 9" },
+        { "id": "cell_wood_presence", "value": "target.cell.biome_trait_presence(wood)" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(keels)",
+        "target.knowledges.contains(shipbuilding)",
+        "target.knowledges.shipbuilding > 15",
+        "cell_wood_presence > 0",
+        "area_water_presence > 0"
+      ],
+      "timeToTrigger": "9125 + random(456250000 * (1 - area_water_presence) * (1 - (cell_wood_presence * 0.25)))",
+      "effects": [
+        "target.discoveries.add(keels)"
+      ]
+    },
+    {
+      "id": "lose_keels_discovery",
+      "name": "lose keels discovery",
+      "target": "group",
+      "assignOn": ["spawn", "gained_discovery:keels", "knowledge_level_falls_below:shipbuilding,12"],
+      "assignmentConditions": [
+        "target.discoveries.contains(keels)",
+        "!target.knowledges.contains(shipbuilding) || (target.knowledges.shipbuilding < 12)"
+      ],
+      "timeToTrigger": "365 + random(1825)",
+      "effects": [
+        "target.discoveries.remove(keels)"
+      ]
     }
   ]
 }
