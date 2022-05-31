@@ -8,6 +8,10 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
     public const string BiomeTraitPresenceAttributeId = "biome_trait_presence";
     public const string BiomeTypePresenceAttributeId = "biome_type_presence";
     public const string NeighborsAttributeId = "neighbors";
+    public const string ArabilityAttributeId = "arability";
+    public const string AccessibilityAttributeId = "accessibility";
+    public const string HillinessAttributeId = "hilliness";
+    public const string FlowingWaterAttributeId = "flowing_water";
 
     public virtual TerrainCell Cell
     {
@@ -17,11 +21,16 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
 
     protected override object _reference => Cell;
 
+    private ValueGetterEntityAttribute<float> _arabilityAttribute;
+    private ValueGetterEntityAttribute<float> _accessibilityAttribute;
+    private ValueGetterEntityAttribute<float> _hillinessAttribute;
+    private ValueGetterEntityAttribute<float> _flowingWaterAttribute;
+
     private CellCollectionEntity _neighborsEntity = null;
 
     private class BiomeTraitPresenceAttribute : ValueEntityAttribute<float>
     {
-        private CellEntity _cellEntity;
+        private readonly CellEntity _cellEntity;
 
         private readonly IValueExpression<string> _argument;
 
@@ -37,7 +46,7 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
 
     private class BiomeTypePresenceAttribute : ValueEntityAttribute<float>
     {
-        private CellEntity _cellEntity;
+        private readonly CellEntity _cellEntity;
 
         private readonly IValueExpression<string> _argument;
         private readonly bool _isFixed;
@@ -112,10 +121,44 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
         {
             case BiomeTraitPresenceAttributeId:
                 return new BiomeTraitPresenceAttribute(this, arguments);
+
             case BiomeTypePresenceAttributeId:
                 return new BiomeTypePresenceAttribute(this, arguments);
+
             case NeighborsAttributeId:
                 return GetNeighborsAttribute();
+
+            case ArabilityAttributeId:
+                _arabilityAttribute =
+                    _arabilityAttribute ?? new ValueGetterEntityAttribute<float>(
+                        ArabilityAttributeId,
+                        this,
+                        () => Cell.Arability);
+                return _arabilityAttribute;
+
+            case AccessibilityAttributeId:
+                _accessibilityAttribute =
+                    _accessibilityAttribute ?? new ValueGetterEntityAttribute<float>(
+                        AccessibilityAttributeId,
+                        this,
+                        () => Cell.Accessibility);
+                return _accessibilityAttribute;
+
+            case HillinessAttributeId:
+                _hillinessAttribute =
+                    _hillinessAttribute ?? new ValueGetterEntityAttribute<float>(
+                        HillinessAttributeId,
+                        this,
+                        () => Cell.Hilliness);
+                return _hillinessAttribute;
+
+            case FlowingWaterAttributeId:
+                _flowingWaterAttribute =
+                    _flowingWaterAttribute ?? new ValueGetterEntityAttribute<float>(
+                        FlowingWaterAttributeId,
+                        this,
+                        () => Cell.FlowingWater);
+                return _flowingWaterAttribute;
         }
 
         return base.GetAttribute(attributeId, arguments);

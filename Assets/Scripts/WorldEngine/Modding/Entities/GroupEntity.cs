@@ -12,6 +12,8 @@ public class GroupEntity : CulturalEntity<CellGroup>
     public const string PresentPolitiesAttributeId = "present_polities";
     public const string ClosestFactionsAttributeId = "closest_factions";
     public const string NavigationRangeAttributeId = "navigation_range";
+    public const string ArabilityModifierAttributeId = "arability_modifier";
+    public const string AccessibilityModifierAttributeId = "accessibility_modifier";
 
     public virtual CellGroup Group
     {
@@ -20,6 +22,8 @@ public class GroupEntity : CulturalEntity<CellGroup>
     }
 
     private ValueGetterSetterEntityAttribute<float> _navigationRangeAttribute;
+    private ValueGetterSetterEntityAttribute<float> _arabilityModifierAttribute;
+    private ValueGetterSetterEntityAttribute<float> _accessibilityModifierAttribute;
 
     private CellEntity _cellEntity = null;
     private PolityEntity _mostProminentPolityEntity = null;
@@ -154,6 +158,24 @@ public class GroupEntity : CulturalEntity<CellGroup>
                         () => Group.ScaledNavigationRangeModifier, 
                         (value) => Group.ScaledNavigationRangeModifier = value);
                 return _navigationRangeAttribute;
+
+            case ArabilityModifierAttributeId:
+                _arabilityModifierAttribute =
+                    _arabilityModifierAttribute ?? new ValueGetterSetterEntityAttribute<float>(
+                        ArabilityModifierAttributeId,
+                        this,
+                        () => Group.ScaledArabilityModifier,
+                        (value) => Group.ScaledArabilityModifier = value);
+                return _arabilityModifierAttribute;
+
+            case AccessibilityModifierAttributeId:
+                _accessibilityModifierAttribute =
+                    _accessibilityModifierAttribute ?? new ValueGetterSetterEntityAttribute<float>(
+                        AccessibilityModifierAttributeId,
+                        this,
+                        () => Group.ScaledAccessibilityModifier,
+                        (value) => Group.ScaledAccessibilityModifier = value);
+                return _accessibilityModifierAttribute;
         }
 
         return base.GetAttribute(attributeId, arguments);

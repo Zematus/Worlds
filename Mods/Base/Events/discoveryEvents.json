@@ -32,7 +32,7 @@
         "target.discoveries.contains(boat_making)",
         "!target.knowledges.contains(shipbuilding) || (target.knowledges.shipbuilding < 0.1)"
       ],
-      "timeToTrigger": "365 + random(1825)",
+      "timeToTrigger": "365 + random(36500)",
       "effects": [
         "target.discoveries.remove(boat_making)"
       ]
@@ -69,7 +69,7 @@
         "target.discoveries.contains(rudders)",
         "!target.knowledges.contains(shipbuilding) || (target.knowledges.shipbuilding < 3)"
       ],
-      "timeToTrigger": "365 + random(1825)",
+      "timeToTrigger": "365 + random(36500)",
       "effects": [
         "target.discoveries.remove(rudders)"
       ]
@@ -102,7 +102,7 @@
         "target.discoveries.contains(sailing)",
         "!target.knowledges.contains(shipbuilding) || (target.knowledges.shipbuilding < 6)"
       ],
-      "timeToTrigger": "365 + random(1825)",
+      "timeToTrigger": "365 + random(36500)",
       "effects": [
         "target.discoveries.remove(sailing)"
       ]
@@ -139,9 +139,82 @@
         "target.discoveries.contains(keels)",
         "!target.knowledges.contains(shipbuilding) || (target.knowledges.shipbuilding < 12)"
       ],
-      "timeToTrigger": "365 + random(1825)",
+      "timeToTrigger": "365 + random(36500)",
       "effects": [
         "target.discoveries.remove(keels)"
+      ]
+    },
+    {
+      "id": "gain_plant_cultivation_discovery",
+      "name": "gain plant cultivation discovery",
+      "target": "group",
+      "assignOn": ["spawn"],
+      "properties": [
+        { "id": "cell_arability_factor", "value": "1.3 - target.cell.arability" },
+        { "id": "cell_accessibility_factor", "value": "1.3 - target.cell.accessibility" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(plant_cultivation)",
+        "!target.knowledges.contains(agriculture)",
+        "cell_arability_factor < 1",
+        "cell_accessibility_factor < 1"
+      ],
+      "timeToTrigger": "9125 + random(456250000 * (cell_arability_factor + cell_accessibility_factor))",
+      "effects": [
+        "target.discoveries.add(plant_cultivation)"
+      ]
+    },
+    {
+      "id": "lose_plant_cultivation_discovery",
+      "name": "lose plant cultivation discovery",
+      "target": "group",
+      "assignOn": ["spawn", "gained_discovery:plant_cultivation", "knowledge_level_falls_below:agriculture,0.1"],
+      "assignmentConditions": [
+        "target.discoveries.contains(plant_cultivation)",
+        "!target.knowledges.contains(agriculture) || (target.knowledges.agriculture < 0.1)"
+      ],
+      "timeToTrigger": "365 + random(36500)",
+      "effects": [
+        "target.discoveries.remove(plant_cultivation)"
+      ]
+    },
+    {
+      "id": "gain_terraced_irrigation_discovery",
+      "name": "gain terraced irrigation discovery",
+      "target": "group",
+      "assignOn": ["spawn"],
+      "properties": [
+        { "id": "cell_arability_factor", "value": "1.05 - target.cell.arability" },
+        { "id": "cell_accessibility_factor", "value": "1.1 - target.cell.accessibility" },
+        { "id": "cell_hilliness_factor", "value": "1.2 - target.cell.hilliness" },
+        { "id": "cell_flowing_water", "value": "target.cell.flowing_water" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(terraced_irrigation)",
+        "target.knowledges.contains(agriculture)",
+        "target.knowledges.agriculture > 3",
+        "cell_arability_factor < 1",
+        "cell_accessibility_factor < 1",
+        "cell_hilliness_factor < 1",
+        "cell_flowing_water > 50"
+      ],
+      "timeToTrigger": "9125 + random(456250000 * (cell_arability_factor + cell_accessibility_factor + cell_hilliness_factor))",
+      "effects": [
+        "target.discoveries.add(terraced_irrigation)"
+      ]
+    },
+    {
+      "id": "lose_terraced_irrigation_discovery",
+      "name": "lose terraced irrigation discovery",
+      "target": "group",
+      "assignOn": ["spawn", "gained_discovery:terraced_irrigation", "knowledge_level_falls_below:agriculture,2"],
+      "assignmentConditions": [
+        "target.discoveries.contains(terraced_irrigation)",
+        "!target.knowledges.contains(agriculture) || (target.knowledges.agriculture < 2)"
+      ],
+      "timeToTrigger": "365 + random(36500)",
+      "effects": [
+        "target.discoveries.remove(terraced_irrigation)"
       ]
     }
   ]
