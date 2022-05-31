@@ -40,14 +40,14 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
             BuildAttributeId(PreferencesAttributeId),
             this);
 
-    private ICulturalSkillsEntity CreateCulturalSkillsEntity() =>
+    protected virtual ICulturalSkillsEntity CreateCulturalSkillsEntity() =>
         new CulturalSkillsEntity(
             GetCulture,
             Context,
             BuildAttributeId(SkillsAttributeId),
             this);
 
-    private ICulturalActivitiesEntity CreateCulturalActivitiesEntity() =>
+    protected virtual ICulturalActivitiesEntity CreateCulturalActivitiesEntity() =>
         new CulturalActivitiesEntity(
             GetCulture,
             Context,

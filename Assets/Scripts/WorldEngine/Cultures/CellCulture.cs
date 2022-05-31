@@ -124,12 +124,28 @@ public class CellCulture : Culture
         _activitiesToPerform.Add(activity.Id, activity);
     }
 
+    public void AddActivityToPerform(string id)
+    {
+        if (_activitiesToPerform.ContainsKey(id))
+            return;
+
+        _activitiesToPerform.Add(id, CellCulturalActivity.CreateActivity(id, Group));
+    }
+
     public void AddSkillToLearn(CellCulturalSkill skill)
     {
         if (_skillsToLearn.ContainsKey(skill.Id))
             return;
 
         _skillsToLearn.Add(skill.Id, skill);
+    }
+
+    public void AddSkillToLearn(string id)
+    {
+        if (_skillsToLearn.ContainsKey(id))
+            return;
+
+        _skillsToLearn.Add(id, CellCulturalSkill.CreateCellInstance(id, Group));
     }
 
     public CellCulturalKnowledge AddKnowledgeToLearn(string id, int initialValue = 0, int initialLimit = -1)
@@ -704,11 +720,9 @@ public class CellCulture : Culture
 
     public void AddKnowledgeToLose(string knowledgeId)
     {
-        CulturalKnowledge knowledge = null;
-
-        if (!_knowledges.TryGetValue(knowledgeId, out knowledge))
+        if (!_knowledges.TryGetValue(knowledgeId, out var knowledge))
         {
-            Debug.LogWarning("CellCulture: Trying to remove knowledge that is not present: " + knowledgeId);
+            Debug.LogWarning($"CellCulture: Trying to remove knowledge that is not present: {knowledgeId}");
 
             return;
         }
@@ -718,11 +732,9 @@ public class CellCulture : Culture
 
     public void AddActivityToStop(string activityId)
     {
-        CulturalActivity activity = null;
-
-        if (!_activities.TryGetValue(activityId, out activity))
+        if (!_activities.TryGetValue(activityId, out var activity))
         {
-            Debug.LogWarning("CellCulture: Trying to remove activity that is not present: " + activityId);
+            Debug.LogWarning($"CellCulture: Trying to remove activity that is not present: {activityId}");
 
             return;
         }
@@ -732,11 +744,9 @@ public class CellCulture : Culture
 
     public void AddSkillToLose(string skillId)
     {
-        CulturalSkill skill = null;
-
-        if (!_skills.TryGetValue(skillId, out skill))
+        if (!_skills.TryGetValue(skillId, out var skill))
         {
-            Debug.LogWarning("CellCulture: Trying to remove skill that is not present: " + skillId);
+            Debug.LogWarning($"CellCulture: Trying to remove skill that is not present: {skillId}");
 
             return;
         }

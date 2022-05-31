@@ -92,6 +92,20 @@ public class GroupEntity : CulturalEntity<CellGroup>
         return _closestFactionsEntity.GetThisEntityAttribute();
     }
 
+    protected override ICulturalActivitiesEntity CreateCulturalActivitiesEntity() =>
+        new ModifiableCellCulturalActivitiesEntity(
+            GetCulture,
+            Context,
+            BuildAttributeId(ActivitiesAttributeId),
+            this);
+
+    protected override ICulturalSkillsEntity CreateCulturalSkillsEntity() =>
+        new ModifiableCellCulturalSkillsEntity(
+            GetCulture,
+            Context,
+            BuildAttributeId(SkillsAttributeId),
+            this);
+
     protected override ICulturalKnowledgesEntity CreateCulturalKnowledgesEntity() =>
         new ModifiableCellCulturalKnowledgesEntity(
             GetCulture,

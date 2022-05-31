@@ -1,14 +1,14 @@
 ﻿
-public abstract class EntryModifiableContainerEntity<T> : EntryContainerEntity<T>
+public abstract class ModifiableEntryContainerEntity<T> : EntryContainerEntity<T>
 {
     public const string AddAttributeId = "add";
     public const string RemoveAttributeId = "remove";
 
-    public EntryModifiableContainerEntity(Context c, string id, IEntity parent) : base(c, id, parent)
+    public ModifiableEntryContainerEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
-    public EntryModifiableContainerEntity(
+    public ModifiableEntryContainerEntity(
         ValueGetterMethod<T> getterMethod, Context c, string id, IEntity parent)
         : base(getterMethod, c, id, parent)
     {

@@ -4,10 +4,12 @@
       "id": "boat_making",
       "name": "boat making",
       "gainEffects": [
-        "target.knowledges.add(shipbuilding, 1, 10)"
+        "target.knowledges.add(shipbuilding, 1, 10)",
+        "target.skills.add(seafaring)"
       ],
       "lossEffects": [
-        "target.knowledges.remove(shipbuilding)"
+        "target.knowledges.remove(shipbuilding)",
+        "target.skills.remove(seafaring)"
       ]
     },
     {
@@ -39,6 +41,18 @@
       "lossEffects": [
         "target.navigation_range -= 0.5"
       ]
+    },
+    {
+      "id": "plant_cultivation",
+      "name": "plant cultivation",
+      "gainEffects": [
+        "target.knowledges.add(agriculture, 1, 10)",
+        "target.activities.add(farming)"
+      ],
+      "lossEffects": [
+        "target.knowledges.remove(agriculture)",
+        "target.activities.remove(farming)"
+      ]
     }
-  ]
+]
 }
