@@ -18,7 +18,7 @@ public class AddGroupActivityEffect : Effect
 
     public override void Apply(CellGroup group)
     {
-        group.Culture.AddActivityToPerform(CellCulturalActivity.CreateActivity(ActivityId, group));
+        group.Culture.AddActivityToPerform(ActivityId);
     }
 
     public override bool IsDeferred()
