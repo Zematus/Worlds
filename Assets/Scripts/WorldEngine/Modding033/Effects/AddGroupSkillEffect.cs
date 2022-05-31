@@ -18,8 +18,7 @@ public class AddGroupSkillEffect : Effect
 
     public override void Apply(CellGroup group)
     {
-        // deprecated effect. To be revisited in the future
-        //group.Culture.AddSkillToLearn(CellCulturalSkill.CreateCellInstance(SkillId, group));
+        group.Culture.AddSkillToLearn(SkillId);
     }
 
     public override bool IsDeferred()

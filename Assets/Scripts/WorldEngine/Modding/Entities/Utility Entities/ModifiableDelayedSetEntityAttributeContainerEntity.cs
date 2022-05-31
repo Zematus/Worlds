@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
 
-public abstract class DelayedSetEntityAttributeModifiableContainerEntity<T,S> : AttributeModifiableContainerEntity<S>
+public abstract class ModifiableDelayedSetEntityAttributeContainerEntity<T,S> : ModifiableAttributeContainerEntity<S>
 {
     private readonly Dictionary<string, DelayedSetEntity<T>> _entities =
         new Dictionary<string, DelayedSetEntity<T>>();
 
-    public DelayedSetEntityAttributeModifiableContainerEntity(Context c, string id, IEntity parent) : base(c, id, parent)
+    public ModifiableDelayedSetEntityAttributeContainerEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
-    public DelayedSetEntityAttributeModifiableContainerEntity(
+    public ModifiableDelayedSetEntityAttributeContainerEntity(
         ValueGetterMethod<S> getterMethod, Context c, string id, IEntity parent)
         : base(getterMethod, c, id, parent)
     {

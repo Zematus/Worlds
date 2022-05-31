@@ -960,14 +960,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         foreach (Biome biome in GetPresentBiomesInNeighborhood())
         {
-            if (biome.Traits.Contains("sea"))
-            {
-                if (Culture.GetSkill(SeafaringSkill.SkillId) == null)
-                {
-                    Culture.AddSkillToLearn(new SeafaringSkill(this));
-                }
-            }
-
             if (biome.TerrainType != BiomeTerrainType.Water)
             {
                 string skillId = biome.SkillId;

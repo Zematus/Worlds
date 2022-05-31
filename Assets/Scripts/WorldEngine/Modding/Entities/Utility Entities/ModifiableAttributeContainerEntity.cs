@@ -1,11 +1,11 @@
 ﻿
-public abstract class AttributeModifiableContainerEntity<T> : EntryModifiableContainerEntity<T>
+public abstract class ModifiableAttributeContainerEntity<T> : ModifiableEntryContainerEntity<T>
 {
-    public AttributeModifiableContainerEntity(Context c, string id, IEntity parent) : base(c, id, parent)
+    public ModifiableAttributeContainerEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
-    public AttributeModifiableContainerEntity(
+    public ModifiableAttributeContainerEntity(
         ValueGetterMethod<T> getterMethod, Context c, string id, IEntity parent)
         : base(getterMethod, c, id, parent)
     {

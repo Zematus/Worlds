@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class CulturalEntryModifiableContainerEntity : EntryModifiableContainerEntity<Culture>, ICulturalEntryContainerEntity
+public abstract class ModifiableCulturalEntryContainerEntity : ModifiableEntryContainerEntity<Culture>, ICulturalEntryContainerEntity
 {
     public virtual Culture Culture
     {
@@ -13,11 +13,11 @@ public abstract class CulturalEntryModifiableContainerEntity : EntryModifiableCo
 
     protected override object _reference => Culture;
 
-    public CulturalEntryModifiableContainerEntity(Context c, string id, IEntity parent) : base(c, id, parent)
+    public ModifiableCulturalEntryContainerEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
 
-    public CulturalEntryModifiableContainerEntity(
+    public ModifiableCulturalEntryContainerEntity(
         ValueGetterMethod<Culture> getterMethod, Context c, string id, IEntity parent)
         : base(getterMethod, c, id, parent)
     {
