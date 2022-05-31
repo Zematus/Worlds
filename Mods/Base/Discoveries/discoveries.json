@@ -53,6 +53,18 @@
         "target.knowledges.remove(agriculture)",
         "target.activities.remove(farming)"
       ]
+    },
+    {
+      "id": "terraced_irrigation",
+      "name": "terraced irrigation",
+      "gainEffects": [
+        "target.arability_modifier += 0.5",
+        "target.accessibility_modifier += 0.5"
+      ],
+      "lossEffects": [
+        "target.arability_modifier -= 0.5",
+        "target.accessibility_modifier -= 0.5"
+      ]
     }
 ]
 }

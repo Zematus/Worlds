@@ -148,18 +148,30 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     [XmlIgnore]
     public float ScaledArabilityModifier
     {
-        get
+        get => ArabilityModifier * MathUtility.IntToFloatScalingFactor;
+        set
         {
-            return Mathf.Clamp01(ArabilityModifier * MathUtility.IntToFloatScalingFactor);
+            if (!value.IsInsideRange(0, 1))
+            {
+                Debug.LogWarning($"ScaledArabilityModifier outside of range between 0, 1: {value}");
+            }
+
+            ArabilityModifier = (int)(Mathf.Clamp01(value) * MathUtility.FloatToIntScalingFactor);
         }
     }
 
     [XmlIgnore]
     public float ScaledAccessibilityModifier
     {
-        get
+        get => AccessibilityModifier * MathUtility.IntToFloatScalingFactor;
+        set
         {
-            return Mathf.Clamp01(AccessibilityModifier * MathUtility.IntToFloatScalingFactor);
+            if (!value.IsInsideRange(0, 1))
+            {
+                Debug.LogWarning($"ScaledAccessibilityModifier outside of range between 0, 1: {value}");
+            }
+
+            AccessibilityModifier = (int)(Mathf.Clamp01(value) * MathUtility.FloatToIntScalingFactor);
         }
     }
 
