@@ -150,8 +150,8 @@
       "target": "group",
       "assignOn": ["spawn"],
       "properties": [
-        { "id": "cell_arability_factor", "value": "1.3 - target.cell.arability" },
-        { "id": "cell_accessibility_factor", "value": "1.3 - target.cell.accessibility" }
+        { "id": "cell_arability_factor", "value": "1.2 - target.cell.arability" },
+        { "id": "cell_accessibility_factor", "value": "1.4 - target.cell.accessibility" }
       ],
       "assignmentConditions": [
         "!target.discoveries.contains(plant_cultivation)",
@@ -186,7 +186,7 @@
       "properties": [
         { "id": "cell_arability_factor", "value": "1.05 - target.cell.arability" },
         { "id": "cell_accessibility_factor", "value": "1.1 - target.cell.accessibility" },
-        { "id": "cell_hilliness_factor", "value": "1.2 - target.cell.hilliness" },
+        { "id": "cell_hilliness_factor", "value": "1.15 - target.cell.hilliness" },
         { "id": "cell_flowing_water", "value": "target.cell.flowing_water" }
       ],
       "assignmentConditions": [
@@ -198,7 +198,7 @@
         "cell_hilliness_factor < 1",
         "cell_flowing_water > 50"
       ],
-      "timeToTrigger": "9125 + random(456250000 * (cell_arability_factor + cell_accessibility_factor + cell_hilliness_factor))",
+      "timeToTrigger": "9125 + random(45625000 * (cell_arability_factor + cell_accessibility_factor + cell_hilliness_factor))",
       "effects": [
         "target.discoveries.add(terraced_irrigation)"
       ]
