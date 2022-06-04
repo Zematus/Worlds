@@ -14,6 +14,8 @@ public class GroupEntity : CulturalEntity<CellGroup>
     public const string NavigationRangeAttributeId = "navigation_range";
     public const string ArabilityModifierAttributeId = "arability_modifier";
     public const string AccessibilityModifierAttributeId = "accessibility_modifier";
+    public const string PropertiesAttributeId = "properties";
+    public const string PopulationAttributeId = "population";
 
     public virtual CellGroup Group
     {
@@ -24,11 +26,13 @@ public class GroupEntity : CulturalEntity<CellGroup>
     private ValueGetterSetterEntityAttribute<float> _navigationRangeAttribute;
     private ValueGetterSetterEntityAttribute<float> _arabilityModifierAttribute;
     private ValueGetterSetterEntityAttribute<float> _accessibilityModifierAttribute;
+    private ValueGetterEntityAttribute<float> _populationAttribute;
 
     private CellEntity _cellEntity = null;
     private PolityEntity _mostProminentPolityEntity = null;
     private PolityCollectionEntity _presentPolitiesEntity = null;
     private FactionCollectionEntity _closestFactionsEntity = null;
+    private ModifiableGroupPropertyContainerEntity _propertiesEntity = null;
 
     protected override object _reference => Group;
 
@@ -76,10 +80,10 @@ public class GroupEntity : CulturalEntity<CellGroup>
     {
         _presentPolitiesEntity =
             _presentPolitiesEntity ?? new PolityCollectionEntity(
-            GetPresentPolities,
-            Context,
-            BuildAttributeId(PresentPolitiesAttributeId),
-            this);
+                GetPresentPolities,
+                Context,
+                BuildAttributeId(PresentPolitiesAttributeId),
+                this);
 
         return _presentPolitiesEntity.GetThisEntityAttribute();
     }
@@ -88,12 +92,24 @@ public class GroupEntity : CulturalEntity<CellGroup>
     {
         _closestFactionsEntity =
             _closestFactionsEntity ?? new FactionCollectionEntity(
-            GetClosestFactions,
-            Context,
-            BuildAttributeId(ClosestFactionsAttributeId),
-            this);
+                GetClosestFactions,
+                Context,
+                BuildAttributeId(ClosestFactionsAttributeId),
+                this);
 
         return _closestFactionsEntity.GetThisEntityAttribute();
+    }
+
+    private EntityAttribute GetPropertiesAttribute()
+    {
+        _propertiesEntity =
+            _propertiesEntity ?? new ModifiableGroupPropertyContainerEntity(
+                GetGroup,
+                Context,
+                BuildAttributeId(PropertiesAttributeId),
+                this);
+
+        return _propertiesEntity.GetThisEntityAttribute();
     }
 
     protected override ICulturalActivitiesEntity CreateCulturalActivitiesEntity() =>
@@ -124,9 +140,9 @@ public class GroupEntity : CulturalEntity<CellGroup>
             BuildAttributeId(DiscoveriesAttributeId),
             this);
 
-    public ICollection<Polity> GetPresentPolities() => Group.PresentPolities;
+    private ICollection<Polity> GetPresentPolities() => Group.PresentPolities;
 
-    public ICollection<Faction> GetClosestFactions() => Group.ClosestFactions;
+    private ICollection<Faction> GetClosestFactions() => Group.ClosestFactions;
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
@@ -149,6 +165,9 @@ public class GroupEntity : CulturalEntity<CellGroup>
 
             case ClosestFactionsAttributeId:
                 return GetClosestFactionsAttribute();
+
+            case PropertiesAttributeId:
+                return GetPropertiesAttribute();
 
             case NavigationRangeAttributeId:
                 _navigationRangeAttribute =
@@ -176,6 +195,14 @@ public class GroupEntity : CulturalEntity<CellGroup>
                         () => Group.ScaledAccessibilityModifier,
                         (value) => Group.ScaledAccessibilityModifier = value);
                 return _accessibilityModifierAttribute;
+
+            case PopulationAttributeId:
+                _populationAttribute =
+                    _populationAttribute ?? new ValueGetterEntityAttribute<float>(
+                        PopulationAttributeId,
+                        this,
+                        () => Group.Population);
+                return _populationAttribute;
         }
 
         return base.GetAttribute(attributeId, arguments);
@@ -196,13 +223,16 @@ public class GroupEntity : CulturalEntity<CellGroup>
         _mostProminentPolityEntity?.Reset();
         _presentPolitiesEntity?.Reset();
         _closestFactionsEntity?.Reset();
+        _propertiesEntity?.Reset();
 
         base.ResetInternal();
     }
 
-    public TerrainCell GetCell() => Group.Cell;
+    private TerrainCell GetCell() => Group.Cell;
 
-    public Polity GetMostProminentPolity() => Group.HighestPolityProminence?.Polity;
+    private Polity GetMostProminentPolity() => Group.HighestPolityProminence?.Polity;
 
-    public override Culture GetCulture() => Group.Culture;
+    protected override Culture GetCulture() => Group.Culture;
+
+    private CellGroup GetGroup() => Group;
 }

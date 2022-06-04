@@ -67,8 +67,8 @@
     {
       "id": "slash_and_burn",
       "name": "slash-and-burn",
-      "gainConditions": ["group_has_knowledge:agriculture,4", "cell_arability:0.2", "cell_accessibility:0.2", "cell_biome_trait_presence:wood,0.15"],
-      "holdConditions": ["group_has_knowledge:agriculture,2", "cell_arability:0.1", "cell_accessibility:0.1", "cell_biome_trait_presence:wood,0.5"],
+      "gainConditions": ["group_has_knowledge:agriculture,4", "cell_arability:0.2", "cell_accessibility:0.2", "cell_biome_trait_presence:wood,0.5"],
+      "holdConditions": ["group_has_knowledge:agriculture,2", "cell_arability:0.1", "cell_accessibility:0.1", "cell_biome_trait_presence:wood,0.15"],
       "gainEffects": ["apply_cell_arability_modifier:0.3", "apply_cell_accessibility_modifier:0.4"],
       "lossEffects": ["apply_cell_arability_modifier:-0.3", "apply_cell_accessibility_modifier:-0.4"],
       "eventTimeToTrigger": 91250000,

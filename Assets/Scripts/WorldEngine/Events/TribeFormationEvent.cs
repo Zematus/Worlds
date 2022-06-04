@@ -67,12 +67,10 @@ public class TribeFormationEvent : CellGroupEvent
         if (group.Population < Tribe.MinPopulationForTribeCore)
             return false;
 
-        if (!group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
+        if (!Polity.HasRequiredTribeFormationProperties(group))
             return false;
 
-        int value = 0;
-
-        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out value))
+        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int value))
             return false;
 
         if (value < MinSocialOrganizationKnowledgeTribeFormation)
@@ -89,12 +87,10 @@ public class TribeFormationEvent : CellGroupEvent
         if (Group.Population < Tribe.MinPopulationForTribeCore)
             return false;
 
-        if (!Group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
+        if (!Polity.HasRequiredTribeFormationProperties(Group))
             return false;
 
-        int value = 0;
-
-        if (!Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out value))
+        if (!Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int value))
             return false;
 
         if (value < MinSocialOrganizationKnowledgeTribeFormation)

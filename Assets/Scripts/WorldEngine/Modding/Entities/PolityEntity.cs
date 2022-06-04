@@ -210,5 +210,5 @@ public class PolityEntity : CulturalEntity<Polity>
         base.ResetInternal();
     }
 
-    public override Culture GetCulture() => Polity.Culture;
+    protected override Culture GetCulture() => Polity.Culture;
 }

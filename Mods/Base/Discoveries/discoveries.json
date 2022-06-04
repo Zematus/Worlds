@@ -59,11 +59,33 @@
       "name": "terraced irrigation",
       "gainEffects": [
         "target.arability_modifier += 0.5",
-        "target.accessibility_modifier += 0.5"
+        "target.accessibility_modifier += 0.4"
       ],
       "lossEffects": [
         "target.arability_modifier -= 0.5",
-        "target.accessibility_modifier -= 0.5"
+        "target.accessibility_modifier -= 0.4"
+      ]
+    },
+    {
+      "id": "slash_and_burn",
+      "name": "slash and burn",
+      "gainEffects": [
+        "target.arability_modifier += 0.3",
+        "target.accessibility_modifier += 0.4"
+      ],
+      "lossEffects": [
+        "target.arability_modifier -= 0.3",
+        "target.accessibility_modifier -= 0.4"
+      ]
+    },
+    {
+      "id": "tribalism",
+      "name": "tribalism",
+      "gainEffects": [
+        "target.properties.add(can_form_tribe)"
+      ],
+      "lossEffects": [
+        "target.properties.remove(can_form_tribe)"
       ]
     }
 ]

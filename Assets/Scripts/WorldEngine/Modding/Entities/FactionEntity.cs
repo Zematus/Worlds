@@ -303,11 +303,11 @@ public class FactionEntity : CulturalEntity<Faction>
         base.ResetInternal();
     }
 
-    public Agent GetLeader() => Faction.CurrentLeader;
+    private Agent GetLeader() => Faction.CurrentLeader;
 
-    public Polity GetPolity() => Faction.Polity;
+    private Polity GetPolity() => Faction.Polity;
 
-    public CellGroup GetCoreGroup() => Faction.CoreGroup;
+    private CellGroup GetCoreGroup() => Faction.CoreGroup;
 
-    public override Culture GetCulture() => Faction.Culture;
+    protected override Culture GetCulture() => Faction.Culture;
 }

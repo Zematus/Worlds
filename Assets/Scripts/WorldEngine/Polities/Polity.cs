@@ -16,7 +16,8 @@ public abstract class Polity : ISynchronizable
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 2500;
     public const float CoreDistanceEffectConstant = 10000;
-    public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
+    public const string CanFormPolityAttribute033 = "CAN_FORM_POLITY:";
+    public const string CanFormTribeAttribute = "can_form_tribe";
 
     public const float MaxAdminCost = 1000000000000;
 
@@ -1338,6 +1339,11 @@ public abstract class Polity : ISynchronizable
         World.InsertEventToHappen(polityEvent);
     }
 
+    public static bool HasRequiredTribeFormationProperties(CellGroup group)
+    {
+        return group.HasProperty(CanFormPolityAttribute033 + "tribe") || group.HasProperty(CanFormTribeAttribute);
+    }
+
     public virtual void GroupUpdateEffects(
         CellGroup group,
         float prominenceValue,
@@ -1350,7 +1356,7 @@ public abstract class Polity : ISynchronizable
                 $"totalPolityProminenceValue is 0. Polity Id: {Id}, Group Id: {group}");
         }
 
-        if (!group.HasProperty(CanFormPolityAttribute + "tribe"))
+        if (!HasRequiredTribeFormationProperties(group))
         {
             group.SetPolityProminenceToRemove(this);
 
