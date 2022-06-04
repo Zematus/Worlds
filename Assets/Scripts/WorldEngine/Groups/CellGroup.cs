@@ -3455,6 +3455,16 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         _properties.Add(property);
     }
 
+    public bool HasOrWillProperty(string property)
+    {
+        if (_properties.Contains(property))
+        {
+            return true;
+        }
+
+        return _propertiesToAquire.Contains(property);
+    }
+
     public bool HasProperty(string property)
     {
         return _properties.Contains(property);

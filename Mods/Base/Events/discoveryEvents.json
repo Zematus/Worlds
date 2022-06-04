@@ -210,11 +210,81 @@
       "assignOn": ["spawn", "gained_discovery:terraced_irrigation", "knowledge_level_falls_below:agriculture,2"],
       "assignmentConditions": [
         "target.discoveries.contains(terraced_irrigation)",
-        "!target.knowledges.contains(agriculture) || (target.knowledges.agriculture < 2)"
+        "!target.knowledges.contains(agriculture) || (target.knowledges.agriculture < 1)"
       ],
       "timeToTrigger": "365 + random(36500)",
       "effects": [
         "target.discoveries.remove(terraced_irrigation)"
+      ]
+    },
+    {
+      "id": "gain_slash_and_burn_discovery",
+      "name": "gain slash and burn discovery",
+      "target": "group",
+      "assignOn": ["spawn"],
+      "properties": [
+        { "id": "cell_arability_factor", "value": "1.1 - target.cell.arability" },
+        { "id": "cell_accessibility_factor", "value": "1.2 - target.cell.accessibility" },
+        { "id": "cell_wood_presence_factor", "value": "1.5 - target.cell.biome_trait_presence(wood)" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(slash_and_burn)",
+        "target.knowledges.contains(agriculture)",
+        "target.knowledges.agriculture > 4",
+        "cell_arability_factor < 1",
+        "cell_accessibility_factor < 1",
+        "cell_wood_presence_factor < 1"
+      ],
+      "timeToTrigger": "9125 + random(45625000 * (cell_arability_factor + cell_accessibility_factor + cell_wood_presence_factor))",
+      "effects": [
+        "target.discoveries.add(slash_and_burn)"
+      ]
+    },
+    {
+      "id": "lose_slash_and_burn_discovery",
+      "name": "lose slash and burn discovery",
+      "target": "group",
+      "assignOn": ["spawn", "gained_discovery:slash_and_burn", "knowledge_level_falls_below:agriculture,2"],
+      "assignmentConditions": [
+        "target.discoveries.contains(slash_and_burn)",
+        "!target.knowledges.contains(agriculture) || (target.knowledges.agriculture < 2)"
+      ],
+      "timeToTrigger": "365 + random(36500)",
+      "effects": [
+        "target.discoveries.remove(slash_and_burn)"
+      ]
+    },
+    {
+      "id": "gain_tribalism_discovery",
+      "name": "gain tribalism discovery",
+      "target": "group",
+      "assignOn": ["spawn"],
+      "properties": [
+        { "id": "population_factor", "value": "clamp(1 - normalize(target.population, 500, 1000000), 0, 1)" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(tribalism)",
+        "target.knowledges.contains(social_organization)",
+        "target.knowledges.social_organization > 6",
+        "target.population > 500"
+      ],
+      "timeToTrigger": "9125 + random(45625000 * population_factor)",
+      "effects": [
+        "target.discoveries.add(tribalism)"
+      ]
+    },
+    {
+      "id": "lose_tribalism_discovery",
+      "name": "lose tribalism discovery",
+      "target": "group",
+      "assignOn": ["spawn", "gained_discovery:tribalism", "knowledge_level_falls_below:social_organization,2"],
+      "assignmentConditions": [
+        "target.discoveries.contains(tribalism)",
+        "!target.knowledges.contains(social_organization) || (target.knowledges.social_organization < 2)"
+      ],
+      "timeToTrigger": "365 + random(36500)",
+      "effects": [
+        "target.discoveries.remove(tribalism)"
       ]
     }
   ]

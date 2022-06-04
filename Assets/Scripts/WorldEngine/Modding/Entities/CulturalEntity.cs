@@ -142,5 +142,5 @@ public abstract class CulturalEntity<T> : DelayedSetEntity<T>
         base.ResetInternal();
     }
 
-    public abstract Culture GetCulture();
+    protected abstract Culture GetCulture();
 }
