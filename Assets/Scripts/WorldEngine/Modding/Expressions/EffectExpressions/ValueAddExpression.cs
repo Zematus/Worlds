@@ -10,7 +10,7 @@ public class ValueAddExpression : BinaryOpExpression, IEffectExpression
 
     public ValueAddExpression(
         IExpression expressionA, IExpression expressionB)
-        : base("=", expressionA, expressionB)
+        : base("+=", expressionA, expressionB)
     {
         _targetValueExp =
             AssignableValueExpressionBuilder.ValidateAssignableValueExpression<float>(expressionA);
