@@ -203,4 +203,6 @@ public class PolityCulture : Culture
             AddDiscovery(d);
         }
     }
+
+    public override void SetHolderToUpdate(bool warnIfUnexpected = true) => Polity.SetToUpdate(warnIfUnexpected);
 }

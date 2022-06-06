@@ -86,9 +86,10 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     {
         if (!limit.IsInsideRange(MinLimitValue, MaxLimitValue))
         {
-            Debug.LogWarning(
+            string message =
                 $"CulturalKnowledge: Limit can't be set below {ScaledMinLimitValue} or above {ScaledMaxLimitValue}" +
-                $", id: {Id}, limit: {limit * MathUtility.IntToFloatScalingFactor}");
+                $", id: {Id}, limit: {limit * MathUtility.IntToFloatScalingFactor}";
+            Debug.LogWarning(message);
 
             limit = Mathf.Clamp(limit, MinLimitValue, MaxLimitValue);
         }

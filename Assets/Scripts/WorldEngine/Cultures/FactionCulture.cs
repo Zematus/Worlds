@@ -266,4 +266,6 @@ public class FactionCulture : Culture
         UpdateKnowledges(coreCulture, timeFactor);
         UpdateDiscoveries(coreCulture);
     }
+
+    public override void SetHolderToUpdate(bool warnIfUnexpected = true) => Faction.SetToUpdate(warnIfUnexpected);
 }

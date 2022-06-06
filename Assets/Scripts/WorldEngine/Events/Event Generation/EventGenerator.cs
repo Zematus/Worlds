@@ -374,8 +374,12 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             exp.Apply();
         }
 
+        SetTargetToUpdate();
+
         CloseDebugOutput();
     }
+
+    protected abstract void SetTargetToUpdate();
 
     protected abstract WorldEvent GenerateEvent(long triggerDate);
 

@@ -31,6 +31,7 @@ public class ModifiableCulturalDiscoveriesEntity : ModifiableCulturalEntryContai
         }
 
         (Culture as CellCulture).AddDiscoveryToFind(Discovery.Discoveries[key]);
+        Culture.SetHolderToUpdate(warnIfUnexpected: false);
     }
 
     protected override void RemoveKey(string key)
@@ -41,5 +42,6 @@ public class ModifiableCulturalDiscoveriesEntity : ModifiableCulturalEntryContai
         }
 
         (Culture as CellCulture).AddDiscoveryToLose(Discovery.Discoveries[key]);
+        Culture.SetHolderToUpdate(warnIfUnexpected: false);
     }
 }

@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class Culture : ISynchronizable
+public abstract class Culture : ISynchronizable
 {
     #region LanguageId
     [XmlAttribute("LId")]
@@ -81,6 +81,8 @@ public class Culture : ISynchronizable
             AddDiscovery(d);
         }
     }
+
+    public abstract void SetHolderToUpdate(bool warnIfUnexpected = true);
 
     /// <summary>
     /// Adds a new preference if not already present to the culture

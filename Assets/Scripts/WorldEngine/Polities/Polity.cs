@@ -1703,6 +1703,11 @@ public abstract class Polity : ISynchronizable
         return groupsToTransfer;
     }
 
+    public void SetToUpdate(bool warnIfUnexpected = true)
+    {
+        DominantFaction.SetToUpdate(warnIfUnexpected);
+    }
+
     public void MergePolity(Polity polity)
     {
 //#if DEBUG
@@ -1715,9 +1720,8 @@ public abstract class Polity : ISynchronizable
 //#endif
 
         World.AddPolityToRemove(polity);
-        World.AddPolityToUpdate(this);
 
-        World.AddFactionToUpdate(DominantFaction);
+        SetToUpdate();
 
         float polPopulation = Mathf.Floor(polity.TotalPopulation);
 

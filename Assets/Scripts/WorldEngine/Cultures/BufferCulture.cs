@@ -109,4 +109,9 @@ public class BufferCulture : Culture
             AddDiscovery(d);
         }
     }
+
+    public override void SetHolderToUpdate(bool warnIfUnexpected = true)
+    {
+        throw new System.InvalidOperationException("Can't update buffer culture holders");
+    }
 }

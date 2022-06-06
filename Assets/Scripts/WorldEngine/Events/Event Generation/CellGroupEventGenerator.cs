@@ -31,6 +31,11 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         return true;
     }
 
+    protected override void SetTargetToUpdate()
+    {
+        _target.Group.SetToUpdate();
+    }
+
     public bool TestOnKnowledgeLevelRaisesAbove(string knowledge, CellGroup group, float scaledValue)
     {
         if (scaledValue <= _onKnowledgeLevelRaisesAbove_parameterValues[knowledge])

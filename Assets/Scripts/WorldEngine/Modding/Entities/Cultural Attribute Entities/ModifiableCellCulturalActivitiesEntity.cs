@@ -11,7 +11,15 @@ public class ModifiableCellCulturalActivitiesEntity : ModifiableCulturalActiviti
     {
     }
 
-    protected override void AddKey(string key) => (Culture as CellCulture).AddActivityToPerform(key);
+    protected override void AddKey(string key)
+    {
+        (Culture as CellCulture).AddActivityToPerform(key);
+        Culture.SetHolderToUpdate(warnIfUnexpected: false);
+    }
 
-    protected override void RemoveKey(string key) => (Culture as CellCulture).AddActivityToStop(key);
+    protected override void RemoveKey(string key)
+    {
+        (Culture as CellCulture).AddActivityToStop(key);
+        Culture.SetHolderToUpdate(warnIfUnexpected: false);
+    }
 }

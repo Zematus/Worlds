@@ -55,5 +55,6 @@ public class CellKnowledgeEntity : KnowledgeEntity
         }
 
         CellKnowledge.ScaledLimit = value;
+        CellKnowledge.Group.SetToUpdate(warnIfUnexpected: false);
     }
 }
