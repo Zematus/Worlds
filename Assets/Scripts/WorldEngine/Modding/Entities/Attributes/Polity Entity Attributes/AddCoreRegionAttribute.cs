@@ -30,5 +30,6 @@ public class AddCoreRegionAttribute : EffectEntityAttribute
         }
 
         _polityEntity.Polity.AddCoreRegion(regionEntity.Region);
+        _polityEntity.Polity.SetToUpdate();
     }
 }

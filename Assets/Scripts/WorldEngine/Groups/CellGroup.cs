@@ -3445,9 +3445,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         SetHighestPolityProminence(highestProminence);
     }
 
-    public void SetToUpdate()
+    public void SetToUpdate(bool warnIfUnexpected = true)
     {
-        World.AddGroupToUpdate(this);
+        World.AddGroupToUpdate(this, warnIfUnexpected);
     }
 
     public void AddProperty(string property)

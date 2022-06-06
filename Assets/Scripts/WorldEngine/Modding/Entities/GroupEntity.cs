@@ -144,6 +144,24 @@ public class GroupEntity : CulturalEntity<CellGroup>
 
     private ICollection<Faction> GetClosestFactions() => Group.ClosestFactions;
 
+    private void UpdateNavigationRangeModifier(float value)
+    {
+        Group.ScaledNavigationRangeModifier = value;
+        Group.SetToUpdate(warnIfUnexpected: false);
+    }
+
+    private void UpdateArabilityModifier(float value)
+    {
+        Group.ScaledArabilityModifier = value;
+        Group.SetToUpdate(warnIfUnexpected: false);
+    }
+
+    private void UpdateAccessibilityModifier(float value)
+    {
+        Group.ScaledAccessibilityModifier = value;
+        Group.SetToUpdate(warnIfUnexpected: false);
+    }
+
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)
@@ -174,8 +192,8 @@ public class GroupEntity : CulturalEntity<CellGroup>
                     _navigationRangeAttribute ?? new ValueGetterSetterEntityAttribute<float>(
                         NavigationRangeAttributeId, 
                         this, 
-                        () => Group.ScaledNavigationRangeModifier, 
-                        (value) => Group.ScaledNavigationRangeModifier = value);
+                        () => Group.ScaledNavigationRangeModifier,
+                        UpdateNavigationRangeModifier);
                 return _navigationRangeAttribute;
 
             case ArabilityModifierAttributeId:
@@ -184,7 +202,7 @@ public class GroupEntity : CulturalEntity<CellGroup>
                         ArabilityModifierAttributeId,
                         this,
                         () => Group.ScaledArabilityModifier,
-                        (value) => Group.ScaledArabilityModifier = value);
+                        UpdateArabilityModifier);
                 return _arabilityModifierAttribute;
 
             case AccessibilityModifierAttributeId:
@@ -193,7 +211,7 @@ public class GroupEntity : CulturalEntity<CellGroup>
                         AccessibilityModifierAttributeId,
                         this,
                         () => Group.ScaledAccessibilityModifier,
-                        (value) => Group.ScaledAccessibilityModifier = value);
+                        UpdateAccessibilityModifier);
                 return _accessibilityModifierAttribute;
 
             case PopulationAttributeId:

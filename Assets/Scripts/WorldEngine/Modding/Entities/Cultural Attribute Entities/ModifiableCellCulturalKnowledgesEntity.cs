@@ -56,7 +56,12 @@ public class ModifiableCellCulturalKnowledgesEntity : ModifiableCulturalKnowledg
         int limitLevelInt = (int)(limitLevel * MathUtility.FloatToIntScalingFactor);
 
         (Culture as CellCulture).AddKnowledgeToLearn(key, initialLevelInt, limitLevelInt);
+        Culture.SetHolderToUpdate(warnIfUnexpected: false);
     }
 
-    protected override void RemoveKey(string key) => (Culture as CellCulture).AddKnowledgeToLose(key);
+    protected override void RemoveKey(string key)
+    {
+        (Culture as CellCulture).AddKnowledgeToLose(key);
+        Culture.SetHolderToUpdate(warnIfUnexpected: false);
+    }
 }

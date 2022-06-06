@@ -862,4 +862,6 @@ public class CellCulture : Culture
             k.Group = Group;
         }
     }
+
+    public override void SetHolderToUpdate(bool warnIfUnexpected = true) => Group.SetToUpdate(warnIfUnexpected);
 }

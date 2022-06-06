@@ -140,7 +140,7 @@ public class ModDecision : Context
         Trigger = initializer.Trigger;
         SourceContext = initializer.SourceContext;
 
-        initializer.TargetFaction.CoreGroup.SetToUpdate();
+        initializer.TargetFaction.SetToUpdate(warnIfUnexpected: false);
 
         Target.Set(initializer.TargetFaction);
 

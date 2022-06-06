@@ -1792,7 +1792,7 @@ public class World : ISynchronizable, IWorldDateGetter
     public static AddGroupToUpdateCalledDelegate AddGroupToUpdateCalled = null;
 #endif
 
-    public void AddGroupToUpdate(CellGroup group)
+    public void AddGroupToUpdate(CellGroup group, bool warnIfUnexpected = true)
     {
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
@@ -1837,14 +1837,20 @@ public class World : ISynchronizable, IWorldDateGetter
 
         if (GroupsHaveBeenUpdated)
         {
-            Debug.LogWarning(
-                "Trying to add group to update after groups have already been updated this iteration. Id: " +
-                group);
+            if (warnIfUnexpected)
+            {
+                Debug.LogWarning($"Trying to add group to update after groups have already been updated this iteration. Id: {group}");
+            }
+            return;
         }
 
         if (!group.StillPresent)
         {
-            Debug.LogWarning("Group to update is no longer present. Id: " + group);
+            if (warnIfUnexpected)
+            {
+                Debug.LogWarning($"Group to update is no longer present. Id: {group}");
+            }
+            return;
         }
 
         _groupsToUpdate.Add(group);
@@ -1982,7 +1988,7 @@ public class World : ISynchronizable, IWorldDateGetter
         return _factionInfos.ContainsKey(id);
     }
 
-    public void AddFactionToUpdate(Faction faction)
+    public void AddFactionToUpdate(Faction faction, bool warnIfUnexpected = true)
     {
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
@@ -2022,11 +2028,13 @@ public class World : ISynchronizable, IWorldDateGetter
 
         if (FactionsHaveBeenUpdated)
         {
-            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-
-            Debug.LogWarning(
-                "Trying to add faction to update after factions have already been updated this iteration. Id: " +
-                faction.Id + ", stackTrace:\n" + stackTrace);
+            if (warnIfUnexpected)
+            {
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+                Debug.LogWarning(
+                    $"Trying to add faction to update after factions have already been updated this iteration. Id: {faction.Id}, stackTrace:\n" + stackTrace);
+            }
+            return;
         }
 
         if (!faction.StillPresent)
@@ -2140,7 +2148,7 @@ public class World : ISynchronizable, IWorldDateGetter
         return polityInfo.Polity;
     }
 
-    public void AddPolityToUpdate(Polity polity)
+    public void AddPolityToUpdate(Polity polity, bool warnIfUnexpected = true)
     {
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
@@ -2175,14 +2183,19 @@ public class World : ISynchronizable, IWorldDateGetter
 
         if (PolitiesHaveBeenUpdated)
         {
-            throw new System.Exception("Trying to add polity to update after polities " +
-                "have already been updated this iteration. Id: " + polity.Id);
+            if (warnIfUnexpected)
+            {
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+                Debug.LogWarning(
+                    $"Trying to add polity to update after polities have already been updated this iteration. Id: {polity.Id}, stackTrace:\n" + stackTrace);
+            }
+            return;
         }
 
         if (!polity.StillPresent)
         {
-            throw new System.Exception("Polity to update no longer present. " +
-                "Id: " + polity.Id + ", Date: " + CurrentDate);
+            Debug.LogWarning($"Polity to update no longer present. Id: {polity.Id}, Date: {CurrentDate}");
+            return;
         }
 
         _politiesToUpdate.Add(polity);

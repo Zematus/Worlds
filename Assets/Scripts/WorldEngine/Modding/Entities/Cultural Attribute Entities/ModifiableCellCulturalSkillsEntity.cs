@@ -11,7 +11,15 @@ public class ModifiableCellCulturalSkillsEntity : ModifiableCulturalSkillsEntity
     {
     }
 
-    protected override void AddKey(string key) => (Culture as CellCulture).AddSkillToLearn(key);
+    protected override void AddKey(string key)
+    {
+        (Culture as CellCulture).AddSkillToLearn(key);
+        Culture.SetHolderToUpdate(warnIfUnexpected: false);
+    }
 
-    protected override void RemoveKey(string key) => (Culture as CellCulture).AddSkillToLose(key);
+    protected override void RemoveKey(string key)
+    {
+        (Culture as CellCulture).AddSkillToLose(key);
+        Culture.SetHolderToUpdate(warnIfUnexpected: false);
+    }
 }

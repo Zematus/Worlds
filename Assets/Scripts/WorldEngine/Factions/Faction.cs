@@ -342,11 +342,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         BeingRemoved = true;
     }
 
-    public void SetToUpdate()
+    public void SetToUpdate(bool warnIfUnexpected = true)
     {
-        World.AddGroupToUpdate(CoreGroup);
-        World.AddFactionToUpdate(this);
-        World.AddPolityToUpdate(Polity);
+        World.AddGroupToUpdate(CoreGroup, warnIfUnexpected);
+        World.AddFactionToUpdate(this, warnIfUnexpected);
+        World.AddPolityToUpdate(Polity, warnIfUnexpected);
     }
 
     public static void SetRelationship(Faction factionA, Faction factionB, float value)
@@ -371,6 +371,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         {
             _relationships[faction.Id].Value = value;
         }
+
+        SetToUpdate();
     }
 
     public void RemoveRelationship(Faction faction)

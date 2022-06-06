@@ -14,6 +14,11 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
     private readonly Dictionary<string, HashSet<Faction>> _onKnowledgeLevelFallsBelow_factionsToTest = new Dictionary<string, HashSet<Faction>>();
     private readonly Dictionary<string, HashSet<Faction>> _onKnowledgeLevelRaisesAbove_factionsToTest = new Dictionary<string, HashSet<Faction>>();
 
+    protected override void SetTargetToUpdate()
+    {
+        Target.Faction.SetToUpdate();
+    }
+
     public bool TestOnCoreGroupProminenceValueFallsBelow(Faction faction, float prominenceValue)
     {
         if (prominenceValue >= _onCoreGroupProminenceValueFallsBelow_parameterValue)

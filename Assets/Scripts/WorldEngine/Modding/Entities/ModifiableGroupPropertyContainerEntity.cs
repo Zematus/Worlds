@@ -23,9 +23,17 @@ public class ModifiableGroupPropertyContainerEntity : ModifiableEntryContainerEn
     {
     }
 
-    protected override void AddKey(string key) => Group.AddPropertyToAquire(key);
+    protected override void AddKey(string key)
+    {
+        Group.AddPropertyToAquire(key);
+        Group.SetToUpdate(warnIfUnexpected: false);
+    }
 
-    protected override void RemoveKey(string key) => Group.AddPropertyToLose(key);
+    protected override void RemoveKey(string key)
+    {
+        Group.AddPropertyToLose(key);
+        Group.SetToUpdate(warnIfUnexpected: false);
+    }
 
     protected override bool ContainsKey(string key) => Group.HasOrWillProperty(key);
 
