@@ -349,13 +349,13 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         World.AddPolityToUpdate(Polity, warnIfUnexpected);
     }
 
-    public static void SetRelationship(Faction factionA, Faction factionB, float value)
+    public static void SetRelationship(Faction factionA, Faction factionB, float value = 0.5f, bool needFactionsToUpdate = true)
     {
-        factionA.SetRelationship(factionB, value);
-        factionB.SetRelationship(factionA, value);
+        factionA.SetRelationship(factionB, value, needFactionsToUpdate);
+        factionB.SetRelationship(factionA, value, needFactionsToUpdate);
     }
 
-    public void SetRelationship(Faction faction, float value)
+    public void SetRelationship(Faction faction, float value = 0.5f, bool needFactionToUpdate = true)
     {
         value = Mathf.Clamp01(value);
 
@@ -372,7 +372,10 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
             _relationships[faction.Id].Value = value;
         }
 
-        SetToUpdate();
+        if (needFactionToUpdate)
+        {
+            SetToUpdate();
+        }
     }
 
     public void RemoveRelationship(Faction faction)
@@ -396,7 +399,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         // Set a default neutral relationship
         if (!_relationships.ContainsKey(faction.Id))
         {
-            SetRelationship(this, faction, 0.5f);
+            SetRelationship(this, faction, 0.5f, needFactionsToUpdate: false);
         }
 
         return _relationships[faction.Id].Value;
@@ -1097,7 +1100,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
 
             if (!HasRelationship(faction))
             {
-                SetRelationship(faction, 0.5f);
+                SetRelationship(faction, needFactionToUpdate: false);
             }
         }
 

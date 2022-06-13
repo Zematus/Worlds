@@ -650,7 +650,7 @@ public abstract class Polity : ISynchronizable
             {
                 if (!faction.HasRelationship(contact.NeighborPolity.DominantFaction))
                 {
-                    Faction.SetRelationship(faction, contact.NeighborPolity.DominantFaction, 0.5f);
+                    Faction.SetRelationship(faction, contact.NeighborPolity.DominantFaction, needFactionsToUpdate: false);
                 }
             }
         }
@@ -706,7 +706,7 @@ public abstract class Polity : ISynchronizable
 
         if (!DominantFaction.HasRelationship(polity.DominantFaction))
         {
-            DominantFaction.SetRelationship(polity.DominantFaction, 0.5f);
+            DominantFaction.SetRelationship(polity.DominantFaction, needFactionToUpdate: false);
         }
 
         ApplyPolityContactChange();
