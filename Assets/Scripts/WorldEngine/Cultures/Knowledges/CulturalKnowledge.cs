@@ -11,17 +11,17 @@ using UnityEngine.Profiling;
 [XmlInclude(typeof(PolityCulturalKnowledge))]
 public class CulturalKnowledge : CulturalKnowledgeInfo
 {
-    public const int ScaledMaxLimitValue = 10000;
-    public const int ScaledMinLimitValue = 1;
-
-    public const int MinLimitValue = ScaledMinLimitValue * MathUtility.FloatToIntScalingFactor;
-    public const int MaxLimitValue = ScaledMaxLimitValue * MathUtility.FloatToIntScalingFactor;
+    public const float ScaledMaxLimitValue = 10000;
+    public const int MaxLimitValue = (int)ScaledMaxLimitValue * MathUtility.FloatToIntScalingFactor;
 
     [XmlAttribute("V")]
     public int Value;
 
     [XmlAttribute("PL")]
     public float ProgressLevel;
+
+    [XmlIgnore]
+    public bool IsPresent { get; set; }
 
     public CulturalKnowledge()
     {

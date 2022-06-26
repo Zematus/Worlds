@@ -338,10 +338,15 @@ public abstract class Culture : ISynchronizable
 
     public ICollection<CulturalKnowledge> GetKnowledges() => _knowledges.Values;
 
-    public CulturalKnowledge GetKnowledge(string id)
+    public CulturalKnowledge GetKnowledge(string id, bool nullIfNotPresent = true)
     {
         if (!_knowledges.TryGetValue(id, out CulturalKnowledge knowledge))
             return null;
+
+        if (nullIfNotPresent && !knowledge.IsPresent)
+        {
+            return null;
+        }
 
         return knowledge;
     }
