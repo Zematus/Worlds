@@ -13,10 +13,10 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
     public const int KnowledgeRngOffset = 2;
 
     public const int InitialValue = 100;
-    
-    public const int MinValueForTribeFormation = 200;
 
-    public const int BaseLimit = 1000;
+    public const int InitialLimit = 1000;
+
+    public const int MinValueForTribeFormation = 200;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
     public const float PopulationDensityModifier = 10000f * MathUtility.IntToFloatScalingFactor;
