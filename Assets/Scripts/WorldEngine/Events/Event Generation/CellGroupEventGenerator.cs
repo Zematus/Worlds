@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
 {
-    private readonly GroupEntity _target;
+    public readonly GroupEntity Target;
 
     private readonly Dictionary<string, float> _onKnowledgeLevelFallsBelow_parameterValues = new Dictionary<string, float>();
     private readonly Dictionary<string, float> _onKnowledgeLevelRaisesAbove_parameterValues = new Dictionary<string, float>();
@@ -33,7 +33,7 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
 
     protected override void SetTargetToUpdate()
     {
-        _target.Group.SetToUpdate();
+        Target.Group.SetToUpdate();
     }
 
     public bool TestOnKnowledgeLevelRaisesAbove(string knowledge, CellGroup group, float scaledValue)
@@ -68,10 +68,10 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
 
     public CellGroupEventGenerator()
     {
-        _target = new GroupEntity(this, TargetEntityId, null);
+        Target = new GroupEntity(this, TargetEntityId, null);
 
         // Add the target to the context's entity map
-        AddEntity(_target);
+        AddEntity(Target);
     }
 
     public override void SetToAssignOnSpawn()
@@ -258,7 +258,7 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
         CellGroupModEvent modEvent =
-            new CellGroupModEvent(this, _target.Group, triggerDate);
+            new CellGroupModEvent(this, Target.Group, triggerDate);
 
         return modEvent;
     }
@@ -267,16 +267,16 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
     {
         Reset();
 
-        _target.Set(group);
+        Target.Set(group);
     }
 
     public override int GetNextRandomInt(int iterOffset, int maxValue) =>
-        _target.Group.GetNextLocalRandomInt(iterOffset, maxValue);
+        Target.Group.GetNextLocalRandomInt(iterOffset, maxValue);
 
     public override float GetNextRandomFloat(int iterOffset) =>
-        _target.Group.GetNextLocalRandomFloat(iterOffset);
+        Target.Group.GetNextLocalRandomFloat(iterOffset);
 
-    public override int GetBaseOffset() => _target.Group.GetHashCode();
+    public override int GetBaseOffset() => Target.Group.GetHashCode();
 
     public bool TryGenerateEventAndAssign(
         CellGroup group,
@@ -306,6 +306,6 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
     protected override void AddTargetDebugOutput()
     {
         AddDebugOutput(
-            $"\tTarget Group: {_target.Group.Id}");
+            $"\tTarget Group: {Target.Group.Id}");
     }
 }
