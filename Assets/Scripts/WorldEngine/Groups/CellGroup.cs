@@ -901,10 +901,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         if (initialGroup)
         {
-            Culture.AddKnowledgeToLearn(
-                SocialOrganizationKnowledge.KnowledgeId, 
-                SocialOrganizationKnowledge.InitialValue, 
-                SocialOrganizationKnowledge.InitialLimit);
+            Culture.AddKnowledgeToLearn(SocialOrganizationKnowledge.KnowledgeId, SocialOrganizationKnowledge.InitialValue);
         }
     }
 
@@ -2167,7 +2164,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float terrainFactor = knowledge.TerrainFactor;
 
         float farmingPopulation =
-            Cell.GetActivityContribution(Culture, CulturalActivity.FarmingActivityId) * Population;
+            Cell.GetActivityContribution(Culture, CellCulturalActivity.FarmingActivityId) * Population;
 
         float maxWorkableArea = areaPerFarmWorker * farmingPopulation;
 

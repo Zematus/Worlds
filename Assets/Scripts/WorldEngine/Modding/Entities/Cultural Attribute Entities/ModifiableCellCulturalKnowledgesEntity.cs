@@ -13,16 +13,16 @@ public class ModifiableCellCulturalKnowledgesEntity : ModifiableCulturalKnowledg
 
     protected override DelayedSetEntity<CulturalKnowledge> CreateEntity(string attributeId) =>
         new CellKnowledgeEntity(
-            () => (Culture as CellCulture).GetLearnedKnowledgeOrToLearn(attributeId, addNonPresent: true),
+            () => (Culture as CellCulture).GetLearnedKnowledgeOrToLearn(attributeId),
             Context,
             BuildAttributeId(attributeId),
             this);
 
     protected override EntityAttribute GetAddAttribute(IExpression[] arguments)
     {
-        if (arguments.Length < 2)
+        if (arguments.Length < 1)
         {
-            throw new System.ArgumentException($"'add' attribute requires at least 2 arguments");
+            throw new System.ArgumentException($"'add' attribute requires at least 1 argument");
         }
 
         var keyArgExp = ValidateKeyArgument(arguments[0]);
@@ -31,35 +31,21 @@ public class ModifiableCellCulturalKnowledgesEntity : ModifiableCulturalKnowledg
 
         if (arguments.Length >= 3)
         {
-            var limitLevel = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
-            var initialLevel = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[2]);
+            var limitLevel = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[2]);
+            var initialLevel = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
 
             applierMethod = () => AddKey(keyArgExp.Value, (int)initialLevel.Value, (int)limitLevel.Value);
         }
+        else if (arguments.Length == 2)
+        {
+            var initialLevel = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
+
+            applierMethod = () => AddKey(keyArgExp.Value, (int)initialLevel.Value, -1);
+        }
         else
         {
-            var limitLevel = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
-
-            applierMethod = () => AddKey(keyArgExp.Value, 0, (int)limitLevel.Value);
+            applierMethod = () => AddKey(keyArgExp.Value, 0, -1);
         }
-
-        return new EffectApplierEntityAttribute(AddAttributeId, this, applierMethod);
-    }
-
-    protected override EntityAttribute GetRemoveAttribute(IExpression[] arguments)
-    {
-        if (arguments.Length < 2)
-        {
-            throw new System.ArgumentException($"'remove' attribute requires at least 2 arguments");
-        }
-
-        var keyArgExp = ValidateKeyArgument(arguments[0]);
-
-        EffectApplierMethod applierMethod = null;
-
-        var limitLevel = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
-
-        applierMethod = () => RemoveKey(keyArgExp.Value, (int)limitLevel.Value);
 
         return new EffectApplierEntityAttribute(AddAttributeId, this, applierMethod);
     }
@@ -73,11 +59,9 @@ public class ModifiableCellCulturalKnowledgesEntity : ModifiableCulturalKnowledg
         Culture.SetHolderToUpdate(warnIfUnexpected: false);
     }
 
-    private void RemoveKey(string key, float limitLevel)
+    protected override void RemoveKey(string key)
     {
-        int limitLevelInt = (int)(limitLevel * MathUtility.FloatToIntScalingFactor);
-
-        (Culture as CellCulture).AddKnowledgeToLose(key, limitLevelInt, true);
+        (Culture as CellCulture).AddKnowledgeToLose(key);
         Culture.SetHolderToUpdate(warnIfUnexpected: false);
     }
 }

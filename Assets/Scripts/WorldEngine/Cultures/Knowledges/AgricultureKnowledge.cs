@@ -12,6 +12,8 @@ public class AgricultureKnowledge : CellCulturalKnowledge
 
     public const int InitialValue = 100;
 
+    public const int BaseLimit = MinLimitValue;
+
     public const int KnowledgeRngOffset = 1;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 2000;

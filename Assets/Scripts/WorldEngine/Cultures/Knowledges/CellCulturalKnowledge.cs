@@ -18,7 +18,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     public int InstanceRngOffset;
 
     [XmlAttribute("L")]
-    public int Limit = 0;
+    public int Limit = -1;
 
     [XmlIgnore]
     public CellGroup Group;
@@ -48,42 +48,50 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         _referenceKnowledge = Knowledge.GetKnowledge(id);
 
-        //#if DEBUG
-        //        AcquisitionDate = group.World.CurrentDate;
+//#if DEBUG
+//        AcquisitionDate = group.World.CurrentDate;
 
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Group.Id == Manager.TracingData.GroupId)
-        //            {
-        //                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//        {
+//            if (Group.Id == Manager.TracingData.GroupId)
+//            {
+//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "CellCulturalKnowledge.CellCulturalKnowledge - Group:" + groupId,
-        //                    "CurrentDate: " + Group.World.CurrentDate +
-        //                    ", Id: " + Id +
-        //                    ", IsPresent: " + IsPresent +
-        //                    ", Value: " + Value +
-        //                    ", _newValue: " + _newValue +
-        //                    "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellCulturalKnowledge.CellCulturalKnowledge - Group:" + groupId,
+//                    "CurrentDate: " + Group.World.CurrentDate +
+//                    ", Id: " + Id +
+//                    ", IsPresent: " + IsPresent +
+//                    ", Value: " + Value +
+//                    ", _newValue: " + _newValue +
+//                    "");
 
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         SetLimit(limit);
     }
 
-    private void SetLimit(int limit)
+    public void SetLevelLimit(int levelLimit)
     {
-        if (!limit.IsInsideRange(0, MaxLimitValue))
+        if (levelLimit > Limit)
+        {
+            SetLimit(levelLimit);
+        }
+    }
+
+    public void SetLimit(int limit)
+    {
+        if (!limit.IsInsideRange(MinLimitValue, MaxLimitValue))
         {
             string message =
-                $"CulturalKnowledge: Limit can't be set below 0 or above {ScaledMaxLimitValue}" +
+                $"CulturalKnowledge: Limit can't be set below {ScaledMinLimitValue} or above {ScaledMaxLimitValue}" +
                 $", id: {Id}, limit: {limit * MathUtility.IntToFloatScalingFactor}";
             Debug.LogWarning(message);
 
-            limit = Mathf.Clamp(limit, 0, MaxLimitValue);
+            limit = Mathf.Clamp(limit, MinLimitValue, MaxLimitValue);
         }
 
         Limit = limit;
@@ -125,23 +133,43 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         //#endif
     }
 
-    public void ModifyLevelLimit(int levelLimitDelta) => SetLimit(Limit + levelLimitDelta);
+    public void ModifyLevelLimit(int levelLimitDelta)
+    {
+        if (Limit == -1)
+        {
+            throw new System.Exception("CellCulturalKnowledge - ModifyLevelLimit: Limit is unset");
+        }
 
-    public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, int initialValue, int initialLimit = 0)
+        SetLimit(Limit + levelLimitDelta);
+    }
+
+    public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, int initialValue, int initialLimit = -1)
     {
         switch (id)
         {
             case ShipbuildingKnowledge.KnowledgeId:
+
+                if (initialLimit == -1)
+                    initialLimit = ShipbuildingKnowledge.BaseLimit;
+
                 return new ShipbuildingKnowledge(group, initialValue, initialLimit);
 
             case AgricultureKnowledge.KnowledgeId:
+
+                if (initialLimit == -1)
+                    initialLimit = AgricultureKnowledge.BaseLimit;
+
                 return new AgricultureKnowledge(group, initialValue, initialLimit);
 
             case SocialOrganizationKnowledge.KnowledgeId:
+
+                if (initialLimit == -1)
+                    initialLimit = SocialOrganizationKnowledge.BaseLimit;
+
                 return new SocialOrganizationKnowledge(group, initialValue, initialLimit);
         }
 
-        throw new System.Exception($"Unexpected CulturalKnowledge type: {id}");
+        throw new System.Exception("Unexpected CulturalKnowledge type: " + id);
     }
 
     public void Merge(int value, float percentage)
@@ -157,7 +185,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         {
             if (Group.GetFactionCores().Count > 0)
             {
-                Debug.LogWarning($"group with low social organization has faction cores - Id: {Group}");
+                Debug.LogWarning("group with low social organization has faction cores - Id: " + Group);
             }
         }
 #endif
@@ -167,11 +195,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     public void Update(long timeSpan)
     {
-        if (!IsPresent)
-        {
-            return;
-        }
-
         UpdateInternal(timeSpan);
 
         foreach (ICellGroupEventGenerator generator in _referenceKnowledge.OnUpdateEventGenerators)
@@ -206,34 +229,33 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         float timeEffect = timeSpan / (timeSpan + timeEffectFactor);
 
-        int newValue = MathUtility.LerpToIntAndGetDecimals(Value, targetValue, timeEffect, out float d);
+        float d;
+        int newValue = MathUtility.LerpToIntAndGetDecimals(Value, targetValue, timeEffect, out d);
 
         if (d > Group.GetNextLocalRandomFloat(rngOffset++))
-        {
             newValue++;
-        }
 
 #if DEBUG
         if ((Limit > 1) && (newValue > Limit) && (newValue > Value))
         {
-            throw new System.Exception($"UpdateValueInternal: new value {newValue} above Level Limit {Limit}");
+            throw new System.Exception("UpdateValueInternal: new value " + newValue + " above Level Limit " + Limit);
         }
 
         if (newValue > 1000000)
         {
-            throw new System.Exception($"UpdateValueInternal: new value {newValue} above 1000000");
+            throw new System.Exception("UpdateValueInternal: new value " + newValue + " above 1000000");
         }
 
         if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (newValue < SocialOrganizationKnowledge.MinValueForTribeFormation))
         {
             if (Group.GetFactionCores().Count > 0)
             {
-                Debug.LogWarning($"Group with low social organization has faction cores - Id: {Group}, newValue: {newValue}");
+                Debug.LogWarning("Group with low social organization has faction cores - Id: " + Group + ", newValue:" + newValue);
             }
 
             if (Group.WillBecomeCoreOfFaction != null)
             {
-                Debug.LogWarning($"Group with low social organization will become a faction core - Id: {Group}, newValue: {newValue}");
+                Debug.LogWarning("Group with low social organization will become a faction core - Id: " + Group + ", newValue:" + newValue);
             }
         }
 #endif
