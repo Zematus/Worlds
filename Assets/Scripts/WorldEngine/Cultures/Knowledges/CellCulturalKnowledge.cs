@@ -80,7 +80,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         {
             string message =
                 $"CulturalKnowledge: Limit can't be set below 0 or above {ScaledMaxLimitValue}" +
-                $", group: {Group.Id}, knowledge: {Id}, IsPresent: {IsPresent}, limit: {limit * MathUtility.IntToFloatScalingFactor}";
+                $", id: {Id}, limit: {limit * MathUtility.IntToFloatScalingFactor}";
             Debug.LogWarning(message);
 
             limit = Mathf.Clamp(limit, 0, MaxLimitValue);

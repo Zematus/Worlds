@@ -383,7 +383,7 @@ public abstract class Culture : ISynchronizable
         return false;
     }
 
-    public virtual bool HasKnowledge(string id) => _knowledges.ContainsKey(id);
+    public bool HasKnowledge(string id) => _knowledges.ContainsKey(id);
 
     public IDiscovery GetDiscovery(string id)
     {
