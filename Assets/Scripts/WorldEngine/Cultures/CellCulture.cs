@@ -10,8 +10,6 @@ public class CellCulture : Culture
     [XmlIgnore]
     public CellGroup Group;
 
-    private bool _addingDiscoveries = false;
-
     private Dictionary<string, CellCulturalPreference> _preferencesToAcquire = new Dictionary<string, CellCulturalPreference>();
     private Dictionary<string, CellCulturalActivity> _activitiesToPerform = new Dictionary<string, CellCulturalActivity>();
     private Dictionary<string, CellCulturalSkill> _skillsToLearn = new Dictionary<string, CellCulturalSkill>();
@@ -21,7 +19,7 @@ public class CellCulture : Culture
     private HashSet<CellCulturalPreference> _preferencesToLose = new HashSet<CellCulturalPreference>();
     private HashSet<CellCulturalActivity> _activitiesToStop = new HashSet<CellCulturalActivity>();
     private HashSet<CellCulturalSkill> _skillsToLose = new HashSet<CellCulturalSkill>();
-    private Dictionary<CellCulturalKnowledge, bool> _knowledgesToLose = new Dictionary<CellCulturalKnowledge, bool>();
+    private HashSet<CellCulturalKnowledge> _knowledgesToLose = new HashSet<CellCulturalKnowledge>();
     private HashSet<IDiscovery> _discoveriesToLose = new HashSet<IDiscovery>();
 
     public CellCulture()
@@ -57,13 +55,8 @@ public class CellCulture : Culture
             AddDiscovery(d);
         }
 
-        foreach (var k in sourceCulture.GetKnowledges())
+        foreach (CulturalKnowledge k in sourceCulture.GetKnowledges())
         {
-            if ((k is CellCulturalKnowledge ck) && (!ck.IsPresent))
-            {
-                continue;
-            }
-
             //#if DEBUG
             //                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
             //                {
@@ -83,7 +76,9 @@ public class CellCulture : Culture
             //                }
             //#endif
 
-            AddKnowledge(CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value));
+            CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value);
+
+            AddKnowledge(knowledge);
         }
 
         if (sourceCulture.Language != null)
@@ -153,7 +148,7 @@ public class CellCulture : Culture
         _skillsToLearn.Add(id, CellCulturalSkill.CreateCellInstance(id, Group));
     }
 
-    public CellCulturalKnowledge AddKnowledgeToLearn(string id, int initialValue = 0, int initialLimit = 0, bool isPresent = true)
+    public CellCulturalKnowledge AddKnowledgeToLearn(string id, int initialValue = 0, int initialLimit = -1)
     {
         var knowledge = GetKnowledge(id) as CellCulturalKnowledge;
 
@@ -164,7 +159,7 @@ public class CellCulture : Culture
 
         if (knowledge != null)
         {
-            knowledge.ModifyLevelLimit(initialLimit);
+            knowledge.SetLevelLimit(initialLimit);
         }
         else
         {
@@ -172,18 +167,11 @@ public class CellCulture : Culture
             _knowledgesToLearn.Add(id, knowledge);
         }
 
-        knowledge.IsPresent = isPresent;
-
         return knowledge;
     }
 
     public void AddDiscoveryToFind(IDiscovery discovery)
     {
-        if (_addingDiscoveries)
-        {
-            Debug.LogError($"Invalid action: Gaining a discovery '{discovery.Id}' as an effect of gaining another discovery");
-        }
-
         if (Discoveries.ContainsKey(discovery.Id))
             return;
 
@@ -240,29 +228,24 @@ public class CellCulture : Culture
         _discoveriesToLose.Add(discovery);
     }
 
-    public CellCulturalKnowledge GetLearnedKnowledgeOrToLearn(string id, bool addNonPresent = false)
+    public CellCulturalKnowledge GetLearnedKnowledgeOrToLearn(string id)
     {
-        if (GetKnowledge(id) is CellCulturalKnowledge knowledge)
-        {
+        var knowledge = GetKnowledge(id) as CellCulturalKnowledge;
+
+        if (knowledge != null)
             return knowledge;
-        }
 
         if (_knowledgesToLearn.TryGetValue(id, out knowledge))
-        {
             return knowledge;
-        }
-
-        if (addNonPresent)
-        {
-            return AddKnowledgeToLearn(id, isPresent: false);
-        }
 
         return null;
     }
 
     public CellCulturalPreference GetAcquiredPreferenceOrToAcquire(string id)
     {
-        if (GetPreference(id) is CellCulturalPreference preference)
+        CellCulturalPreference preference = GetPreference(id) as CellCulturalPreference;
+
+        if (preference != null)
             return preference;
 
         if (_preferencesToAcquire.TryGetValue(id, out preference))
@@ -273,7 +256,9 @@ public class CellCulture : Culture
 
     public CellCulturalActivity GetPerformedActivityOrToPerform(string id)
     {
-        if (GetActivity(id) is CellCulturalActivity activity)
+        CellCulturalActivity activity = GetActivity(id) as CellCulturalActivity;
+
+        if (activity != null)
             return activity;
 
         if (_activitiesToPerform.TryGetValue(id, out activity))
@@ -284,7 +269,9 @@ public class CellCulture : Culture
 
     public CellCulturalSkill GetLearnedSkillOrToLearn(string id)
     {
-        if (GetSkill(id) is CellCulturalSkill skill)
+        CellCulturalSkill skill = GetSkill(id) as CellCulturalSkill;
+
+        if (skill != null)
             return skill;
 
         if (_skillsToLearn.TryGetValue(id, out skill))
@@ -589,19 +576,9 @@ public class CellCulture : Culture
             RemoveSkill(s);
         }
 
-        foreach (var pair in _knowledgesToLose)
+        foreach (CellCulturalKnowledge k in _knowledgesToLose)
         {
-            var knowledge = pair.Key;
-
-            if (pair.Value)
-            {
-                knowledge.IsPresent = false;
-                knowledge.Value = 0;
-            }
-            else
-            {
-                RemoveKnowledge(knowledge);
-            }
+            RemoveKnowledge(k);
         }
 
         // This should be done only after knowledges have been removed as there are some dependencies
@@ -630,7 +607,6 @@ public class CellCulture : Culture
     public void PostUpdateAddAttributes()
     {
         // We need to handle discoveries before everything else as these can add other type of cultural attributes
-        _addingDiscoveries = true;
         foreach (var discovery in _discoveriesToFind.Values)
         {
 
@@ -655,7 +631,6 @@ public class CellCulture : Culture
             AddDiscovery(discovery);
             discovery.OnGain(Group);
         }
-        _addingDiscoveries = false;
 
         foreach (CellCulturalPreference preference in _preferencesToAcquire.Values)
         {
@@ -817,25 +792,16 @@ public class CellCulture : Culture
         _discoveriesToFind.Clear();
     }
 
-    public void AddKnowledgeToLose(string knowledgeId, int limitChange = 0, bool keepAsNotPresent = false)
+    public void AddKnowledgeToLose(string knowledgeId)
     {
-        _knowledgesToLearn.TryGetValue(knowledgeId, out var cellKnowledge);
-        _knowledges.TryGetValue(knowledgeId, out var knowledge);
-
-        if (cellKnowledge == null)
+        if (!_knowledges.TryGetValue(knowledgeId, out var knowledge))
         {
-            if (knowledge == null)
-            {
-                Debug.LogWarning($"CellCulture: Trying to remove knowledge that is not present: {knowledgeId}");
+            Debug.LogWarning($"CellCulture: Trying to remove knowledge that is not present: {knowledgeId}");
 
-                return;
-            }
-
-            cellKnowledge = knowledge as CellCulturalKnowledge;
+            return;
         }
 
-        cellKnowledge.ModifyLevelLimit(limitChange);
-        _knowledgesToLose.Add(cellKnowledge, keepAsNotPresent);
+        _knowledgesToLose.Add(knowledge as CellCulturalKnowledge);
     }
 
     public void AddActivityToStop(string activityId)
