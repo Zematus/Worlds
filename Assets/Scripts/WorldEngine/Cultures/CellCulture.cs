@@ -178,24 +178,6 @@ public class CellCulture : Culture
         if (_discoveriesToFind.ContainsKey(discovery.Id))
             return;
 
-#if DEBUG
-        if (Group.Id == "45501039:1416594652710424308")
-        {
-            if (_knowledges.ContainsKey(ShipbuildingKnowledge.KnowledgeId))
-            {
-                var knowledge = _knowledges[ShipbuildingKnowledge.KnowledgeId] as CellCulturalKnowledge;
-
-                Debug.Log($"Adding discovery to _discoveriesToFind: {discovery.Id}. " +
-                    $"Shipbuilding knowledge limit at {knowledge.Limit}, " +
-                    $"value at {knowledge.Value}");
-            }
-            else
-            {
-                Debug.Log($"Adding discovery to _discoveriesToFind: {discovery.Id}. No shipbuilding knowledge");
-            }
-        }
-#endif
-
         _discoveriesToFind.Add(discovery.Id, discovery);
     }
 
@@ -206,24 +188,6 @@ public class CellCulture : Culture
 
         if (_discoveriesToLose.Contains(discovery))
             return;
-
-#if DEBUG
-        if (Group.Id == "45501039:1416594652710424308")
-        {
-            if (_knowledges.ContainsKey(ShipbuildingKnowledge.KnowledgeId))
-            {
-                var knowledge = _knowledges[ShipbuildingKnowledge.KnowledgeId] as CellCulturalKnowledge;
-
-                Debug.Log($"Adding discovery to _discoveriesToLose: {discovery.Id}. " +
-                    $"Shipbuilding knowledge limit at {knowledge.Limit}, " +
-                    $"value at {knowledge.Value}");
-            }
-            else
-            {
-                Debug.Log($"Adding discovery to _discoveriesToLose: {discovery.Id}. No shipbuilding knowledge");
-            }
-        }
-#endif
 
         _discoveriesToLose.Add(discovery);
     }
@@ -538,25 +502,6 @@ public class CellCulture : Culture
         // We need to handle discoveries before anything else as they might trigger removal of other cultural attributes
         foreach (var d in _discoveriesToLose)
         {
-
-#if DEBUG
-            if (Group.Id == "45501039:1416594652710424308")
-            {
-                if (_knowledges.ContainsKey(ShipbuildingKnowledge.KnowledgeId))
-                {
-                    var knowledge = _knowledges[ShipbuildingKnowledge.KnowledgeId] as CellCulturalKnowledge;
-
-                    Debug.Log($"Removing discovery: {d.Id}. " +
-                        $"Shipbuilding knowledge limit at {knowledge.Limit}, " +
-                        $"value at {knowledge.Value}");
-                }
-                else
-                {
-                    Debug.Log($"Removing discovery: {d.Id}. No shipbuilding knowledge");
-                }
-            }
-#endif
-
             RemoveDiscovery(d);
             d.OnLoss(Group);
         }
@@ -609,25 +554,6 @@ public class CellCulture : Culture
         // We need to handle discoveries before everything else as these can add other type of cultural attributes
         foreach (var discovery in _discoveriesToFind.Values)
         {
-
-#if DEBUG
-            if (Group.Id == "45501039:1416594652710424308")
-            {
-                if (_knowledges.ContainsKey(ShipbuildingKnowledge.KnowledgeId))
-                {
-                    var knowledge = _knowledges[ShipbuildingKnowledge.KnowledgeId] as CellCulturalKnowledge;
-
-                    Debug.Log($"Adding discovery: {discovery.Id}. " +
-                        $"Shipbuilding knowledge limit at {knowledge.Limit}, " +
-                        $"value at {knowledge.Value}");
-                }
-                else
-                {
-                    Debug.Log($"Adding discovery: {discovery.Id}. No shipbuilding knowledge");
-                }
-            }
-#endif
-
             AddDiscovery(discovery);
             discovery.OnGain(Group);
         }
