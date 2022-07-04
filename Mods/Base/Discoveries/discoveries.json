@@ -46,11 +46,11 @@
       "id": "plant_cultivation",
       "name": "plant cultivation",
       "gainEffects": [
-        "target.knowledges.add(agriculture, 10, 1)",
+        "target.knowledges.add(agriculture, 1, 10)",
         "target.activities.add(farming)"
       ],
       "lossEffects": [
-        "target.knowledges.remove(agriculture, -10)",
+        "target.knowledges.remove(agriculture)",
         "target.activities.remove(farming)"
       ]
     },

@@ -195,8 +195,6 @@ public abstract class MigratingPopulation
 
         targetGroup.LastPopulationMigration.Set(
             Population, SourceGroup, Polity?.Info, StartDate, EndDate);
-
-        World.AddUpdatedGroup(targetGroup);
     }
 
     /// <summary>
