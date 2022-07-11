@@ -346,7 +346,7 @@ public abstract class Culture : ISynchronizable
         return knowledge;
     }
 
-    public bool TryGetKnowledgeValue(string id, out int value)
+    public bool TryGetKnowledgeValue(string id, out float value)
     {
         value = 0;
 
@@ -355,22 +355,6 @@ public abstract class Culture : ISynchronizable
         if (knowledge != null)
         {
             value = knowledge.Value;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool TryGetKnowledgeScaledValue(string id, out float scaledValue)
-    {
-        scaledValue = 0;
-
-        var knowledge = GetKnowledge(id);
-
-        if (knowledge != null)
-        {
-            scaledValue = knowledge.ScaledValue;
 
             return true;
         }

@@ -98,11 +98,11 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public long TribeFormationEventDate;
 
     [XmlAttribute("ArM")]
-    public int ArabilityModifier = 0;
+    public float ArabilityModifier = 0;
     [XmlAttribute("AcM")]
-    public int AccessibilityModifier = 0;
+    public float AccessibilityModifier = 0;
     [XmlAttribute("NvM")]
-    public int NavigationRangeModifier = 0;
+    public float NavigationRangeModifier = 0;
 
     #region MigratingPopPolId
     [XmlAttribute("MPPId")]
@@ -135,43 +135,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         get
         {
             return Cell.Position;
-        }
-    }
-
-    [XmlIgnore]
-    public float ScaledNavigationRangeModifier
-    {
-        get => NavigationRangeModifier * MathUtility.IntToFloatScalingFactor;
-        set => NavigationRangeModifier = (int)(value * MathUtility.FloatToIntScalingFactor);
-    }
-
-    [XmlIgnore]
-    public float ScaledArabilityModifier
-    {
-        get => ArabilityModifier * MathUtility.IntToFloatScalingFactor;
-        set
-        {
-            if (!value.IsInsideRange(0, 1))
-            {
-                Debug.LogWarning($"ScaledArabilityModifier outside of range between 0, 1: {value}");
-            }
-
-            ArabilityModifier = (int)(Mathf.Clamp01(value) * MathUtility.FloatToIntScalingFactor);
-        }
-    }
-
-    [XmlIgnore]
-    public float ScaledAccessibilityModifier
-    {
-        get => AccessibilityModifier * MathUtility.IntToFloatScalingFactor;
-        set
-        {
-            if (!value.IsInsideRange(0, 1))
-            {
-                Debug.LogWarning($"ScaledAccessibilityModifier outside of range between 0, 1: {value}");
-            }
-
-            AccessibilityModifier = (int)(Mathf.Clamp01(value) * MathUtility.FloatToIntScalingFactor);
         }
     }
 
@@ -2108,7 +2071,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         if (ArabilityModifier > 0)
         {
-            float modifiedArability = Cell.BaseArability + (1 - Cell.BaseArability) * ScaledArabilityModifier;
+            float modifiedArability = Cell.BaseArability + (1 - Cell.BaseArability) * ArabilityModifier;
             modifiedArability = Mathf.Clamp01(modifiedArability);
 
             if (modifiedArability != Cell.Arability)
@@ -2123,7 +2086,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         if (AccessibilityModifier > 0)
         {
-            float modifiedAccessibility = Cell.BaseAccessibility + (1 - Cell.BaseAccessibility) * ScaledAccessibilityModifier;
+            float modifiedAccessibility = Cell.BaseAccessibility + (1 - Cell.BaseAccessibility) * AccessibilityModifier;
             modifiedAccessibility = Mathf.Clamp01(modifiedAccessibility);
 
             if (modifiedAccessibility != Cell.Accessibility)
@@ -2155,7 +2118,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             return;
         }
 
-        float knowledgeValue = knowledge.ScaledValue;
+        float knowledgeValue = knowledge.Value;
 
         float techValue = Mathf.Sqrt(knowledgeValue);
 
@@ -2195,9 +2158,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public void UpdateSeaTravelFactor()
     {
         Culture.TryGetSkillValue(SeafaringSkill.SkillId, out float seafaringValue);
-        Culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out float shipbuildingValue);
+        Culture.TryGetKnowledgeValue(ShipbuildingKnowledge.KnowledgeId, out float shipbuildingValue);
 
-        float rangeFactor = 1 + (NavigationRangeModifier * MathUtility.IntToFloatScalingFactor);
+        float rangeFactor = 1 + NavigationRangeModifier;
 
         SeaTravelFactor =
             SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor * rangeFactor;
@@ -2748,7 +2711,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <summary>
     /// Tries to generate and apply all events related to knowledges going below a minimun value
     /// </summary>
-    public void GenerateKnowledgeLevelFallsBelowEvents(string knowledgeId, float scaledValue)
+    public void GenerateKnowledgeLevelFallsBelowEvents(string knowledgeId, float value)
     {
         if (!OnKnowledgeLevelFallsBelowEventGenerators.ContainsKey(knowledgeId))
         {
@@ -2758,7 +2721,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         foreach (var generator in OnKnowledgeLevelFallsBelowEventGenerators[knowledgeId])
         {
             if ((generator is CellGroupEventGenerator gGenerator) &&
-                gGenerator.TestOnKnowledgeLevelFallsBelow(knowledgeId, this, scaledValue))
+                gGenerator.TestOnKnowledgeLevelFallsBelow(knowledgeId, this, value))
             {
                 AddGeneratorToTestAssignmentFor(gGenerator);
             }
@@ -2768,7 +2731,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     /// <summary>
     /// Tries to generate and apply all events related to knowledges going above a maximum value
     /// </summary>
-    public void GenerateKnowledgeLevelRaisesAboveEvents(string knowledgeId, float scaledValue)
+    public void GenerateKnowledgeLevelRaisesAboveEvents(string knowledgeId, float value)
     {
         if (!OnKnowledgeLevelRaisesAboveEventGenerators.ContainsKey(knowledgeId))
         {
@@ -2778,7 +2741,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         foreach (var generator in OnKnowledgeLevelRaisesAboveEventGenerators[knowledgeId])
         {
             if ((generator is CellGroupEventGenerator gGenerator) &&
-                gGenerator.TestOnKnowledgeLevelRaisesAbove(knowledgeId, this, scaledValue))
+                gGenerator.TestOnKnowledgeLevelRaisesAbove(knowledgeId, this, value))
             {
                 AddGeneratorToTestAssignmentFor(gGenerator);
             }
@@ -3475,9 +3438,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return _properties;
     }
 
-    public void ApplyArabilityModifier(int delta)
+    public void ApplyArabilityModifier(float delta)
     {
-        int value = ArabilityModifier + delta;
+        float value = ArabilityModifier + delta;
 
         if (value < 0)
         {
@@ -3487,9 +3450,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         ArabilityModifier = value;
     }
 
-    public void ApplyAccessibilityModifier(int delta)
+    public void ApplyAccessibilityModifier(float delta)
     {
-        int value = AccessibilityModifier + delta;
+        float value = AccessibilityModifier + delta;
 
         if (value < 0)
         {
@@ -3499,9 +3462,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         AccessibilityModifier = value;
     }
 
-    public void ApplyNavigationRangeModifier(int delta)
+    public void ApplyNavigationRangeModifier(float delta)
     {
-        int value = NavigationRangeModifier + delta;
+        float value = NavigationRangeModifier + delta;
 
         if (value < 0)
         {

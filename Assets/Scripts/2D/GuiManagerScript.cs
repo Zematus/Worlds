@@ -3845,15 +3845,13 @@ public class GuiManagerScript : MonoBehaviour
 
         if (knowledge != null)
         {
-            string text = knowledge.Name + " Value: " + knowledge.ScaledValue.ToString("0.000") + "\n\nFactions:";
+            string text = knowledge.Name + " Value: " + knowledge.Value.ToString("0.000") + "\n\nFactions:";
 
             foreach (Faction faction in polity.GetFactions())
             {
-                float scaledValue = 0;
+                faction.Culture.TryGetKnowledgeValue(_planetOverlaySubtype, out var value);
 
-                faction.Culture.TryGetKnowledgeScaledValue(_planetOverlaySubtype, out scaledValue);
-
-                text += "\n " + faction.Name.Text + ": " + scaledValue.ToString("0.000");
+                text += $"\n {faction.Name.Text}: {value:0.000)}";
             }
 
             InfoTooltipScript.DisplayTip(text, position, fadeStart);

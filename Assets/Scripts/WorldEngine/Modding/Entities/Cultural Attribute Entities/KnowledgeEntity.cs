@@ -21,7 +21,7 @@ public class KnowledgeEntity : DelayedSetValueEntity<CulturalKnowledge,float>
         {
             if (Knowledge != null)
             {
-                return Knowledge.ScaledValue;
+                return Knowledge.Value;
             }
 
             return 0;
@@ -40,7 +40,7 @@ public class KnowledgeEntity : DelayedSetValueEntity<CulturalKnowledge,float>
 
     public override string GetFormattedString()
     {
-        return "<i>" + Knowledge.Name + "</i>";
+        return $"<i>{Knowledge.Name}</i>";
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)

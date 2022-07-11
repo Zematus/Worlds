@@ -14,9 +14,9 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
     private readonly Dictionary<string, HashSet<CellGroup>> _onKnowledgeLevelFallsBelow_groupsToTest = new Dictionary<string, HashSet<CellGroup>>();
     private readonly Dictionary<string, HashSet<CellGroup>> _onKnowledgeLevelRaisesAbove_groupsToTest = new Dictionary<string, HashSet<CellGroup>>();
 
-    public bool TestOnKnowledgeLevelFallsBelow(string knowledge, CellGroup group, float scaledValue)
+    public bool TestOnKnowledgeLevelFallsBelow(string knowledge, CellGroup group, float value)
     {
-        if (scaledValue >= _onKnowledgeLevelFallsBelow_parameterValues[knowledge])
+        if (value >= _onKnowledgeLevelFallsBelow_parameterValues[knowledge])
         {
             _onKnowledgeLevelFallsBelow_groupsToTest[knowledge].Add(group);
             return false;
@@ -36,9 +36,9 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         _target.Group.SetToUpdate();
     }
 
-    public bool TestOnKnowledgeLevelRaisesAbove(string knowledge, CellGroup group, float scaledValue)
+    public bool TestOnKnowledgeLevelRaisesAbove(string knowledge, CellGroup group, float value)
     {
-        if (scaledValue <= _onKnowledgeLevelRaisesAbove_parameterValues[knowledge])
+        if (value <= _onKnowledgeLevelRaisesAbove_parameterValues[knowledge])
         {
             _onKnowledgeLevelRaisesAbove_groupsToTest[knowledge].Add(group);
             return false;

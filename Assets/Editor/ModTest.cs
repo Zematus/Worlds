@@ -569,17 +569,17 @@ public class ModTest
         _testGroup6.Culture.Language = _testPolity2.Culture.Language;
 
         _testGroup1.Culture.AddKnowledge(
-            new SocialOrganizationKnowledge(_testGroup1, 600, 600));
+            new SocialOrganizationKnowledge(_testGroup1, 600, new KnowledgeLimit(_testGroup1, SocialOrganizationKnowledge.KnowledgeId, 6)));
         _testGroup2.Culture.AddKnowledge(
-            new SocialOrganizationKnowledge(_testGroup2, 600, 600));
+            new SocialOrganizationKnowledge(_testGroup2, 600, new KnowledgeLimit(_testGroup2, SocialOrganizationKnowledge.KnowledgeId, 6)));
         _testGroup3.Culture.AddKnowledge(
-            new SocialOrganizationKnowledge(_testGroup3, 600, 600));
+            new SocialOrganizationKnowledge(_testGroup3, 600, new KnowledgeLimit(_testGroup3, SocialOrganizationKnowledge.KnowledgeId, 6)));
         _testGroup4.Culture.AddKnowledge(
-            new SocialOrganizationKnowledge(_testGroup4, 600, 600));
+            new SocialOrganizationKnowledge(_testGroup4, 600, new KnowledgeLimit(_testGroup4, SocialOrganizationKnowledge.KnowledgeId, 6)));
         _testGroup5.Culture.AddKnowledge(
-            new SocialOrganizationKnowledge(_testGroup5, 600, 600));
+            new SocialOrganizationKnowledge(_testGroup5, 600, new KnowledgeLimit(_testGroup5, SocialOrganizationKnowledge.KnowledgeId, 6)));
         _testGroup6.Culture.AddKnowledge(
-            new SocialOrganizationKnowledge(_testGroup6, 600, 600));
+            new SocialOrganizationKnowledge(_testGroup6, 600, new KnowledgeLimit(_testGroup6, SocialOrganizationKnowledge.KnowledgeId, 6)));
 
         _testRegion1 = new TestCellRegion(_testCell1, _testGroup1.Culture.Language);
         _testCell1.Region = _testRegion1;

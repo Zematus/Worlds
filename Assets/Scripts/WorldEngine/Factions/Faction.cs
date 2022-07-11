@@ -1010,7 +1010,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     /// <summary>
     /// Tries to generate and apply all events related to knowledges going below a minimun value
     /// </summary>
-    public void GenerateKnowledgeLevelFallsBelowEvents(string knowledgeId, float scaledValue)
+    public void GenerateKnowledgeLevelFallsBelowEvents(string knowledgeId, float value)
     {
         if (!OnKnowledgeLevelFallsBelowEventGenerators.ContainsKey(knowledgeId))
         {
@@ -1020,7 +1020,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         foreach (var generator in OnKnowledgeLevelFallsBelowEventGenerators[knowledgeId])
         {
             if ((generator is FactionEventGenerator fGenerator) &&
-                fGenerator.TestOnKnowledgeLevelFallsBelow(knowledgeId, this, scaledValue))
+                fGenerator.TestOnKnowledgeLevelFallsBelow(knowledgeId, this, value))
             {
                 AddGeneratorToTestAssignmentFor(fGenerator);
             }
@@ -1030,7 +1030,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     /// <summary>
     /// Tries to generate and apply all events related to knowledges going above a maximum value
     /// </summary>
-    public void GenerateKnowledgeLevelRaisesAboveEvents(string knowledgeId, float scaledValue)
+    public void GenerateKnowledgeLevelRaisesAboveEvents(string knowledgeId, float value)
     {
         if (!OnKnowledgeLevelRaisesAboveEventGenerators.ContainsKey(knowledgeId))
         {
@@ -1040,7 +1040,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         foreach (var generator in OnKnowledgeLevelRaisesAboveEventGenerators[knowledgeId])
         {
             if ((generator is FactionEventGenerator fGenerator) &&
-                fGenerator.TestOnKnowledgeLevelRaisesAbove(knowledgeId, this, scaledValue))
+                fGenerator.TestOnKnowledgeLevelRaisesAbove(knowledgeId, this, value))
             {
                 AddGeneratorToTestAssignmentFor(fGenerator);
             }

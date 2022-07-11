@@ -146,19 +146,19 @@ public class GroupEntity : CulturalEntity<CellGroup>
 
     private void UpdateNavigationRangeModifier(float value)
     {
-        Group.ScaledNavigationRangeModifier = value;
+        Group.NavigationRangeModifier = value;
         Group.SetToUpdate(warnIfUnexpected: false);
     }
 
     private void UpdateArabilityModifier(float value)
     {
-        Group.ScaledArabilityModifier = value;
+        Group.ArabilityModifier = value;
         Group.SetToUpdate(warnIfUnexpected: false);
     }
 
     private void UpdateAccessibilityModifier(float value)
     {
-        Group.ScaledAccessibilityModifier = value;
+        Group.AccessibilityModifier = value;
         Group.SetToUpdate(warnIfUnexpected: false);
     }
 
@@ -192,7 +192,7 @@ public class GroupEntity : CulturalEntity<CellGroup>
                     _navigationRangeAttribute ?? new ValueGetterSetterEntityAttribute<float>(
                         NavigationRangeAttributeId, 
                         this, 
-                        () => Group.ScaledNavigationRangeModifier,
+                        () => Group.NavigationRangeModifier,
                         UpdateNavigationRangeModifier);
                 return _navigationRangeAttribute;
 
@@ -201,7 +201,7 @@ public class GroupEntity : CulturalEntity<CellGroup>
                     _arabilityModifierAttribute ?? new ValueGetterSetterEntityAttribute<float>(
                         ArabilityModifierAttributeId,
                         this,
-                        () => Group.ScaledArabilityModifier,
+                        () => Group.ArabilityModifier,
                         UpdateArabilityModifier);
                 return _arabilityModifierAttribute;
 
@@ -210,7 +210,7 @@ public class GroupEntity : CulturalEntity<CellGroup>
                     _accessibilityModifierAttribute ?? new ValueGetterSetterEntityAttribute<float>(
                         AccessibilityModifierAttributeId,
                         this,
-                        () => Group.ScaledAccessibilityModifier,
+                        () => Group.AccessibilityModifier,
                         UpdateAccessibilityModifier);
                 return _accessibilityModifierAttribute;
 

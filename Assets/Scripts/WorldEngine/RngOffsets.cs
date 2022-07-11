@@ -21,7 +21,6 @@ public static class RngOffsets
     public const int ACTIVITY_UPDATE = 11000;
     public const int ACTIVITY_POLITY_PROMINENCE = 11100;
 
-    public const int KNOWLEDGE_MERGE = 20000;
     public const int KNOWLEDGE_UPDATE_VALUE_INTERNAL = 20200;
     public const int KNOWLEDGE_POLITY_PROMINENCE = 20300;
 

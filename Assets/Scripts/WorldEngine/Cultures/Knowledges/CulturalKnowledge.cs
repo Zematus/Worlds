@@ -1,9 +1,5 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
-using UnityEngine.Profiling;
 
 [XmlInclude(typeof(ShipbuildingKnowledge))]
 [XmlInclude(typeof(AgricultureKnowledge))]
@@ -11,23 +7,14 @@ using UnityEngine.Profiling;
 [XmlInclude(typeof(PolityCulturalKnowledge))]
 public class CulturalKnowledge : CulturalKnowledgeInfo
 {
-    public const int ScaledMaxLimitValue = 10000;
-    public const int ScaledMinLimitValue = 1;
-
-    public const int MinLimitValue = ScaledMinLimitValue * MathUtility.FloatToIntScalingFactor;
-    public const int MaxLimitValue = ScaledMaxLimitValue * MathUtility.FloatToIntScalingFactor;
-
     [XmlAttribute("V")]
-    public int Value;
-
-    [XmlAttribute("PL")]
-    public float ProgressLevel;
+    public float Value;
 
     public CulturalKnowledge()
     {
     }
 
-    public CulturalKnowledge(string id, string name, int value) : base(id, name)
+    public CulturalKnowledge(string id, string name, float value) : base(id, name)
     {
         Value = value;
     }
@@ -35,31 +22,6 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     public CulturalKnowledge(CulturalKnowledge baseKnowledge) : base(baseKnowledge)
     {
         Value = baseKnowledge.Value;
-    }
-
-    public float ScaledValue => Value * MathUtility.IntToFloatScalingFactor;
-
-    public int GetHighestLimit()
-    {
-        System.Type knowledgeType = this.GetType();
-
-        System.Reflection.FieldInfo fInfo = knowledgeType.GetField("HighestLimit"); // TODO: avoid using reflection
-
-        return (int)fInfo.GetValue(this);
-    }
-
-    public void SetHighestLimit(int value)
-    {
-        System.Type knowledgeType = this.GetType();
-
-        System.Reflection.FieldInfo fInfo = knowledgeType.GetField("HighestLimit"); // TODO: avoid using reflection
-
-        int currentValue = (int)fInfo.GetValue(this);
-
-        if (value > currentValue)
-        {
-            fInfo.SetValue(this, value);
-        }
     }
 
     public virtual void Reset()

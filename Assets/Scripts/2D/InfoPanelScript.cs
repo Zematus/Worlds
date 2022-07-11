@@ -1139,7 +1139,7 @@ public class InfoPanelScript : MonoBehaviour
 
         foreach (CulturalKnowledge knowledge in polityProminence.Polity.Culture.GetKnowledges())
         {
-            float knowledgeValue = knowledge.ScaledValue;
+            float knowledgeValue = knowledge.Value;
 
             if (firstKnowledge)
             {
@@ -1148,7 +1148,7 @@ public class InfoPanelScript : MonoBehaviour
                 firstKnowledge = false;
             }
 
-            InfoText.text += "\n\t" + knowledge.Name + " Value: " + knowledgeValue.ToString("0.000");
+            InfoText.text += $"\n\t {knowledge.Name} Value: {knowledgeValue:0.000}";
         }
     }
 
@@ -1178,7 +1178,7 @@ public class InfoPanelScript : MonoBehaviour
 
         foreach (CulturalKnowledge knowledge in cell.Group.Culture.GetKnowledges())
         {
-            float knowledgeValue = knowledge.ScaledValue;
+            float knowledgeValue = knowledge.Value;
 
             if (firstKnowledge)
             {
@@ -1187,7 +1187,7 @@ public class InfoPanelScript : MonoBehaviour
                 firstKnowledge = false;
             }
 
-            InfoText.text += "\n\t" + knowledge.Name + " Value: " + knowledgeValue.ToString("0.000");
+            InfoText.text += $"\n\t {knowledge.Name} Value: {knowledgeValue:0.000}";
         }
     }
 
