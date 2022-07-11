@@ -2012,14 +2012,12 @@ public class World : ISynchronizable, IWorldDateGetter
 
                 string callingClass = method.DeclaringType.ToString();
 
-                faction.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int knowledgeValue);
+                faction.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out float knowledgeValue);
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "World:AddFactionToUpdate - Faction Id:" + faction.Id,
-                    "CurrentDate: " + CurrentDate +
-                    ", Social organization knowledge value: " + knowledgeValue +
-                    ", Calling method: " + callingClass + "." + callingMethod +
-                    "", CurrentDate);
+                    $"World:AddFactionToUpdate - Faction Id: {faction.Id}",
+                    $"CurrentDate: {CurrentDate}, Social organization knowledge value: {knowledgeValue}" +
+                    $", Calling method: {callingClass}.{callingMethod}", CurrentDate);
 
                 Manager.RegisterDebugEvent("DebugMessage", debugMessage);
             }
@@ -2032,15 +2030,14 @@ public class World : ISynchronizable, IWorldDateGetter
             {
                 System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
                 Debug.LogWarning(
-                    $"Trying to add faction to update after factions have already been updated this iteration. Id: {faction.Id}, stackTrace:\n" + stackTrace);
+                    $"Trying to add faction to update after factions have already been updated this iteration. Id: {faction.Id}, stackTrace:\n{stackTrace}");
             }
             return;
         }
 
         if (!faction.StillPresent)
         {
-            Debug.LogWarning(
-                "Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+            Debug.LogWarning($"Faction to update no longer present. Id: {faction.Id}, Date: {CurrentDate}");
             return;
         }
 

@@ -21,7 +21,7 @@ public class Clan : Faction
     public const int MinClanLeaderStartAge = 16 * World.YearLength;
     public const int MaxClanLeaderStartAge = 50 * World.YearLength;
 
-    public const int MinSocialOrganizationValue = 600;
+    public const float MinSocialOrganizationValue = 6;
 
     public const int MinCorePopulation = 500;
     public const float MinCorePolityProminence = 0.3f;
@@ -193,14 +193,14 @@ public class Clan : Faction
 
     protected override float CalculateAdministrativeLoad()
     {
-        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int socialOrganizationValue);
+        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out float socialOrganizationValue);
 
         if (socialOrganizationValue <= 0)
         {
             return Mathf.Infinity;
         }
 
-        float administrativeLoad = Polity.TotalAdministrativeCost * Influence / (float)socialOrganizationValue;
+        float administrativeLoad = Polity.TotalAdministrativeCost * Influence / socialOrganizationValue;
 
         if (administrativeLoad < 0)
         {

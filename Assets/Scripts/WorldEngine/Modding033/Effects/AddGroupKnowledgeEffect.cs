@@ -12,7 +12,7 @@ public class AddGroupKnowledgeEffect : Effect
         @",\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*$";
 
     public string KnowledgeId;
-    public int LimitLevel;
+    public float LimitLevel;
 
     public AddGroupKnowledgeEffect(Match match, string id) :
         base(id)
@@ -24,15 +24,15 @@ public class AddGroupKnowledgeEffect : Effect
 
         if (!MathUtility.TryParseCultureInvariant(valueStr, out value))
         {
-            throw new System.ArgumentException("AddGroupKnowledgeEffect: Level limit can't be parsed into a valid floating point number: " + valueStr);
+            throw new System.ArgumentException($"AddGroupKnowledgeEffect: Level limit can't be parsed into a valid floating point number: {valueStr}");
         }
 
         if (!value.IsInsideRange(1, 10000))
         {
-            throw new System.ArgumentException("AddGroupKnowledgeEffect: Level limit is outside the range of 1 and 10000: " + valueStr);
+            throw new System.ArgumentException($"AddGroupKnowledgeEffect: Level limit is outside the range of 1 and 10000: {valueStr}");
         }
 
-        LimitLevel = (int)(value / MathUtility.IntToFloatScalingFactor);
+        LimitLevel = value;
     }
 
     public override void Apply(CellGroup group)
@@ -40,14 +40,7 @@ public class AddGroupKnowledgeEffect : Effect
         group.Culture.AddKnowledgeToLearn(KnowledgeId, _initialValue, LimitLevel);
     }
 
-    public override string ToString()
-    {
-        return "'Add Group Knowledge' Effect, Knowledge Id: " + KnowledgeId + 
-            ", Level Limit: " + (LimitLevel * MathUtility.IntToFloatScalingFactor);
-    }
+    public override string ToString() => $"'Add Group Knowledge' Effect, Knowledge Id: {KnowledgeId}, Level Limit: {LimitLevel}";
 
-    public override bool IsDeferred()
-    {
-        return false;
-    }
+    public override bool IsDeferred() => false;
 }

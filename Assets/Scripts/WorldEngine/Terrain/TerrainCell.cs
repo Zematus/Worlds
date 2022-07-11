@@ -352,7 +352,7 @@ public class TerrainCell
     /// <returns>the farming capacity</returns>
     private float CalculateFarmingCapacity(Culture culture)
     {
-        if (!culture.TryGetKnowledgeScaledValue(AgricultureKnowledge.KnowledgeId, out float value))
+        if (!culture.TryGetKnowledgeValue(AgricultureKnowledge.KnowledgeId, out float value))
         {
             return 0;
         }
@@ -373,7 +373,7 @@ public class TerrainCell
     {
         float noTechBaseValue = 0.5f;
 
-        culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out float value);
+        culture.TryGetKnowledgeValue(ShipbuildingKnowledge.KnowledgeId, out float value);
 
         float techFactor = (0.5f * value) + noTechBaseValue;
 

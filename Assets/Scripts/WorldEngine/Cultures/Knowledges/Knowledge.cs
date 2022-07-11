@@ -12,6 +12,8 @@ public class Knowledge : CellCulturalKnowledge
 
     public List<ICellGroupEventGenerator> OnUpdateEventGenerators;
 
+    public float HighestLimit = 0;
+
     public static void ResetKnowledges()
     {
         Knowledges = new Dictionary<string, Knowledge>();

@@ -193,8 +193,8 @@ public class FactionCulture : Culture
             if (newValue != knowledge.Value)
             {
                 knowledge.Value = newValue;
-                Faction.GenerateKnowledgeLevelFallsBelowEvents(k.Id, knowledge.Value * MathUtility.IntToFloatScalingFactor);
-                Faction.GenerateKnowledgeLevelRaisesAboveEvents(k.Id, knowledge.Value * MathUtility.IntToFloatScalingFactor);
+                Faction.GenerateKnowledgeLevelFallsBelowEvents(k.Id, knowledge.Value);
+                Faction.GenerateKnowledgeLevelRaisesAboveEvents(k.Id, knowledge.Value);
             }
         }
 
@@ -207,8 +207,8 @@ public class FactionCulture : Culture
                 if (newValue != k.Value)
                 {
                     k.Value = newValue;
-                    Faction.GenerateKnowledgeLevelFallsBelowEvents(k.Id, k.Value * MathUtility.IntToFloatScalingFactor);
-                    Faction.GenerateKnowledgeLevelRaisesAboveEvents(k.Id, k.Value * MathUtility.IntToFloatScalingFactor);
+                    Faction.GenerateKnowledgeLevelFallsBelowEvents(k.Id, k.Value);
+                    Faction.GenerateKnowledgeLevelRaisesAboveEvents(k.Id, k.Value);
                 }
             }
         }

@@ -36,9 +36,9 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         return true;
     }
 
-    public bool TestOnKnowledgeLevelFallsBelow(string knowledge, Faction faction, float scaledValue)
+    public bool TestOnKnowledgeLevelFallsBelow(string knowledge, Faction faction, float value)
     {
-        if (scaledValue >= _onKnowledgeLevelFallsBelow_parameterValues[knowledge])
+        if (value >= _onKnowledgeLevelFallsBelow_parameterValues[knowledge])
         {
             _onKnowledgeLevelFallsBelow_factionsToTest[knowledge].Add(faction);
             return false;
@@ -53,9 +53,9 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         return true;
     }
 
-    public bool TestOnKnowledgeLevelRaisesAbove(string knowledge, Faction faction, float scaledValue)
+    public bool TestOnKnowledgeLevelRaisesAbove(string knowledge, Faction faction, float value)
     {
-        if (scaledValue <= _onKnowledgeLevelRaisesAbove_parameterValues[knowledge])
+        if (value <= _onKnowledgeLevelRaisesAbove_parameterValues[knowledge])
         {
             _onKnowledgeLevelRaisesAbove_factionsToTest[knowledge].Add(faction);
             return false;

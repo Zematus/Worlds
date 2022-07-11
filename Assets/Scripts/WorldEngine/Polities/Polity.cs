@@ -1383,9 +1383,9 @@ public abstract class Polity : ISynchronizable
         randomModifier *= distanceFactor;
         float targetValue = ((maxTargetValue - minTargetValue) * randomModifier) + minTargetValue;
 
-        float scaledValue =
+        float value =
             (targetValue - totalPolityProminenceValue) * prominenceValue / totalPolityProminenceValue;
-        targetValue = prominenceValue + scaledValue;
+        targetValue = prominenceValue + value;
 
         float timeFactor = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
@@ -1758,7 +1758,7 @@ public abstract class Polity : ISynchronizable
 
     public float CalculateAdministrativeLoad()
     {
-        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int socialOrganizationValue);
+        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out float socialOrganizationValue);
 
         if (socialOrganizationValue <= 0)
         {

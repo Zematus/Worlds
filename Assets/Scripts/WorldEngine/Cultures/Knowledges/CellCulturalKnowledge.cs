@@ -1,9 +1,6 @@
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
-using UnityEngine.Profiling;
 
 public abstract class CellCulturalKnowledge : CulturalKnowledge
 {
@@ -17,15 +14,18 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     [XmlAttribute("RO")]
     public int InstanceRngOffset;
 
-    [XmlAttribute("L")]
-    public int Limit = -1;
-
     [XmlIgnore]
     public CellGroup Group;
 
-    protected int _newValue;
+    [XmlIgnore]
+    public float ProgressLevel => (Limit.Value > 0) ? Mathf.Clamp01(Value / Limit.Value) : 0;
+
+    protected float _newValue;
 
     private Knowledge _referenceKnowledge; // TODO: remove when 'Knowledge' replaces 'CellCulturalKnowledge' (requires Knowledge modding)
+
+    [XmlIgnore]
+    public KnowledgeLimit Limit;
 
     public CellCulturalKnowledge()
     {
@@ -37,14 +37,15 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         string id,
         string name,
         int typeRngOffset,
-        int value,
-        int limit) :
+        float value,
+        KnowledgeLimit limit) :
         base(id, name, value)
     {
         Group = group;
         InstanceRngOffset = typeRngOffset;
 
         _newValue = value;
+        Limit = limit;
 
         _referenceKnowledge = Knowledge.GetKnowledge(id);
 
@@ -70,115 +71,57 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 //            }
 //        }
 //#endif
-
-        SetLimit(limit);
     }
 
-    public void SetLevelLimit(int levelLimit)
+    public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, float initialValue, KnowledgeLimit limit, float initialLimit = -1)
     {
-        if (levelLimit > Limit)
-        {
-            SetLimit(levelLimit);
-        }
-    }
+        limit.SetValue(GetInitialLimit(id, initialLimit));
 
-    public void SetLimit(int limit)
-    {
-        if (!limit.IsInsideRange(MinLimitValue, MaxLimitValue))
-        {
-            string message =
-                $"CulturalKnowledge: Limit can't be set below {ScaledMinLimitValue} or above {ScaledMaxLimitValue}" +
-                $", id: {Id}, limit: {limit * MathUtility.IntToFloatScalingFactor}";
-            Debug.LogWarning(message);
-
-            limit = Mathf.Clamp(limit, MinLimitValue, MaxLimitValue);
-        }
-
-        Limit = limit;
-
-        UpdateProgressLevel();
-
-        SetHighestLimit(limit);
-    }
-
-    public float ScaledLimit
-    {
-        get => Limit * MathUtility.IntToFloatScalingFactor;
-        set => SetLimit((int)(value * MathUtility.FloatToIntScalingFactor));
-    }
-
-    public void UpdateProgressLevel()
-    {
-        ProgressLevel = 0;
-
-        if (Limit > 0)
-            ProgressLevel = MathUtility.RoundToSixDecimals(Mathf.Clamp01(Value / (float)Limit));
-
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Group.Id == Manager.TracingData.GroupId)
-        //            {
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "CellCulturalKnowledge.UpdateProgressLevel - Knowledge.Id:" + Id + ", Group.Id:" + Group.Id,
-        //                    "CurrentDate: " + Group.World.CurrentDate +
-        //                    ", ProgressLevel: " + ProgressLevel +
-        //                    ", Value: " + Value +
-        //                    ", Limit: " + Limit +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
-    }
-
-    public void ModifyLevelLimit(int levelLimitDelta)
-    {
-        if (Limit == -1)
-        {
-            throw new System.Exception("CellCulturalKnowledge - ModifyLevelLimit: Limit is unset");
-        }
-
-        SetLimit(Limit + levelLimitDelta);
-    }
-
-    public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, int initialValue, int initialLimit = -1)
-    {
         switch (id)
         {
             case ShipbuildingKnowledge.KnowledgeId:
-
-                if (initialLimit == -1)
-                    initialLimit = ShipbuildingKnowledge.BaseLimit;
-
-                return new ShipbuildingKnowledge(group, initialValue, initialLimit);
+                return new ShipbuildingKnowledge(group, initialValue, limit);
 
             case AgricultureKnowledge.KnowledgeId:
-
-                if (initialLimit == -1)
-                    initialLimit = AgricultureKnowledge.BaseLimit;
-
-                return new AgricultureKnowledge(group, initialValue, initialLimit);
+                return new AgricultureKnowledge(group, initialValue, limit);
 
             case SocialOrganizationKnowledge.KnowledgeId:
-
-                if (initialLimit == -1)
-                    initialLimit = SocialOrganizationKnowledge.BaseLimit;
-
-                return new SocialOrganizationKnowledge(group, initialValue, initialLimit);
+                return new SocialOrganizationKnowledge(group, initialValue, limit);
         }
 
         throw new System.Exception("Unexpected CulturalKnowledge type: " + id);
     }
 
-    public void Merge(int value, float percentage)
+    public static float GetInitialLimit(string id, float initialLimit = -1)
+    {
+        switch (id)
+        {
+            case ShipbuildingKnowledge.KnowledgeId:
+                if (initialLimit == -1)
+                    initialLimit = ShipbuildingKnowledge.BaseLimit;
+                break;
+
+            case AgricultureKnowledge.KnowledgeId:
+                if (initialLimit == -1)
+                    initialLimit = AgricultureKnowledge.BaseLimit;
+                break;
+
+            case SocialOrganizationKnowledge.KnowledgeId:
+                if (initialLimit == -1)
+                    initialLimit = SocialOrganizationKnowledge.BaseLimit;
+                break;
+
+            default:
+                throw new System.Exception("Unexpected CulturalKnowledge type: " + id);
+        }
+
+        return initialLimit;
+    }
+
+    public void Merge(float value, float percentage)
     {
         // _newvalue should have been set correctly either by the constructor or by the Update function
-        int mergedValue = MathUtility.LerpToIntAndGetDecimals(_newValue, value, percentage, out float d);
-
-        if (d > Group.GetNextLocalRandomFloat(RngOffsets.KNOWLEDGE_MERGE + InstanceRngOffset))
-            mergedValue++;
+        float mergedValue = Mathf.Lerp(_newValue, value, percentage);
 
 #if DEBUG
         if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (mergedValue < SocialOrganizationKnowledge.MinValueForTribeFormation))
@@ -214,9 +157,9 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         float randomFactor = specificModifier - randomModifier;
         randomFactor = Mathf.Clamp(randomFactor, -1, 1);
 
-        int maxTargetValue = Limit;
-        int minTargetValue = 0;
-        int targetValue = 0;
+        float maxTargetValue = Limit.Value;
+        float minTargetValue = 0;
+        float targetValue = 0;
 
         if (randomFactor > 0)
         {
@@ -229,21 +172,17 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         float timeEffect = timeSpan / (timeSpan + timeEffectFactor);
 
-        float d;
-        int newValue = MathUtility.LerpToIntAndGetDecimals(Value, targetValue, timeEffect, out d);
-
-        if (d > Group.GetNextLocalRandomFloat(rngOffset++))
-            newValue++;
+        float newValue = Mathf.Lerp(Value, targetValue, timeEffect);
 
 #if DEBUG
-        if ((Limit > 1) && (newValue > Limit) && (newValue > Value))
+        if ((Limit.Value > 1) && (newValue > Limit.Value) && (newValue > Value))
         {
-            throw new System.Exception("UpdateValueInternal: new value " + newValue + " above Level Limit " + Limit);
+            throw new System.Exception($"UpdateValueInternal: new value {newValue} above level limit {Limit.Value}");
         }
 
-        if (newValue > 1000000)
+        if (newValue > KnowledgeLimit.MaxLimitValue)
         {
-            throw new System.Exception("UpdateValueInternal: new value " + newValue + " above 1000000");
+            throw new System.Exception($"UpdateValueInternal: new value {newValue} above {KnowledgeLimit.MaxLimitValue}");
         }
 
         if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (newValue < SocialOrganizationKnowledge.MinValueForTribeFormation))
@@ -299,7 +238,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         int rngOffset = RngOffsets.KNOWLEDGE_POLITY_PROMINENCE + InstanceRngOffset +
             unchecked(polityProminence.Polity.GetHashCode());
 
-        int targetValue = polityKnowledge.Value;
+        float targetValue = polityKnowledge.Value;
         float prominenceEffect = polityProminence.Value;
 
         TerrainCell groupCell = Group.Cell;
@@ -308,14 +247,10 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
 
-        int valueDelta = targetValue - _newValue;
+        float valueDelta = targetValue - _newValue;
 
-        float d;
         // _newvalue should have been set correctly either by the constructor or by the Update function
-        int valueChange = (int)MathUtility.MultiplyAndGetDecimals(valueDelta, prominenceEffect * timeEffect * randomEffect, out d);
-
-        if (d > Group.GetNextLocalRandomFloat(rngOffset++))
-            valueChange++;
+        float valueChange = valueDelta * prominenceEffect * timeEffect * randomEffect;
 
         //#if DEBUG
         //        if (Manager.RegisterDebugEvent != null)
@@ -359,7 +294,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         //        }
         //#endif
 
-        _newValue = _newValue + valueChange;
+        _newValue += valueChange;
     }
 
     public void PostUpdate()
@@ -368,10 +303,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         {
             Value = _newValue;
 
-            UpdateProgressLevel();
-
-            Group.GenerateKnowledgeLevelFallsBelowEvents(Id, ScaledValue);
-            Group.GenerateKnowledgeLevelRaisesAboveEvents(Id, ScaledValue);
+            Group.GenerateKnowledgeLevelFallsBelowEvents(Id, Value);
+            Group.GenerateKnowledgeLevelRaisesAboveEvents(Id, Value);
         }
     }
 

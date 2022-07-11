@@ -4592,9 +4592,9 @@ public class Manager
         if (cell.Group != null)
         {
             if ((cell.Group.Population > 0) &&
-                cell.Group.Culture.GetKnowledge(_planetOverlaySubtype) is CellCulturalKnowledge knowledge)
+                Knowledge.GetKnowledge(_planetOverlaySubtype) is var knowledge)
             {
-                float highestLimit = knowledge.GetHighestLimit();
+                float highestLimit = knowledge.HighestLimit;
 
                 if (highestLimit <= 0)
                     throw new System.Exception("Highest Limit is less or equal to 0");
@@ -4636,10 +4636,10 @@ public class Manager
         if (knowledge == null)
             return GetUnincorporatedGroupColor();
 
-        if (!(territory.Polity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) is CellCulturalKnowledge cellKnowledge))
+        if (!(Knowledge.GetKnowledge(_planetOverlaySubtype) is var cellKnowledge))
             return GetUnincorporatedGroupColor();
 
-        float highestLimit = cellKnowledge.GetHighestLimit();
+        float highestLimit = cellKnowledge.HighestLimit;
 
         if (highestLimit <= 0)
             throw new System.Exception("Highest Limit is less or equal to 0");
@@ -4862,10 +4862,10 @@ public class Manager
             {
                 if (cell.Group.Culture == null)
                 {
-                    throw new System.NullReferenceException("group " + cell.Position + " culture not initialized...");
+                    throw new System.NullReferenceException($"Group {cell.Position} culture not initialized...");
                 }
 
-                if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int knowledgeValue))
+                if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out var knowledgeValue))
                 {
                     float minValue = SocialOrganizationKnowledge.MinValueForTribeFormation;
                     float startValue = SocialOrganizationKnowledge.InitialValue;

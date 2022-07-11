@@ -44,7 +44,7 @@ public class CellKnowledgeEntity : KnowledgeEntity
             return 0;
         }
 
-        return CellKnowledge.ScaledLimit;
+        return CellKnowledge.Limit.Value;
     }
 
     private void SetLimit(float value)
@@ -54,7 +54,7 @@ public class CellKnowledgeEntity : KnowledgeEntity
             return;
         }
 
-        CellKnowledge.ScaledLimit = value;
+        CellKnowledge.Limit.SetValue(value);
         CellKnowledge.Group.SetToUpdate(warnIfUnexpected: false);
     }
 }
