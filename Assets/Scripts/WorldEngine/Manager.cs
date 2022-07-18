@@ -4594,12 +4594,14 @@ public class Manager
             if ((cell.Group.Population > 0) &&
                 Knowledge.GetKnowledge(_planetOverlaySubtype) is var knowledge)
             {
-                float highestLimit = knowledge.HighestLimit;
+                float highestLimitValue = knowledge.HighestLimitValue;
 
-                if (highestLimit <= 0)
-                    throw new System.Exception("Highest Limit is less or equal to 0");
+                if (highestLimitValue <= 0)
+                    throw new System.Exception("Highest limit value is less or equal to 0");
 
-                float normalizedValue = knowledge.Value / highestLimit;
+                var value = cell.Group.Culture.GetKnowledgeValue(_planetOverlaySubtype);
+
+                float normalizedValue = value / highestLimitValue;
 
                 if (normalizedValue >= 0.001f)
                 {
@@ -4631,20 +4633,20 @@ public class Manager
             return GetUnincorporatedGroupColor();
         }
 
-        CulturalKnowledge knowledge = territory.Polity.Culture.GetKnowledge(_planetOverlaySubtype);
+        var tKnowledge = territory.Polity.Culture.GetKnowledge(_planetOverlaySubtype);
 
-        if (knowledge == null)
+        if (tKnowledge == null)
             return GetUnincorporatedGroupColor();
 
-        if (!(Knowledge.GetKnowledge(_planetOverlaySubtype) is var cellKnowledge))
+        if (!(Knowledge.GetKnowledge(_planetOverlaySubtype) is var knowledge))
             return GetUnincorporatedGroupColor();
 
-        float highestLimit = cellKnowledge.HighestLimit;
+        float highestLimitValue = knowledge.HighestLimitValue;
 
-        if (highestLimit <= 0)
-            throw new System.Exception("Highest Limit is less or equal to 0");
+        if (highestLimitValue <= 0)
+            throw new System.Exception("Highest limit value is less or equal to 0");
 
-        float normalizedValue = knowledge.Value / highestLimit;
+        float normalizedValue = tKnowledge.Value / highestLimitValue;
         color = GetPolityCulturalAttributeOverlayColor(normalizedValue, IsTerritoryBorder(territory, cell));
 
         return color;

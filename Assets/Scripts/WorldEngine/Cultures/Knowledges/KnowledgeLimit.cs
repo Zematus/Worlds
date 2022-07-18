@@ -64,7 +64,10 @@ public class KnowledgeLimit : ISynchronizable
             throw new System.Exception(message);
         }
 
-        knowledge.HighestLimit = value;
+        if (knowledge.HighestLimitValue < value)
+        {
+            knowledge.HighestLimitValue = value;
+        }
     }
 
     public void Synchronize()

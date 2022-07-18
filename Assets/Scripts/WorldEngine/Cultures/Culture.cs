@@ -346,6 +346,14 @@ public abstract class Culture : ISynchronizable
         return knowledge;
     }
 
+    public float GetKnowledgeValue(string id)
+    {
+        if (!_knowledges.TryGetValue(id, out CulturalKnowledge knowledge))
+            return 0;
+
+        return knowledge.Value;
+    }
+
     public bool TryGetKnowledgeValue(string id, out float value)
     {
         value = 0;
