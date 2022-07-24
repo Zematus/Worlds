@@ -18,7 +18,6 @@ public class KnowledgeLimit : ISynchronizable
 
     public KnowledgeLimit()
     {
-        SetHighestValue(Value);
     }
 
     public KnowledgeLimit(
@@ -76,5 +75,6 @@ public class KnowledgeLimit : ISynchronizable
 
     public void FinalizeLoad()
     {
+        SetHighestValue(Value);
     }
 }
