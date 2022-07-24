@@ -466,7 +466,7 @@ public abstract class Culture : ISynchronizable
         LoadKnowledges();
     }
 
-    public void FinalizePropertiesLoad()
+    public virtual void FinalizePropertiesLoad()
     {
         foreach (CulturalPreference p in Preferences)
         {

@@ -7,6 +7,8 @@ using UnityEngine.Profiling;
 
 public class CellCulture : Culture
 {
+    public List<KnowledgeLimit> KnowledgeLimits = null;
+
     [XmlIgnore]
     public CellGroup Group;
 
@@ -834,22 +836,46 @@ public class CellCulture : Culture
 
     public override void Synchronize()
     {
-        foreach (CellCulturalSkill s in _skills.Values)
+        foreach (var s in _skills.Values)
         {
             s.Synchronize();
         }
 
-        foreach (CellCulturalKnowledge k in _knowledges.Values)
+        foreach (var k in _knowledges.Values)
         {
             k.Synchronize();
         }
 
+        foreach (var l in _knowledgeLimits.Values)
+        {
+            l.Synchronize();
+        }
+
+        KnowledgeLimits = new List<KnowledgeLimit>(_knowledgeLimits.Values);
+
+        _knowledgeLimits.Clear();
+
+        LoadKnowledgeLimits();
+
         base.Synchronize();
+    }
+
+    public void LoadKnowledgeLimits()
+    {
+        foreach (KnowledgeLimit limit in KnowledgeLimits)
+        {
+            if (_knowledgeLimits.ContainsKey(limit.Id))
+                continue;
+
+            _knowledgeLimits.Add(limit.Id, limit);
+        }
     }
 
     public override void PrefinalizePropertiesLoad()
     {
         base.PrefinalizePropertiesLoad();
+
+        LoadKnowledgeLimits();
 
         foreach (CellCulturalPreference p in _preferences.Values)
         {
@@ -866,9 +892,25 @@ public class CellCulture : Culture
             s.Group = Group;
         }
 
+        foreach (KnowledgeLimit l in _knowledgeLimits.Values)
+        {
+            l.Group = Group;
+        }
+
         foreach (CellCulturalKnowledge k in _knowledges.Values)
         {
             k.Group = Group;
+            k.Limit = GetKnowledgeLimit(k.Id);
+        }
+    }
+
+    public override void FinalizePropertiesLoad()
+    {
+        base.FinalizePropertiesLoad();
+
+        foreach (KnowledgeLimit l in KnowledgeLimits)
+        {
+            l.FinalizeLoad();
         }
     }
 
