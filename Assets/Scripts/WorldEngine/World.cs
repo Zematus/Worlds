@@ -2506,7 +2506,7 @@ public class World : ISynchronizable, IWorldDateGetter
         {
             IDiscovery discovery = null;
 
-            discovery = Discovery033.GetDiscovery(id);
+            discovery = GetDiscovery(id);
 
             if (discovery == null)
             {
@@ -2515,6 +2515,21 @@ public class World : ISynchronizable, IWorldDateGetter
 
             ExistingDiscoveries.Add(id, discovery);
         }
+    }
+
+    public static IDiscovery GetDiscovery(string id)
+    {
+        if (Discovery.Discoveries.TryGetValue(id, out Discovery d))
+        {
+            return d;
+        }
+
+        if (Discovery033.Discoveries.TryGetValue(id, out Discovery033 d33))
+        {
+            return d33;
+        }
+
+        return null;
     }
 
     public void FinalizeLoad()

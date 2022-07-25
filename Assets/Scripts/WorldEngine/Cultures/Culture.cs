@@ -492,7 +492,7 @@ public abstract class Culture : ISynchronizable
         {
             IDiscovery discovery = null;
 
-            discovery = Discovery033.GetDiscovery(discoveryId);
+            discovery = World.GetDiscovery(discoveryId);
 
             Discoveries.Add(discoveryId, discovery);
         }

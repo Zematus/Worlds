@@ -108,6 +108,11 @@ public class Discovery033 : IDiscovery, ICellGroupEventGenerator
     {
         foreach (Discovery033 discovery in DiscoveryLoader033.Load(filename))
         {
+            if (Discovery.Discoveries.ContainsKey(discovery.Id))
+            {
+                Debug.LogWarning($"A discovery with the same Id from a 0.3.4 mod has already been loaded. Will ignore this one during gameplay");
+            }
+
             if (Discoveries.ContainsKey(discovery.Id))
             {
                 Discoveries[discovery.Id] = discovery;
@@ -125,18 +130,6 @@ public class Discovery033 : IDiscovery, ICellGroupEventGenerator
         {
             discovery.Initialize();
         }
-    }
-
-    public static Discovery033 GetDiscovery(string id)
-    {
-        Discovery033 d;
-
-        if (!Discoveries.TryGetValue(id, out d))
-        {
-            return null;
-        }
-
-        return d;
     }
 
     public void Initialize()

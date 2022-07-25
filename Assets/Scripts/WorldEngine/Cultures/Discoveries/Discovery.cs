@@ -29,6 +29,11 @@ public class Discovery : Context, IDiscovery, IEffectTrigger
     {
         foreach (Discovery discovery in DiscoveryLoader.Load(filename))
         {
+            if (Discovery033.Discoveries.ContainsKey(discovery.Id))
+            {
+                Debug.LogWarning($"A discovery with the same Id from a 0.3.3 mod has already been loaded. Will ignore that one during gameplay");
+            }
+
             if (Discoveries.ContainsKey(discovery.Id))
             {
                 Discoveries[discovery.Id] = discovery;
