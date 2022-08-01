@@ -146,7 +146,8 @@
         "target.guide == simulation",
         "target == target.polity.dominant_faction",
         "target.polity.type == tribe",
-        "contacts.count > 0"
+        "contacts.count > 0",
+        "near_factions.count > 0"
       ],
       "triggerConditions": [
         "chance_of_making_attempt > 0"
@@ -176,7 +177,8 @@
         "target.guide == simulation",
         "target == target.polity.dominant_faction",
         "target.polity.type == tribe",
-        "contacts.count > 0"
+        "contacts.count > 0",
+        "near_factions.count > 0"
       ],
       "triggerConditions": [
         "chance_of_making_attempt > 0"
