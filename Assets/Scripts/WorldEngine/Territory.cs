@@ -679,17 +679,17 @@ public class Territory : ISynchronizable, ICellSet
 
     private bool TryAddCell(TerrainCell cell)
     {
-        if (!AddCellInternal(cell))
-        {
-            // the cell has already been added, there's nothing else that needs to be done
-            return true;
-        }
-
         Region region = cell.GetRegion(Polity.Culture.Language);
 
         if (region == null)
         {
             return false;
+        }
+
+        if (!AddCellInternal(cell))
+        {
+            // the cell has already been added, there's nothing else that needs to be done
+            return true;
         }
 
         cell.EncompassingTerritory = this;
@@ -753,6 +753,11 @@ public class Territory : ISynchronizable, ICellSet
                 _innerBorderCells.Add(nCell);
                 Manager.AddUpdatedCell(nCell, CellUpdateType.Territory, CellUpdateSubType.Membership);
             }
+        }
+
+        if (cell.Region == null)
+        {
+            throw new System.Exception($"Territory: cell region is null. cell: {cell.Position}");
         }
 
         DecreaseAccessToRegion(cell.Region);
