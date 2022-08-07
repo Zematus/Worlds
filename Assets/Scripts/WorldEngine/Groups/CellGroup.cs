@@ -2179,7 +2179,10 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float prominenceValue = GetPolityProminenceValue(migratingPolity);
 
         if (prominenceValue <= 0)
+        {
+            Profiler.EndSample(); // ("CalculateMigrationPressure");
             return 0;
+        }
 
         float prominenceFactor = Mathf.Clamp01(20f * prominenceValue);
 

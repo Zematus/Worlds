@@ -713,7 +713,7 @@ public class GuiManagerScript : MonoBehaviour
 
                     dateSpan += world.Update();
 
-                    Profiler.EndSample();
+                    Profiler.EndSample(); // World Update
 
 #if DEBUG
                     if (Manager.Debug_PauseSimRequested)
@@ -735,7 +735,7 @@ public class GuiManagerScript : MonoBehaviour
                 ShowEventMessage(Manager.CurrentWorld.GetNextMessageToShow());
             }
 
-            Profiler.EndSample();
+            Profiler.EndSample(); // Perform Simulation
 
             if (MustSave)
             {
@@ -789,20 +789,20 @@ public class GuiManagerScript : MonoBehaviour
                 OverlaySubtypeChanged.Invoke();
             }
 
-            Profiler.EndSample();
+            Profiler.EndSample(); // Manager.Set*
 
             Profiler.BeginSample("Manager.GenerateTextures");
 
             Manager.GenerateTextures(_regenMapTexture, _regenMapOverlayTexture);
 
-            Profiler.EndSample();
+            Profiler.EndSample(); // Manager.GenerateTextures
 
             Profiler.BeginSample("Manager.RefreshTexture");
 
             MapScript.RefreshTexture();
             PlanetScript.RefreshTexture();
 
-            Profiler.EndSample();
+            Profiler.EndSample(); // Manager.RefreshTexture
 
             if (Manager.CurrentDevMode != DevMode.None)
             {
@@ -813,7 +813,7 @@ public class GuiManagerScript : MonoBehaviour
             _regenMapTexture = false;
             _regenMapOverlayTexture = false;
 
-            Profiler.EndSample();
+            Profiler.EndSample(); // Regen Textures
         }
         else
         {
@@ -827,7 +827,7 @@ public class GuiManagerScript : MonoBehaviour
                 _mapUpdateCount++;
             }
 
-            Profiler.EndSample();
+            Profiler.EndSample(); // Update Textures
         }
 
         InfoPanelScript.UpdateInfoPanel();
