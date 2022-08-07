@@ -1460,8 +1460,6 @@ public class World : ISynchronizable, IWorldDateGetter
         Profiler.EndSample();// ("Event CanTrigger");
 #endif
 
-        Profiler.EndSample();// ("Destroy Event");
-
         IncreaseEvaluatedEventCount(eventToHappen);
 
         Profiler.EndSample();// ("Evaluate Events");
@@ -1487,8 +1485,8 @@ public class World : ISynchronizable, IWorldDateGetter
             IncreaseTriggeredEventCount(eventToHappen);
 
 #if DEBUG
-            Profiler.EndSample();// ("Event Trigger");
             Profiler.EndSample();// ($"Event Trigger - {eventTypeName}");
+            Profiler.EndSample();// ("Event Trigger");
 #endif
         }
 
@@ -1497,6 +1495,8 @@ public class World : ISynchronizable, IWorldDateGetter
         Profiler.BeginSample("Destroy Event");
 
         eventToHappen.Destroy();
+
+        Profiler.EndSample();// ("Destroy Event");
     }
 
     public long Update()
