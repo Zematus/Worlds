@@ -3,19 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class GroupEntity : DelayedSetEntity<CellGroup>
+public class GroupEntity : CulturalEntity<CellGroup>
 {
     public const string CellAttributeId = "cell";
     public const string ProminenceValueAttributeId = "prominence_value";
-    public const string FactionCoresCountAttributeId = "faction_cores_count";
-    public const string HasFactionAttributeId = "has_faction";
-    public const string GetFactionAttributeId = "get_faction";
-    public const string GetFactionCoreDistanceAttributeId = "get_faction_core_distance";
-    public const string PreferencesAttributeId = "preferences";
-    public const string KnowledgesAttributeId = "knowledges";
-    public const string PolityWithHighestProminenceValueAttributeId = "polity_with_highest_prominence_value";
-    public const string GetRandomPolityAttributeId = "get_random_polity";
-    public const string HasPolityOfTypeAttributeId = "has_polity_of_type";
+    public const string GetCoreDistanceAttributeId = "get_core_distance";
+    public const string MostProminentPolityAttributeId = "most_prominent_polity";
+    public const string PresentPolitiesAttributeId = "present_polities";
+    public const string ClosestFactionsAttributeId = "closest_factions";
+    public const string NavigationRangeAttributeId = "navigation_range";
+    public const string ArabilityModifierAttributeId = "arability_modifier";
+    public const string AccessibilityModifierAttributeId = "accessibility_modifier";
+    public const string PropertiesAttributeId = "properties";
+    public const string PopulationAttributeId = "population";
 
     public virtual CellGroup Group
     {
@@ -23,21 +23,18 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
         private set => Setable = value;
     }
 
-    private ValueGetterEntityAttribute<float> _factionCoresCountAttribute;
+    private ValueGetterSetterEntityAttribute<float> _navigationRangeAttribute;
+    private ValueGetterSetterEntityAttribute<float> _arabilityModifierAttribute;
+    private ValueGetterSetterEntityAttribute<float> _accessibilityModifierAttribute;
+    private ValueGetterEntityAttribute<float> _populationAttribute;
 
     private CellEntity _cellEntity = null;
-    private PolityEntity _polityWithHighestProminenceEntity = null;
+    private PolityEntity _mostProminentPolityEntity = null;
+    private PolityCollectionEntity _presentPolitiesEntity = null;
+    private FactionCollectionEntity _closestFactionsEntity = null;
+    private ModifiableGroupPropertyContainerEntity _propertiesEntity = null;
 
-    private AssignableCulturalPreferencesEntity _preferencesEntity = null;
-    private CulturalKnowledgesEntity _knowledgesEntity = null;
-
-    private int _polityIndex = 0;
-    private int _factionIndex = 0;
-
-    private readonly List<PolityEntity>
-        _polityEntitiesToSet = new List<PolityEntity>();
-    private readonly List<FactionEntity>
-        _factionEntitiesToSet = new List<FactionEntity>();
+    protected override object _reference => Group;
 
     public GroupEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
@@ -67,165 +64,103 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
         return _cellEntity.GetThisEntityAttribute();
     }
 
-    public EntityAttribute GetPolityWithHighestProminenceValueAttribute()
+    public EntityAttribute GetMostProminentPolityAttribute()
     {
-        _polityWithHighestProminenceEntity =
-            _polityWithHighestProminenceEntity ?? new PolityEntity(
-                GetPolityWithHighestProminenceValue,
+        _mostProminentPolityEntity =
+            _mostProminentPolityEntity ?? new PolityEntity(
+                GetMostProminentPolity,
                 Context,
-                BuildAttributeId(PolityWithHighestProminenceValueAttributeId),
+                BuildAttributeId(MostProminentPolityAttributeId),
                 this);
 
-        return _polityWithHighestProminenceEntity.GetThisEntityAttribute();
+        return _mostProminentPolityEntity.GetThisEntityAttribute();
     }
 
-    public EntityAttribute GetPreferencesAttribute()
+    public EntityAttribute GetPresentPolitiesAttribute()
     {
-        _preferencesEntity =
-            _preferencesEntity ?? new AssignableCulturalPreferencesEntity(
-                GetCulture,
+        _presentPolitiesEntity =
+            _presentPolitiesEntity ?? new PolityCollectionEntity(
+                GetPresentPolities,
                 Context,
-                BuildAttributeId(PreferencesAttributeId),
+                BuildAttributeId(PresentPolitiesAttributeId),
                 this);
 
-        return _preferencesEntity.GetThisEntityAttribute();
+        return _presentPolitiesEntity.GetThisEntityAttribute();
     }
 
-    public EntityAttribute GetKnowledgesAttribute()
+    public EntityAttribute GetClosestFactionsAttribute()
     {
-        _knowledgesEntity =
-            _knowledgesEntity ?? new CulturalKnowledgesEntity(
-                GetCulture,
+        _closestFactionsEntity =
+            _closestFactionsEntity ?? new FactionCollectionEntity(
+                GetClosestFactions,
                 Context,
-                BuildAttributeId(KnowledgesAttributeId),
+                BuildAttributeId(ClosestFactionsAttributeId),
                 this);
 
-        return _knowledgesEntity.GetThisEntityAttribute();
+        return _closestFactionsEntity.GetThisEntityAttribute();
     }
 
-    private EntityAttribute GenerateGetRandomPolityEntityAttribute(IExpression[] arguments)
+    private EntityAttribute GetPropertiesAttribute()
     {
-        int index = _polityIndex++;
-        int iterOffset = Context.GetNextIterOffset() + index;
+        _propertiesEntity =
+            _propertiesEntity ?? new ModifiableGroupPropertyContainerEntity(
+                GetGroup,
+                Context,
+                BuildAttributeId(PropertiesAttributeId),
+                this);
 
-        IValueExpression<string> argumentExp = null;
-        if (arguments.Length > 0)
-        {
-            argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
-        }
+        return _propertiesEntity.GetThisEntityAttribute();
+    }
 
-        PolityEntity entity = new PolityEntity(
-            () => {
-                PolityType type = PolityEntity.ConvertToType(argumentExp?.Value);
-
-                int offset = Group.GetHashCode() + iterOffset + Context.GetBaseOffset();
-                return Group.GetRandomPolity(offset, type);
-            },
+    protected override ICulturalActivitiesEntity CreateCulturalActivitiesEntity() =>
+        new ModifiableCellCulturalActivitiesEntity(
+            GetCulture,
             Context,
-            BuildAttributeId($"random_polity_{index}"),
+            BuildAttributeId(ActivitiesAttributeId),
             this);
 
-        _polityEntitiesToSet.Add(entity);
-
-        return entity.GetThisEntityAttribute();
-    }
-
-    private ValueGetterEntityAttribute<bool> GenerateHasPolityOfTypeAttribute(IExpression[] arguments)
-    {
-        IValueExpression<string> argumentExp = null;
-        if (arguments.Length > 0)
-        {
-            argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
-        }
-
-        var attribute =
-            new ValueGetterEntityAttribute<bool>(
-                HasPolityOfTypeAttributeId, 
-                this, 
-                () => {
-                    PolityType type = PolityEntity.ConvertToType(argumentExp?.Value);
-
-                    return Group.HasPolityOfType(type);
-                });
-
-        return attribute;
-    }
-
-    private ValueGetterEntityAttribute<bool> GenerateHasFactionAttribute(IExpression[] arguments)
-    {
-        if (arguments.Length < 1)
-        {
-            throw new System.ArgumentException("get_faction: missing 'polity' argument");
-        }
-
-        var argumentExp =
-            ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
-
-        var attribute =
-            new ValueGetterEntityAttribute<bool>(
-                HasFactionAttributeId,
-                this,
-                () => {
-                    if (argumentExp.Value is PolityEntity pEntity)
-                    {
-                        return Group.GetFaction(pEntity.Polity) != null;
-                    }
-
-                    throw new System.Exception(
-                        $"Input parameter is not of a valid polity entity: {argumentExp.Value.GetType()}" +
-                        $"\n - expression: {argumentExp}" +
-                        $"\n - value: {argumentExp.ToPartiallyEvaluatedString()}");
-                });
-
-        return attribute;
-    }
-
-    private EntityAttribute GenerateGetFactionEntityAttribute(IExpression[] arguments)
-    {
-        int index = _factionIndex++;
-        int iterOffset = Context.GetNextIterOffset() + index;
-
-        if (arguments.Length < 1)
-        {
-            throw new System.ArgumentException("get_faction: missing 'polity' argument");
-        }
-
-        var argumentExp = 
-            ValueExpressionBuilder.ValidateValueExpression<IEntity>(arguments[0]);
-
-        FactionEntity entity = new FactionEntity(
-            () => {
-                if (argumentExp.Value is PolityEntity pEntity)
-                {
-                    Faction faction = Group.GetFaction(pEntity.Polity);
-
-                    if (faction == null)
-                    {
-                        throw new System.Exception(
-                            $"Faction not found. Validate if polity '{pEntity.Polity.Name.Text}' " +
-                            $"is present in Group first, and then validate if the group is part of " +
-                            $"a faction using 'has_faction' property." +
-                            $"\n - {Context.DebugType}: {Context.Id}");
-                    }
-
-                    return faction;
-                }
-
-                throw new System.Exception(
-                    $"Input parameter is not of a valid polity entity: {argumentExp.Value.GetType()}" +
-                    $"\n - expression: {argumentExp}" +
-                    $"\n - value: {argumentExp.ToPartiallyEvaluatedString()}");
-            },
+    protected override ICulturalSkillsEntity CreateCulturalSkillsEntity() =>
+        new ModifiableCellCulturalSkillsEntity(
+            GetCulture,
             Context,
-            BuildAttributeId($"faction_{index}"),
+            BuildAttributeId(SkillsAttributeId),
             this);
 
-        _factionEntitiesToSet.Add(entity);
+    protected override ICulturalKnowledgesEntity CreateCulturalKnowledgesEntity() =>
+        new ModifiableCellCulturalKnowledgesEntity(
+            GetCulture,
+            Context,
+            BuildAttributeId(KnowledgesAttributeId),
+            this);
 
-        return entity.GetThisEntityAttribute();
+    protected override ICulturalDiscoveriesEntity CreateCulturalDiscoveriesEntity() =>
+        new ModifiableCulturalDiscoveriesEntity(
+            GetCulture,
+            Context,
+            BuildAttributeId(DiscoveriesAttributeId),
+            this);
+
+    private ICollection<Polity> GetPresentPolities() => Group.PresentPolities;
+
+    private ICollection<Faction> GetClosestFactions() => Group.ClosestFactions;
+
+    private void UpdateNavigationRangeModifier(float value)
+    {
+        Group.NavigationRangeModifier = value;
+        Group.SetToUpdate(warnIfUnexpected: false);
     }
 
-    protected override object _reference => Group;
+    private void UpdateArabilityModifier(float value)
+    {
+        Group.ArabilityModifier = value;
+        Group.SetToUpdate(warnIfUnexpected: false);
+    }
+
+    private void UpdateAccessibilityModifier(float value)
+    {
+        Group.AccessibilityModifier = value;
+        Group.SetToUpdate(warnIfUnexpected: false);
+    }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
@@ -237,49 +172,63 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             case ProminenceValueAttributeId:
                 return new ProminenceValueAttribute(this, arguments);
 
-            case FactionCoresCountAttributeId:
-                _factionCoresCountAttribute =
-                    _factionCoresCountAttribute ?? new ValueGetterEntityAttribute<float>(
-                        FactionCoresCountAttributeId, this, () => Group.GetFactionCores().Count);
-                return _factionCoresCountAttribute;
+            case GetCoreDistanceAttributeId:
+                return new GetCoreDistanceAttribute(this, arguments);
 
-            case GetFactionCoreDistanceAttributeId:
-                return new GetFactionCoreDistanceAttribute(this, arguments);
+            case MostProminentPolityAttributeId:
+                return GetMostProminentPolityAttribute();
 
-            case PreferencesAttributeId:
-                return GetPreferencesAttribute();
+            case PresentPolitiesAttributeId:
+                return GetPresentPolitiesAttribute();
 
-            case KnowledgesAttributeId:
-                return GetKnowledgesAttribute();
+            case ClosestFactionsAttributeId:
+                return GetClosestFactionsAttribute();
 
-            case PolityWithHighestProminenceValueAttributeId:
-                return GetPolityWithHighestProminenceValueAttribute();
+            case PropertiesAttributeId:
+                return GetPropertiesAttribute();
 
-            case GetRandomPolityAttributeId:
-                return GenerateGetRandomPolityEntityAttribute(arguments);
+            case NavigationRangeAttributeId:
+                _navigationRangeAttribute =
+                    _navigationRangeAttribute ?? new ValueGetterSetterEntityAttribute<float>(
+                        NavigationRangeAttributeId, 
+                        this, 
+                        () => Group.NavigationRangeModifier,
+                        UpdateNavigationRangeModifier);
+                return _navigationRangeAttribute;
 
-            case HasPolityOfTypeAttributeId:
-                return GenerateHasPolityOfTypeAttribute(arguments);
+            case ArabilityModifierAttributeId:
+                _arabilityModifierAttribute =
+                    _arabilityModifierAttribute ?? new ValueGetterSetterEntityAttribute<float>(
+                        ArabilityModifierAttributeId,
+                        this,
+                        () => Group.ArabilityModifier,
+                        UpdateArabilityModifier);
+                return _arabilityModifierAttribute;
 
-            case HasFactionAttributeId:
-                return GenerateHasFactionAttribute(arguments);
+            case AccessibilityModifierAttributeId:
+                _accessibilityModifierAttribute =
+                    _accessibilityModifierAttribute ?? new ValueGetterSetterEntityAttribute<float>(
+                        AccessibilityModifierAttributeId,
+                        this,
+                        () => Group.AccessibilityModifier,
+                        UpdateAccessibilityModifier);
+                return _accessibilityModifierAttribute;
 
-            case GetFactionAttributeId:
-                return GenerateGetFactionEntityAttribute(arguments);
+            case PopulationAttributeId:
+                _populationAttribute =
+                    _populationAttribute ?? new ValueGetterEntityAttribute<float>(
+                        PopulationAttributeId,
+                        this,
+                        () => Group.Population);
+                return _populationAttribute;
         }
 
-        throw new System.ArgumentException("Group: Unable to find attribute: " + attributeId);
+        return base.GetAttribute(attributeId, arguments);
     }
 
-    public override string GetDebugString()
-    {
-        return "group:" + Group.Cell.Position.ToString();
-    }
+    public override string GetDebugString() => $"group:{Group.Cell.Position}";
 
-    public override string GetFormattedString()
-    {
-        return Group.Cell.Position.ToBoldString();
-    }
+    public override string GetFormattedString() => Group.Cell.Position.ToBoldString();
 
     protected override void ResetInternal()
     {
@@ -288,26 +237,20 @@ public class GroupEntity : DelayedSetEntity<CellGroup>
             return;
         }
 
-        foreach (var polityEntity in _polityEntitiesToSet)
-        {
-            polityEntity.Reset();
-        }
-
-        foreach (var factionEntity in _factionEntitiesToSet)
-        {
-            factionEntity.Reset();
-        }
-
         _cellEntity?.Reset();
-        _polityWithHighestProminenceEntity?.Reset();
+        _mostProminentPolityEntity?.Reset();
+        _presentPolitiesEntity?.Reset();
+        _closestFactionsEntity?.Reset();
+        _propertiesEntity?.Reset();
 
-        _preferencesEntity?.Reset();
-        _knowledgesEntity?.Reset();
+        base.ResetInternal();
     }
 
-    public TerrainCell GetCell() => Group.Cell;
+    private TerrainCell GetCell() => Group.Cell;
 
-    public Polity GetPolityWithHighestProminenceValue() => Group.HighestPolityProminence?.Polity;
+    private Polity GetMostProminentPolity() => Group.HighestPolityProminence?.Polity;
 
-    public Culture GetCulture() => Group.Culture;
+    protected override Culture GetCulture() => Group.Culture;
+
+    private CellGroup GetGroup() => Group;
 }

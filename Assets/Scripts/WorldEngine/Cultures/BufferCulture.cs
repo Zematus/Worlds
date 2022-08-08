@@ -80,33 +80,23 @@ public class BufferCulture : Culture
 
         foreach (CulturalKnowledge k in sourceCulture.GetKnowledges())
         {
-            CulturalKnowledge knowledge;
-
-            if (_knowledges.TryGetValue(k.Id, out knowledge))
-            {
-                knowledge.Value =
-                    MathUtility.LerpToIntAndGetDecimals(
-                        knowledge.Value,
-                        k.Value,
-                        percentage,
-                        out _);
-            }
-            else
+            if (!_knowledges.TryGetValue(k.Id, out var knowledge))
             {
                 knowledge = new CulturalKnowledge(k);
                 AddKnowledge(knowledge);
-                knowledge.Value =
-                    MathUtility.LerpToIntAndGetDecimals(
-                        0,
-                        k.Value,
-                        percentage,
-                        out _);
             }
+
+            knowledge.Value = Mathf.Lerp(knowledge.Value, k.Value, percentage);
         }
 
-        foreach (Discovery d in sourceCulture.Discoveries.Values)
+        foreach (var d in sourceCulture.Discoveries.Values)
         {
             AddDiscovery(d);
         }
+    }
+
+    public override void SetHolderToUpdate(bool warnIfUnexpected = true)
+    {
+        throw new System.InvalidOperationException("Can't update buffer culture holders");
     }
 }

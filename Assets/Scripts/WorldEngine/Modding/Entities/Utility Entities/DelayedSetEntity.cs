@@ -6,8 +6,10 @@ using System.Text.RegularExpressions;
 public delegate bool TryRequestGenMethod<T>(
     out DelayedSetEntityInputRequest<T> request);
 
-public abstract class DelayedSetEntity<T> : Entity
+public abstract class DelayedSetEntity<T> : Entity, IResettableEntity
 {
+    public const string IsNullAttributeId = "is_null";
+
     public bool IsReset => _isReset;
 
     private readonly ValueGetterMethod<T> _getterMethod;
@@ -23,6 +25,8 @@ public abstract class DelayedSetEntity<T> : Entity
     protected override bool RequiresInputIgnoreParent => _tryRequestGenMethod != null;
 
     private bool _needsToSatisfyRequest => _isReset && (!_requestSatisfied);
+
+    private ValueGetterEntityAttribute<bool> _isNullAttribute;
 
 #if DEBUG
     private static int _debugIdCounter = 0;
@@ -155,5 +159,19 @@ public abstract class DelayedSetEntity<T> : Entity
         request = entityRequest;
 
         return true;
+    }
+
+    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
+    {
+        switch (attributeId)
+        {
+            case IsNullAttributeId:
+                _isNullAttribute =
+                    _isNullAttribute ?? new ValueGetterEntityAttribute<bool>(
+                        IsNullAttributeId, this, () => EqualityComparer<T>.Default.Equals(_setable, default));
+                return _isNullAttribute;
+        }
+
+        throw new System.ArgumentException($"{Id} ({GetType()}): Unable to find attribute: {attributeId}");
     }
 }

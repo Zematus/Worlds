@@ -22,7 +22,12 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     public static List<IWorldEventGenerator> OnSpawnEventGenerators;
     public static List<IWorldEventGenerator> OnStatusChangeEventGenerators;
     public static List<IWorldEventGenerator> OnGuideSwitchEventGenerators;
-    public static List<IWorldEventGenerator> OnCoreGroupProminenceValueBelowEventGenerators;
+    public static List<IWorldEventGenerator> OnCoreGroupProminenceValueFallsBelowEventGenerators;
+    public static Dictionary<string, List<IWorldEventGenerator>> OnKnowledgeLevelFallsBelowEventGenerators;
+    public static Dictionary<string, List<IWorldEventGenerator>> OnKnowledgeLevelRaisesAboveEventGenerators;
+    public static Dictionary<string, List<IWorldEventGenerator>> OnGainedDiscoveryEventGenerators;
+
+    public static HashSet<FactionEventGenerator> EventGeneratorsThatNeedCleanup;
 
     [XmlAttribute("Inf")]
     public float InfluenceInternal;
@@ -130,6 +135,9 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     public Agent CurrentLeader => _currentLeader.Value;
 
     [XmlIgnore]
+    public List<CellGroup> Groups => GetGroups();
+
+    [XmlIgnore]
     public bool BeingRemoved = false;
 
     [XmlIgnore]
@@ -216,10 +224,15 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         }
     }
 
-    public void Initialize()
+    private void InitDatedValues()
     {
         _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
         _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
+    }
+
+    public void Initialize()
+    {
+        InitDatedValues();
 
         InitializeDefaultEvents();
 
@@ -291,6 +304,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
             relationship.Faction.RemoveRelationship(this);
         }
 
+        foreach (var generator in EventGeneratorsThatNeedCleanup)
+        {
+            generator.RemoveReferences(this);
+        }
+
         Info.Faction = null;
 
         StillPresent = false;
@@ -324,20 +342,20 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         BeingRemoved = true;
     }
 
-    public void SetToUpdate()
+    public void SetToUpdate(bool warnIfUnexpected = true)
     {
-        World.AddGroupToUpdate(CoreGroup);
-        World.AddFactionToUpdate(this);
-        World.AddPolityToUpdate(Polity);
+        World.AddGroupToUpdate(CoreGroup, warnIfUnexpected);
+        World.AddFactionToUpdate(this, warnIfUnexpected);
+        World.AddPolityToUpdate(Polity, warnIfUnexpected);
     }
 
-    public static void SetRelationship(Faction factionA, Faction factionB, float value)
+    public static void SetRelationship(Faction factionA, Faction factionB, float value = 0.5f, bool needFactionsToUpdate = true)
     {
-        factionA.SetRelationship(factionB, value);
-        factionB.SetRelationship(factionA, value);
+        factionA.SetRelationship(factionB, value, needFactionsToUpdate);
+        factionB.SetRelationship(factionA, value, needFactionsToUpdate);
     }
 
-    public void SetRelationship(Faction faction, float value)
+    public void SetRelationship(Faction faction, float value = 0.5f, bool needFactionToUpdate = true)
     {
         value = Mathf.Clamp01(value);
 
@@ -352,6 +370,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         else
         {
             _relationships[faction.Id].Value = value;
+        }
+
+        if (needFactionToUpdate)
+        {
+            SetToUpdate();
         }
     }
 
@@ -376,7 +399,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         // Set a default neutral relationship
         if (!_relationships.ContainsKey(faction.Id))
         {
-            SetRelationship(this, faction, 0.5f);
+            SetRelationship(this, faction, 0.5f, needFactionsToUpdate: false);
         }
 
         return _relationships[faction.Id].Value;
@@ -686,8 +709,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
 
     public virtual void FinalizeLoad()
     {
-        _administrativeLoad = new DatedValue<float>(World, CalculateAdministrativeLoad);
-        _currentLeader = new DatedValue<Agent>(World, RequestCurrentLeader);
+        InitDatedValues();
 
         IsInitialized = true;
 
@@ -790,7 +812,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         GenerateGuideSwitchEvents();
     }
 
-    public List<CellGroup> GetGroups()
+    private List<CellGroup> GetGroups()
     {
         var groups = new List<CellGroup>();
 
@@ -817,7 +839,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
 
         if (transferGroups)
         {
-            targetPolity.TransferGroups(Polity, GetGroups());
+            targetPolity.TransferGroups(Polity, Groups);
         }
 
         Polity = targetPolity;
@@ -871,7 +893,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
         OnSpawnEventGenerators = new List<IWorldEventGenerator>();
         OnStatusChangeEventGenerators = new List<IWorldEventGenerator>();
         OnGuideSwitchEventGenerators = new List<IWorldEventGenerator>();
-        OnCoreGroupProminenceValueBelowEventGenerators = new List<IWorldEventGenerator>();
+        OnCoreGroupProminenceValueFallsBelowEventGenerators = new List<IWorldEventGenerator>();
+        OnKnowledgeLevelFallsBelowEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
+        OnKnowledgeLevelRaisesAboveEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
+        OnGainedDiscoveryEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
+        EventGeneratorsThatNeedCleanup = new HashSet<FactionEventGenerator>();
     }
 
     public void AddGeneratorToTestAssignmentFor(IFactionEventGenerator generator)
@@ -948,14 +974,73 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
     }
 
     /// <summary>
+    /// Tries to generate and apply all events related to gaining a discovery
+    /// </summary>
+    public void GenerateGainedDiscoveryEvents(string discoveryId)
+    {
+        if (!OnGainedDiscoveryEventGenerators.ContainsKey(discoveryId))
+        {
+            return;
+        }
+
+        foreach (var generator in OnGainedDiscoveryEventGenerators[discoveryId])
+        {
+            if (generator is FactionEventGenerator fGenerator)
+            {
+                AddGeneratorToTestAssignmentFor(fGenerator);
+            }
+        }
+    }
+
+    /// <summary>
     /// Tries to generate and apply all events related to core group dropping below target value
     /// </summary>
     public void GenerateCoreGroupProminenceValueBelowEvents(float prominenceValue)
     {
-        foreach (var generator in OnCoreGroupProminenceValueBelowEventGenerators)
+        foreach (var generator in OnCoreGroupProminenceValueFallsBelowEventGenerators)
         {
             if ((generator is FactionEventGenerator fGenerator) &&
-                (prominenceValue < fGenerator.OnCoreGroupProminenceValueBelowParameterValue))
+                fGenerator.TestOnCoreGroupProminenceValueFallsBelow(this, prominenceValue))
+            {
+                AddGeneratorToTestAssignmentFor(fGenerator);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tries to generate and apply all events related to knowledges going below a minimun value
+    /// </summary>
+    public void GenerateKnowledgeLevelFallsBelowEvents(string knowledgeId, float value)
+    {
+        if (!OnKnowledgeLevelFallsBelowEventGenerators.ContainsKey(knowledgeId))
+        {
+            return;
+        }
+
+        foreach (var generator in OnKnowledgeLevelFallsBelowEventGenerators[knowledgeId])
+        {
+            if ((generator is FactionEventGenerator fGenerator) &&
+                fGenerator.TestOnKnowledgeLevelFallsBelow(knowledgeId, this, value))
+            {
+                AddGeneratorToTestAssignmentFor(fGenerator);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tries to generate and apply all events related to knowledges going above a maximum value
+    /// </summary>
+    public void GenerateKnowledgeLevelRaisesAboveEvents(string knowledgeId, float value)
+    {
+        if (!OnKnowledgeLevelRaisesAboveEventGenerators.ContainsKey(knowledgeId))
+        {
+            return;
+        }
+
+        foreach (var generator in OnKnowledgeLevelRaisesAboveEventGenerators[knowledgeId])
+        {
+            if ((generator is FactionEventGenerator fGenerator) &&
+                fGenerator.TestOnKnowledgeLevelRaisesAbove(knowledgeId, this, value))
             {
                 AddGeneratorToTestAssignmentFor(fGenerator);
             }
@@ -1015,7 +1100,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder, 
 
             if (!HasRelationship(faction))
             {
-                SetRelationship(faction, 0.5f);
+                SetRelationship(faction, needFactionToUpdate: false);
             }
         }
 

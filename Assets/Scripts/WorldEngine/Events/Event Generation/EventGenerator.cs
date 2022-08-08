@@ -5,6 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 /// <summary>
 /// Object that generates events of a certain type during the simulation run
@@ -20,7 +21,10 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public const string AssignOnGuideSwitch = "guide_switch";
     public const string AssignOnPolityCountChange = "polity_count_change";
     public const string AssignOnCoreCountChange = "core_count_change";
-    public const string AssignOnCoreGroupProminenceValueBelow = "core_group_prominence_value_below";
+    public const string AssignOnCoreGroupProminenceValueFallsBelow = "core_group_prominence_value_falls_below";
+    public const string AssignOnKnowledgeLevelFallsBelow = "knowledge_level_falls_below";
+    public const string AssignOnKnowledgeLevelRaisesAbove = "knowledge_level_raises_above";
+    public const string AssignOnGainedDiscovery = "gained_discovery";
 
     public const string FactionTargetType = "faction";
     public const string GroupTargetType = "group";
@@ -119,7 +123,10 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     public abstract void SetToAssignOnGuideSwitch();
     public abstract void SetToAssignOnPolityCountChange();
     public abstract void SetToAssignOnCoreCountChange();
-    public abstract void SetToAssignOnCoreGroupProminenceValueBelow(string valueStr);
+    public abstract void SetToAssignOnCoreGroupProminenceValueFallsBelow(string[] valueStrs);
+    public abstract void SetToAssignOnKnowledgeLevelFallsBelow(string[] valueStrs);
+    public abstract void SetToAssignOnKnowledgeLevelRaisesAbove(string[] valueStrs);
+    public abstract void SetToAssignOnGainedDiscovery(string[] valueStrs);
 
     protected EventGenerator()
     {
@@ -142,7 +149,13 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             }
 
             string idStr = match.Groups["identifier"].Value.Trim();
-            string valueStr = match.Groups["value"].Value.Trim();
+            string valuesStr = match.Groups["values"].Value;
+            string[] valueStrArray = null;
+
+            if (!string.IsNullOrWhiteSpace(valuesStr))
+            {
+                valueStrArray = valuesStr.Split(',').Select((s) => s.Trim()).ToArray();
+            }
 
             switch (idStr)
             {
@@ -182,8 +195,20 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
                     SetToAssignOnGuideSwitch();
                     break;
 
-                case AssignOnCoreGroupProminenceValueBelow:
-                    SetToAssignOnCoreGroupProminenceValueBelow(valueStr);
+                case AssignOnCoreGroupProminenceValueFallsBelow:
+                    SetToAssignOnCoreGroupProminenceValueFallsBelow(valueStrArray);
+                    break;
+
+                case AssignOnKnowledgeLevelFallsBelow:
+                    SetToAssignOnKnowledgeLevelFallsBelow(valueStrArray);
+                    break;
+
+                case AssignOnKnowledgeLevelRaisesAbove:
+                    SetToAssignOnKnowledgeLevelRaisesAbove(valueStrArray);
+                    break;
+
+                case AssignOnGainedDiscovery:
+                    SetToAssignOnGainedDiscovery(valueStrArray);
                     break;
 
                 default:
@@ -213,13 +238,6 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     protected bool CanAssignEventToTarget(bool displayTargetInfo = true)
     {
-//#if DEBUG
-//        if (DebugEnabled)
-//        {
-//            Debug.LogWarning("Debugging CanAssignEventToTarget");
-//        }
-//#endif
-
         OpenDebugOutput("Evaluating Assignment Conditions:");
 
         if (displayTargetInfo)
@@ -356,8 +374,12 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             exp.Apply();
         }
 
+        SetTargetToUpdate();
+
         CloseDebugOutput();
     }
+
+    protected abstract void SetTargetToUpdate();
 
     protected abstract WorldEvent GenerateEvent(long triggerDate);
 

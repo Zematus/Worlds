@@ -507,7 +507,9 @@ public class GuiManagerScript : MonoBehaviour
             //GenerateWorld(false, 252308385);
             ///GenerateWorld(false, 113741282);
             //GenerateWorld(false, 92288943);
-            GenerateWorld(false, 940983664);
+            //GenerateWorld(false, 940983664);
+            //GenerateWorld(false, 1136346461);
+            GenerateWorld(false, 2093914);
         }
         else
         {
@@ -711,7 +713,7 @@ public class GuiManagerScript : MonoBehaviour
 
                     dateSpan += world.Update();
 
-                    Profiler.EndSample();
+                    Profiler.EndSample(); // World Update
 
 #if DEBUG
                     if (Manager.Debug_PauseSimRequested)
@@ -733,7 +735,7 @@ public class GuiManagerScript : MonoBehaviour
                 ShowEventMessage(Manager.CurrentWorld.GetNextMessageToShow());
             }
 
-            Profiler.EndSample();
+            Profiler.EndSample(); // Perform Simulation
 
             if (MustSave)
             {
@@ -787,20 +789,20 @@ public class GuiManagerScript : MonoBehaviour
                 OverlaySubtypeChanged.Invoke();
             }
 
-            Profiler.EndSample();
+            Profiler.EndSample(); // Manager.Set*
 
             Profiler.BeginSample("Manager.GenerateTextures");
 
             Manager.GenerateTextures(_regenMapTexture, _regenMapOverlayTexture);
 
-            Profiler.EndSample();
+            Profiler.EndSample(); // Manager.GenerateTextures
 
             Profiler.BeginSample("Manager.RefreshTexture");
 
             MapScript.RefreshTexture();
             PlanetScript.RefreshTexture();
 
-            Profiler.EndSample();
+            Profiler.EndSample(); // Manager.RefreshTexture
 
             if (Manager.CurrentDevMode != DevMode.None)
             {
@@ -811,7 +813,7 @@ public class GuiManagerScript : MonoBehaviour
             _regenMapTexture = false;
             _regenMapOverlayTexture = false;
 
-            Profiler.EndSample();
+            Profiler.EndSample(); // Regen Textures
         }
         else
         {
@@ -825,7 +827,7 @@ public class GuiManagerScript : MonoBehaviour
                 _mapUpdateCount++;
             }
 
-            Profiler.EndSample();
+            Profiler.EndSample(); // Update Textures
         }
 
         InfoPanelScript.UpdateInfoPanel();
@@ -3390,7 +3392,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         SelectionPanelScript.Title.text = "Discoveries";
 
-        foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
+        foreach (var discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
         {
             AddSelectionPanelOption(discovery.Name, discovery.Id);
         }
@@ -3484,7 +3486,7 @@ public class GuiManagerScript : MonoBehaviour
         }
         else if (_planetOverlay == PlanetOverlay.PopCulturalDiscovery)
         {
-            foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
+            foreach (var discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
             {
                 AddSelectionPanelOption(discovery.Name, discovery.Id);
             }
@@ -3519,7 +3521,7 @@ public class GuiManagerScript : MonoBehaviour
         }
         else if (_planetOverlay == PlanetOverlay.PolityCulturalDiscovery)
         {
-            foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
+            foreach (var discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
             {
                 AddSelectionPanelOption(discovery.Name, discovery.Id);
             }
@@ -3845,15 +3847,13 @@ public class GuiManagerScript : MonoBehaviour
 
         if (knowledge != null)
         {
-            string text = knowledge.Name + " Value: " + knowledge.ScaledValue.ToString("0.000") + "\n\nFactions:";
+            string text = knowledge.Name + " Value: " + knowledge.Value.ToString("0.000") + "\n\nFactions:";
 
             foreach (Faction faction in polity.GetFactions())
             {
-                float scaledValue = 0;
+                faction.Culture.TryGetKnowledgeValue(_planetOverlaySubtype, out var value);
 
-                faction.Culture.TryGetKnowledgeScaledValue(_planetOverlaySubtype, out scaledValue);
-
-                text += "\n " + faction.Name.Text + ": " + scaledValue.ToString("0.000");
+                text += $"\n {faction.Name.Text}: {value:0.000)}";
             }
 
             InfoTooltipScript.DisplayTip(text, position, fadeStart);
@@ -3866,7 +3866,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ShowCellInfoToolTip_PolityCulturalDiscovery(Polity polity, Vector3 position, float fadeStart = 5)
     {
-        Discovery discovery = polity.Culture.GetDiscovery(_planetOverlaySubtype) as Discovery;
+        var discovery = polity.Culture.GetDiscovery(_planetOverlaySubtype);
 
         if (discovery != null)
         {

@@ -5,14 +5,14 @@ using System.Text.RegularExpressions;
 
 public class GroupHasKnowledgeCondition : GroupCondition
 {
-    public const int DefaultMinValue = 1;
+    public const float DefaultMinValue = 0.01f;
 
     public const string Regex = @"^\s*group_has_knowledge\s*" +
         @":\s*(?<id>" + ModUtility033.IdentifierRegexPart + @")\s*" +
         @"(?:,\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*)?$";
 
     public string KnowledgeId;
-    public int MinValue;
+    public float MinValue;
 
     public GroupHasKnowledgeCondition(Match match)
     {
@@ -25,15 +25,16 @@ public class GroupHasKnowledgeCondition : GroupCondition
 
             if (!MathUtility.TryParseCultureInvariant(valueStr, out value))
             {
-                throw new System.ArgumentException("GroupHasKnowledgeCondition: Min value can't be parsed into a valid floating point number: " + valueStr);
+                throw new System.ArgumentException($"GroupHasKnowledgeCondition: Min value can't be parsed into a valid floating point number: {valueStr}");
             }
 
-            if (!value.IsInsideRange(0.01f, CulturalKnowledge.ScaledMaxLimitValue))
+            if (!value.IsInsideRange(DefaultMinValue, KnowledgeLimit.MaxLimitValue))
             {
-                throw new System.ArgumentException("GroupHasKnowledgeCondition: Min value is outside the range of 0.01 and " + CulturalKnowledge.ScaledMaxLimitValue + ": " + valueStr);
+                throw new System.ArgumentException(
+                    $"GroupHasKnowledgeCondition: Min value is outside the range of {DefaultMinValue} and {KnowledgeLimit.MaxLimitValue}: {valueStr}");
             }
 
-            MinValue = (int)(value / MathUtility.IntToFloatScalingFactor);
+            MinValue = value;
         }
         else
         {
@@ -68,7 +69,6 @@ public class GroupHasKnowledgeCondition : GroupCondition
 
     public override string ToString()
     {
-        return "'Group Has Knowledge' Condition, Knowledge Id: " + KnowledgeId + 
-            ", Min Value: " + (MinValue * MathUtility.IntToFloatScalingFactor);
+        return $"'Group Has Knowledge' Condition, Knowledge Id: {KnowledgeId}, Min Value: {MinValue}";
     }
 }

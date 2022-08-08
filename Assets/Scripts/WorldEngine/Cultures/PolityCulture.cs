@@ -198,9 +198,11 @@ public class PolityCulture : Culture
             }
         }
 
-        foreach (Discovery d in faction.Culture.Discoveries.Values)
+        foreach (var d in faction.Culture.Discoveries.Values)
         {
             AddDiscovery(d);
         }
     }
+
+    public override void SetHolderToUpdate(bool warnIfUnexpected = true) => Polity.SetToUpdate(warnIfUnexpected);
 }

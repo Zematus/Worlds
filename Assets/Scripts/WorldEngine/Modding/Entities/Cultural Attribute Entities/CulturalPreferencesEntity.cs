@@ -1,18 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-
-public class CulturalPreferencesEntity : DelayedSetEntity<Culture>
+﻿
+public class CulturalPreferencesEntity : CulturalAttributeContainerEntity, ICulturalPreferencesEntity
 {
-    public virtual Culture Culture
-    {
-        get => Setable;
-        private set => Setable = value;
-    }
-
-    protected override object _reference => Culture;
-
     public CulturalPreferencesEntity(Context c, string id, IEntity parent) : base(c, id, parent)
     {
     }
@@ -23,29 +11,14 @@ public class CulturalPreferencesEntity : DelayedSetEntity<Culture>
     {
     }
 
-    protected virtual EntityAttribute CreatePreferenceAttribute(string attributeId)
-    {
-        return new PreferenceAttribute(this, attributeId);
-    }
+    public override string GetDebugString() => "cultural_preferences";
 
-    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
-    {
-        if (!PreferenceGenerator.Generators.ContainsKey(attributeId))
-        {
-            throw new System.ArgumentException(
-                "Unrecognized cultural preference in entity attribute: " + attributeId);
-        }
+    public override string GetFormattedString() => "<i>cultural preferences</i>";
 
-        return CreatePreferenceAttribute(attributeId);
-    }
+    protected override EntityAttribute CreateEntryAttribute(string attributeId) => 
+        new PreferenceAttribute(this, attributeId);
 
-    public override string GetDebugString()
-    {
-        return "cultural_preferences";
-    }
+    protected override bool ValidateKey(string attributeId) => PreferenceGenerator.Generators.ContainsKey(attributeId);
 
-    public override string GetFormattedString()
-    {
-        return "<i>cultural preferences</i>";
-    }
+    protected override bool ContainsKey(string key) => Culture.HasPreference(key);
 }

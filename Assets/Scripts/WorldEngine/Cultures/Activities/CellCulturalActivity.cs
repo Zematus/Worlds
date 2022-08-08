@@ -8,18 +8,6 @@ public class CellCulturalActivity : CulturalActivity
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 
-    public const string ForagingActivityId = "foraging";
-    public const string FarmingActivityId = "farming";
-    public const string FishingActivityId = "fishing";
-
-    public const string ForagingActivityName = "foraging";
-    public const string FarmingActivityName = "farming";
-    public const string FishingActivityName = "fishing";
-
-    public const int ForagingActivityRngOffset = 0;
-    public const int FarmingActivityRngOffset = 100;
-    public const int FishingActivityRngOffset = 200;
-
     [XmlIgnore]
     public CellGroup Group;
 
@@ -138,7 +126,7 @@ public class CellCulturalActivity : CulturalActivity
         // _newvalue should have been set correctly either by the constructor or by the Update function
         float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;
 
-        _newValue = _newValue + change;
+        _newValue += change;
     }
 
     public void PostUpdate()

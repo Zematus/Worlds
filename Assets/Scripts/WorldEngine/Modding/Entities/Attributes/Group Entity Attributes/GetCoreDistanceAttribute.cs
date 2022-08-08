@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class GetFactionCoreDistanceAttribute : ValueEntityAttribute<float>
+public class GetCoreDistanceAttribute : ValueEntityAttribute<float>
 {
     private GroupEntity _groupEntity;
 
     private readonly IValueExpression<IEntity> _argumentExp;
 
-    public GetFactionCoreDistanceAttribute(GroupEntity groupEntity, IExpression[] arguments)
-        : base(GroupEntity.GetFactionCoreDistanceAttributeId, groupEntity, arguments, 1)
+    public GetCoreDistanceAttribute(GroupEntity groupEntity, IExpression[] arguments)
+        : base(GroupEntity.GetCoreDistanceAttributeId, groupEntity, arguments, 1)
     {
         _groupEntity = groupEntity;
 
@@ -23,7 +23,12 @@ public class GetFactionCoreDistanceAttribute : ValueEntityAttribute<float>
         {
             if (_argumentExp.Value is PolityEntity pEntity)
             {
-                return _groupEntity.Group.GetFactionCoreDistance(pEntity.Polity);
+                return _groupEntity.Group.GetCoreDistance(pEntity.Polity);
+            }
+
+            if (_argumentExp.Value is FactionEntity fEntity)
+            {
+                return _groupEntity.Group.GetCoreDistance(fEntity.Faction);
             }
 
             throw new System.Exception(

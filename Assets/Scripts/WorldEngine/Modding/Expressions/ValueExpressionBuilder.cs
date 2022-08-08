@@ -36,9 +36,12 @@ public static class ValueExpressionBuilder
 
     public static IValueExpression<T> ValidateValueExpression<T>(IExpression expression)
     {
-        if (expression is ValueEntityAttributeExpression<IValueEntity<T>> vEntityAttrExp)
+        if (expression is ValueEntityAttributeExpression<IEntity> entityAttrExp)
         {
-            return vEntityAttrExp.Value.ValueExpression;
+            if (entityAttrExp.Value is IValueEntity<T> vEntity)
+            {
+                return vEntity.ValueExpression;
+            }
         }
 
         if (expression is ValueEntityExpression<T> vEntityExp)

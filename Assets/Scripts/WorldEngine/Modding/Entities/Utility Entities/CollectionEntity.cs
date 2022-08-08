@@ -7,6 +7,10 @@ public abstract class CollectionEntity<T> : Entity
     public const string CountAttributeId = "count";
     public const string RequestSelectionAttributeId = "request_selection";
     public const string SelectRandomAttributeId = "select_random";
+    public const string SelectAttributeId = "select";
+    public const string SelectSubsetAttributeId = "select_subset";
+    public const string SelectBestAttributeId = "select_best";
+    public const string SumAttributeId = "sum";
 
     private CollectionGetterMethod<T> _getterMethod = null;
 
@@ -63,6 +67,89 @@ public abstract class CollectionEntity<T> : Entity
     protected abstract EntityAttribute GenerateSelectRandomAttribute();
 
     private float GetCount() => Collection.Count;
+
+    public abstract ParametricSubcontext BuildSelectAttributeSubcontext(
+        Context parentContext,
+        string[] paramIds);
+
+    public abstract ParametricSubcontext BuildSumAttributeSubcontext(
+        Context parentContext,
+        string[] paramIds);
+
+    public abstract ParametricSubcontext BuildSelectBestAttributeSubcontext(
+        Context parentContext,
+        string[] paramIds);
+
+    public abstract ParametricSubcontext BuildSelectSubsetAttributeSubcontext(
+        Context parentContext,
+        string[] paramIds);
+
+    public override ParametricSubcontext BuildParametricSubcontext(
+        Context parentContext,
+        string attributeId,
+        string[] paramIds)
+    {
+        switch (attributeId)
+        {
+            case SelectAttributeId:
+                return BuildSelectAttributeSubcontext(parentContext, paramIds);
+
+            case SumAttributeId:
+                return BuildSumAttributeSubcontext(parentContext, paramIds);
+
+            case SelectBestAttributeId:
+                return BuildSelectBestAttributeSubcontext(parentContext, paramIds);
+
+            case SelectSubsetAttributeId:
+                return BuildSelectSubsetAttributeSubcontext(parentContext, paramIds);
+        }
+
+        return base.BuildParametricSubcontext(parentContext, attributeId, paramIds);
+    }
+
+    public abstract EntityAttribute GenerateSelectAttribute(
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments);
+
+    public abstract EntityAttribute GenerateSumAttribute(
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments);
+
+    public abstract EntityAttribute GenerateSelectBestAttribute(
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments);
+
+    public abstract EntityAttribute GenerateSelectSubsetAttribute(
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments);
+
+    public override EntityAttribute GetParametricAttribute(
+        string attributeId,
+        ParametricSubcontext subcontext,
+        string[] paramIds,
+        IExpression[] arguments)
+    {
+        switch (attributeId)
+        {
+            case SelectAttributeId:
+                return GenerateSelectAttribute(subcontext, paramIds, arguments);
+
+            case SumAttributeId:
+                return GenerateSumAttribute(subcontext, paramIds, arguments);
+
+            case SelectBestAttributeId:
+                return GenerateSelectBestAttribute(subcontext, paramIds, arguments);
+
+            case SelectSubsetAttributeId:
+                return GenerateSelectSubsetAttribute(subcontext, paramIds, arguments);
+        }
+
+        return base.GetParametricAttribute(attributeId, subcontext, paramIds, arguments);
+    }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {

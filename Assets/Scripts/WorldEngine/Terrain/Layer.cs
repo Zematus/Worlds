@@ -55,7 +55,7 @@ public class Layer
         Layers = new Dictionary<string, Layer>();
     }
 
-    public static void LoadLayersFile(string filename)
+    public static void LoadLayersFile033(string filename)
     {
         foreach (Layer layer in LayerLoader.Load(filename))
         {

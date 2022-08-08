@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Text.RegularExpressions;
 
-[Obsolete]
 [Serializable]
 public class DiscoveryLoader033
 {
@@ -28,7 +27,7 @@ public class DiscoveryLoader033
 
 #pragma warning restore 0649
 
-    public static IEnumerable<Discovery> Load(string filename)
+    public static IEnumerable<Discovery033> Load(string filename)
     {
         string jsonStr = File.ReadAllText(filename);
 
@@ -40,7 +39,7 @@ public class DiscoveryLoader033
         }
     }
 
-    private static Discovery CreateDiscovery(LoadedDiscovery d)
+    private static Discovery033 CreateDiscovery(LoadedDiscovery d)
     {
         if (string.IsNullOrEmpty(d.id))
         {
@@ -90,11 +89,11 @@ public class DiscoveryLoader033
             eventTimeToTriggerFactors = Factor.BuildFactors(d.eventTimeToTriggerFactors);
         }
 
-        Discovery discovery = new Discovery()
+        Discovery033 discovery = new Discovery033()
         {
             Id = d.id,
             IdHash = d.id.GetHashCode(),
-            UId = Discovery.CurrentUId++,
+            UId = Manager.CurrentDiscoveryUid++,
             Name = d.name,
             GainConditions = gainConditions,
             HoldConditions = holdConditions,

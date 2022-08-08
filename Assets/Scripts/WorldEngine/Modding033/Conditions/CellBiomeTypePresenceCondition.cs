@@ -30,7 +30,7 @@ public class CellBiomeTypePresenceCondition : CellCondition
                 TerrainType = BiomeTerrainType.Ice;
                 break;
             default:
-                throw new System.ArgumentException("Unknown biome terrain type: " + type);
+                throw new System.ArgumentException($"Unknown biome terrain type: {type}");
         }
 
         if (!string.IsNullOrEmpty(match.Groups["value"].Value))
@@ -39,12 +39,12 @@ public class CellBiomeTypePresenceCondition : CellCondition
 
             if (!MathUtility.TryParseCultureInvariant(valueStr, out MinValue))
             {
-                throw new System.ArgumentException("CellBiomeTypePresenceCondition: Min value can't be parsed into a valid floating point number: " + valueStr);
+                throw new System.ArgumentException($"CellBiomeTypePresenceCondition: Min value can't be parsed into a valid floating point number: {valueStr}");
             }
 
-            if (!MinValue.IsInsideRange(DefaultMinValue, CulturalKnowledge.ScaledMaxLimitValue))
+            if (!MinValue.IsInsideRange(DefaultMinValue, 1))
             {
-                throw new System.ArgumentException("CellBiomeTypePresenceCondition: Min value is outside the range of " + DefaultMinValue + " and 1: " + valueStr);
+                throw new System.ArgumentException($"CellBiomeTypePresenceCondition: Min value is outside the range of {DefaultMinValue} and 1: {valueStr}");
             }
         }
         else

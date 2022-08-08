@@ -48,7 +48,7 @@ public class AssignablePreferenceAttribute : AssignableValueEntityAttribute<floa
                 "Cultural preference can only be assigned values in the range [0,1]");
         }
 
-        CulturalPreference preference =
+        var preference =
             _preferencesEntity.Culture.GetPreference(_preferenceId);
 
         if (preference == null)
@@ -57,6 +57,8 @@ public class AssignablePreferenceAttribute : AssignableValueEntityAttribute<floa
         }
 
         preference.Value = value;
+
+        _preferencesEntity.Culture.SetHolderToUpdate(warnIfUnexpected: false);
     }
 
     private CulturalPreference CreateInstance()

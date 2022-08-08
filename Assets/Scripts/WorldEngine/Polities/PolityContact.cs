@@ -64,6 +64,11 @@ public class PolityContact : Identifiable, ISynchronizable
         NeighborPolity = neighborPolity;
         NeighborPolityId = neighborPolity.Id;
 
+        InitDatedValues();
+    }
+
+    private void InitDatedValues()
+    {
         _strength = new DatedValue<float>(World, CalculateStrength);
     }
 
@@ -91,7 +96,6 @@ public class PolityContact : Identifiable, ISynchronizable
         ThisPolity = World.GetPolity(ThisPolityId);
         NeighborPolity = World.GetPolity(NeighborPolityId);
 
-        _strength =
-            new DatedValue<float>(World, CalculateStrength);
+        InitDatedValues();
     }
 }

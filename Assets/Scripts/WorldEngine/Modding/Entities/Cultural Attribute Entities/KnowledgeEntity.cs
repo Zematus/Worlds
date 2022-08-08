@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 
 public class KnowledgeEntity : DelayedSetValueEntity<CulturalKnowledge,float>
 {
+    public const string LimitAttributeId = "limit";
+
     public virtual CulturalKnowledge Knowledge
     {
         get => Setable;
@@ -19,7 +21,7 @@ public class KnowledgeEntity : DelayedSetValueEntity<CulturalKnowledge,float>
         {
             if (Knowledge != null)
             {
-                return Knowledge.ScaledValue;
+                return Knowledge.Value;
             }
 
             return 0;
@@ -36,18 +38,24 @@ public class KnowledgeEntity : DelayedSetValueEntity<CulturalKnowledge,float>
     {
     }
 
-    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
-    {
-        return base.GetAttribute(attributeId, arguments);
-    }
-
     public override string GetFormattedString()
     {
-        return "<i>" + Knowledge.Name + "</i>";
+        return $"<i>{Knowledge.Name}</i>";
+    }
+
+    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
+    {
+        switch (attributeId)
+        {
+            case LimitAttributeId:
+                throw new System.InvalidOperationException("Knowledge limit can only be set for cell groups");
+        }
+
+        return base.GetAttribute(attributeId, arguments);
     }
 
     public override void Set(float v)
     {
-        throw new System.InvalidOperationException("Knowledge attribute is read-only");
+        throw new System.InvalidOperationException("Knowledge value is read-only");
     }
 }

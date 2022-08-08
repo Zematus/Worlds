@@ -7,11 +7,13 @@ using System.Xml.Serialization;
 [XmlInclude(typeof(CellCulturalPreference))]
 public class CulturalPreference : CulturalPreferenceInfo
 {
-    // NOTE: Some preference value Ids might need to remain hardcoded
+    [System.Obsolete]
     public const string AuthorityPreferenceId = "authority";
+    [System.Obsolete]
     public const string CohesionPreferenceId = "cohesion";
-    public const string IsolationPreferenceId = "isolation";
-    public const string AggressionPreferenceId = "aggression";
+
+    public const string IsolationPreferenceId = "isolation"; // Needs to remain hardcoded for now
+    public const string AggressionPreferenceId = "aggression"; // Needs to remain hardcoded for now
 
     [System.Obsolete]
     public const string AuthorityPreferenceName = "Authority";

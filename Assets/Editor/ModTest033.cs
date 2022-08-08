@@ -13,7 +13,7 @@ public class ModTest033
         Debug.Log("loading biome mod file...");
 
         Biome.ResetBiomes();
-        Biome.LoadBiomesFile(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
+        Biome.LoadBiomesFile033(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
 
         foreach (Biome biome in Biome.Biomes.Values)
         {
@@ -29,7 +29,7 @@ public class ModTest033
         Debug.Log("loading layer mod file...");
 
         Layer.ResetLayers();
-        Layer.LoadLayersFile(Path.Combine("Mods", "WeirdBiomesMod", "Layers", "weirdLayers.json"));
+        Layer.LoadLayersFile033(Path.Combine("Mods", "WeirdBiomesMod", "Layers", "weirdLayers.json"));
 
         foreach (Layer layer in Layer.Layers.Values)
         {
@@ -46,7 +46,7 @@ public class ModTest033
 
         Adjective.ResetAdjectives();
         RegionAttribute.ResetAttributes();
-        RegionAttribute.LoadRegionAttributesFile(Path.Combine("Mods", "Base", "RegionAttributes", "region_attributes.json"));
+        RegionAttribute.LoadRegionAttributesFile033(Path.Combine("Mods", "Base", "RegionAttributes", "region_attributes.json"));
 
         foreach (RegionAttribute regionAttribute in RegionAttribute.Attributes.Values)
         {
@@ -63,7 +63,7 @@ public class ModTest033
 
         Adjective.ResetAdjectives();
         Element.ResetElements();
-        Element.LoadElementsFile(Path.Combine("Mods", "Base", "Elements", "elements.json"));
+        Element.LoadElementsFile033(Path.Combine("Mods", "Base", "Elements", "elements.json"));
 
         foreach (Element element in Element.Elements.Values)
         {
@@ -79,10 +79,10 @@ public class ModTest033
 
         Debug.Log("loading discovery mod file...");
 
-        Discovery.ResetDiscoveries();
-        Discovery.LoadDiscoveriesFile033(Path.Combine("Mods", "Base", "Discoveries", "discoveries.json"));
+        Discovery033.ResetDiscoveries();
+        Discovery033.LoadDiscoveriesFile033(Path.Combine("Mods", "Base", "Discoveries", "discoveries.json"));
 
-        foreach (Discovery discovery in Discovery.Discoveries.Values)
+        foreach (Discovery033 discovery in Discovery033.Discoveries.Values)
         {
             Debug.Log("generated discovery: " + discovery.Name);
         }

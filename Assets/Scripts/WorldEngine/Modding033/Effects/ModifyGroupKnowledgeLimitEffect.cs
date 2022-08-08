@@ -1,18 +1,15 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 public class ModifyGroupKnowledgeLimitEffect : Effect
 {
-    private const int _initialValue = 100;
+    private const float _initialValue = 1;
 
     public const string Regex = @"^\s*modify_group_knowledge_limit\s*" +
         @":\s*(?<id>" + ModUtility033.IdentifierRegexPart + @")\s*" +
         @",\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*$";
 
     public string KnowledgeId;
-    public int LevelLimitDelta;
+    public float LevelLimitDelta;
 
     public ModifyGroupKnowledgeLimitEffect(Match match, string id) :
         base(id)
@@ -24,33 +21,29 @@ public class ModifyGroupKnowledgeLimitEffect : Effect
 
         if (!MathUtility.TryParseCultureInvariant(valueStr, out value))
         {
-            throw new System.ArgumentException("ModifyGroupKnowledgeLimitEffect: Level limit modifier can't be parsed into a valid floating point number: " + valueStr);
+            throw new System.ArgumentException($"ModifyGroupKnowledgeLimitEffect: Level limit modifier can't be parsed into a valid floating point number: {valueStr}");
         }
 
-        if (!value.IsInsideRange(-CulturalKnowledge.ScaledMaxLimitValue, CulturalKnowledge.ScaledMaxLimitValue))
+        if (!value.IsInsideRange(-KnowledgeLimit.MaxLimitValue, KnowledgeLimit.MaxLimitValue))
         {
             throw new System.ArgumentException(
-                "ModifyGroupKnowledgeLimitEffect: Level limit modifier is outside the range of " + 
-                (-CulturalKnowledge.ScaledMaxLimitValue) + " and " + CulturalKnowledge.ScaledMaxLimitValue + ": " + valueStr);
+                $"ModifyGroupKnowledgeLimitEffect: Level limit modifier is outside the range " +
+                $"of {-KnowledgeLimit.MaxLimitValue} and {KnowledgeLimit.MaxLimitValue}: {valueStr}");
         }
 
-        LevelLimitDelta = (int)(value * MathUtility.FloatToIntScalingFactor);
+        LevelLimitDelta = value;
     }
 
     public override void Apply(CellGroup group)
     {
-        CellCulturalKnowledge k = group.Culture.GetKnowledge(KnowledgeId) as CellCulturalKnowledge;
+        var k = group.Culture.GetKnowledgeLimit(KnowledgeId);
 
-        if (k == null)
-            return;
-
-        k.ModifyLevelLimit(LevelLimitDelta);
+        k.SetValue(k.Value + LevelLimitDelta);
     }
 
     public override string ToString()
     {
-        return "'Modify Group Knowledge Limit' Effect, Knowledge Id: " + KnowledgeId + 
-            ", Level Limit Modifier: " + (LevelLimitDelta * MathUtility.IntToFloatScalingFactor);
+        return $"'Modify Group Knowledge Limit' Effect, Knowledge Id: {KnowledgeId}, Level Limit Modifier: {LevelLimitDelta}";
     }
 
     public override bool IsDeferred()

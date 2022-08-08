@@ -283,6 +283,8 @@ public class Manager
     public static long CurrentMaxUpdateSpan = 0;
     public static float CurrentMaxAdminCost = 0;
 
+    public static int CurrentDiscoveryUid = 0;
+
     private static bool _isLoadReady = false;
 
     private static string _debugLogFilename = "debug";
@@ -4590,14 +4592,16 @@ public class Manager
         if (cell.Group != null)
         {
             if ((cell.Group.Population > 0) &&
-                cell.Group.Culture.GetKnowledge(_planetOverlaySubtype) is CellCulturalKnowledge knowledge)
+                Knowledge.GetKnowledge(_planetOverlaySubtype) is var knowledge)
             {
-                float highestLimit = knowledge.GetHighestLimit();
+                float highestLimitValue = knowledge.HighestLimitValue;
 
-                if (highestLimit <= 0)
-                    throw new System.Exception("Highest Limit is less or equal to 0");
+                if (highestLimitValue <= 0)
+                    throw new System.Exception("Highest limit value is less or equal to 0");
 
-                float normalizedValue = knowledge.Value / highestLimit;
+                var value = cell.Group.Culture.GetKnowledgeValue(_planetOverlaySubtype);
+
+                float normalizedValue = value / highestLimitValue;
 
                 if (normalizedValue >= 0.001f)
                 {
@@ -4629,20 +4633,20 @@ public class Manager
             return GetUnincorporatedGroupColor();
         }
 
-        CulturalKnowledge knowledge = territory.Polity.Culture.GetKnowledge(_planetOverlaySubtype);
+        var tKnowledge = territory.Polity.Culture.GetKnowledge(_planetOverlaySubtype);
 
-        if (knowledge == null)
+        if (tKnowledge == null)
             return GetUnincorporatedGroupColor();
 
-        if (!(territory.Polity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) is CellCulturalKnowledge cellKnowledge))
+        if (!(Knowledge.GetKnowledge(_planetOverlaySubtype) is var knowledge))
             return GetUnincorporatedGroupColor();
 
-        float highestLimit = cellKnowledge.GetHighestLimit();
+        float highestLimitValue = knowledge.HighestLimitValue;
 
-        if (highestLimit <= 0)
-            throw new System.Exception("Highest Limit is less or equal to 0");
+        if (highestLimitValue <= 0)
+            throw new System.Exception("Highest limit value is less or equal to 0");
 
-        float normalizedValue = knowledge.Value / highestLimit;
+        float normalizedValue = tKnowledge.Value / highestLimitValue;
         color = GetPolityCulturalAttributeOverlayColor(normalizedValue, IsTerritoryBorder(territory, cell));
 
         return color;
@@ -4860,12 +4864,12 @@ public class Manager
             {
                 if (cell.Group.Culture == null)
                 {
-                    throw new System.NullReferenceException("group " + cell.Position + " culture not initialized...");
+                    throw new System.NullReferenceException($"Group {cell.Position} culture not initialized...");
                 }
 
-                if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int knowledgeValue))
+                if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out var knowledgeValue))
                 {
-                    float minValue = SocialOrganizationKnowledge.MinValueForTribeFormation;
+                    float minValue = TribeFormationEvent.MinSocialOrganizationKnowledgeValue * 2;
                     float startValue = SocialOrganizationKnowledge.InitialValue;
 
                     float knowledgeFactor = Mathf.Clamp01((knowledgeValue - startValue) / (minValue - startValue));
@@ -5115,8 +5119,12 @@ public class Manager
         RegionAttribute.ResetAttributes();
         Element.ResetElements();
 
+        CurrentDiscoveryUid = 0;
         Discovery.ResetDiscoveries();
+        Discovery033.ResetDiscoveries();
         Knowledge.ResetKnowledges();
+        CulturalSkill.ResetSkills();
+        CulturalActivity.ResetActivities();
 
         PreferenceGenerator.ResetPreferenceGenerators();
         EventGenerator.ResetGenerators();
@@ -5126,6 +5134,8 @@ public class Manager
 
         ModDecision.ResetDecisions();
 
+        CulturalActivity.InitializeActivities();
+        CulturalSkill.InitializeBaseSkills();
         Knowledge.InitializeKnowledges();
 
         float progressPerMod = 0.1f / paths.Count;
@@ -5145,7 +5155,7 @@ public class Manager
         }
 
         PreferenceGenerator.InitializePreferenceGenerators();
-        Discovery.InitializeDiscoveries();
+        Discovery033.InitializeDiscoveries();
 
         EventGenerator.InitializeGenerators();
     }
@@ -5203,15 +5213,15 @@ public class Manager
             throw new System.ArgumentException("Mod path '" + path + "' not found");
         }
 
-        float progressPerSegment = progressPerMod / 9f;
+        float progressPerSegment = progressPerMod / 11f;
 
-        TryLoadModFiles(Layer.LoadLayersFile, Path.Combine(path, @"Layers"), progressPerSegment);
-        TryLoadModFiles(Biome.LoadBiomesFile, Path.Combine(path, @"Biomes"), progressPerSegment);
-        TryLoadModFiles(Adjective.LoadAdjectivesFile, Path.Combine(path, @"Adjectives"), progressPerSegment);
-        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
-        TryLoadModFiles(Element.LoadElementsFile, Path.Combine(path, @"Elements"), progressPerSegment);
+        TryLoadModFiles(Layer.LoadLayersFile033, Path.Combine(path, @"Layers"), progressPerSegment);
+        TryLoadModFiles(Biome.LoadBiomesFile033, Path.Combine(path, @"Biomes"), progressPerSegment);
+        TryLoadModFiles(Adjective.LoadAdjectivesFile033, Path.Combine(path, @"Adjectives"), progressPerSegment);
+        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile033, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
+        TryLoadModFiles(Element.LoadElementsFile033, Path.Combine(path, @"Elements"), progressPerSegment);
         TryLoadModFiles(PreferenceGenerator.LoadPreferencesFile, Path.Combine(path, @"Preferences"), progressPerSegment);
-        TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
+        TryLoadModFiles(Discovery.LoadDiscoveriesFile, Path.Combine(path, @"Discoveries"), progressPerSegment);
         TryLoadModFiles(EventGenerator.LoadEventFile, Path.Combine(path, @"Events"), progressPerSegment);
         TryLoadModFiles(ActionCategory.LoadActionCategoryFile, Path.Combine(path, @"Actions", @"Categories"), progressPerSegment);
         TryLoadModFiles(ModAction.LoadActionFile, Path.Combine(path, @"Actions"), progressPerSegment);
@@ -5227,12 +5237,12 @@ public class Manager
 
         float progressPerSegment = progressPerMod / 6f;
 
-        TryLoadModFiles(Layer.LoadLayersFile, Path.Combine(path, @"Layers"), progressPerSegment);
-        TryLoadModFiles(Biome.LoadBiomesFile, Path.Combine(path, @"Biomes"), progressPerSegment);
-        TryLoadModFiles(Adjective.LoadAdjectivesFile, Path.Combine(path, @"Adjectives"), progressPerSegment);
-        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
-        TryLoadModFiles(Element.LoadElementsFile, Path.Combine(path, @"Elements"), progressPerSegment);
-        TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
+        TryLoadModFiles(Layer.LoadLayersFile033, Path.Combine(path, @"Layers"), progressPerSegment);
+        TryLoadModFiles(Biome.LoadBiomesFile033, Path.Combine(path, @"Biomes"), progressPerSegment);
+        TryLoadModFiles(Adjective.LoadAdjectivesFile033, Path.Combine(path, @"Adjectives"), progressPerSegment);
+        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile033, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
+        TryLoadModFiles(Element.LoadElementsFile033, Path.Combine(path, @"Elements"), progressPerSegment);
+        TryLoadModFiles(Discovery033.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
     }
 
     public static void InvokeGuidedFactionStatusChangeEvent()

@@ -6,7 +6,7 @@ public static class PropertyEntityBuilder
     public const string RandomRangeType = "random_range";
     public const string ValueType = "value";
 
-    public static IReseteableEntity BuildPropertyEntity(
+    public static IResettableEntity BuildPropertyEntity(
         Context context,
         Context.LoadedContext.LoadedProperty p)
     {

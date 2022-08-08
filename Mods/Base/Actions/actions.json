@@ -77,7 +77,7 @@
         { "id": "contacts", "value": "target.polity.contacts" },
         { "id": "rs_description_tribe", "value": "''Select a neighboring tribe...''" },
         { "id": "selected_tribe", "value": "contacts.request_selection(rs_description_tribe).polity" },
-        { "id": "neighbor_clans", "value": "selected_tribe.get_factions[faction](faction.has_contact_with(target.polity))" },
+        { "id": "neighbor_clans", "value": "selected_tribe.factions.select_subset[faction](faction.has_contact_with(target.polity))" },
         { "id": "rs_description_clan", "value": "''Select which clan the <<target.polity>> tribe should improve relations with...''" },
         { "id": "selected_clan", "value": "neighbor_clans.request_selection(rs_description_clan)" }
       ],
@@ -104,7 +104,7 @@
         { "id": "contacts", "value": "target.polity.contacts" },
         { "id": "rs_description_tribe", "value": "''Select a neighboring tribe...''" },
         { "id": "selected_tribe", "value": "contacts.request_selection(rs_description_tribe).polity" },
-        { "id": "neighbor_clans", "value": "selected_tribe.get_factions[faction](faction.has_contact_with(target.polity))" },
+        { "id": "neighbor_clans", "value": "selected_tribe.factions.select_subset[faction](faction.has_contact_with(target.polity))" },
         { "id": "rs_description_clan", "value": "''Select which clan the <<target.polity>> tribe should invite to join in...''" },
         { "id": "selected_clan", "value": "neighbor_clans.request_selection(rs_description_clan)" }
       ],

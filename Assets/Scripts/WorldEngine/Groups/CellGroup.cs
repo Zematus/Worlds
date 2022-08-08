@@ -36,6 +36,11 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public static List<IWorldEventGenerator> OnCoreHighestProminenceChangeEventGenerators;
     public static List<IWorldEventGenerator> OnPolityCountChangeEventGenerators;
     public static List<IWorldEventGenerator> OnCoreCountChangeEventGenerators;
+    public static Dictionary<string, List<IWorldEventGenerator>> OnKnowledgeLevelFallsBelowEventGenerators;
+    public static Dictionary<string, List<IWorldEventGenerator>> OnKnowledgeLevelRaisesAboveEventGenerators;
+    public static Dictionary<string, List<IWorldEventGenerator>> OnGainedDiscoveryEventGenerators;
+
+    public static HashSet<CellGroupEventGenerator> EventGeneratorsThatNeedCleanup;
 
     [XmlAttribute("MT")]
     public bool MigrationTagged = false;
@@ -93,11 +98,11 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public long TribeFormationEventDate;
 
     [XmlAttribute("ArM")]
-    public int ArabilityModifier = 0;
+    public float ArabilityModifier = 0;
     [XmlAttribute("AcM")]
-    public int AccessibilityModifier = 0;
+    public float AccessibilityModifier = 0;
     [XmlAttribute("NvM")]
-    public int NavigationRangeModifier = 0;
+    public float NavigationRangeModifier = 0;
 
     #region MigratingPopPolId
     [XmlAttribute("MPPId")]
@@ -130,24 +135,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         get
         {
             return Cell.Position;
-        }
-    }
-
-    [XmlIgnore]
-    public float ScaledArabilityModifier
-    {
-        get
-        {
-            return Mathf.Clamp01(ArabilityModifier * MathUtility.IntToFloatScalingFactor);
-        }
-    }
-
-    [XmlIgnore]
-    public float ScaledAccessibilityModifier
-    {
-        get
-        {
-            return Mathf.Clamp01(AccessibilityModifier * MathUtility.IntToFloatScalingFactor);
         }
     }
 
@@ -231,6 +218,12 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public PolityProminence HighestPolityProminence = null;
     //#endif
 
+    [XmlIgnore]
+    public ICollection<Polity> PresentPolities => GetPresentPolities();
+
+    [XmlIgnore]
+    public ICollection<Faction> ClosestFactions => GetClosestFactions();
+
     private Dictionary<Identifier, PolityProminence> _polityProminences =
         new Dictionary<Identifier, PolityProminence>();
 
@@ -239,8 +232,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
     private HashSet<Identifier> _polityProminencesToRemove =
         new HashSet<Identifier>();
-    //private HashSet<Polity> _polityProminencesToAdd =
-    //    new HashSet<Polity>();
 
     private HashSet<string> _flags = new HashSet<string>();
 
@@ -477,6 +468,30 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return null;
     }
 
+    private ICollection<Polity> GetPresentPolities()
+    {
+        var polities = new List<Polity>();
+
+        foreach (var prominence in _polityProminences.Values)
+        {
+            polities.Add(prominence.Polity);
+        }
+
+        return polities;
+    }
+
+    private ICollection<Faction> GetClosestFactions()
+    {
+        var factions = new List<Faction>();
+
+        foreach (var prominence in _polityProminences.Values)
+        {
+            factions.Add(prominence.ClosestFaction);
+        }
+
+        return factions;
+    }
+
     /// <summary>
     /// Defines population to migrate
     /// </summary>
@@ -675,6 +690,10 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         OnCoreHighestProminenceChangeEventGenerators = new List<IWorldEventGenerator>();
         OnCoreCountChangeEventGenerators = new List<IWorldEventGenerator>();
         OnPolityCountChangeEventGenerators = new List<IWorldEventGenerator>();
+        OnKnowledgeLevelFallsBelowEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
+        OnKnowledgeLevelRaisesAboveEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
+        OnGainedDiscoveryEventGenerators = new Dictionary<string, List<IWorldEventGenerator>>();
+        EventGeneratorsThatNeedCleanup = new HashSet<CellGroupEventGenerator>();
     }
 
     private void InitializeOnSpawnEvents()
@@ -845,7 +864,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         if (initialGroup)
         {
-            Culture.TryAddKnowledgeToLearn(SocialOrganizationKnowledge.KnowledgeId, SocialOrganizationKnowledge.InitialValue);
+            Culture.AddKnowledgeToLearn(SocialOrganizationKnowledge.KnowledgeId, SocialOrganizationKnowledge.InitialValue);
         }
     }
 
@@ -916,14 +935,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         foreach (Biome biome in GetPresentBiomesInNeighborhood())
         {
-            if (biome.Traits.Contains("sea"))
-            {
-                if (Culture.GetSkill(SeafaringSkill.SkillId) == null)
-                {
-                    Culture.AddSkillToLearn(new SeafaringSkill(this));
-                }
-            }
-
             if (biome.TerrainType != BiomeTerrainType.Water)
             {
                 string skillId = biome.SkillId;
@@ -1631,6 +1642,11 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         Cell.Accessibility = Cell.BaseAccessibility;
         Cell.Arability = Cell.BaseArability;
 
+        foreach (var generator in EventGeneratorsThatNeedCleanup)
+        {
+            generator.RemoveReferences(this);
+        }
+
         _cellUpdateType |= CellUpdateType.Cell;
         _cellUpdateSubtype |= CellUpdateSubType.Terrain;
     }
@@ -2055,7 +2071,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     {
         if (ArabilityModifier > 0)
         {
-            float modifiedArability = Cell.BaseArability + (1 - Cell.BaseArability) * ScaledArabilityModifier;
+            float modifiedArability = Cell.BaseArability + (1 - Cell.BaseArability) * ArabilityModifier;
             modifiedArability = Mathf.Clamp01(modifiedArability);
 
             if (modifiedArability != Cell.Arability)
@@ -2070,7 +2086,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
 
         if (AccessibilityModifier > 0)
         {
-            float modifiedAccessibility = Cell.BaseAccessibility + (1 - Cell.BaseAccessibility) * ScaledAccessibilityModifier;
+            float modifiedAccessibility = Cell.BaseAccessibility + (1 - Cell.BaseAccessibility) * AccessibilityModifier;
             modifiedAccessibility = Mathf.Clamp01(modifiedAccessibility);
 
             if (modifiedAccessibility != Cell.Accessibility)
@@ -2102,7 +2118,7 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             return;
         }
 
-        float knowledgeValue = knowledge.ScaledValue;
+        float knowledgeValue = knowledge.Value;
 
         float techValue = Mathf.Sqrt(knowledgeValue);
 
@@ -2142,9 +2158,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public void UpdateSeaTravelFactor()
     {
         Culture.TryGetSkillValue(SeafaringSkill.SkillId, out float seafaringValue);
-        Culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out float shipbuildingValue);
+        Culture.TryGetKnowledgeValue(ShipbuildingKnowledge.KnowledgeId, out float shipbuildingValue);
 
-        float rangeFactor = 1 + (NavigationRangeModifier * MathUtility.IntToFloatScalingFactor);
+        float rangeFactor = 1 + NavigationRangeModifier;
 
         SeaTravelFactor =
             SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor * rangeFactor;
@@ -2163,7 +2179,10 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         float prominenceValue = GetPolityProminenceValue(migratingPolity);
 
         if (prominenceValue <= 0)
+        {
+            Profiler.EndSample(); // ("CalculateMigrationPressure");
             return 0;
+        }
 
         float prominenceFactor = Mathf.Clamp01(20f * prominenceValue);
 
@@ -2474,17 +2493,6 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return _polityProminences.Values;
     }
 
-    public IEnumerable<Faction> GetClosestFactions()
-    {
-        foreach (var prominence in _polityProminences.Values)
-        {
-            if (prominence.ClosestFaction == null)
-                continue;
-
-            yield return prominence.ClosestFaction;
-        }
-    }
-
     public Faction GetClosestFaction(Polity polity)
     {
         return GetPolityProminence(polity)?.ClosestFaction;
@@ -2576,6 +2584,25 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
     public float GetFactionCoreDistance(Polity polity)
     {
         if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
+        {
+            return float.MaxValue;
+        }
+
+        return polityProminence.FactionCoreDistance;
+    }
+
+    public float GetCoreDistance(Polity polity) => GetPolityCoreDistance(polity);
+
+    public float GetCoreDistance(Faction faction)
+    {
+        var polity = faction.Polity;
+
+        if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
+        {
+            return float.MaxValue;
+        }
+
+        if (polityProminence.ClosestFaction != faction)
         {
             return float.MaxValue;
         }
@@ -2680,6 +2707,65 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
             float promValue = GetPolityProminenceValue(faction.PolityId);
             {
                 faction.GenerateCoreGroupProminenceValueBelowEvents(promValue);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tries to generate and apply all events related to knowledges going below a minimun value
+    /// </summary>
+    public void GenerateKnowledgeLevelFallsBelowEvents(string knowledgeId, float value)
+    {
+        if (!OnKnowledgeLevelFallsBelowEventGenerators.ContainsKey(knowledgeId))
+        {
+            return;
+        }
+
+        foreach (var generator in OnKnowledgeLevelFallsBelowEventGenerators[knowledgeId])
+        {
+            if ((generator is CellGroupEventGenerator gGenerator) &&
+                gGenerator.TestOnKnowledgeLevelFallsBelow(knowledgeId, this, value))
+            {
+                AddGeneratorToTestAssignmentFor(gGenerator);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tries to generate and apply all events related to knowledges going above a maximum value
+    /// </summary>
+    public void GenerateKnowledgeLevelRaisesAboveEvents(string knowledgeId, float value)
+    {
+        if (!OnKnowledgeLevelRaisesAboveEventGenerators.ContainsKey(knowledgeId))
+        {
+            return;
+        }
+
+        foreach (var generator in OnKnowledgeLevelRaisesAboveEventGenerators[knowledgeId])
+        {
+            if ((generator is CellGroupEventGenerator gGenerator) &&
+                gGenerator.TestOnKnowledgeLevelRaisesAbove(knowledgeId, this, value))
+            {
+                AddGeneratorToTestAssignmentFor(gGenerator);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tries to generate and apply all events related to gaining a discovery
+    /// </summary>
+    public void GenerateGainedDiscoveryEvents(string discoveryId)
+    {
+        if (!OnGainedDiscoveryEventGenerators.ContainsKey(discoveryId))
+        {
+            return;
+        }
+
+        foreach (var generator in OnGainedDiscoveryEventGenerators[discoveryId])
+        {
+            if (generator is CellGroupEventGenerator gGenerator)
+            {
+                AddGeneratorToTestAssignmentFor(gGenerator);
             }
         }
     }
@@ -3325,14 +3411,24 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         SetHighestPolityProminence(highestProminence);
     }
 
-    public void SetToUpdate()
+    public void SetToUpdate(bool warnIfUnexpected = true)
     {
-        World.AddGroupToUpdate(this);
+        World.AddGroupToUpdate(this, warnIfUnexpected);
     }
 
     public void AddProperty(string property)
     {
         _properties.Add(property);
+    }
+
+    public bool HasOrWillProperty(string property)
+    {
+        if (_properties.Contains(property))
+        {
+            return true;
+        }
+
+        return _propertiesToAquire.Contains(property);
     }
 
     public bool HasProperty(string property)
@@ -3345,9 +3441,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         return _properties;
     }
 
-    public void ApplyArabilityModifier(int delta)
+    public void ApplyArabilityModifier(float delta)
     {
-        int value = ArabilityModifier + delta;
+        float value = ArabilityModifier + delta;
 
         if (value < 0)
         {
@@ -3357,9 +3453,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         ArabilityModifier = value;
     }
 
-    public void ApplyAccessibilityModifier(int delta)
+    public void ApplyAccessibilityModifier(float delta)
     {
-        int value = AccessibilityModifier + delta;
+        float value = AccessibilityModifier + delta;
 
         if (value < 0)
         {
@@ -3369,9 +3465,9 @@ public class CellGroup : Identifiable, ISynchronizable, IFlagHolder
         AccessibilityModifier = value;
     }
 
-    public void ApplyNavigationRangeModifier(int delta)
+    public void ApplyNavigationRangeModifier(float delta)
     {
-        int value = NavigationRangeModifier + delta;
+        float value = NavigationRangeModifier + delta;
 
         if (value < 0)
         {

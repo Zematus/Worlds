@@ -34,7 +34,7 @@ public class ModTest
         Debug.Log("loading biome mod file...");
 
         Biome.ResetBiomes();
-        Biome.LoadBiomesFile(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
+        Biome.LoadBiomesFile033(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
     }
 
     [Test]
@@ -79,7 +79,7 @@ public class ModTest
         Debug.Log("loading layer mod file...");
 
         Layer.ResetLayers();
-        Layer.LoadLayersFile(Path.Combine("Mods", "WeirdBiomesMod", "Layers", "weirdLayers.json"));
+        Layer.LoadLayersFile033(Path.Combine("Mods", "WeirdBiomesMod", "Layers", "weirdLayers.json"));
 
         foreach (Layer layer in Layer.Layers.Values)
         {
@@ -93,7 +93,7 @@ public class ModTest
 
         Adjective.ResetAdjectives();
         RegionAttribute.ResetAttributes();
-        RegionAttribute.LoadRegionAttributesFile(Path.Combine("Mods", "Base", "RegionAttributes", "region_attributes.json"));
+        RegionAttribute.LoadRegionAttributesFile033(Path.Combine("Mods", "Base", "RegionAttributes", "region_attributes.json"));
     }
 
     [Test]
@@ -115,7 +115,7 @@ public class ModTest
 
         Adjective.ResetAdjectives();
         Element.ResetElements();
-        Element.LoadElementsFile(Path.Combine("Mods", "Base", "Elements", "elements.json"));
+        Element.LoadElementsFile033(Path.Combine("Mods", "Base", "Elements", "elements.json"));
     }
 
     [Test]
@@ -569,17 +569,17 @@ public class ModTest
         _testGroup6.Culture.Language = _testPolity2.Culture.Language;
 
         _testGroup1.Culture.AddKnowledge(
-            new SocialOrganizationKnowledge(_testGroup1, 600, 600));
+            new SocialOrganizationKnowledge(_testGroup1, 600, new KnowledgeLimit(_testGroup1, SocialOrganizationKnowledge.KnowledgeId, 6)));
         _testGroup2.Culture.AddKnowledge(
-            new SocialOrganizationKnowledge(_testGroup2, 600, 600));
+            new SocialOrganizationKnowledge(_testGroup2, 600, new KnowledgeLimit(_testGroup2, SocialOrganizationKnowledge.KnowledgeId, 6)));
         _testGroup3.Culture.AddKnowledge(
-            new SocialOrganizationKnowledge(_testGroup3, 600, 600));
+            new SocialOrganizationKnowledge(_testGroup3, 600, new KnowledgeLimit(_testGroup3, SocialOrganizationKnowledge.KnowledgeId, 6)));
         _testGroup4.Culture.AddKnowledge(
-            new SocialOrganizationKnowledge(_testGroup4, 600, 600));
+            new SocialOrganizationKnowledge(_testGroup4, 600, new KnowledgeLimit(_testGroup4, SocialOrganizationKnowledge.KnowledgeId, 6)));
         _testGroup5.Culture.AddKnowledge(
-            new SocialOrganizationKnowledge(_testGroup5, 600, 600));
+            new SocialOrganizationKnowledge(_testGroup5, 600, new KnowledgeLimit(_testGroup5, SocialOrganizationKnowledge.KnowledgeId, 6)));
         _testGroup6.Culture.AddKnowledge(
-            new SocialOrganizationKnowledge(_testGroup6, 600, 600));
+            new SocialOrganizationKnowledge(_testGroup6, 600, new KnowledgeLimit(_testGroup6, SocialOrganizationKnowledge.KnowledgeId, 6)));
 
         _testRegion1 = new TestCellRegion(_testCell1, _testGroup1.Culture.Language);
         _testCell1.Region = _testRegion1;

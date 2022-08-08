@@ -24,12 +24,12 @@ public class CellBiomeTraitPresenceCondition : CellCondition
 
             if (!MathUtility.TryParseCultureInvariant(valueStr, out MinValue))
             {
-                throw new System.ArgumentException("CellBiomeTraitPresenceCondition: Min value can't be parsed into a valid floating point number: " + valueStr);
+                throw new System.ArgumentException($"CellBiomeTraitPresenceCondition: Min value can't be parsed into a valid floating point number: {valueStr}");
             }
 
-            if (!MinValue.IsInsideRange(DefaultMinValue, CulturalKnowledge.ScaledMaxLimitValue))
+            if (!MinValue.IsInsideRange(DefaultMinValue, 1))
             {
-                throw new System.ArgumentException("CellBiomeTraitPresenceCondition: Min value is outside the range of " + DefaultMinValue + " and 1: " + valueStr);
+                throw new System.ArgumentException($"CellBiomeTraitPresenceCondition: Min value is outside the range of {DefaultMinValue} and 1: {valueStr}");
             }
         }
         else
@@ -50,6 +50,6 @@ public class CellBiomeTraitPresenceCondition : CellCondition
 
     public override string ToString()
     {
-        return "'Cell Biome Trait Presence' Condition, Trait: " + Trait + ", Min Value: " + MinValue;
+        return $"'Cell Biome Trait Presence' Condition, Trait: {Trait}, Min Value: {MinValue}";
     }
 }

@@ -143,7 +143,7 @@ public class World : ISynchronizable, IWorldDateGetter
     [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
         XmlArrayItem(Type = typeof(MigratePopulationEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
-        XmlArrayItem(Type = typeof(Discovery.DiscoveryEvent)),
+        XmlArrayItem(Type = typeof(Discovery033.DiscoveryEvent033)),
         XmlArrayItem(Type = typeof(FactionModEvent)),
         XmlArrayItem(Type = typeof(CellGroupModEvent))]
     public List<WorldEvent> EventsToHappen;
@@ -282,7 +282,7 @@ public class World : ISynchronizable, IWorldDateGetter
 #endif
 
     [XmlIgnore]
-    public Dictionary<string, Discovery> ExistingDiscoveries = new Dictionary<string, Discovery>();
+    public Dictionary<string, IDiscovery> ExistingDiscoveries = new Dictionary<string, IDiscovery>();
 
     private Dictionary<Identifier, FactionInfo> _factionInfos =
         new Dictionary<Identifier, FactionInfo>();
@@ -825,7 +825,7 @@ public class World : ISynchronizable, IWorldDateGetter
         _culturalKnowledgeIdList.Add(baseInfo.Id);
     }
 
-    public void AddExistingDiscovery(Discovery discovery)
+    public void AddExistingDiscovery(IDiscovery discovery)
     {
         if (ExistingDiscoveries.ContainsKey(discovery.Id))
             return;
@@ -1460,8 +1460,6 @@ public class World : ISynchronizable, IWorldDateGetter
         Profiler.EndSample();// ("Event CanTrigger");
 #endif
 
-        Profiler.EndSample();// ("Destroy Event");
-
         IncreaseEvaluatedEventCount(eventToHappen);
 
         Profiler.EndSample();// ("Evaluate Events");
@@ -1487,8 +1485,8 @@ public class World : ISynchronizable, IWorldDateGetter
             IncreaseTriggeredEventCount(eventToHappen);
 
 #if DEBUG
-            Profiler.EndSample();// ("Event Trigger");
             Profiler.EndSample();// ($"Event Trigger - {eventTypeName}");
+            Profiler.EndSample();// ("Event Trigger");
 #endif
         }
 
@@ -1497,6 +1495,8 @@ public class World : ISynchronizable, IWorldDateGetter
         Profiler.BeginSample("Destroy Event");
 
         eventToHappen.Destroy();
+
+        Profiler.EndSample();// ("Destroy Event");
     }
 
     public long Update()
@@ -1792,7 +1792,7 @@ public class World : ISynchronizable, IWorldDateGetter
     public static AddGroupToUpdateCalledDelegate AddGroupToUpdateCalled = null;
 #endif
 
-    public void AddGroupToUpdate(CellGroup group)
+    public void AddGroupToUpdate(CellGroup group, bool warnIfUnexpected = true)
     {
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
@@ -1837,14 +1837,20 @@ public class World : ISynchronizable, IWorldDateGetter
 
         if (GroupsHaveBeenUpdated)
         {
-            Debug.LogWarning(
-                "Trying to add group to update after groups have already been updated this iteration. Id: " +
-                group);
+            if (warnIfUnexpected)
+            {
+                Debug.LogWarning($"Trying to add group to update after groups have already been updated this iteration. Id: {group}");
+            }
+            return;
         }
 
         if (!group.StillPresent)
         {
-            Debug.LogWarning("Group to update is no longer present. Id: " + group);
+            if (warnIfUnexpected)
+            {
+                Debug.LogWarning($"Group to update is no longer present. Id: {group}");
+            }
+            return;
         }
 
         _groupsToUpdate.Add(group);
@@ -1982,7 +1988,7 @@ public class World : ISynchronizable, IWorldDateGetter
         return _factionInfos.ContainsKey(id);
     }
 
-    public void AddFactionToUpdate(Faction faction)
+    public void AddFactionToUpdate(Faction faction, bool warnIfUnexpected = true)
     {
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
@@ -2006,14 +2012,12 @@ public class World : ISynchronizable, IWorldDateGetter
 
                 string callingClass = method.DeclaringType.ToString();
 
-                faction.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int knowledgeValue);
+                faction.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out float knowledgeValue);
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "World:AddFactionToUpdate - Faction Id:" + faction.Id,
-                    "CurrentDate: " + CurrentDate +
-                    ", Social organization knowledge value: " + knowledgeValue +
-                    ", Calling method: " + callingClass + "." + callingMethod +
-                    "", CurrentDate);
+                    $"World:AddFactionToUpdate - Faction Id: {faction.Id}",
+                    $"CurrentDate: {CurrentDate}, Social organization knowledge value: {knowledgeValue}" +
+                    $", Calling method: {callingClass}.{callingMethod}", CurrentDate);
 
                 Manager.RegisterDebugEvent("DebugMessage", debugMessage);
             }
@@ -2022,17 +2026,18 @@ public class World : ISynchronizable, IWorldDateGetter
 
         if (FactionsHaveBeenUpdated)
         {
-            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-
-            Debug.LogWarning(
-                "Trying to add faction to update after factions have already been updated this iteration. Id: " +
-                faction.Id + ", stackTrace:\n" + stackTrace);
+            if (warnIfUnexpected)
+            {
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+                Debug.LogWarning(
+                    $"Trying to add faction to update after factions have already been updated this iteration. Id: {faction.Id}, stackTrace:\n{stackTrace}");
+            }
+            return;
         }
 
         if (!faction.StillPresent)
         {
-            Debug.LogWarning(
-                "Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+            Debug.LogWarning($"Faction to update no longer present. Id: {faction.Id}, Date: {CurrentDate}");
             return;
         }
 
@@ -2140,7 +2145,7 @@ public class World : ISynchronizable, IWorldDateGetter
         return polityInfo.Polity;
     }
 
-    public void AddPolityToUpdate(Polity polity)
+    public void AddPolityToUpdate(Polity polity, bool warnIfUnexpected = true)
     {
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
@@ -2175,14 +2180,19 @@ public class World : ISynchronizable, IWorldDateGetter
 
         if (PolitiesHaveBeenUpdated)
         {
-            throw new System.Exception("Trying to add polity to update after polities " +
-                "have already been updated this iteration. Id: " + polity.Id);
+            if (warnIfUnexpected)
+            {
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+                Debug.LogWarning(
+                    $"Trying to add polity to update after polities have already been updated this iteration. Id: {polity.Id}, stackTrace:\n" + stackTrace);
+            }
+            return;
         }
 
         if (!polity.StillPresent)
         {
-            throw new System.Exception("Polity to update no longer present. " +
-                "Id: " + polity.Id + ", Date: " + CurrentDate);
+            Debug.LogWarning($"Polity to update no longer present. Id: {polity.Id}, Date: {CurrentDate}");
+            return;
         }
 
         _politiesToUpdate.Add(polity);
@@ -2494,7 +2504,9 @@ public class World : ISynchronizable, IWorldDateGetter
 
         foreach (string id in ExistingDiscoveryIds)
         {
-            Discovery discovery = Discovery.GetDiscovery(id);
+            IDiscovery discovery = null;
+
+            discovery = GetDiscovery(id);
 
             if (discovery == null)
             {
@@ -2503,6 +2515,21 @@ public class World : ISynchronizable, IWorldDateGetter
 
             ExistingDiscoveries.Add(id, discovery);
         }
+    }
+
+    public static IDiscovery GetDiscovery(string id)
+    {
+        if (Discovery.Discoveries.TryGetValue(id, out Discovery d))
+        {
+            return d;
+        }
+
+        if (Discovery033.Discoveries.TryGetValue(id, out Discovery033 d33))
+        {
+            return d33;
+        }
+
+        return null;
     }
 
     public void FinalizeLoad()

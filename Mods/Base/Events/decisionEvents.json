@@ -6,29 +6,29 @@
       "target": "group",
       "assignOn": ["spawn", "polity_count_change", "core_count_change"],
       "properties": [
-        { "id": "polity", "value": "target.get_random_polity(tribe)" },
-        { "id": "faction", "value": "target.get_faction(polity)" },
-        { "id": "faction_core_distance", "value": "target.get_faction_core_distance(polity)" },
-        { "id": "polity_prominence_value", "value": "target.prominence_value(polity)" },
+        { "id": "present_tribes", "value": "target.present_polities.select_subset[polity](polity.type == tribe)" },
+        { "id": "selected_tribe", "value": "present_tribes.select_random()" },
+        { "id": "closest_factions_with_cores", "value": "target.closest_factions.select_subset[faction](faction.core_group == target)" },
+        { "id": "selected_faction", "value": "target.closest_factions.select[faction](faction.polity == selected_tribe)" },
+        { "id": "faction_core_distance", "value": "target.get_core_distance(selected_faction)" },
         { "id": "core_distance_factor", "value": "500 / (faction_core_distance + 500)" }
       ],
       "assignmentConditions": [
-        "target.has_polity_of_type(tribe)",
-        "target.faction_cores_count == 0"
+        "present_tribes.count > 0",
+        "closest_factions_with_cores.count == 0"
       ],
       "triggerConditions": [
-        "target.has_faction(polity)",
-        "faction.type == clan",
+        "selected_faction.type == clan",
         "faction_core_distance > 1000",
-        "faction.administrative_load > 500",
-        "faction.preferences.cohesion < 0.65",
-        "target.polity_with_highest_prominence_value == polity",
-        "polity_prominence_value > 0.6",
+        "selected_faction.administrative_load > 500",
+        "selected_faction.preferences.cohesion < 0.65",
+        "target.most_prominent_polity == selected_tribe",
+        "target.prominence_value(selected_tribe) > 0.6",
         "target.knowledges.social_organization >= 6"
       ],
       "timeToTrigger": "73000 + random(29200000 * core_distance_factor)",
       "effects": [
-        "faction.trigger_decision(clan_decide_split, target)"
+        "selected_faction.trigger_decision(clan_decide_split, target)"
       ],
       "repeatable": true
     },
@@ -85,7 +85,7 @@
       ],
       "triggerConditions": [
         "chance_of_making_attempt > 0",
-        "target.core_group.polity_with_highest_prominence_value == target.polity"
+        "target.core_group.most_prominent_polity == target.polity"
       ],
       "timeToTrigger": "73000 + random(182500 * (1 - chance_of_making_attempt))",
       "effects": [
@@ -97,7 +97,7 @@
       "id": "clan_collapse",
       "name": "clan collapse",
       "target": "faction",
-      "assignOn": ["core_group_prominence_value_below:0.05"],
+      "assignOn": ["core_group_prominence_value_falls_below:0.05"],
       "assignmentConditions": [
         "target.type == clan"
       ],
@@ -110,10 +110,10 @@
       "id": "clan_migration",
       "name": "clan migration",
       "target": "faction",
-      "assignOn": ["core_group_prominence_value_below:0.4"],
+      "assignOn": ["core_group_prominence_value_falls_below:0.4"],
       "properties": [
         { "id": "core_prominence_value", "value": "target.core_group.prominence_value(target.polity)" },
-        { "id": "valid_groups", "value": "target.get_groups[group](group.prominence_value(target.polity) >= 0.6)" }
+        { "id": "valid_groups", "value": "target.groups.select_subset[group](group.prominence_value(target.polity) >= 0.6)" }
       ],
       "assignmentConditions": [
         "target.type == clan"
@@ -136,7 +136,7 @@
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "contacts", "value": "target.polity.contacts" },
         { "id": "contact", "value": "contacts.select_random()" },
-        { "id": "near_factions", "value": "contact.polity.get_factions[faction](faction.has_contact_with(target.polity))" },
+        { "id": "near_factions", "value": "contact.polity.factions.select_subset[faction](faction.has_contact_with(target.polity))" },
         { "id": "selected_faction", "value": "near_factions.select_random()" },
         { "id": "relationship_value", "value": "target.get_relationship(selected_faction)" },
         { "id": "contact_strength_factor", "value": "clamp(contact.strength * 5, 0, 1)" },
@@ -146,7 +146,8 @@
         "target.guide == simulation",
         "target == target.polity.dominant_faction",
         "target.polity.type == tribe",
-        "contacts.count > 0"
+        "contacts.count > 0",
+        "near_factions.count > 0"
       ],
       "triggerConditions": [
         "chance_of_making_attempt > 0"
@@ -166,7 +167,7 @@
         { "id": "target_isolation", "value": "target.preferences.isolation" },
         { "id": "contacts", "value": "target.polity.contacts" },
         { "id": "contact", "value": "contacts.select_random()" },
-        { "id": "near_factions", "value": "contact.polity.get_factions[faction](faction.has_contact_with(target.polity))" },
+        { "id": "near_factions", "value": "contact.polity.factions.select_subset[faction](faction.has_contact_with(target.polity))" },
         { "id": "selected_faction", "value": "near_factions.select_random()" },
         { "id": "relationship_value", "value": "target.get_relationship(selected_faction)" },
         { "id": "contact_strength_factor", "value": "clamp(contact.strength * 5, 0, 1)" },
@@ -176,7 +177,8 @@
         "target.guide == simulation",
         "target == target.polity.dominant_faction",
         "target.polity.type == tribe",
-        "contacts.count > 0"
+        "contacts.count > 0",
+        "near_factions.count > 0"
       ],
       "triggerConditions": [
         "chance_of_making_attempt > 0"

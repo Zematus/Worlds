@@ -58,7 +58,7 @@ public class FactionCulture : Culture
             AddKnowledge(new CulturalKnowledge(k));
         }
 
-        foreach (Discovery d in coreCulture.Discoveries.Values)
+        foreach (var d in coreCulture.Discoveries.Values)
         {
             AddDiscovery(d);
         }
@@ -188,28 +188,37 @@ public class FactionCulture : Culture
                 AddKnowledge(knowledge);
             }
 
-            float addValue = k.Value * timeFactor;
+            int newValue = (int)((knowledge.Value * (1f - timeFactor)) + (k.Value * timeFactor));
 
-            if (addValue < 1) // Always try approaching the core cell knowledge value regardless how small the timeFactor is
+            if (newValue != knowledge.Value)
             {
-                if ((knowledge.Value - k.Value) <= -1)
-                    knowledge.Value++;
-                else if ((knowledge.Value - k.Value) >= 1)
-                    knowledge.Value--;
-            }
-            else
-            {
-                knowledge.Value = (int)((knowledge.Value * (1f - timeFactor)) + addValue);
+                knowledge.Value = newValue;
+                Faction.GenerateKnowledgeLevelFallsBelowEvents(k.Id, knowledge.Value);
+                Faction.GenerateKnowledgeLevelRaisesAboveEvents(k.Id, knowledge.Value);
             }
         }
 
         foreach (CulturalKnowledge k in _knowledges.Values)
         {
-            if (coreCulture.GetKnowledge(k.Id) == null)
+            if ((coreCulture.GetKnowledge(k.Id) == null) && (k.Value > 0))
             {
-                k.Value = (int)(k.Value * (1f - timeFactor));
+                int newValue = (int)(k.Value * (1f - timeFactor));
+
+                if (newValue != k.Value)
+                {
+                    k.Value = newValue;
+                    Faction.GenerateKnowledgeLevelFallsBelowEvents(k.Id, k.Value);
+                    Faction.GenerateKnowledgeLevelRaisesAboveEvents(k.Id, k.Value);
+                }
             }
         }
+    }
+
+    protected override void AddDiscovery(IDiscovery discovery)
+    {
+        base.AddDiscovery(discovery);
+
+        Faction.GenerateGainedDiscoveryEvents(discovery.Id);
     }
 
     /// <summary>
@@ -219,14 +228,14 @@ public class FactionCulture : Culture
     /// <param name="coreCulture">the culture from the faction's core cell</param>
     private void UpdateDiscoveries(CellCulture coreCulture)
     {
-        foreach (Discovery d in coreCulture.Discoveries.Values)
+        foreach (var d in coreCulture.Discoveries.Values)
         {
             AddDiscovery(d);
         }
 
-        List<Discovery> discoveriesToTryToRemove = new List<Discovery>(Discoveries.Values);
+        List<IDiscovery> discoveriesToTryToRemove = new List<IDiscovery>(Discoveries.Values);
 
-        foreach (Discovery d in discoveriesToTryToRemove)
+        foreach (var d in discoveriesToTryToRemove)
         {
             if (!coreCulture.Discoveries.ContainsKey(d.Id))
             {
@@ -257,4 +266,6 @@ public class FactionCulture : Culture
         UpdateKnowledges(coreCulture, timeFactor);
         UpdateDiscoveries(coreCulture);
     }
+
+    public override void SetHolderToUpdate(bool warnIfUnexpected = true) => Faction.SetToUpdate(warnIfUnexpected);
 }

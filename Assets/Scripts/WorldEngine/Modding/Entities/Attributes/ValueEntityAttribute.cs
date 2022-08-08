@@ -12,7 +12,7 @@ public abstract class ValueEntityAttribute<T> : EntityAttribute
         if ((minArguments > 0) && ((arguments == null) || (arguments.Length < minArguments)))
         {
             throw new System.ArgumentException(
-                ToString() + ": number of arguments given less than " + minArguments);
+                $"{this}: number of arguments given less than {minArguments}");
         }
     }
 

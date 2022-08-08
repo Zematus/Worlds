@@ -16,7 +16,8 @@ public abstract class Polity : ISynchronizable
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 2500;
     public const float CoreDistanceEffectConstant = 10000;
-    public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
+    public const string CanFormPolityAttribute033 = "CAN_FORM_POLITY:";
+    public const string CanFormTribeAttribute = "can_form_tribe";
 
     public const float MaxAdminCost = 1000000000000;
 
@@ -37,9 +38,6 @@ public abstract class Polity : ISynchronizable
 
     [XmlAttribute("NC")]
     public bool NeedsNewCensus = true;
-
-    [XmlAttribute("FC")]
-    public int FactionCount { get; set; }
 
     [XmlAttribute("SP")]
     public bool StillPresent = true;
@@ -555,8 +553,6 @@ public abstract class Polity : ISynchronizable
         }
 
         World.AddFactionToUpdate(faction);
-
-        FactionCount++;
     }
 
     public void RemoveFaction(Faction faction)
@@ -570,8 +566,6 @@ public abstract class Polity : ISynchronizable
         }
 
         World.AddPolityToUpdate(this);
-
-        FactionCount--;
     }
 
     public Faction GetFaction(Identifier id)
@@ -656,7 +650,7 @@ public abstract class Polity : ISynchronizable
             {
                 if (!faction.HasRelationship(contact.NeighborPolity.DominantFaction))
                 {
-                    Faction.SetRelationship(faction, contact.NeighborPolity.DominantFaction, 0.5f);
+                    Faction.SetRelationship(faction, contact.NeighborPolity.DominantFaction, needFactionsToUpdate: false);
                 }
             }
         }
@@ -712,7 +706,7 @@ public abstract class Polity : ISynchronizable
 
         if (!DominantFaction.HasRelationship(polity.DominantFaction))
         {
-            DominantFaction.SetRelationship(polity.DominantFaction, 0.5f);
+            DominantFaction.SetRelationship(polity.DominantFaction, needFactionToUpdate: false);
         }
 
         ApplyPolityContactChange();
@@ -794,10 +788,7 @@ public abstract class Polity : ISynchronizable
         return DominantFaction.GetRelationshipValue(polity.DominantFaction);
     }
 
-    public IEnumerable<Faction> GetFactions()
-    {
-        return _factions.Values;
-    }
+    public ICollection<Faction> GetFactions() => _factions.Values;
 
     public IEnumerable<Faction> GetFactions(string type)
     {
@@ -1348,6 +1339,11 @@ public abstract class Polity : ISynchronizable
         World.InsertEventToHappen(polityEvent);
     }
 
+    public static bool HasRequiredTribeFormationProperties(CellGroup group)
+    {
+        return group.HasProperty(CanFormPolityAttribute033 + "tribe") || group.HasProperty(CanFormTribeAttribute);
+    }
+
     public virtual void GroupUpdateEffects(
         CellGroup group,
         float prominenceValue,
@@ -1360,7 +1356,7 @@ public abstract class Polity : ISynchronizable
                 $"totalPolityProminenceValue is 0. Polity Id: {Id}, Group Id: {group}");
         }
 
-        if (!group.HasProperty(CanFormPolityAttribute + "tribe"))
+        if (!HasRequiredTribeFormationProperties(group))
         {
             group.SetPolityProminenceToRemove(this);
 
@@ -1387,9 +1383,9 @@ public abstract class Polity : ISynchronizable
         randomModifier *= distanceFactor;
         float targetValue = ((maxTargetValue - minTargetValue) * randomModifier) + minTargetValue;
 
-        float scaledValue =
+        float value =
             (targetValue - totalPolityProminenceValue) * prominenceValue / totalPolityProminenceValue;
-        targetValue = prominenceValue + scaledValue;
+        targetValue = prominenceValue + value;
 
         float timeFactor = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
@@ -1707,6 +1703,11 @@ public abstract class Polity : ISynchronizable
         return groupsToTransfer;
     }
 
+    public void SetToUpdate(bool warnIfUnexpected = true)
+    {
+        DominantFaction.SetToUpdate(warnIfUnexpected);
+    }
+
     public void MergePolity(Polity polity)
     {
 //#if DEBUG
@@ -1719,9 +1720,8 @@ public abstract class Polity : ISynchronizable
 //#endif
 
         World.AddPolityToRemove(polity);
-        World.AddPolityToUpdate(this);
 
-        World.AddFactionToUpdate(DominantFaction);
+        SetToUpdate();
 
         float polPopulation = Mathf.Floor(polity.TotalPopulation);
 
@@ -1758,7 +1758,7 @@ public abstract class Polity : ISynchronizable
 
     public float CalculateAdministrativeLoad()
     {
-        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int socialOrganizationValue);
+        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out float socialOrganizationValue);
 
         if (socialOrganizationValue <= 0)
         {
