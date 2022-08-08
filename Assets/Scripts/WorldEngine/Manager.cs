@@ -4869,7 +4869,7 @@ public class Manager
 
                 if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out var knowledgeValue))
                 {
-                    float minValue = SocialOrganizationKnowledge.MinValueForTribeFormation;
+                    float minValue = TribeFormationEvent.MinSocialOrganizationKnowledgeValue * 2;
                     float startValue = SocialOrganizationKnowledge.InitialValue;
 
                     float knowledgeFactor = Mathf.Clamp01((knowledgeValue - startValue) / (minValue - startValue));
