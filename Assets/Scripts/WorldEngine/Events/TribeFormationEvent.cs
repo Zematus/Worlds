@@ -30,7 +30,9 @@ public class TribeFormationEvent : CellGroupEvent
         float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE);
         randomFactor = Mathf.Pow(randomFactor, 2);
 
-        float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeValue) / (OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeValue);
+        float socialOrganizationFactor = 
+            (socialOrganizationValue - MinSocialOrganizationKnowledgeValue) / 
+            (OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeValue);
         socialOrganizationFactor = Mathf.Pow(socialOrganizationFactor, 2);
         socialOrganizationFactor = Mathf.Clamp(socialOrganizationFactor, 0.001f, 1);
 

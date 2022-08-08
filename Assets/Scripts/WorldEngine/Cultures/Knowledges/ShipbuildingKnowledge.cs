@@ -12,8 +12,6 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     public const int KnowledgeRngOffset = 0;
 
-    public const int InitialValue = 100;
-
     public const float BaseLimit = KnowledgeLimit.MinLimitValue;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;

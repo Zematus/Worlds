@@ -13,13 +13,11 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
     public const int KnowledgeRngOffset = 2;
 
     public const float InitialValue = 1;
-    
-    public const float MinValueForTribeFormation = 2;
 
-    public const float BaseLimit = 10;
+    public const float BaseLimit = 15;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
-    public const float PopulationDensityModifier = 2000f;
+    public const float PopulationDensityModifier = 100000f;
 
     public SocialOrganizationKnowledge()
     {
@@ -40,7 +38,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
     {
         float popFactor = Group.Population;
 
-        float densityFactor = PopulationDensityModifier * Limit.Value * Group.Cell.MaxAreaPercent;
+        float densityFactor = PopulationDensityModifier * Group.Cell.MaxAreaPercent;
 
         float finalPopFactor = popFactor / (popFactor + densityFactor);
         finalPopFactor = 0.1f + finalPopFactor * 0.9f;
@@ -64,7 +62,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         AddPolityProminenceEffectInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
 
 #if DEBUG
-        if (_newValue < MinValueForTribeFormation)
+        if (_newValue < TribeFormationEvent.MinSocialOrganizationKnowledgeValue)
         {
             if (Group.GetFactionCores().Count > 0)
             {

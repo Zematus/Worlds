@@ -124,11 +124,11 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         float mergedValue = Mathf.Lerp(_newValue, value, percentage);
 
 #if DEBUG
-        if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (mergedValue < SocialOrganizationKnowledge.MinValueForTribeFormation))
+        if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (mergedValue < TribeFormationEvent.MinSocialOrganizationKnowledgeValue))
         {
             if (Group.GetFactionCores().Count > 0)
             {
-                Debug.LogWarning("group with low social organization has faction cores - Id: " + Group);
+                Debug.LogWarning($"group with low social organization has faction cores - Id: {Group}");
             }
         }
 #endif
@@ -185,16 +185,16 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
             throw new System.Exception($"UpdateValueInternal: new value {newValue} above {KnowledgeLimit.MaxLimitValue}");
         }
 
-        if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (newValue < SocialOrganizationKnowledge.MinValueForTribeFormation))
+        if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (newValue < TribeFormationEvent.MinSocialOrganizationKnowledgeValue))
         {
             if (Group.GetFactionCores().Count > 0)
             {
-                Debug.LogWarning("Group with low social organization has faction cores - Id: " + Group + ", newValue:" + newValue);
+                Debug.LogWarning($"Group with low social organization has faction cores - Id: {Group}, newValue:{newValue}");
             }
 
             if (Group.WillBecomeCoreOfFaction != null)
             {
-                Debug.LogWarning("Group with low social organization will become a faction core - Id: " + Group + ", newValue:" + newValue);
+                Debug.LogWarning($"Group with low social organization will become a faction core - Id: {Group}, newValue:{newValue}");
             }
         }
 #endif

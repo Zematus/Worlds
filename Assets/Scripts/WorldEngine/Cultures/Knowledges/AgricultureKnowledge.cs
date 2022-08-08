@@ -10,8 +10,6 @@ public class AgricultureKnowledge : CellCulturalKnowledge
     public const string KnowledgeId = "agriculture";
     public const string KnowledgeName = "agriculture";
 
-    public const int InitialValue = 100;
-
     public const float BaseLimit = KnowledgeLimit.MinLimitValue;
 
     public const int KnowledgeRngOffset = 1;
