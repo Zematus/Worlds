@@ -159,9 +159,9 @@ public class BinaryHeap<T>
         _balanced = true;
     }
 
-    public void Rebalance()
+    public void Rebalance(bool force = false)
     {
-        if (_balanced) return;
+        if (_balanced && !force) return;
 
         T last = ItemAt(Count);
 
@@ -187,5 +187,12 @@ public class BinaryHeap<T>
         }
 
         return root;
+    }
+
+    public T PeekTop()
+    {
+        Rebalance();
+
+        return ItemAt(0);
     }
 }

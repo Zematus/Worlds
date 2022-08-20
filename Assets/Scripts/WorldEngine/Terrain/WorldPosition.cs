@@ -59,4 +59,24 @@ public struct WorldPosition
     {
         return !p1.Equals(p2);
     }
+
+    public static int ManhanttanDist(WorldPosition p1, WorldPosition p2)
+    {
+        int result = Mathf.Abs(p1.Longitude - p2.Longitude);
+        result += Mathf.Abs(p1.Latitude - p2.Latitude);
+
+        return result;
+    }
+
+    public static implicit operator Vector2(WorldPosition p) =>
+        new Vector2(p.Longitude, p.Latitude);
+
+    public static implicit operator Vector2Int(WorldPosition p) => 
+        new Vector2Int(p.Longitude, p.Latitude);
+
+    public static implicit operator WorldPosition(Vector2Int v) =>
+        new WorldPosition(v.x, v.y);
+
+    public static implicit operator WorldPosition(Vector2 v) =>
+        new WorldPosition(Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y));
 }

@@ -8,7 +8,8 @@ public enum BiomeTerrainType
 {
     Land,
     Water,
-    Ice
+    Ice,
+    Invalid
 }
 
 public class Biome
@@ -46,6 +47,8 @@ public class Biome
 
     public string Name;
     public string Id;
+    public string SkillId;
+    public string SkillName;
     public int IdHash;
     
     public Color Color = Color.black;
@@ -78,7 +81,26 @@ public class Biome
         Biomes = new Dictionary<string, Biome>();
     }
 
-    public static void LoadBiomesFile(string filename)
+    public static bool TryParseBiomeType(string biomeTypeStr, out BiomeTerrainType biomeType)
+    {
+        switch (biomeTypeStr)
+        {
+            case "water":
+                biomeType = BiomeTerrainType.Water;
+                return true;
+            case "land":
+                biomeType = BiomeTerrainType.Land;
+                return true;
+            case "ice":
+                biomeType = BiomeTerrainType.Ice;
+                return true;
+        }
+
+        biomeType = BiomeTerrainType.Invalid;
+        return false;
+    }
+
+    public static void LoadBiomesFile033(string filename)
     {
         foreach (Biome biome in BiomeLoader.Load(filename))
         {

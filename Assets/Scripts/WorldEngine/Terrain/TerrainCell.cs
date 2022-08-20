@@ -1,9 +1,7 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
 using System;
+using UnityEngine.Profiling;
 
 public enum Direction
 {
@@ -43,6 +41,7 @@ public enum CellUpdateSubType
     Relationship = 0x8,
     Membership = 0x10,
     Core = 0x20,
+    CoreDistance = 0x40,
     All = 0xFF,
     AllButTerrain = All & ~Terrain,
     PopulationAndCulture = Population | Culture,
@@ -51,6 +50,13 @@ public enum CellUpdateSubType
 
 public class TerrainCell
 {
+    public enum FilterType
+    {
+        None,
+        Core,
+        Selectable
+    }
+
 #if DEBUG
     public delegate void GetNextLocalRandomCalledDelegate(string callerMethod);
 
@@ -61,9 +67,15 @@ public class TerrainCell
     public const int MaxNeighborDirections = 8;
     public const int NeighborSearchOffset = 3;
 
+    public const float PopulationForagingConstant = 10;
+    public const float PopulationFarmingConstant = 5;
+    public const float PopulationFishingConstant = 1;
+
     public const int MaxNeighborhoodCellCount = 9;
 
     public const float HillinessSlopeFactor = 0.01f;
+
+    public const float TemperatureHoldOffFactor = 0.35f;
 
     public bool Modified = false; // This will be true if the cell has been modified after/during generation by using a heighmap, using the map editor, or by running the simulation
 
@@ -86,14 +98,23 @@ public class TerrainCell
     public float Temperature;
     public float OriginalTemperature;
 
-    public float WaterAccumulation = 0;
-    public float Buffer = 0;
-    public float Buffer2 = 0;
-    public float Buffer3 = 0;
+    public struct RiverBuffers
+    {
+        public float DrainageTransfer;
+        public float TemperatureTransfer;
+        public float DirectionFactor;
+    }
+
+    public Dictionary<TerrainCell, RiverBuffers> FeedingCells =
+        new Dictionary<TerrainCell, RiverBuffers>();
+
     public int RiverId = -1;
     public float RiverLength = 0;
     public bool DrainageDone = true;
     public bool TerrainAlteredBeforeDrainageRegen = false;
+
+    public float DistanceBuffer;
+    public object ObjectBuffer;
 
     public float FlowingWater
     {
@@ -103,18 +124,37 @@ public class TerrainCell
         }
     }
 
+    public float WaterAccumulation
+    {
+        get
+        {
+            return _waterAccumulation;
+        }
+        set
+        {
+#if DEBUG
+            if (value > Biome.MaxBiomeFlowingWater)
+            {
+                Debug.LogWarning("Water accumulation at " + Position + " above max supported maximum: " + value);
+            }
+#endif
+
+            _waterAccumulation = Mathf.Min(Biome.MaxBiomeFlowingWater, value);
+        }
+    }
+
     public float Survivability;
     public float ForagingCapacity;
     public float BaseAccessibility;
     public float BaseArability;
     public float Hilliness;
-    
+
     public bool IsPartOfCoastline;
-    
+
     public float FarmlandPercentage = 0;
     public float Arability = 0;
     public float Accessibility = 0;
-    
+
     public string BiomeWithMostPresence = null;
     public float MostBiomePresence = 0;
 
@@ -129,16 +169,16 @@ public class TerrainCell
     public List<CellLayerData> LayerData = new List<CellLayerData>();
 
     public CellGroup Group;
-    
+
     public float Alpha;
     public float Beta;
-    
+
     public List<string> PresentWaterBiomeIds = new List<string>();
-    
+
     public float WaterBiomePresence = 0;
 
     private float? _neighborhoodWaterBiomePresence = null;
-    
+
     public float NeighborhoodWaterBiomePresence
     {
         get {
@@ -146,7 +186,7 @@ public class TerrainCell
             {
                 _neighborhoodWaterBiomePresence = WaterBiomePresence;
 
-                foreach (TerrainCell nCell in Neighbors.Values)
+                foreach (TerrainCell nCell in NeighborList)
                 {
                     _neighborhoodWaterBiomePresence += nCell.WaterBiomePresence;
                 }
@@ -156,27 +196,42 @@ public class TerrainCell
         }
     }
 
+    public bool IsAllWater => WaterBiomePresence >= 1;
+
     public WorldPosition Position;
-    
+
     public Region Region = null;
-    
+
     public Territory EncompassingTerritory = null;
-    
+    public Territory TerritoryToAddTo = null;
+
     public List<Route> CrossingRoutes = new List<Route>();
-    
+
     public bool HasCrossingRoutes = false;
-    
+
     public float Area;
     public float MaxAreaPercent;
-    
+
     public World World;
-    
+
     public bool IsSelected = false;
-    
+    public bool IsHovered = false;
+
+    public FilterType SelectionFilterType = FilterType.None;
+
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
-    
+
     public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
+    public Dictionary<Direction, TerrainCell> NonDiagonalNeighbors { get; private set; }
+    public List<TerrainCell> NeighborList { get; private set; }
+    public List<Direction> DirectionList { get; private set; }
     public Dictionary<Direction, float> NeighborDistances { get; private set; }
+
+    public List<PolityProminence> PolityProminences =
+        new List<PolityProminence>();
+    private bool _shoulResetPolityProminenceList = false;
+
+    private float _waterAccumulation = 0;
 
     private Dictionary<string, float> _biomePresences = new Dictionary<string, float>();
     private Dictionary<string, CellLayerData> _layerData = new Dictionary<string, CellLayerData>();
@@ -202,6 +257,462 @@ public class TerrainCell
 
         Area = height * width;
         MaxAreaPercent = Area / MaxArea;
+    }
+
+    public IEnumerable<Faction> GetClosestFactions()
+    {
+        if (Group != null)
+        {
+            foreach (var faction in Group.ClosestFactions)
+            {
+                yield return faction;
+            }
+        }
+    }
+
+    public Faction GetClosestFaction(Polity polity) => Group?.GetClosestFaction(polity);
+
+    public Faction GetMostProminentClosestFaction() => Group?.GetMostProminentClosestFaction();
+
+    /// <summary>
+    /// Returns the contribution level a certain activity would have on this cell
+    /// </summary>
+    /// <param name="culture">the reference culture</param>
+    /// <param name="activityId">the id of the activity to evaluate</param>
+    /// <returns></returns>
+    public float GetActivityContribution(Culture culture, string activityId)
+    {
+        CulturalActivity activity = culture.GetActivity(activityId);
+
+        if (activity == null)
+            return 0;
+
+        return activity.Contribution;
+    }
+
+    /// <summary>
+    /// Calculates the foraging capacity and the survivability that a particular
+    /// culture would have
+    /// </summary>
+    /// <param name="culture">the culture to use as reference</param>
+    /// <param name="foragingCapacity">the calculated foraging capacity</param>
+    /// <param name="survivability">the calculated survibability</param>
+    public void CalculateAdaptation(
+        Culture culture,
+        out float foragingCapacity,
+        out float survivability)
+    {
+        float modifiedForagingCapacity = 0;
+        float modifiedSurvivability = 0;
+
+        foreach (string biomeId in PresentBiomeIds)
+        {
+            float biomeRelPresence = GetBiomePresence(biomeId);
+
+            Biome biome = Biome.Biomes[biomeId];
+
+            string skillId = biome.SkillId;
+
+            if (culture.TryGetSkillValue(skillId, out float value))
+            {
+                modifiedForagingCapacity += biomeRelPresence * biome.ForagingCapacity * value;
+                modifiedSurvivability +=
+                    biomeRelPresence * (biome.Survivability + value * (1 - biome.Survivability));
+            }
+            else
+            {
+                modifiedSurvivability += biomeRelPresence * biome.Survivability;
+            }
+        }
+
+        float altitudeSurvivabilityFactor =
+            1 - Mathf.Clamp01(Altitude / World.MaxPossibleAltitude);
+
+        modifiedSurvivability =
+            (modifiedSurvivability * (1 - FarmlandPercentage)) + FarmlandPercentage;
+
+        foragingCapacity = modifiedForagingCapacity * (1 - FarmlandPercentage);
+        survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
+
+        if (foragingCapacity > 1)
+        {
+            throw new System.Exception("ForagingCapacity greater than 1: " + foragingCapacity);
+        }
+
+        if (survivability > 1)
+        {
+            throw new System.Exception("Survivability greater than 1: " + survivability);
+        }
+    }
+
+    /// <summary>
+    /// Returns the farming capacity that a culture would have on this cell
+    /// </summary>
+    /// <param name="culture">the reference culture</param>
+    /// <returns>the farming capacity</returns>
+    private float CalculateFarmingCapacity(Culture culture)
+    {
+        if (!culture.TryGetKnowledgeValue(AgricultureKnowledge.KnowledgeId, out float value))
+        {
+            return 0;
+        }
+
+        float techFactor = value;
+
+        float capacityFactor = FarmlandPercentage * techFactor;
+
+        return capacityFactor;
+    }
+
+    /// <summary>
+    /// Returns the fishing capacity that a culture would have on this cell
+    /// </summary>
+    /// <param name="culture">the reference culture</param>
+    /// <returns>the fishing capacity</returns>
+    private float CalculateFishingCapacity(Culture culture)
+    {
+        float noTechBaseValue = 0.5f;
+
+        culture.TryGetKnowledgeValue(ShipbuildingKnowledge.KnowledgeId, out float value);
+
+        float techFactor = (0.5f * value) + noTechBaseValue;
+
+        float capacityFactor = techFactor * NeighborhoodWaterBiomePresence;
+
+        return capacityFactor;
+    }
+
+    /// <summary>
+    /// Estimates the population capacity for this cell given the input culture
+    /// </summary>
+    /// <param name="culture">the culture to use as reference</param>
+    /// <returns>The estimated population capacity</returns>
+    public float EstimatePopulationCapacity(Culture culture)
+    {
+        float foragingContribution =
+            GetActivityContribution(culture, CellCulturalActivity.ForagingActivityId);
+
+        CalculateAdaptation(culture, out float foragingCapacity, out float survivability);
+
+        float survivabilityOffset = 0.25f;
+
+        float survivabilityFactor =
+            (survivability - survivabilityOffset) / (1 - survivabilityOffset);
+
+        if (survivabilityFactor <= 0)
+            return 0;
+
+        survivabilityFactor = Mathf.Clamp01(survivabilityFactor);
+
+        float populationCapacityByForaging =
+            foragingContribution * PopulationForagingConstant * Area * foragingCapacity;
+
+        float farmingContribution =
+            GetActivityContribution(culture, CellCulturalActivity.FarmingActivityId);
+        float populationCapacityByFarming = 0;
+
+        if (farmingContribution > 0)
+        {
+            float farmingCapacity = CalculateFarmingCapacity(culture);
+
+            populationCapacityByFarming =
+                farmingContribution * PopulationFarmingConstant * Area * farmingCapacity;
+        }
+
+        float fishingContribution =
+            GetActivityContribution(culture, CellCulturalActivity.FishingActivityId);
+        float populationCapacityByFishing = 0;
+
+        if (fishingContribution > 0)
+        {
+            float fishingCapacity = CalculateFishingCapacity(culture);
+
+            populationCapacityByFishing =
+                fishingContribution * PopulationFishingConstant * Area * fishingCapacity;
+        }
+
+        float accesibilityFactor = 0.25f + 0.75f * Accessibility;
+
+        float populationCapacity =
+            (populationCapacityByForaging + populationCapacityByFarming + populationCapacityByFishing) *
+            survivabilityFactor * accesibilityFactor;
+
+        return Mathf.Max(0, populationCapacity);
+    }
+
+    /// <summary>
+    /// Estimates the optimal population that this cell could potentially hold
+    /// given the input culture
+    /// </summary>
+    /// <param name="culture">the culture to use as reference</param>
+    /// <returns>The estimated optimal population</returns>
+    public int EstimateOptimalPopulation(Culture culture)
+    {
+        return (int)EstimatePopulationCapacity(culture);
+    }
+
+    /// <summary>
+    /// Returns how much the altitude chance would affect the migration
+    /// </summary>
+    /// <param name="sourceCell">the terrain cell where the migration would start from</param>
+    /// <returns>the altitude delta factor</returns>
+    public float CalculateMigrationAltitudeDeltaFactor(TerrainCell sourceCell)
+    {
+        if (sourceCell == this)
+            return 1;
+
+        float altChangeConstant = 3;
+
+        float altitudeChange = Mathf.Max(0, Altitude) - Mathf.Max(0, sourceCell.Altitude);
+        float altitudeDeltaFactor = altChangeConstant * altitudeChange / (sourceCell.Area + Area);
+
+        altitudeDeltaFactor = Mathf.Abs(altitudeDeltaFactor + 0.5f); // downslope preference offset
+        altitudeDeltaFactor = 1f / (altitudeDeltaFactor + 0.5f);
+
+        return altitudeDeltaFactor;
+    }
+
+    public void AddGroupPolityProminence(PolityProminence p)
+    {
+        PolityProminences.Add(p);
+    }
+
+    public void SetGroupPolityProminenceListToReset()
+    {
+        _shoulResetPolityProminenceList = true;
+    }
+
+    public void TryResetGroupPolityProminenceList(bool force = false, bool refill = true)
+    {
+        if (!force && !_shoulResetPolityProminenceList)
+            return;
+
+        _shoulResetPolityProminenceList = false;
+
+        PolityProminences.Clear();
+
+        if (refill && (Group != null) && Group.StillPresent)
+        {
+            PolityProminences.AddRange(Group.GetPolityProminences());
+        }
+    }
+
+    public float CalculateOccupancyAggressionFactor(
+        Culture cultureA, Culture cultureB, float minDelta = 0)
+    {
+        float aggrDiff = Culture.CalculateAggressionDiff(cultureA, cultureB);
+
+        float scaleConst = 1000;
+        float aggrFactor;
+
+        if (aggrDiff >= 0)
+        {
+            aggrFactor = Mathf.Max(0, aggrDiff - minDelta);
+            aggrFactor = 1 + aggrFactor * scaleConst;
+        }
+        else
+        {
+            aggrFactor = Mathf.Max(0, -aggrDiff - minDelta);
+            aggrFactor = 1 / (1 + aggrFactor * scaleConst);
+        }
+
+        return aggrFactor;
+    }
+
+    /// <summary>
+    /// Estimates the effective "occupancy" on a cell as a population quantity
+    /// </summary>
+    /// <param name="sourceCulture">the culture the value is calculated for</param>
+    /// <param name="isPolity">'true' if the target culture is associated to a polity.
+    /// 'false' if its associated to unorganized bands</param>
+    /// <param name="isSource">'true' if this cell is equal to the source cell</param>
+    /// <returns>the estimated occupancy</returns>
+    public float EstimateEffectiveOccupancy(
+        Culture sourceCulture,
+        bool isPolity,
+        bool isSource = false)
+    {
+        if (Group == null)
+            return 0;
+
+        Profiler.BeginSample("EstimateEffectiveOccupancy");
+
+        float effectivePopulation = 0;
+
+        // This allows polities to expand into territories occupied by
+        // unorganized bands
+        float ubEffectConst = 100f;
+        // This reduces the incentive of a polity to migrate inwards
+        float innerMigPenalty = isSource ? 0f : 5f;
+
+        float polityEffectivenessFactor = ubEffectConst;
+        float ubEffectivenessFactor = 1f;
+
+        if (isPolity)
+        {
+            polityEffectivenessFactor /= ubEffectConst;
+            ubEffectivenessFactor /= ubEffectConst;
+        }
+
+        //////// Effective population from polities
+
+        float promPopulation = 0;
+
+        Profiler.BeginSample("EstimateEffectiveOccupancy foreach");
+
+        // NOTE: doing a for loop is slightly faster than doing a foreach, and this
+        // function is called very frequently. So it's worth implementing this way
+        for (int i = 0; i < PolityProminences.Count; i++)
+        {
+            PolityProminence p = PolityProminences[i];
+
+            float promAggrFactor = 1;
+            float innerMigFactor = 1;
+
+            Culture promCulture = p.Polity.Culture;
+
+            if (sourceCulture != promCulture)
+            {
+                promAggrFactor =
+                    CalculateOccupancyAggressionFactor(promCulture, sourceCulture);
+            }
+            else
+            {
+                float valueFactor = Mathf.Clamp01(p.Value - 0.5f) * 2f;
+                innerMigFactor = 1 + innerMigPenalty * valueFactor;
+            }
+
+            promPopulation += Group.Population * p.Value * promAggrFactor * innerMigFactor;
+        }
+
+        Profiler.EndSample(); // ("EstimateEffectiveOccupancy foreach");
+
+        float promEffectivePopulation = promPopulation * polityEffectivenessFactor;
+
+        effectivePopulation += Mathf.Max(0, promEffectivePopulation);
+
+        //////// Effective population from unorganized bands
+        
+        float ubPopulation =
+            Group.Population * (1 - Group.TotalPolityProminenceValue);
+
+        if (ubPopulation > 0)
+        {
+            float ubAggrFactor;
+
+            if (isPolity)
+            {
+                ubAggrFactor = CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture);
+            }
+            else
+            {
+                ubAggrFactor = CalculateOccupancyAggressionFactor(Group.Culture, sourceCulture, 0.25f);
+            }
+
+            float ubEffectivePopulation =
+                ubPopulation * ubEffectivenessFactor * ubAggrFactor;
+
+            effectivePopulation += Mathf.Max(0, ubEffectivePopulation);
+        }
+
+        ////////
+
+        Profiler.EndSample(); // ("EstimateEffectiveOccupancy");
+
+        return effectivePopulation;
+    }
+
+    /// <summary>
+    /// Estimates how valuable this cell might be as a migration target using another
+    /// group as reference
+    /// </summary>
+    /// <param name="refGroup">the group to use as reference to calculate</param>
+    /// <param name="refPolity">the polity to use as reference to calculate</param>
+    /// <returns></returns>
+    public float CalculateRelativeMigrationValue(
+        CellGroup refGroup,
+        Polity refPolity)
+    {
+        bool isPolity = refPolity != null;
+
+        float sourceCoreRegionConst = 10;
+        float targetcoreRegionConst = 1000;
+
+        bool sourceIsPartOfCoreRegion = true;
+        bool targetIsPartOfCoreRegion = true;
+
+        TerrainCell sourceCell = refGroup.Cell;
+
+        Culture sourceCulture;
+        if (isPolity)
+        {
+            sourceCulture = refPolity.Culture;
+
+            sourceIsPartOfCoreRegion = refPolity.CoreRegions.Contains(sourceCell.Region);
+            targetIsPartOfCoreRegion = refPolity.CoreRegions.Contains(Region);
+        }
+        else
+        {
+            sourceCulture = refGroup.Culture;
+        }
+
+        float targetOptimalPop =
+            EstimateOptimalPopulation(refGroup.Culture);
+        float sourceOptimalPop =
+            sourceCell.EstimateOptimalPopulation(refGroup.Culture);
+
+        float targetOccupancy =
+            EstimateEffectiveOccupancy(sourceCulture, isPolity);
+        float sourceOccupancy =
+            sourceCell.EstimateEffectiveOccupancy(sourceCulture, isPolity, true);
+
+        float migResitance = 1000;
+
+        float targetModOccRatio = (targetOccupancy + migResitance) / (targetOptimalPop + migResitance);
+        float sourceModOccRatio = (sourceOccupancy + migResitance) / (sourceOptimalPop + migResitance);
+
+        float occRatioFactor = sourceModOccRatio - targetModOccRatio;
+
+        float coreRegionFactor = 1;
+
+        if (!sourceIsPartOfCoreRegion)
+            coreRegionFactor *= sourceCoreRegionConst;
+
+        if (!targetIsPartOfCoreRegion)
+            coreRegionFactor *= 1 / targetcoreRegionConst;
+
+        float targetOptFactor = targetOptimalPop + 1;
+        float sourceOptFactor = sourceOptimalPop + 1;
+        float optimalityFactor = 2 * targetOptFactor / (targetOptFactor + sourceOptFactor);
+
+        float altitudeFactor = CalculateMigrationAltitudeDeltaFactor(sourceCell);
+
+        float cellValue = occRatioFactor * coreRegionFactor * optimalityFactor * altitudeFactor;
+
+        if (float.IsNaN(cellValue))
+        {
+            throw new Exception("float.IsNaN(cellValue)");
+        }
+
+        return cellValue;
+    }
+
+    /// <summary>
+    /// Return the region this cell belongs to, or generate a new region if none is assigned yet
+    /// </summary>
+    /// <param name="initLanguage">The language to use to give the region a new name</param>
+    /// <returns>The region assigned to this cell</returns>
+    public Region GetRegion(Language initLanguage)
+    {
+        if (Region == null)
+        {
+            // Note that this method will return the super region that directly or indirectly
+            // contains the cell region this cell will be assigned to, or the cell region
+            // itself if no super region contains it
+            Region superRegion = Region.TryGenerateRegion(this, initLanguage);
+        }
+
+        return Region;
     }
 
     public static int CompareOriginalAltitude(TerrainCell a, TerrainCell b)
@@ -230,6 +741,26 @@ public class TerrainCell
         return Direction.Null;
     }
 
+    public static bool IsDiagonalDirection(Direction dir)
+    {
+        return ((dir == Direction.Northeast) ||
+            (dir == Direction.Northwest) ||
+            (dir == Direction.Southeast) ||
+            (dir == Direction.Southwest));
+    }
+
+    public bool IsBelowSeaLevel => Altitude <= 0;
+
+    public bool IsLiquidSea
+    {
+        get
+        {
+            if (!IsBelowSeaLevel) return false;
+
+            return GetBiomeTypePresence(BiomeTerrainType.Water) >= 1;
+        }
+    }
+
     public Direction TryGetNeighborDirection(int offset)
     {
         if (Neighbors.Count <= 0)
@@ -251,19 +782,75 @@ public class TerrainCell
         return Neighbors[TryGetNeighborDirection(offset)];
     }
 
-    public long GenerateUniqueIdentifier(long date, long oom = 1L, long offset = 0L)
+    public long GenerateInitId(long idOffset = 0L)
     {
-        if (oom > 1000L)
+        long id =
+            (((Longitude * (long)Manager.WorldHeight) + Latitude) * Manager.PosIdOffset) +
+            (idOffset % Manager.PosIdOffset);
+
+        return id;
+    }
+
+    /// <summary>
+    /// Adds the current buffer value to the cell's water accumulation and recalculates global maximum.
+    /// </summary>
+    public void UpdateDrainage()
+    {
+//#if DEBUG
+//        if ((Longitude == 229) && (Latitude == 133))
+//        {
+//            Debug.Log("Debugging cell " + Position);
+//        }
+//#endif
+
+        WaterAccumulation = Rainfall;
+
+        float tempAcc = 0;
+        float maxDrainTransfer = 0;
+
+        foreach (KeyValuePair<TerrainCell, RiverBuffers> pair in FeedingCells)
         {
-            Debug.LogWarning("'oom' shouldn't be greater than 1000 (oom = " + oom + ")");
+            TerrainCell dCell = pair.Key;
+            RiverBuffers buffers = pair.Value;
+
+            WaterAccumulation += buffers.DrainageTransfer;
+            tempAcc += buffers.TemperatureTransfer;
+
+            if (maxDrainTransfer < buffers.DrainageTransfer)
+            {
+                maxDrainTransfer = buffers.DrainageTransfer;
+                RiverLength = dCell.RiverLength + buffers.DirectionFactor;
+                RiverId = dCell.RiverId;
+            }
         }
 
-        if (date >= World.MaxSupportedDate)
+        World.MaxWaterAccumulation = Mathf.Max(World.MaxWaterAccumulation, WaterAccumulation);
+
+        if ((WaterAccumulation <= Rainfall) || (WaterAccumulation <= 0))
         {
-            Debug.LogWarning("TerrainCell.GenerateUniqueIdentifier - 'date' is greater than " + World.MaxSupportedDate + " (date = " + date + ")");
+            return;
         }
 
-        return (((date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
+        // 'drain' temperature
+
+        tempAcc += OriginalTemperature * Rainfall;
+
+        float newTemp =
+            Mathf.Lerp(OriginalTemperature, tempAcc / WaterAccumulation, TemperatureHoldOffFactor);
+
+#if DEBUG
+        if (!newTemp.IsInsideRange(
+            World.MinPossibleTemperatureWithOffset - 0.5f,
+            World.MaxPossibleTemperatureWithOffset + 0.5f))
+        {
+            Debug.LogWarning("DrainModifyCell - Invalid newTemp: " + newTemp + ", position: " + Position);
+        }
+#endif
+
+        Temperature = Mathf.Clamp(
+            newTemp,
+            World.MinPossibleTemperatureWithOffset,
+            World.MaxPossibleTemperatureWithOffset);
     }
 
     public TerrainCellAlteration GetAlteration(bool regardless = false, bool addLayerData = true)
@@ -436,6 +1023,70 @@ public class TerrainCell
         }
     }
 
+    public IEnumerable<KeyValuePair<string, float>> GetBiomePresencePairs()
+    {
+        for (int i = 0; i < PresentBiomeIds.Count; i++)
+        {
+            yield return
+                new KeyValuePair<string, float>(
+                    PresentBiomeIds[i],
+                    BiomePresences[i]);
+        }
+    }
+
+    public Dictionary<string, float> GetLocalAndNeighborhoodBiomePresences(
+        bool ignoreWaterType = false)
+    {
+        Dictionary<string, float> biomePresences = new Dictionary<string, float>();
+
+        foreach (KeyValuePair<string, float> pair in GetBiomePresencePairs())
+        {
+            if (ignoreWaterType && (Biome.Biomes[pair.Key].TerrainType == BiomeTerrainType.Water))
+                continue;
+
+            biomePresences[pair.Key] = pair.Value;
+        }
+
+        foreach (TerrainCell nCell in NeighborList)
+        {
+            foreach (KeyValuePair<string, float> pair in nCell.GetBiomePresencePairs())
+            {
+                if (ignoreWaterType && (Biome.Biomes[pair.Key].TerrainType == BiomeTerrainType.Water))
+                    continue;
+
+                if (biomePresences.ContainsKey(pair.Key))
+                {
+                    biomePresences[pair.Key] += pair.Value;
+                }
+                else
+                {
+                    biomePresences[pair.Key] = pair.Value;
+                }
+            }
+        }
+
+        return biomePresences;
+    }
+
+    public string GetLocalAndNeighborhoodMostPresentBiome(
+        bool ignoreWaterType = false)
+    {
+        string mostPresent = null;
+        float maxPresence = -1;
+
+        foreach (KeyValuePair<string, float> pair in
+            GetLocalAndNeighborhoodBiomePresences(ignoreWaterType))
+        {
+            if (pair.Value > maxPresence)
+            {
+                maxPresence = pair.Value;
+                mostPresent = pair.Key;
+            }
+        }
+
+        return mostPresent;
+    }
+
     public float GetBiomeTypePresence(BiomeTerrainType type)
     {
         float typePresence = 0;
@@ -456,7 +1107,7 @@ public class TerrainCell
     {
         float presence = GetBiomeTypePresence(type);
 
-        foreach (TerrainCell nCell in Neighbors.Values)
+        foreach (TerrainCell nCell in NeighborList)
         {
             presence += nCell.GetBiomeTypePresence(type);
         }
@@ -484,7 +1135,7 @@ public class TerrainCell
     {
         float presence = GetBiomeTraitPresence(trait);
 
-        foreach (TerrainCell nCell in Neighbors.Values)
+        foreach (TerrainCell nCell in NeighborList)
         {
             presence += nCell.GetBiomeTraitPresence(trait);
         }
@@ -531,6 +1182,11 @@ public class TerrainCell
         {
             layer.MaxPresentValue = data.Value;
         }
+    }
+
+    public int GetIndex()
+    {
+        return Latitude * World.Width + Longitude;
     }
 
     public void SetLayerData(Layer layer, float value, float offset)
@@ -652,28 +1308,52 @@ public class TerrainCell
         return nCell;
     }
 
+    /// <summary>
+    /// Adds a neighboring cell
+    /// </summary>
+    /// <param name="direction">direction the neighbor is located relative to this cell</param>
+    /// <param name="cell">the neighbor cell to add</param>
+    private void AddNeighborCell(Direction direction, TerrainCell cell)
+    {
+        Neighbors.Add(direction, cell);
+
+        if (!IsDiagonalDirection(direction))
+        {
+            NonDiagonalNeighbors.Add(direction, cell);
+        }
+
+        DirectionList.Add(direction);
+        NeighborList.Add(cell);
+    }
+
+    /// <summary>
+    /// Sets all the neighboring cells that are present in the world
+    /// </summary>
     private void SetNeighborCells()
     {
         Neighbors = new Dictionary<Direction, TerrainCell>(8);
+        NonDiagonalNeighbors = new Dictionary<Direction, TerrainCell>(4);
+        NeighborList = new List<TerrainCell>();
+        DirectionList = new List<Direction>();
 
         int wLongitude = (World.Width + Longitude - 1) % World.Width;
         int eLongitude = (Longitude + 1) % World.Width;
 
         if (Latitude < (World.Height - 1))
         {
-            Neighbors.Add(Direction.Northwest, World.TerrainCells[wLongitude][Latitude + 1]);
-            Neighbors.Add(Direction.North, World.TerrainCells[Longitude][Latitude + 1]);
-            Neighbors.Add(Direction.Northeast, World.TerrainCells[eLongitude][Latitude + 1]);
+            AddNeighborCell(Direction.Northwest, World.TerrainCells[wLongitude][Latitude + 1]);
+            AddNeighborCell(Direction.North, World.TerrainCells[Longitude][Latitude + 1]);
+            AddNeighborCell(Direction.Northeast, World.TerrainCells[eLongitude][Latitude + 1]);
         }
 
-        Neighbors.Add(Direction.West, World.TerrainCells[wLongitude][Latitude]);
-        Neighbors.Add(Direction.East, World.TerrainCells[eLongitude][Latitude]);
+        AddNeighborCell(Direction.West, World.TerrainCells[wLongitude][Latitude]);
+        AddNeighborCell(Direction.East, World.TerrainCells[eLongitude][Latitude]);
 
         if (Latitude > 0)
         {
-            Neighbors.Add(Direction.Southwest, World.TerrainCells[wLongitude][Latitude - 1]);
-            Neighbors.Add(Direction.South, World.TerrainCells[Longitude][Latitude - 1]);
-            Neighbors.Add(Direction.Southeast, World.TerrainCells[eLongitude][Latitude - 1]);
+            AddNeighborCell(Direction.Southwest, World.TerrainCells[wLongitude][Latitude - 1]);
+            AddNeighborCell(Direction.South, World.TerrainCells[Longitude][Latitude - 1]);
+            AddNeighborCell(Direction.Southeast, World.TerrainCells[eLongitude][Latitude - 1]);
         }
     }
 
@@ -681,7 +1361,7 @@ public class TerrainCell
     {
         if (WaterBiomePresence > 0.5f)
         {
-            foreach (TerrainCell nCell in Neighbors.Values)
+            foreach (TerrainCell nCell in NeighborList)
             {
                 if (nCell.WaterBiomePresence < 0.5f)
                     return true;
@@ -689,7 +1369,7 @@ public class TerrainCell
         }
         else
         {
-            foreach (TerrainCell nCell in Neighbors.Values)
+            foreach (TerrainCell nCell in NeighborList)
             {
                 if (nCell.WaterBiomePresence >= 0.5f)
                     return true;

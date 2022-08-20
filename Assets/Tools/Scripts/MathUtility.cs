@@ -4,9 +4,6 @@ using System.Collections.Generic;
 
 public static class MathUtility
 {
-    public const int FloatToIntScalingFactor = 100;
-    public const float IntToFloatScalingFactor = 1f / FloatToIntScalingFactor;
-
     public const float NormalAt0 = 0.398942f;
     public const float NormalAt1 = 0.241971f;
     public const float NormalAt2 = 0.053991f;
@@ -141,7 +138,10 @@ public static class MathUtility
 #if DEBUG
         if (!value.IsInsideRange(0,1))
         {
-            Debug.LogWarning("This function is meant to be used only with values between 0 and 1. Value = " + value);
+            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+            Debug.LogWarning("This function is meant to be used only with values between 0 and 1. Value = " +
+                value + ", stackTrace:\n" + stackTrace);
         }
 #endif
 
@@ -178,6 +178,82 @@ public static class MathUtility
         decimals = ab - pab;
 
         return pab;
+    }
+
+    /// <summary>
+    /// Given b, c and f, return the original value for 'a' in c = lerp(a,b,f)
+    /// NOTE: This is not the same as InverseLerp, which solves the equation for 'f'...
+    /// </summary>
+    /// <param name="c">The output of lerp(a,b,f)</param>
+    /// <param name="b">The second input from lerp(a,b,f)</param>
+    /// <param name="f">the lerp percentage</param>
+    /// <returns>The first input from lerp(a,b,f)</returns>
+    public static int ReverseLerp(int c, int b, float f)
+    {
+        float a = ReverseLerp(c, b, f);
+        return Mathf.FloorToInt(a);
+    }
+
+    /// <summary>
+    /// Given b, c and f, return the original value for 'a' in c = lerp(a,b,f)
+    /// NOTE: This is not the same as InverseLerp, which solves the equation for 'f'...
+    /// </summary>
+    /// <param name="c">The output of lerp(a,b,f)</param>
+    /// <param name="b">The second input from lerp(a,b,f)</param>
+    /// <param name="f">the lerp percentage</param>
+    /// <returns>The first input from lerp(a,b,f)</returns>
+    public static float ReverseLerp(float c, float b, float f)
+    {
+        if (!f.IsInsideRange(0, 1))
+        {
+            throw new System.ArgumentException("'f' must be a value between 0 and 1 (inclusive)");
+        }
+
+        if (f == 1)
+        {
+            return float.NaN;
+        }
+
+        float a = ((b * f) - c) / (f - 1);
+
+        return a;
+    }
+
+    /// <summary>
+    /// Given b, c and f, return a value for 'a' that approximates c = lerp(a,b,f)
+    /// but doesn't leave the range between 0 and 1.
+    /// </summary>
+    /// <param name="c">The output of lerp(a,b,f)</param>
+    /// <param name="b">The second input from lerp(a,b,f)</param>
+    /// <param name="f">the lerp percentage</param>
+    /// <returns>The first input from lerp(a,b,f)</returns>
+    public static float UnLerp(float c, float b, float f)
+    {
+        if (!f.IsInsideRange(0, 1))
+        {
+            throw new System.ArgumentException("'f' must be a value between 0 and 1 (inclusive)");
+        }
+
+        if (f == 1)
+        {
+            return float.NaN;
+        }
+
+        float a = ((b * f) - c) / (f - 1);
+        float ca = c - a;
+
+        if (b > c)
+        {
+            a = c * (1 - (ca / (ca + 1)));
+        }
+        else
+        {
+            ca = -ca;
+
+            a = c + (1 - c) * (ca / (ca + 1));
+        }
+
+        return a;
     }
 
     // Only for values between 0 and 1
@@ -428,5 +504,90 @@ public static class MathUtility
         }
 
         return default;
+    }
+
+    public static int MinWrappedDist(int a, int b, int wrapLength)
+    {
+        int dist1 = Mathf.Abs(a - b);
+        int dist2 = Mathf.Abs(a + wrapLength - b);
+
+        return Mathf.Min(dist1, dist2);
+    }
+
+    public static void Extend(this ref RectInt rect, Vector2Int pos, int mapWidth)
+    {
+        rect.yMin = Mathf.Min(rect.yMin, pos.y);
+        rect.yMax = Mathf.Max(rect.yMax, pos.y);
+
+        // we can't have a rect with a width larger than the map length
+        if (rect.width == mapWidth)
+            return;
+
+        int distLeft = 0;
+        int distRight = 0;
+
+        // this big if-block will take care of handling the case where the rect
+        // could end up wrapping around the map longitude-wise
+        if (pos.x < rect.xMin)
+        {
+            // if the wrapped around longitude falls inside the rect then
+            // ignore it
+            if ((pos.x + mapWidth) < rect.xMax)
+                return;
+
+            distLeft = rect.xMin - pos.x;
+            distRight = pos.x + mapWidth - rect.xMax;
+        }
+
+        // this big if-block will take care of handling the case where the rect
+        // could end up wrapping around the map longitude-wise on the reverse
+        // direction
+        if (pos.x > rect.xMax)
+        {
+            // if the wrapped around longitude falls inside the rect then
+            // ignore it
+            if ((pos.x - mapWidth) > rect.xMin)
+                return;
+
+            distLeft = rect.xMin + mapWidth - pos.x;
+            distRight = pos.x - rect.xMax;
+        }
+
+        // if the distance between the pos x and the rect max x is less
+        // than the distance between the pos x and the rect min x,
+        // that means we can encompass the pos with a smaller rect by
+        // increasing the rect max x instead of decreasing the rect min x
+        if (distRight < distLeft)
+        {
+            rect.xMax += distRight;
+        }
+        else
+        {
+            rect.xMin -= distLeft;
+        }
+
+        if (rect.width > mapWidth)
+        {
+            // make sure the target rect width doesn't exceed the map width
+            rect.xMax = rect.xMin + mapWidth;
+        }
+    }
+
+    public static void Extend(this ref RectInt target, RectInt source, int mapWidth)
+    {
+        target.Extend(source.min, mapWidth);
+        target.Extend(source.max, mapWidth);
+    }
+
+    public static Rect Lerp(Rect a, Rect b, float t)
+    {
+        Rect r = new Rect();
+
+        r.xMin = Mathf.Lerp(a.xMin, b.xMin, t);
+        r.xMax = Mathf.Lerp(a.xMax, b.xMax, t);
+        r.yMin = Mathf.Lerp(a.yMin, b.yMin, t);
+        r.yMax = Mathf.Lerp(a.yMax, b.yMax, t);
+
+        return r;
     }
 }

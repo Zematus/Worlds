@@ -15,15 +15,24 @@ public class CellCulturalPreference : CulturalPreference
 
     private float _newValue;
 
+#if DEBUG
+    private long _lastUpdateDate = Manager.CurrentWorld.CurrentDate;
+#endif
+
+    [XmlIgnore]
+    public override float Value
+    {
+        get => ValueInternal;
+        set => _newValue = value;
+    }
+
     public CellCulturalPreference()
     {
     }
 
-    private CellCulturalPreference(CellGroup group, string id, string name, int rngOffset, float value = 0) : base(id, name, rngOffset, value)
+    public CellCulturalPreference(CellGroup group, string id, string name, int rngOffset, float value = 0) : base(id, name, rngOffset, value)
     {
         Group = group;
-
-        _newValue = value;
     }
 
     public static CellCulturalPreference CreateCellInstance(CellGroup group, CulturalPreference basePreference)
@@ -36,31 +45,34 @@ public class CellCulturalPreference : CulturalPreference
         return new CellCulturalPreference(group, basePreference.Id, basePreference.Name, basePreference.RngOffset, initialValue);
     }
 
-    public static CellCulturalPreference CreateAuthorityPreference(CellGroup group, float value = 0)
+    /// <summary>
+    /// Unmerge the preference value from a different culture by a proportion
+    /// TODO: Instead of modifying the previous 'new' value, this should use deltas
+    /// like prominences do.
+    /// </summary>
+    /// <param name="preference">the preference from the source culture</param>
+    /// <param name="percentage">percentage amount to merge</param>
+    public void Unmerge(CulturalPreference preference, float percentage)
     {
-        return new CellCulturalPreference(group, AuthorityPreferenceId, AuthorityPreferenceName, AuthorityPreferenceRngOffset, value);
+        _newValue = MathUtility.UnLerp(_newValue, preference.Value, percentage);
     }
 
-    public static CellCulturalPreference CreateCohesionPreference(CellGroup group, float value = 0)
-    {
-        return new CellCulturalPreference(group, CohesionPreferenceId, CohesionPreferenceName, CohesionPreferenceRngOffset, value);
-    }
-
-    public static CellCulturalPreference CreateIsolationPreference(CellGroup group, float value = 0)
-    {
-        return new CellCulturalPreference(group, IsolationPreferenceId, IsolationPreferenceName, IsolationPreferenceRngOffset, value);
-    }
-
+    /// <summary>
+    /// Merge the preference value from a different culture by a proportion
+    /// TODO: Instead of modifying the previous 'new' value, this should use deltas
+    /// like prominences do.
+    /// </summary>
+    /// <param name="preference">the preference from the source culture</param>
+    /// <param name="percentage">percentage amount to merge</param>
     public void Merge(CulturalPreference preference, float percentage)
     {
-        // _newvalue should have been set correctly either by the constructor or by the Update function
-        _newValue = _newValue * (1f - percentage) + preference.Value * percentage;
+        _newValue = Mathf.Lerp(_newValue, preference.Value, percentage);
     }
 
     // This method should be called only once after a Cultural Value is copied from another source group
     public void DecreaseValue(float percentage)
     {
-        _newValue = _newValue * percentage;
+        _newValue *= percentage;
     }
 
     public void Update(long timeSpan)
@@ -73,7 +85,7 @@ public class CellCulturalPreference : CulturalPreference
 
         float maxTargetValue = 1f;
         float minTargetValue = 0f;
-        float targetValue = 0;
+        float targetValue;
 
         if (randomFactor > 0)
         {
@@ -89,26 +101,30 @@ public class CellCulturalPreference : CulturalPreference
         _newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
     }
 
-    public void AddPolityProminenceEffect(CulturalPreference polityPreference, PolityProminence polityProminence, long timeSpan)
+    public void AddPolityProminenceEffect(
+        CulturalPreference polityPreference, PolityProminence polityProminence, long timeSpan)
     {
         float targetValue = polityPreference.Value;
         float prominenceEffect = polityProminence.Value;
 
         TerrainCell groupCell = Group.Cell;
 
-        float randomEffect = groupCell.GetNextLocalRandomFloat(RngOffsets.PREFERENCE_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId));
+        int rngOffset = RngOffsets.PREFERENCE_POLITY_PROMINENCE + RngOffset +
+            unchecked(polityProminence.Polity.GetHashCode());
+
+        float randomEffect = groupCell.GetNextLocalRandomFloat(rngOffset);
 
         float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
         // _newvalue should have been set correctly either by the constructor or by the Update function
         float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;
 
-        _newValue = _newValue + change;
+        _newValue += change;
     }
 
     public void PostUpdate()
     {
-        Value = Mathf.Clamp01(_newValue);
+        ValueInternal = Mathf.Clamp01(_newValue);
     }
 
     public override void FinalizeLoad()

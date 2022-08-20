@@ -4,19 +4,35 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class PolityEvent : WorldEvent {
+public abstract class PolityEvent : WorldEvent
+{
+    #region PolityId
+    [XmlAttribute("PId")]
+    public string PolityIdStr
+    {
+        get { return PolityId; }
+        set { PolityId = value; }
+    }
+    [XmlIgnore]
+    public Identifier PolityId;
+    #endregion
 
-	[XmlAttribute("PolId")]
-	public long PolityId;
+    #region OriginalDominantFactionId
+    [XmlAttribute("ODFId")]
+    public string OriginalDominantFactionIdStr
+    {
+        get { return OriginalDominantFactionId; }
+        set { OriginalDominantFactionId = value; }
+    }
+    [XmlIgnore]
+    public Identifier OriginalDominantFactionId;
+    #endregion
 
-	[XmlAttribute("OFactId")]
-	public long OriginalDominantFactionId;
+    [XmlIgnore]
+    public Polity Polity;
 
-	[XmlIgnore]
-	public Polity Polity;
-
-	[XmlIgnore]
-	public Faction OriginalDominantFaction;
+    [XmlIgnore]
+    public Faction OriginalDominantFaction;
 
     public PolityEvent()
     {
@@ -58,19 +74,19 @@ public abstract class PolityEvent : WorldEvent {
             Debug.LogWarning("PolityEvent.GenerateUniqueIdentifier - 'triggerDate' is greater than " + World.MaxSupportedDate + " (triggerDate = " + triggerDate + ")");
         }
 
-        return (triggerDate * 1000000000L) + ((polity.Id % 1000000L) * 1000L) + eventTypeId;
+        return (triggerDate * 1000000000L) + ((polity.GetHashCode() % 1000000L) * 1000L) + eventTypeId;
     }
 
-    public override bool IsStillValid () {
+    public override bool IsStillValid()
+    {
+        if (!base.IsStillValid())
+            return false;
 
-		if (!base.IsStillValid ())
-			return false;
+        if (Polity == null)
+            return false;
 
-		if (Polity == null)
-			return false;
-
-		return Polity.StillPresent;
-	}
+        return Polity.StillPresent;
+    }
 
     public override void FinalizeLoad()
     {
@@ -85,16 +101,16 @@ public abstract class PolityEvent : WorldEvent {
         }
     }
 
-    public virtual void Reset (long newTriggerDate) {
+    public override void Reset(long newTriggerDate)
+    {
+        OriginalDominantFaction = Polity.DominantFaction;
+        OriginalDominantFactionId = OriginalDominantFaction.Id;
 
-		OriginalDominantFaction = Polity.DominantFaction;
-		OriginalDominantFactionId = OriginalDominantFaction.Id;
+        Reset(newTriggerDate, GenerateUniqueIdentifier(Polity, newTriggerDate, TypeId));
+    }
 
-		Reset (newTriggerDate, GenerateUniqueIdentifier (Polity, newTriggerDate, TypeId));
-	}
-
-	public override WorldEventData GetData () {
-
-		return new PolityEventData (this);
-	}
+    public override WorldEventData GetData()
+    {
+        return new PolityEventData(this);
+    }
 }

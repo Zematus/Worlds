@@ -29,6 +29,12 @@ public class MapScript : MonoBehaviour
 
     private float _zoomFactor = 1.0f;
 
+    private Rect _startUvRect;
+    private Rect _endUvRect;
+    private float _moveAccTime;
+    private float _moveTotalTime;
+    private bool _movingToTarget = false;
+
     void Start()
     {
         // Prevent material (asset) from being overwritten
@@ -38,10 +44,32 @@ public class MapScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        UpdateUvRect();
+
         if (Manager.ViewingGlobe)
             return;
 
         ReadKeyboardInput();
+    }
+
+    private void UpdateUvRect()
+    {
+        if (!_movingToTarget)
+            return;
+
+        _moveAccTime += Time.deltaTime;
+
+        if (_moveAccTime > _moveTotalTime)
+        {
+            _moveAccTime = _moveTotalTime;
+            _movingToTarget = false;
+        }
+
+        float percent = Mathf.Clamp01(_moveAccTime/_moveTotalTime);
+
+        Rect uvRect = MathUtility.Lerp(_startUvRect, _endUvRect, percent);
+
+        SetUvRect(uvRect);
     }
 
     private void ReadKeyboardInput()
@@ -105,6 +133,40 @@ public class MapScript : MonoBehaviour
         }
     }
 
+    public void RenderToTexture2D(Texture2D targetTexture)
+    {
+        Texture mapTexture = MapImage.texture;
+        Texture overlayTexture = MapOverlayImage.texture;
+
+        Rect uvRect = MapImage.uvRect;
+
+        RenderTexture renderTexture =
+            RenderTexture.GetTemporary(mapTexture.width, mapTexture.height);
+
+        // Material blit pass
+
+        Graphics.Blit(mapTexture, renderTexture, MapImage.material);
+        Graphics.Blit(overlayTexture, renderTexture, DefaultMaterial);
+
+        targetTexture.ReadPixels(
+            new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+        targetTexture.Apply();
+
+        // scale and offset blit pass
+
+        Graphics.Blit(
+            targetTexture,
+            renderTexture,
+            new Vector2(uvRect.width, uvRect.height),
+            new Vector2(uvRect.x, uvRect.y));
+
+        targetTexture.ReadPixels(
+            new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+        targetTexture.Apply();
+
+        RenderTexture.ReleaseTemporary(renderTexture);
+    }
+
     public void EnablePointerOverlay(bool state)
     {
         PointerOverlayImage.enabled = state;
@@ -113,6 +175,11 @@ public class MapScript : MonoBehaviour
     public void RefreshPointerOverlayTexture()
     {
         PointerOverlayImage.texture = Manager.PointerOverlayTexture;
+    }
+
+    public void PointerEntersMap()
+    {
+        Manager.PointerIsOverMap = true;
     }
 
     public void PointerEntersMap(BaseEventData data)
@@ -154,10 +221,21 @@ public class MapScript : MonoBehaviour
         PointerOverlayImage.uvRect = newUvRect;
     }
 
+    private void StopMovingToTarget()
+    {
+        if (!_movingToTarget)
+            return;
+
+        _movingToTarget = false;
+        SetUvRect(_endUvRect);
+    }
+
     private void BeginDragMap(PointerEventData pointerData)
     {
         if (Manager.EditorBrushIsActive)
             return;
+
+        StopMovingToTarget();
 
         _beginDragPosition = pointerData.position;
         _beginDragMapUvRect = MapImage.uvRect;
@@ -308,7 +386,7 @@ public class MapScript : MonoBehaviour
         return false;
     }
 
-    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowWrap = false)
+    public bool TryGetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowWrap = false)
     {
         Vector2 uvPosition;
 
@@ -343,6 +421,8 @@ public class MapScript : MonoBehaviour
         if (_isDraggingMap || Manager.EditorBrushIsActive)
             return;
 
+        StopMovingToTarget();
+
         float oldZoomFactor = _zoomFactor;
         _zoomFactor = Mathf.Clamp(_zoomFactor - delta, _minZoomFactor, _maxZoomFactor);
 
@@ -363,22 +443,46 @@ public class MapScript : MonoBehaviour
         SetUvRect(newUvRect);
     }
 
-    public void ShiftSurfaceToPosition(WorldPosition mapPosition)
+    public void ZoomAndShiftMap(float scale, WorldPosition position, float timeToMove = 0)
     {
-        Rect mapImageRect = MapImage.rectTransform.rect;
+        _startUvRect = MapImage.uvRect;
+        _endUvRect = _startUvRect;
 
+        ZoomMapToScale(scale, ref _endUvRect);
+        ShiftMapToPosition(position, ref _endUvRect);
+
+        if (timeToMove > 0)
+        {
+            _movingToTarget = true;
+            _moveAccTime = 0;
+            _moveTotalTime = timeToMove;
+        }
+        else
+        {
+            SetUvRect(_endUvRect);
+        }
+    }
+
+    private void ZoomMapToScale(float scale, ref Rect targetUvRect)
+    {
+        _zoomFactor = scale;
+
+        targetUvRect.width = _zoomFactor;
+        targetUvRect.height = _zoomFactor;
+    }
+
+    private void ShiftMapToPosition(WorldPosition mapPosition, ref Rect targetUvRect)
+    {
         Vector2 uvPos = Manager.GetUVFromMapCoordinates(mapPosition);
 
-        Vector2 mapImagePos = uvPos - MapImage.uvRect.center;
-        mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
+        Vector2 mapImagePos = uvPos - targetUvRect.center;
+        if (Mathf.Abs(mapImagePos.x) > 1.0f)
+            mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
 
         float maxUvY = 1f - _zoomFactor;
 
-        Rect newUvRect = MapImage.uvRect;
-        newUvRect.x += mapImagePos.x;
-        newUvRect.y = Mathf.Clamp(newUvRect.y + mapImagePos.y, 0, maxUvY);
-
-        SetUvRect(newUvRect);
+        targetUvRect.x += mapImagePos.x;
+        targetUvRect.y = Mathf.Clamp(targetUvRect.y + mapImagePos.y, 0, maxUvY);
     }
 
     public Vector3 GetScreenPositionFromMapCoordinates(WorldPosition mapPosition)

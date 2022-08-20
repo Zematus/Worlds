@@ -15,23 +15,47 @@ public class CellRegion : Region
 
     private TerrainCell _mostCenteredCell = null;
 
+    private RectInt _rect;
+
     public CellRegion()
     {
 
     }
 
-    public CellRegion(TerrainCell originCell, Language language) : base(originCell, language)
+    public CellRegion(TerrainCell originCell, Language language) : base(originCell, 0, language)
     {
 
     }
 
     public void Update()
     {
-        Manager.AddUpdatedCells(_cells, CellUpdateType.Region, CellUpdateSubType.Membership);
+        Manager.AddUpdatedCells(this, CellUpdateType.Region, CellUpdateSubType.Membership);
+    }
+
+    public void AddCells(IEnumerable<TerrainCell> cells)
+    {
+        foreach (TerrainCell cell in cells)
+        {
+            AddCell(cell);
+        }
+    }
+
+    private void UpdateRectangle(TerrainCell cell, bool first)
+    {
+        if (first)
+        {
+            _rect = new RectInt(cell.Position, Vector2Int.zero);
+        }
+        else
+        {
+            _rect.Extend(cell.Position, World.Width);
+        }
     }
 
     public bool AddCell(TerrainCell cell)
     {
+        UpdateRectangle(cell, _cells.Count == 0);
+
         if (!_cells.Add(cell))
             return false;
 
@@ -88,9 +112,9 @@ public class CellRegion : Region
 
             bool isInnerBorder = false;
 
-            bool isNotFullyWater = (cell.WaterBiomePresence < 1);
+            bool isNotAllWater = !cell.IsAllWater;
 
-            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            foreach (TerrainCell nCell in cell.NeighborList)
             {
                 if (nCell.Region != this)
                 {
@@ -98,12 +122,17 @@ public class CellRegion : Region
 
                     if (_outerBorderCells.Add(nCell))
                     {
+                        if (nCell.Region != null)
+                        {
+                            SetAsNeighbors(this, nCell.Region);
+                        }
+
                         float nCellArea = nCell.Area;
 
                         outerBorderArea += nCellArea;
                         AverageOuterBorderAltitude += cell.Altitude * nCellArea;
 
-                        if (isNotFullyWater && (nCell.WaterBiomePresence >= 1))
+                        if (isNotAllWater && nCell.IsAllWater)
                         {
                             coastalOuterBorderArea += nCellArea;
                         }
@@ -151,7 +180,7 @@ public class CellRegion : Region
                     biomePresences.Add(biomeId, presenceArea);
                 }
             }
-            
+
             foreach (string biomeId in cell.PresentWaterBiomeIds)
             {
                 waterArea += cell.GetBiomePresence(biomeId) * cellArea;
@@ -223,17 +252,6 @@ public class CellRegion : Region
         DefineElements();
     }
 
-    public bool RemoveCell(TerrainCell cell)
-    {
-        if (!_cells.Remove(cell))
-            return false;
-
-        cell.Region = null;
-        Manager.AddUpdatedCell(cell, CellUpdateType.Region, CellUpdateSubType.Membership);
-
-        return true;
-    }
-
     public override void Synchronize()
     {
         CellPositions = new List<WorldPosition>(_cells.Count);
@@ -242,14 +260,10 @@ public class CellRegion : Region
         {
             CellPositions.Add(cell.Position);
         }
-
-        base.Synchronize();
     }
 
     public override void FinalizeLoad()
     {
-        base.FinalizeLoad();
-
         foreach (WorldPosition position in CellPositions)
         {
             TerrainCell cell = World.GetCell(position);
@@ -258,6 +272,8 @@ public class CellRegion : Region
             {
                 throw new System.Exception("Cell missing at position " + position.Longitude + "," + position.Latitude);
             }
+
+            UpdateRectangle(cell, _cells.Count == 0);
 
             _cells.Add(cell);
 
@@ -356,5 +372,15 @@ public class CellRegion : Region
     public override TerrainCell GetMostCenteredCell()
     {
         return _mostCenteredCell;
+    }
+
+    public override bool IsWithinRegion(TerrainCell cell)
+    {
+        return cell.Region == this;
+    }
+
+    public override RectInt GetBoundingRectangle()
+    {
+        return _rect;
     }
 }

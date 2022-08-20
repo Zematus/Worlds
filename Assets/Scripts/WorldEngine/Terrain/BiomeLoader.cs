@@ -103,16 +103,23 @@ public class BiomeLoader
             throw new ArgumentException("biome arability must be a value between 0 and 1 (inclusive)");
         }
 
+        string skillId = b.id + BiomeSurvivalSkill.SkillIdSuffix;
+        string skillName = b.name + BiomeSurvivalSkill.SkillNamePart;
+
         Biome biome = new Biome()
         {
             Id = b.id,
-            IdHash = b.id.GetHashCode(),
             Name = b.name,
+            SkillId = skillId,
+            SkillName = skillName,
+            IdHash = b.id.GetHashCode(),
             Survivability = b.survivability,
             ForagingCapacity = b.foragingCapacity,
             Accessibility = b.accessibility,
             Arability = b.arability
         };
+
+        CulturalSkill.AddValidSkillId(skillId);
 
         switch (b.type)
         {

@@ -91,7 +91,6 @@ public class BinaryTree<TKey, TValue>
         Count++;
         int level = 0;
 
-        //		BinaryTreeNode<TKey, TValue> item = SetFreeNode (key, value);
         BinaryTreeNode<TKey, TValue> item = new BinaryTreeNode<TKey, TValue>(key, value);
 
         if (nodeAssociation != null)
@@ -114,8 +113,6 @@ public class BinaryTree<TKey, TValue>
 
         while (true)
         {
-            //			Profiler.BeginSample ("Binary Tree Node Compare");
-
             level++;
 
             int comp = Comparer.Compare(item.Key, node.Key);
@@ -132,14 +129,10 @@ public class BinaryTree<TKey, TValue>
                     if (isRightmost)
                         _rightmostItem = item;
 
-                    //					Profiler.EndSample ();
-
                     break;
                 }
 
                 node = node.Right;
-
-                //				Profiler.EndSample ();
 
                 continue;
             }
@@ -155,19 +148,13 @@ public class BinaryTree<TKey, TValue>
                     if (isLeftmost)
                         _leftmostItem = item;
 
-                    //					Profiler.EndSample ();
-
                     break;
                 }
 
                 node = node.Left;
 
-                //				Profiler.EndSample ();
-
                 continue;
             }
-
-            //			Profiler.EndSample ();
         }
     }
 

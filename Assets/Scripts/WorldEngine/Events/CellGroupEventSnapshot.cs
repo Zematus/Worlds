@@ -4,14 +4,16 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class CellGroupEventSnapshot : WorldEventSnapshot {
+public class CellGroupEventSnapshot : WorldEventSnapshot
+{
+    public Identifier GroupId;
 
-	public long GroupId;
-	public CellGroupSnapshot GroupSnapshot;
+    public CellGroupSnapshot GroupSnapshot;
 
-	public CellGroupEventSnapshot (CellGroupEvent e) : base (e) {
+    public CellGroupEventSnapshot(CellGroupEvent e) : base(e)
+    {
 
-		GroupId = e.GroupId;
-		GroupSnapshot = e.Group.GetSnapshot ();
-	}
+        GroupId = e.GroupId;
+        GroupSnapshot = e.Group.GetSnapshot();
+    }
 }

@@ -28,7 +28,7 @@ public abstract class CellGroupEventGeneratorEvent : CellGroupEvent
     {
         Generator = generator;
         GeneratorId = generator.GetEventGeneratorId();
-        EventSetFlag = generator.GetEventSetFlag();
+        EventSetFlag = generator.EventSetFlag;
 
         group.SetFlag(EventSetFlag);
     }
@@ -45,13 +45,13 @@ public abstract class CellGroupEventGeneratorEvent : CellGroupEvent
         }
     }
 
-    protected override void DestroyInternal()
+    public override void Cleanup()
     {
         if (Group != null)
         {
             Group.UnsetFlag(EventSetFlag);
         }
 
-        base.DestroyInternal();
+        base.Cleanup();
     }
 }

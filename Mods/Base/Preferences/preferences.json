@@ -1,0 +1,20 @@
+{
+  "preferences": [
+    {
+      "id": "authority",
+      "name": "authority"
+    },
+    {
+      "id": "cohesion",
+      "name": "cohesion"
+    },
+    {
+      "id": "isolation",
+      "name": "isolation"
+    },
+    {
+      "id": "aggression",
+      "name": "aggression"
+    }
+  ]
+}

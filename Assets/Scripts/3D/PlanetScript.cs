@@ -42,7 +42,7 @@ public class PlanetScript : MonoBehaviour
     private Vector3 _lastDragMousePosition;
 
     private const float _maxCameraDistance = -2.5f;
-    private const float _minCameraDistance = -1.15f;
+    private const float _minCameraDistance = -1.25f;
 
     private const float _maxZoomFactor = 1f;
     private const float _minZoomFactor = 0f;
@@ -54,6 +54,16 @@ public class PlanetScript : MonoBehaviour
 
     private float _zoomFactor = 1.0f;
 
+    private Vector3 _startCameraPos;
+    private Vector3 _endCameraPos;
+
+    private Vector2 _startMapPos;
+    private Vector2 _endMapPos;
+
+    private float _moveAccTime;
+    private float _moveTotalTime;
+    private bool _movingToTarget = false;
+
     private SphereRotationType _rotationType = SphereRotationType.Auto;
     private SphereLightingType _lightingType = SphereLightingType.SunLight;
 
@@ -61,6 +71,8 @@ public class PlanetScript : MonoBehaviour
 
     void Update()
     {
+        UpdateCamera();
+
         if (!Manager.ViewingGlobe)
             return;
 
@@ -71,6 +83,28 @@ public class PlanetScript : MonoBehaviour
         {
             AutoRotationPivot.transform.Rotate(Vector3.up * Time.deltaTime * -0.5f);
         }
+    }
+
+    private void UpdateCamera()
+    {
+        if (!_movingToTarget)
+            return;
+
+        _moveAccTime += Time.deltaTime;
+
+        if (_moveAccTime > _moveTotalTime)
+        {
+            _moveAccTime = _moveTotalTime;
+            _movingToTarget = false;
+        }
+
+        float percent = Mathf.Clamp01(_moveAccTime / _moveTotalTime);
+
+        Vector3 cameraPos = Vector3.Lerp(_startCameraPos, _endCameraPos, percent);
+        Vector2 mapPos = Vector2.Lerp(_startMapPos, _endMapPos, percent);
+
+        Camera.transform.localPosition = cameraPos;
+        CenterCameraOnPosition(mapPos);
     }
 
     private void ReadKeyboardInput()
@@ -218,11 +252,24 @@ public class PlanetScript : MonoBehaviour
         ZoomCamera(zoomDelta);
     }
 
+    private void StopMovingToTarget()
+    {
+        if (!_movingToTarget)
+            return;
+
+        _movingToTarget = false;
+
+        Camera.transform.localPosition = _endCameraPos;
+        CenterCameraOnPosition(_endMapPos);
+    }
+
     public void ZoomCamera(float delta)
     {
         if (_isDraggingSurface)
             return;
-        
+
+        StopMovingToTarget();
+
         _zoomFactor = Mathf.Clamp(_zoomFactor - delta, _minZoomFactor, _maxZoomFactor);
 
         Vector3 cameraPosition = Camera.transform.localPosition;
@@ -310,13 +357,11 @@ public class PlanetScript : MonoBehaviour
 
     public bool GetUvCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 uvPosition)
     {
-        Ray ray = Camera.ScreenPointToRay(Input.mousePosition);
-
-        RaycastHit raycastHit;
+        Ray ray = Camera.ScreenPointToRay(pointerPosition);
 
         Collider collider = Surface.GetComponent<Collider>();
 
-        if (!collider.Raycast(ray, out raycastHit, 50))
+        if (!collider.Raycast(ray, out RaycastHit raycastHit, 50))
         {
             uvPosition = -Vector2.one;
 
@@ -328,7 +373,7 @@ public class PlanetScript : MonoBehaviour
         return true;
     }
 
-    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition)
+    public bool TryGetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition)
     {
         Vector2 uvPosition;
 
@@ -358,7 +403,7 @@ public class PlanetScript : MonoBehaviour
         return true;
     }
 
-    private Vector3 GetWorldPositionFromMapCoordinates(WorldPosition mapPosition)
+    private Vector3 GetWorldPositionFromMapCoordinates(Vector2 mapPosition)
     {
         Vector2 uvPos = Manager.GetUVFromMapCoordinates(mapPosition);
 
@@ -392,7 +437,42 @@ public class PlanetScript : MonoBehaviour
         return Camera.WorldToScreenPoint(worldPosition);
     }
 
-    public void ShiftSurfaceToPosition(WorldPosition mapPosition)
+    public void ZoomAndCenterCamera(float scale, WorldPosition position, float timeToMove = 0)
+    {
+        SetRotationType(SphereRotationType.AutoCameraFollow);
+        SetLightingType(SphereLightingType.CameraLight);
+
+        ZoomCameraToScale(scale);
+
+        Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+        TryGetMapCoordinatesFromPointerPosition(screenCenter, out _startMapPos);
+
+        _endMapPos = position;
+
+        if (timeToMove > 0)
+        {
+            _movingToTarget = true;
+            _moveAccTime = 0;
+            _moveTotalTime = timeToMove;
+        }
+        else
+        {
+            Camera.transform.localPosition = _endCameraPos;
+            CenterCameraOnPosition(_endMapPos);
+        }
+    }
+
+    private void ZoomCameraToScale(float scale)
+    {
+        _startCameraPos = Camera.transform.localPosition;
+
+        _zoomFactor = scale;
+
+        _endCameraPos = _startCameraPos;
+        _endCameraPos.z = Mathf.Lerp(_minCameraDistance, _maxCameraDistance, _zoomFactor);
+    }
+
+    private void CenterCameraOnPosition(Vector2 mapPosition)
     {
         // First, we horizontally rotate the outer pivot
 
@@ -415,19 +495,17 @@ public class PlanetScript : MonoBehaviour
         worldPosScreenCenter = Camera.ScreenToWorldPoint(screenCenter); // the screen position in the scene has to be recalculated
         Vector3 innerPivotPosScreenCenter = InnerPivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosScreenCenter).normalized;
 
-        worldPosition = GetWorldPositionFromMapCoordinates(mapPosition); // so do we need a new scene position for the surface map position
         Vector3 innerPivotPosition = InnerPivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosition).normalized;
         
         Vector3 eulerAnglesVertical = Quaternion.FromToRotation(innerPivotPosScreenCenter, innerPivotPosition).eulerAngles;
 
         RotateInnerPivot(eulerAnglesVertical.x);
-
-        SetRotationType(SphereRotationType.AutoCameraFollow);
-        SetLightingType(SphereLightingType.CameraLight);
     }
 
     public void BeginDrag(BaseEventData data)
     {
+        StopMovingToTarget();
+
         PointerEventData pointerData = data as PointerEventData;
 
         if (pointerData.button == PointerEventData.InputButton.Right)

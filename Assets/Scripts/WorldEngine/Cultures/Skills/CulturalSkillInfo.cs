@@ -49,7 +49,7 @@ public class CulturalSkillInfo : IKeyedValue<string>, ISynchronizable
             string idPrefix = BiomeSurvivalSkill.GetBiomeId(Id);
             Biome biome = Biome.Biomes[idPrefix];
 
-            Name = BiomeSurvivalSkill.GenerateName(biome);
+            Name = biome.SkillName;
             RngOffset = BiomeSurvivalSkill.GenerateRngOffset(biome);
         }
         else

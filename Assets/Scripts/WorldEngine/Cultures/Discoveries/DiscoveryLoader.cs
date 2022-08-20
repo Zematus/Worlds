@@ -17,12 +17,8 @@ public class DiscoveryLoader
     {
         public string id;
         public string name;
-        public string[] gainConditions;
-        public string[] holdConditions;
         public string[] gainEffects;
         public string[] lossEffects;
-        public long eventTimeToTrigger;
-        public string[] eventTimeToTriggerFactors;
     }
 
 #pragma warning restore 0649
@@ -31,7 +27,7 @@ public class DiscoveryLoader
     {
         string jsonStr = File.ReadAllText(filename);
 
-        DiscoveryLoader loader = JsonUtility.FromJson<DiscoveryLoader>(jsonStr);
+        var loader = JsonUtility.FromJson<DiscoveryLoader>(jsonStr);
 
         for (int i = 0; i < loader.discoveries.Length; i++)
         {
@@ -51,57 +47,23 @@ public class DiscoveryLoader
             throw new ArgumentException("discovery name can't be null or empty");
         }
 
-        if (!d.eventTimeToTrigger.IsInsideRange(1, long.MaxValue))
-        {
-            throw new ArgumentException("discovery event time-to-trigger must be a value between 0 and 9,223,372,036,854,775,807 (inclusive)");
-        }
-
-        Condition[] gainConditions = null;
-        Condition[] holdConditions = null;
-        Effect[] gainEffects = null;
-        Effect[] lossEffects = null;
-        Factor[] eventTimeToTriggerFactors = null;
-
-        if (d.gainConditions != null)
-        {
-            gainConditions = Condition.BuildConditions(d.gainConditions);
-        }
-
-        if (d.holdConditions != null)
-        {
-            holdConditions = Condition.BuildConditions(d.holdConditions);
-        }
-
-        string effectId = d.id + "_discovery";
-
-        if (d.gainEffects != null)
-        {
-            gainEffects = Effect.BuildEffects(d.gainEffects, effectId);
-        }
-
-        if (d.lossEffects != null)
-        {
-            lossEffects = Effect.BuildEffects(d.lossEffects, effectId);
-        }
-
-        if (d.eventTimeToTriggerFactors != null)
-        {
-            eventTimeToTriggerFactors = Factor.BuildFactors(d.eventTimeToTriggerFactors);
-        }
-
         Discovery discovery = new Discovery()
         {
             Id = d.id,
-            IdHash = d.id.GetHashCode(),
-            UId = Discovery.CurrentUId++,
-            Name = d.name,
-            GainConditions = gainConditions,
-            HoldConditions = holdConditions,
-            GainEffects = gainEffects,
-            LossEffects = lossEffects,
-            EventTimeToTrigger = d.eventTimeToTrigger,
-            EventTimeToTriggerFactors = eventTimeToTriggerFactors,
+            UId = Manager.CurrentDiscoveryUid++,
+            Name = d.name
         };
+
+        // Build the gain effect expressions (must produce side effects)
+        IEffectExpression[] gainEffects =
+            ExpressionBuilder.BuildEffectExpressions(discovery, d.gainEffects);
+
+        // Build the loss effect expressions (must produce side effects)
+        IEffectExpression[] lossEffects =
+            ExpressionBuilder.BuildEffectExpressions(discovery, d.lossEffects);
+
+        discovery.GainEffects = gainEffects;
+        discovery.LossEffects = lossEffects;
 
         return discovery;
     }

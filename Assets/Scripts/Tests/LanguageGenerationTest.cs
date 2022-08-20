@@ -15,7 +15,7 @@ public class LanguageGenerationTest : AutomatedTest
 
         for (int i = 0; i < 10; i++)
         {
-            Language language = new Language(Random.Range(0, int.MaxValue));
+            Language language = new Language(0, Random.Range(0, int.MaxValue));
 
             language.GenerateArticleProperties();
 

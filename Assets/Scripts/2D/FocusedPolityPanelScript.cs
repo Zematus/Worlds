@@ -20,7 +20,7 @@ public class FocusedPolityPanelScript : MonoBehaviour
     {
         Polity = polity;
 
-        PolityText.text = polity.Name.Text + " " + polity.Type;
+        PolityText.text = polity.Name.Text + " " + polity.TypeStr;
 
         UnsetFocusButton.onClick.RemoveAllListeners();
 

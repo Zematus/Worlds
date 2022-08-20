@@ -5,6 +5,9 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
+/// <summary>
+/// An abstraction of a faction's culture
+/// </summary>
 public class FactionCulture : Culture
 {
     public const long OptimalTimeSpan = CellGroup.GenerationSpan * 500;
@@ -12,11 +15,18 @@ public class FactionCulture : Culture
     [XmlIgnore]
     public Faction Faction;
 
+    /// <summary>
+    /// XML deserialization constructor (should only be use by the deserializer)
+    /// </summary>
     public FactionCulture()
     {
 
     }
 
+    /// <summary>
+    /// Builds a new culture object for a specific faction
+    /// </summary>
+    /// <param name="faction">the faction this culture is going to be assigned to</param>
     public FactionCulture(Faction faction) : base(faction.World)
     {
         Faction = faction;
@@ -45,333 +55,204 @@ public class FactionCulture : Culture
 
         foreach (CellCulturalKnowledge k in coreCulture.GetKnowledges())
         {
-            //#if DEBUG
-            //                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-            //                {
-            //                    if (Manager.TracingData.FactionId == Faction.Id)
-            //                    {
-            //                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-            //                            "FactionCulture:FactionCulture - add coreCulture.Knowledges - Faction.Id:" + Faction.Id,
-            //                            "CurrentDate: " + World.CurrentDate +
-            //                            ", coreCulture.Group.Id: " + coreCulture.Group.Id +
-            //                            ", Knowledge Id: " + k.Id +
-            //                            "");
-
-            //                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            //                    }
-            //                }
-            //#endif
-            
             AddKnowledge(new CulturalKnowledge(k));
-            //}
         }
 
-        foreach (Discovery d in coreCulture.Discoveries.Values)
+        foreach (var d in coreCulture.Discoveries.Values)
         {
             AddDiscovery(d);
         }
     }
 
-    public float GetNextRandomFloat(int rngOffset)
-    {
-        return Faction.GetNextLocalRandomFloat(rngOffset);
-    }
-
+    /// <summary>
+    /// Pushes the faction's cultural preference values to match those in the
+    /// faction's core cell culture
+    /// </summary>
+    /// <param name="coreCulture">the culture from the faction's core cell</param>
+    /// <param name="timeFactor">a factor based on the amount of time has passed
+    /// since the last faction update</param>
     private void UpdatePreferences(CellCulture coreCulture, float timeFactor)
     {
-        //Profiler.BeginSample("Culture - Update Preferences");
-
         foreach (CulturalPreference p in coreCulture.GetPreferences())
         {
-            //Profiler.BeginSample("GetPreference");
-
             CulturalPreference preference = GetPreference(p.Id);
-
-            //Profiler.EndSample();
-
-            //#if DEBUG
-            //            float prevValue = 0;
-            //#endif
 
             if (preference == null)
             {
-                //Profiler.BeginSample("new CulturalPreference");
-
                 preference = new CulturalPreference(p);
                 AddPreference(preference);
 
                 preference.Value = p.Value * timeFactor;
-
-                //Profiler.EndSample();
             }
             else
             {
-                //Profiler.BeginSample("update preference.Value");
-
-                //#if DEBUG
-                //                prevValue = preference.Value;
-                //#endif
-
                 preference.Value = (preference.Value * (1f - timeFactor)) + (p.Value * timeFactor);
-
-                //Profiler.EndSample();
             }
-
-            //#if DEBUG
-            //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-            //            {
-            //                if (Manager.TracingData.FactionId == Faction.Id)
-            //                {
-            //                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-            //                        "FactionCulture:Update - coreCulture.Preferences - Faction.Id:" + Faction.Id,
-            //                        "CurrentDate: " + World.CurrentDate +
-            //                        ", coreCulture.Group.Id: " + coreCulture.Group.Id +
-            //                        ", preference.Id: " + preference.Id +
-            //                        ", prevValue: " + prevValue +
-            //                        ", p.Value: " + p.Value +
-            //                        ", preference.Value: " + preference.Value +
-            //                        "");
-
-            //                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            //                }
-            //            }
-            //#endif
         }
 
         foreach (CulturalPreference p in _preferences.Values)
         {
-            //Profiler.BeginSample("coreCulture.Preferences.ContainsKey");
-
-            if (coreCulture.GetPreference(p.Id) != null)
+            if (coreCulture.GetPreference(p.Id) == null)
             {
-                p.Value = p.Value * (1f - timeFactor);
+                p.Value *= (1f - timeFactor);
             }
-
-            //Profiler.EndSample();
         }
-
-        //Profiler.EndSample();
     }
 
+    /// <summary>
+    /// Pushes the faction's cultural activity values to match those in the
+    /// faction's core cell culture
+    /// </summary>
+    /// <param name="coreCulture">the culture from the faction's core cell</param>
+    /// <param name="timeFactor">a factor based on the amount of time has passed
+    /// since the last faction update</param>
     private void UpdateActivities(CellCulture coreCulture, float timeFactor)
     {
-        //Profiler.BeginSample("Culture - Update Activities");
-
         foreach (CulturalActivity a in coreCulture.GetActivities())
         {
-            //Profiler.BeginSample("GetActivity");
-
             CulturalActivity activity = GetActivity(a.Id);
-
-            //Profiler.EndSample();
 
             if (activity == null)
             {
-                //Profiler.BeginSample("new CulturalActivity");
-
                 activity = new CulturalActivity(a);
                 AddActivity(activity);
 
                 activity.Value = a.Value * timeFactor;
-
-                //Profiler.EndSample();
             }
             else
             {
-                //Profiler.BeginSample("update activity.Value");
-
                 activity.Value = (activity.Value * (1f - timeFactor)) + (a.Value * timeFactor);
-
-                //Profiler.EndSample();
             }
         }
 
         foreach (CulturalActivity a in _activities.Values)
         {
-            //Profiler.BeginSample("coreCulture.Activities.ContainsKey");
-
             if (coreCulture.GetActivity(a.Id) == null)
             {
-                a.Value = a.Value * (1f - timeFactor);
+                a.Value *= (1f - timeFactor);
             }
-
-            //Profiler.EndSample();
         }
-
-        //Profiler.EndSample();
     }
 
+    /// <summary>
+    /// Pushes the faction's cultural skill values to match those in the
+    /// faction's core cell culture
+    /// </summary>
+    /// <param name="coreCulture">the culture from the faction's core cell</param>
+    /// <param name="timeFactor">a factor based on the amount of time has passed
+    /// since the last faction update</param>
     private void UpdateSkills(CellCulture coreCulture, float timeFactor)
     {
-        //Profiler.BeginSample("Culture - Update Skills");
-
         foreach (CulturalSkill s in coreCulture.GetSkills())
         {
-            //Profiler.BeginSample("GetSkill");
-
             CulturalSkill skill = GetSkill(s.Id);
-
-            //Profiler.EndSample();
 
             if (skill == null)
             {
-                //Profiler.BeginSample("new CulturalSkill");
-
                 skill = new CulturalSkill(s);
                 AddSkill(skill);
 
                 skill.Value = s.Value * timeFactor;
-
-                //Profiler.EndSample();
             }
             else
             {
-                //Profiler.BeginSample("update skill.Value");
-
                 skill.Value = (skill.Value * (1f - timeFactor)) + (s.Value * timeFactor);
-
-                //Profiler.EndSample();
             }
         }
 
         foreach (CulturalSkill s in _skills.Values)
         {
-            //Profiler.BeginSample("coreCulture.Skills.ContainsKey");
-
             if (coreCulture.GetSkill(s.Id) == null)
             {
                 s.Value = s.Value * (1f - timeFactor);
             }
-
-            //Profiler.EndSample();
         }
-
-        //Profiler.EndSample();
     }
 
+    /// <summary>
+    /// Pushes the faction's cultural knowledge values to match those in the
+    /// faction's core cell culture
+    /// </summary>
+    /// <param name="coreCulture">the culture from the faction's core cell</param>
+    /// <param name="timeFactor">a factor based on the amount of time has passed
+    /// since the last faction update</param>
     private void UpdateKnowledges(CellCulture coreCulture, float timeFactor)
     {
-        //Profiler.BeginSample("Culture - Update Knowledges");
-
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Manager.TracingData.FactionId == Faction.Id)
-        //            {
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "FactionCulture:Update - Update Knowledges - Faction.Id:" + Faction.Id,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", coreCulture.Group.Id: " + coreCulture.Group.Id +
-        //                    ", Knowledges.Count: " + Knowledges.Count +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
-
         foreach (CellCulturalKnowledge k in coreCulture.GetKnowledges())
         {
-            //Profiler.BeginSample("GetKnowledge");
-
             CulturalKnowledge knowledge = GetKnowledge(k.Id);
-
-            //Profiler.EndSample();
 
             if (knowledge == null)
             {
-                //Profiler.BeginSample("new CulturalKnowledge");
-
                 knowledge = new CulturalKnowledge(k);
                 AddKnowledge(knowledge);
-
-                //Profiler.EndSample();
             }
 
-            //Profiler.BeginSample("update knowledge.Value");
+            int newValue = (int)((knowledge.Value * (1f - timeFactor)) + (k.Value * timeFactor));
 
-            float addValue = k.Value * timeFactor;
-
-            if (addValue < 1) // Always try approaching the core cell knowledge value regardless how small the timeFactor is
+            if (newValue != knowledge.Value)
             {
-                if ((knowledge.Value - k.Value) <= -1)
-                    knowledge.Value++;
-                else if ((knowledge.Value - k.Value) >= 1)
-                    knowledge.Value--;
+                knowledge.Value = newValue;
+                Faction.GenerateKnowledgeLevelFallsBelowEvents(k.Id, knowledge.Value);
+                Faction.GenerateKnowledgeLevelRaisesAboveEvents(k.Id, knowledge.Value);
             }
-            else
-            {
-                knowledge.Value = (int)((knowledge.Value * (1f - timeFactor)) + addValue);
-            }
-
-            //Profiler.EndSample();
         }
 
         foreach (CulturalKnowledge k in _knowledges.Values)
         {
-            //Profiler.BeginSample("coreCulture.Skills.ContainsKey");
-
-            if (coreCulture.GetKnowledge(k.Id) == null)
+            if ((coreCulture.GetKnowledge(k.Id) == null) && (k.Value > 0))
             {
-                k.Value = (int)(k.Value * (1f - timeFactor));
+                int newValue = (int)(k.Value * (1f - timeFactor));
+
+                if (newValue != k.Value)
+                {
+                    k.Value = newValue;
+                    Faction.GenerateKnowledgeLevelFallsBelowEvents(k.Id, k.Value);
+                    Faction.GenerateKnowledgeLevelRaisesAboveEvents(k.Id, k.Value);
+                }
             }
-
-            //Profiler.EndSample();
         }
-
-        //Profiler.EndSample();
     }
 
-    private void UpdateDiscoveries(CellCulture coreCulture, float timeFactor)
+    protected override void AddDiscovery(IDiscovery discovery)
     {
-        //Profiler.BeginSample("Culture - Update Discoveries");
+        base.AddDiscovery(discovery);
 
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Manager.TracingData.FactionId == Faction.Id)
-        //            {
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                "FactionCulture:Update - Update Discoveries - Faction.Id:" + Faction.Id,
-        //                "CurrentDate: " + World.CurrentDate +
-        //                ", coreCulture.Group.Id: " + coreCulture.Group.Id +
-        //                ", Discoveries.Count: " + Discoveries.Count +
-        //                "");
+        Faction.GenerateGainedDiscoveryEvents(discovery.Id);
+    }
 
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
-
-        foreach (Discovery d in coreCulture.Discoveries.Values)
+    /// <summary>
+    /// Adds or removes discoveries that are present/not present on the
+    /// faction's core cell culture
+    /// </summary>
+    /// <param name="coreCulture">the culture from the faction's core cell</param>
+    private void UpdateDiscoveries(CellCulture coreCulture)
+    {
+        foreach (var d in coreCulture.Discoveries.Values)
         {
             AddDiscovery(d);
         }
 
-        List<Discovery> discoveriesToTryToRemove = new List<Discovery>(Discoveries.Values);
+        List<IDiscovery> discoveriesToTryToRemove = new List<IDiscovery>(Discoveries.Values);
 
-        foreach (Discovery d in discoveriesToTryToRemove)
+        foreach (var d in discoveriesToTryToRemove)
         {
-            //Profiler.BeginSample("coreCulture.Discoveries.ContainsKey");
-
             if (!coreCulture.Discoveries.ContainsKey(d.Id))
             {
                 RemoveDiscovery(d);
-                //TryRemovingDiscovery(d, timeFactor); // TODO: Take care of issue #133 before cleaning up this
             }
-
-            //Profiler.EndSample();
         }
-
-        //Profiler.EndSample();
     }
 
+    /// <summary>
+    /// Updates the faction cultural attributes
+    /// </summary>
     public void Update()
     {
         CellGroup coreGroup = Faction.CoreGroup;
 
         if ((coreGroup == null) || (!coreGroup.StillPresent))
-            throw new System.Exception("CoreGroup is null or no longer present");
+            throw new System.Exception("CoreGroup is null or no longer present: Faction id: " + Faction.Id);
 
         CellCulture coreCulture = coreGroup.Culture;
 
@@ -383,17 +264,8 @@ public class FactionCulture : Culture
         UpdateActivities(coreCulture, timeFactor);
         UpdateSkills(coreCulture, timeFactor);
         UpdateKnowledges(coreCulture, timeFactor);
-        UpdateDiscoveries(coreCulture, timeFactor);
+        UpdateDiscoveries(coreCulture);
     }
 
-    // TODO: Take care of issue #133 before cleaning up this
-    //private void TryRemovingDiscovery(Discovery discovery, float timeFactor)
-    //{
-    //    int idHash = discovery.IdHash;
-
-    //    if (GetNextRandomFloat(RngOffsets.FACTION_CULTURE_DISCOVERY_LOSS_CHANCE + idHash) < timeFactor)
-    //    {
-    //        RemoveDiscovery(discovery);
-    //    }
-    //}
+    public override void SetHolderToUpdate(bool warnIfUnexpected = true) => Faction.SetToUpdate(warnIfUnexpected);
 }

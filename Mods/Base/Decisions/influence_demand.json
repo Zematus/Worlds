@@ -1,0 +1,256 @@
+{
+  "decisions": [
+    {
+      "id": "clan_decide_performing_influence_demand",
+      "name": "clan decide performing influence demand",
+      "target": "faction",
+      "parameters": [
+        { "id": "demanded_faction", "type": "faction" },
+        { "id": "chance_of_making_demand", "type": "number", "defaultValue": "1" }
+      ],
+      "properties": [
+        { "id": "is_part_of_polity", "value": "target.polity == demanded_faction.polity" },
+        { "id": "relationship_value", "value": "target.get_relationship(demanded_faction)" },
+        { "id": "influence_delta", "value": "max(0, demanded_faction.influence - target.influence)" },
+        { "id": "demanded_faction_authority", "value": "demanded_faction.preferences.authority" },
+        { "id": "admin_factors", "value": "clamp(1 - (relationship_value * influence_delta * demanded_faction_authority * 4), 0.01, 1)" },
+        { "id": "min_admin_load", "value": "0" },
+        { "id": "max_admin_load", "value": "3000 * admin_factors" },
+        { "id": "chance_of_demanded_rejecting_demand", "value": "(1 - normalize(demanded_faction.administrative_load, min_admin_load, max_admin_load))" },
+        { "id": "probability_adjective", "value": "get_probability_adjective(chance_of_demanded_rejecting_demand)" }
+      ],
+      "description": [
+        {
+          "id": "description_intro",
+          "text": "Should the leader of clan <<target>>, <<target.leader>>, demand more influence of the <<target.polity>> tribes from clan, <<demanded_faction>>?\n\nIt's <<probability_adjective>> that the leader of clan <<demanded_faction>>, <<demanded_faction.leader>>, will reject our demand..."
+        }
+      ],
+      "options": [
+        {
+          "id": "make_demand",
+          "text": "Demand more influence from <<demanded_faction>>...",
+          "conditions": ["is_part_of_polity"],
+          "weight": "max(0, chance_of_making_demand)",
+          "effects": [
+            {
+              "id": "increase_authority",
+              "properties": [
+                { "id": "wisdom_factor", "value": "0.5 + target.leader.wisdom" },
+                { "id": "target_authority", "value": "target.preferences.authority" },
+                { "id": "authority_min", "value": "lerp(target_authority, 1, (0.1 * wisdom_factor))" },
+                { "id": "authority_max", "value": "lerp(target_authority, 1, (0.2 * wisdom_factor))" }
+              ],
+              "text": "Clan <<target>>: authority preference (<<target_authority>>) increases to a value between <<authority_min>> and <<authority_max>>",
+              "result": "target.preferences.authority = random(authority_min, authority_max)"
+            },
+            {
+              "id": "demand",
+              "text": "The current leader of clan <<demanded_faction>> will receive a demand for influence from clan <<target>>",
+              "result": "demanded_faction.trigger_decision(influence_demanded_from_clan, target, chance_of_demanded_rejecting_demand)"
+            }
+          ]
+        },
+        {
+          "id": "dont_make_demand",
+          "text": "Avoid making any demands at this time...",
+          "weight": "1 - min(1, chance_of_making_demand)",
+          "conditions": ["is_part_of_polity"]
+        },
+        {
+          "id": "cant_make_demand",
+          "text": "That's unfortunate...",
+          "conditions": ["!is_part_of_polity"]
+        }
+      ]
+    },
+    {
+      "id": "influence_demanded_from_clan",
+      "name": "influence demanded from clan",
+      "target": "faction",
+      "parameters": [
+        { "id": "demanding_faction", "type": "faction" },
+        { "id": "chance_of_rejecting_demand", "type": "number" }
+      ],
+      "properties": [
+        { "id": "relationship_value", "value": "target.get_relationship(demanding_faction)" },
+        { "id": "target_authority", "value": "target.preferences.authority" }
+      ],
+      "description": [
+        {
+          "id": "description_intro",
+          "text": "<<demanding_faction.leader>>, leader of clan <<demanding_faction>>, has demanded greater influence over the <<target.polity>> tribe at the expense of clan <<target>>.\n"
+        },
+        {
+          "id": "description_can_not_reject_demand_high_admin_load",
+          "text": "Unfortunately, the situation is beyond control for the clan leader, <<target.leader>>, to be able to do anything other than accept the demand from clan <<demanding_faction>>...",
+          "conditions": [ "chance_of_rejecting_demand <= 0" ]
+        },
+        {
+          "id": "description_can_reject_demand",
+          "text": "Should the leader of clan <<target>>, <<target.leader>>, accept the demand from clan <<demanding_faction>>?",
+          "conditions": [ "chance_of_rejecting_demand > 0" ]
+        }
+      ],
+      "options": [
+        {
+          "id": "reject_demand",
+          "text": "Reject demand from <<demanding_faction>>...",
+          "conditions": [ "chance_of_rejecting_demand > 0" ],
+          "weight": "max(0, chance_of_rejecting_demand)",
+          "effects": [
+            {
+              "id": "increase_authority",
+              "properties": [
+                { "id": "wisdom_factor", "value": "0.5 + target.leader.wisdom" },
+                { "id": "authority_min", "value": "lerp(target_authority, 1, (0.1 * wisdom_factor))" },
+                { "id": "authority_max", "value": "lerp(target_authority, 1, (0.2 * wisdom_factor))" }
+              ],
+              "text": "Clan <<target>>: authority preference (<<target_authority>>) increases to a value between <<authority_min>> and <<authority_max>>",
+              "result": "target.preferences.authority = random(authority_min, authority_max)"
+            },
+            {
+              "id": "decrease_relation",
+              "properties": [
+                { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
+                { "id": "relationship_min", "value": "lerp(relationship_value, 0, (0.2 * charisma_factor))" },
+                { "id": "relationship_max", "value": "lerp(relationship_value, 0, (0.1 * charisma_factor))" }
+              ],
+              "text": "Clan <<target>>: relationship with <<demanding_faction>> decreases from <<relationship_value>> to a value between <<relationship_min>> and <<relationship_max>>",
+              "result": "target.set_relationship(demanding_faction, random(relationship_min, relationship_max))"
+            },
+            {
+              "id": "notify",
+              "text": "The current leader of clan <<demanding_faction>> will be notified of our decision...",
+              "result": "demanding_faction.trigger_decision(faction_refuse_demand, target)"
+            }
+          ]
+        },
+        {
+          "id": "accept_demand",
+          "text": "Accept demand from <<demanding_faction>>...",
+          "conditions": [ "chance_of_rejecting_demand > 0" ],
+          "weight": "1 - min(1, chance_of_rejecting_demand)",
+          "effects": [
+            {
+              "id": "decrease_dominant_clan_influence",
+              "properties": [
+                { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
+                { "id": "influence_transfer_max", "value": "0.3 * charisma_factor" },
+                { "id": "influence_transfer_min", "value": "0.1 * charisma_factor" }
+              ],
+              "text": "A percentage between <<influence_transfer_min>> and <<influence_transfer_max>> of clan <<target>> influence (<<target.influence>>) on the <<target.polity>> tribe is transfered to clan <<demanding_faction>>",
+              "result": "target.polity.transfer_influence(target, demanding_faction, random(influence_transfer_min, influence_transfer_max))"
+            },
+            {
+              "id": "decrease_authority",
+              "properties": [
+                { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
+                { "id": "authority_min", "value": "lerp(target_authority, 0, (0.2 * wisdom_factor))" },
+                { "id": "authority_max", "value": "lerp(target_authority, 0, (0.1 * wisdom_factor))" }
+              ],
+              "text": "Clan <<target>>: authority preference (<<target_authority>>) decreases to a value between <<authority_min>> and <<authority_max>>",
+              "result": "target.preferences.authority = random(authority_min, authority_max)"
+            },
+            {
+              "id": "increase_relation",
+              "properties": [
+                { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
+                { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
+                { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
+              ],
+              "text": "Clan <<target>>: relationship with <<demanding_faction>> increases from <<relationship_value>> to a value between <<relationship_min>> and <<relationship_max>>",
+              "result": "target.set_relationship(demanding_faction, random(relationship_min, relationship_max))"
+            },
+            {
+              "id": "notify",
+              "text": "The current leader of clan <<demanding_faction>> will be notified of our decision...",
+              "result": "demanding_faction.trigger_decision(faction_accede_demand, target)"
+            }
+          ]
+        },
+        {
+          "id": "cant_reject_demand",
+          "text": "Oh well...",
+          "conditions": [ "chance_of_rejecting_demand <= 0" ],
+          "effects": [
+            {
+              "id": "decrease_dominant_clan_influence",
+              "properties": [
+                { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
+                { "id": "influence_transfer_max", "value": "0.3 * charisma_factor" },
+                { "id": "influence_transfer_min", "value": "0.1 * charisma_factor" }
+              ],
+              "text": "A percentage between <<influence_transfer_min>> and <<influence_transfer_max>> of clan <<target>> influence (<<target.influence>>) on the <<target.polity>> tribe is transfered to clan <<demanding_faction>>",
+              "result": "target.polity.transfer_influence(target, demanding_faction, random(influence_transfer_min, influence_transfer_max))"
+            },
+            {
+              "id": "decrease_authority",
+              "properties": [
+                { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
+                { "id": "authority_min", "value": "lerp(target_authority, 0, (0.2 * wisdom_factor))" },
+                { "id": "authority_max", "value": "lerp(target_authority, 0, (0.1 * wisdom_factor))" }
+              ],
+              "text": "Clan <<target>>: authority preference (<<target_authority>>) decreases to a value between <<authority_min>> and <<authority_max>>",
+              "result": "target.preferences.authority = random(authority_min, authority_max)"
+            },
+            {
+              "id": "increase_relation",
+              "properties": [
+                { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
+                { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
+                { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
+              ],
+              "text": "Clan <<target>>: relationship with <<demanding_faction>> increases from <<relationship_value>> to a value between <<relationship_min>> and <<relationship_max>>",
+              "result": "target.set_relationship(demanding_faction, random(relationship_min, relationship_max))"
+            },
+            {
+              "id": "notify",
+              "text": "The current leader of clan <<demanding_faction>> will be notified of our decision...",
+              "result": "demanding_faction.trigger_decision(faction_accede_demand, target)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "faction_accede_demand",
+      "name": "faction accede to demand",
+      "target": "faction",
+      "parameters": [
+        { "id": "demanded_faction", "type": "faction" }
+      ],
+      "description": [
+        {
+          "id": "description",
+          "text": "The leader of clan <<demanded_faction>>, <<demanded_faction.leader>>, has acceded to our demand for more influence on the <<target.polity>> tribe."
+        }
+      ],
+      "options": [
+        {
+          "id": "acknowledge",
+          "text": "Perfect..."
+        }
+      ]
+    },
+    {
+      "id": "faction_refuse_demand",
+      "name": "faction refuse demand",
+      "target": "faction",
+      "parameters": [
+        { "id": "demanded_faction", "type": "faction" }
+      ],
+      "description": [
+        {
+          "id": "description",
+          "text": "The leader of clan <<demanded_faction>>, <<demanded_faction.leader>>, has refused our demand for more influence on the <<target.polity>> tribe."
+        }
+      ],
+      "options": [
+        {
+          "id": "acknowledge",
+          "text": "Another time, then..."
+        }
+      ]
+    }
+  ]
+}

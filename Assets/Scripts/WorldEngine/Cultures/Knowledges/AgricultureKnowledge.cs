@@ -10,9 +10,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge
     public const string KnowledgeId = "agriculture";
     public const string KnowledgeName = "agriculture";
 
-    public const int InitialValue = 100;
-
-    public const int BaseLimit = MinLimitValue;
+    public const float BaseLimit = KnowledgeLimit.MinLimitValue;
 
     public const int KnowledgeRngOffset = 1;
 
@@ -20,21 +18,15 @@ public class AgricultureKnowledge : CellCulturalKnowledge
     public const float TerrainFactorModifier = 1.5f;
     public const float MinAccesibility = 0.2f;
 
-    public static int HighestLimit = 0;
-
     [XmlIgnore]
     public float TerrainFactor;
 
     public AgricultureKnowledge()
     {
-        if (Limit > HighestLimit)
-        {
-            HighestLimit = Limit;
-        }
     }
 
-    public AgricultureKnowledge(CellGroup group, int initialValue, int initialLimit) 
-        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, initialLimit)
+    public AgricultureKnowledge(CellGroup group, float initialValue, KnowledgeLimit limit) 
+        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, limit)
     {
         UpdateTerrainFactor();
     }

@@ -8,6 +8,8 @@ using System.Xml.Serialization;
 [XmlInclude(typeof(SeafaringSkill))]
 public class CulturalSkill : CulturalSkillInfo
 {
+    public static HashSet<string> ValidSkillIds;
+
     [XmlAttribute("V")]
     public float Value;
 
@@ -28,5 +30,20 @@ public class CulturalSkill : CulturalSkillInfo
     public void Reset()
     {
         Value = 0;
+    }
+
+    public static void AddValidSkillId(string id)
+    {
+        ValidSkillIds.Add(id);
+    }
+
+    public static void ResetSkills()
+    {
+        ValidSkillIds = new HashSet<string>();
+    }
+
+    public static void InitializeBaseSkills()
+    {
+        AddValidSkillId(SeafaringSkill.SkillId);
     }
 }

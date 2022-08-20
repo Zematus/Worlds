@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using System;
 
-public abstract class WorldEvent : ISynchronizable
+public abstract class WorldEvent : ISynchronizable, IEffectTrigger
 {
     public const long UpdateCellGroupEventId = 0;
     public const long MigrateGroupEventId = 1;
@@ -14,35 +15,16 @@ public abstract class WorldEvent : ISynchronizable
     public const long BoatMakingDiscoveryEventId = 500;
     public const long PlantCultivationDiscoveryEventId = 600;
 
-    public const long ClanSplitDecisionEventId = 7;
-    public const long PreventClanSplitEventId = 8;
-
-    public const long ExpandPolityProminenceEventId = 9;
-
     public const long TribeSplitDecisionEventId = 10;
     public const long SplitClanPreventTribeSplitEventId = 11;
     public const long PreventTribeSplitEventId = 12;
 
     public const long PolityFormationEventId = 13;
-    public const long ClanCoreMigrationEventId = 14;
-
-    public const long ClanDemandsInfluenceDecisionEventId = 15;
-    public const long ClanAvoidsInfluenceDemandDecisionEventId = 16;
-    public const long RejectInfluenceDemandDecisionEventId = 17;
-    public const long AcceptInfluenceDemandDecisionEventId = 18;
-
-    public const long FosterTribeRelationDecisionEventId = 20;
-    public const long AvoidFosterTribeRelationDecisionEventId = 21;
-    public const long RejectFosterTribeRelationDecisionEventId = 22;
-    public const long AcceptFosterTribeRelationDecisionEventId = 23;
 
     public const long MergeTribesDecisionEventId = 25;
     public const long AvoidMergeTribesAttemptDecisionEventId = 26;
     public const long RejectMergeTribesOfferDecisionEventId = 27;
     public const long AcceptMergeTribesOfferDecisionEventId = 28;
-
-    public const long OpenTribeDecisionEventId = 30;
-    public const long AvoidOpenTribeDecisionEventId = 31;
 
     [XmlIgnore]
     public World World;
@@ -65,8 +47,33 @@ public abstract class WorldEvent : ISynchronizable
     [XmlAttribute("SD")]
     public long SpawnDate;
 
+    // This Id doesn't need to be unique. but it helps if it is.
     [XmlAttribute]
     public long Id;
+
+#if DEBUG
+    [XmlIgnore]
+    public long PrevId = -1;
+#endif
+
+#if DEBUG
+    private Dictionary<IEffectExpression, long> _lastUseDates = new Dictionary<IEffectExpression, long>();
+
+    public long GetLastUseDate(IEffectExpression expression)
+    {
+        if (_lastUseDates.ContainsKey(expression))
+        {
+            return _lastUseDates[expression];
+        }
+
+        return -1;
+    }
+
+    public void SetLastUseDate(IEffectExpression expression, long date)
+    {
+        _lastUseDates[expression] = date;
+    }
+#endif
 
     public WorldEvent()
     {
@@ -142,6 +149,10 @@ public abstract class WorldEvent : ISynchronizable
         return true;
     }
 
+    /// <summary>
+    /// Check if the event can be triggered under the current circumstances
+    /// </summary>
+    /// <returns>'true' if the event can be triggered, otherwise 'false'</returns>
     public virtual bool CanTrigger()
     {
         return IsStillValid();
@@ -157,6 +168,9 @@ public abstract class WorldEvent : ISynchronizable
 
     }
 
+    /// <summary>
+    /// Trigger all the effects of this event
+    /// </summary>
     public abstract void Trigger();
 
     public void Destroy()
@@ -164,17 +178,34 @@ public abstract class WorldEvent : ISynchronizable
         DestroyInternal();
     }
 
+    /// <summary>
+    /// Performs subclass-specific destroy tasks
+    /// </summary>
     protected virtual void DestroyInternal()
+    {
+        Cleanup();
+    }
+
+    /// <summary>
+    /// Performs subclass-specific cleanup
+    /// </summary>
+    public virtual void Cleanup()
     {
 
     }
 
-    public virtual void Reset(long newTriggerDate, long newId)
+    protected virtual void Reset(long newTriggerDate, long newId)
     {
         TriggerDate = newTriggerDate;
         SpawnDate = World.CurrentDate;
+
+#if DEBUG
+        PrevId = Id;
+#endif
         Id = newId;
 
         FailedToTrigger = false;
     }
+
+    public abstract void Reset(long newTriggerDate);
 }

@@ -4,22 +4,32 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class PolityFormationEventMessage : CellEventMessage {
+public class PolityFormationEventMessage : CellEventMessage
+{
+    [XmlAttribute]
+    public bool First = false;
 
-	[XmlAttribute]
-	public bool First = false;
+    #region PolityId
+    [XmlAttribute("PId")]
+    public string PolityIdStr
+    {
+        get { return PolityId; }
+        set { PolityId = value; }
+    }
+    [XmlIgnore]
+    public Identifier PolityId;
+    #endregion
 
-	[XmlAttribute]
-	public long PolityId;
+    public PolityFormationEventMessage()
+    {
 
-	public PolityFormationEventMessage () {
+    }
 
-	}
-
-	public PolityFormationEventMessage (Polity polity, long date) : base (polity.CoreGroup.Cell, WorldEvent.PolityFormationEventId, date) {
-
-		PolityId = polity.Id;
-	}
+    public PolityFormationEventMessage(Polity polity, long date) :
+        base(polity.CoreGroup.Cell, WorldEvent.PolityFormationEventId, date)
+    {
+        PolityId = polity.Id;
+    }
 
     protected override string GenerateMessage()
     {

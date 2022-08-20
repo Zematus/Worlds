@@ -44,25 +44,14 @@ public class CulturalPreferenceInfo : IKeyedValue<string>, ISynchronizable
 
     public virtual void FinalizeLoad()
     {
-        switch (Id)
+        PreferenceGenerator generator = World.GetPreferenceGenerator(Id);
+
+        if (generator == null)
         {
-            case CulturalPreference.AuthorityPreferenceId:
-                Name = CulturalPreference.AuthorityPreferenceName;
-                RngOffset = CulturalPreference.AuthorityPreferenceRngOffset;
-                break;
-
-            case CulturalPreference.CohesionPreferenceId:
-                Name = CulturalPreference.CohesionPreferenceName;
-                RngOffset = CulturalPreference.CohesionPreferenceRngOffset;
-                break;
-
-            case CulturalPreference.IsolationPreferenceId:
-                Name = CulturalPreference.IsolationPreferenceName;
-                RngOffset = CulturalPreference.IsolationPreferenceRngOffset;
-                break;
-
-            default:
-                throw new System.Exception("Unhandled Preference Id: " + Id);
+            throw new System.Exception("Unable to load preference generator: " + Id);
         }
+
+        Name = generator.Name;
+        RngOffset = generator.IdHash;
     }
 }

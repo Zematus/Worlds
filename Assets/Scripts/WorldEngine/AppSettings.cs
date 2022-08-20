@@ -1,11 +1,4 @@
-using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using System.IO;
-using System.Threading;
-using UnityEngine.Profiling;
 
 public class AppSettings
 {
@@ -17,8 +10,11 @@ public class AppSettings
     public float RainfallOffset = 0;
     public bool Fullscreen = true;
     public bool UIScaling = true;
-    public bool DebugMode = true;
+    public string DeveloperMode = "None";
     public bool AnimationShaders = true;
+    public string AutoSaveMode = "Deactivate";
+    public float RealWorldAutoSaveInterval = 600f;
+    public long AutoSaveInterval = 365000000;
 
     public List<string> ActiveModPaths = new List<string>();
 
@@ -38,8 +34,46 @@ public class AppSettings
         RainfallOffset = Manager.RainfallOffset;
         Fullscreen = Manager.FullScreenEnabled;
         UIScaling = Manager.UIScalingEnabled;
-        DebugMode = Manager.DebugModeEnabled;
         AnimationShaders = Manager.AnimationShadersEnabled;
+
+        switch (Manager.CurrentDevMode)
+        {
+            case DevMode.None:
+                DeveloperMode = "None";
+                break;
+            case DevMode.Basic:
+                DeveloperMode = "Basic";
+                break;
+            case DevMode.Advanced:
+                DeveloperMode = "Advanced";
+                break;
+            default:
+                throw new System.Exception("Unhandled Dev Mode: " + Manager.CurrentDevMode);
+        }
+
+        RealWorldAutoSaveInterval = Manager.RealWorldAutoSaveInterval;
+        AutoSaveInterval = Manager.AutoSaveInterval;
+
+        switch (Manager.AutoSaveMode)
+        {
+            case global::AutoSaveMode.Deactivate:
+                AutoSaveMode = "Deactivate";
+                break;
+            case global::AutoSaveMode.OnGameTime:
+                AutoSaveMode = "OnGameTime";
+                break;
+            case global::AutoSaveMode.OnRealWorldAndGameTime:
+                AutoSaveMode = "OnRealWorldAndGameTime";
+                break;
+            case global::AutoSaveMode.OnRealWorldOrGameTime:
+                AutoSaveMode = "OnRealWorldOrGameTime";
+                break;
+            case global::AutoSaveMode.OnRealWorldTime:
+                AutoSaveMode = "OnRealWorldTime";
+                break;
+            default:
+                throw new System.Exception("Unhandled Dev Mode: " + Manager.CurrentDevMode);
+        }
 
         ActiveModPaths.Clear();
         ActiveModPaths.AddRange(Manager.ActiveModPaths);
@@ -58,8 +92,46 @@ public class AppSettings
         Manager.RainfallOffset = RainfallOffset;
         Manager.FullScreenEnabled = Fullscreen;
         Manager.UIScalingEnabled = UIScaling;
-        Manager.DebugModeEnabled = DebugMode;
         Manager.AnimationShadersEnabled = AnimationShaders;
+
+        switch (DeveloperMode)
+        {
+            case "None":
+                Manager.CurrentDevMode = DevMode.None;
+                break;
+            case "Basic":
+                Manager.CurrentDevMode = DevMode.Basic;
+                break;
+            case "Advanced":
+                Manager.CurrentDevMode = DevMode.Advanced;
+                break;
+            default:
+                throw new System.Exception("Unhandled Developer Mode Setting: " + DeveloperMode);
+        }
+
+        Manager.RealWorldAutoSaveInterval = RealWorldAutoSaveInterval;
+        Manager.AutoSaveInterval = AutoSaveInterval;
+
+        switch (AutoSaveMode)
+        {
+            case "Deactivate":
+                Manager.AutoSaveMode = global::AutoSaveMode.Deactivate;
+                break;
+            case "OnGameTime":
+                Manager.AutoSaveMode = global::AutoSaveMode.OnGameTime;
+                break;
+            case "OnRealWorldAndGameTime":
+                Manager.AutoSaveMode = global::AutoSaveMode.OnRealWorldAndGameTime;
+                break;
+            case "OnRealWorldOrGameTime":
+                Manager.AutoSaveMode = global::AutoSaveMode.OnRealWorldOrGameTime;
+                break;
+            case "OnRealWorldTime":
+                Manager.AutoSaveMode = global::AutoSaveMode.OnRealWorldTime;
+                break;
+            default:
+                throw new System.Exception("Unhandled Dev Mode: " + Manager.CurrentDevMode);
+        }
 
         Manager.SetActiveModPaths(ActiveModPaths);
         Manager.SetLayerSettings(LayerSettings);

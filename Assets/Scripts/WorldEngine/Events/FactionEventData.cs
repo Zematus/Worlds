@@ -4,17 +4,26 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class FactionEventData : WorldEventData {
+public class FactionEventData : WorldEventData
+{
+    #region OriginalPolityId
+    [XmlAttribute("OPId")]
+    public string OriginalPolityIdStr
+    {
+        get { return OriginalPolityId; }
+        set { OriginalPolityId = value; }
+    }
+    [XmlIgnore]
+    public Identifier OriginalPolityId;
+    #endregion
 
-	[XmlAttribute("OPolId")]
-	public long OriginalPolityId;
+    public FactionEventData()
+    {
 
-	public FactionEventData () {
+    }
 
-	}
-
-	public FactionEventData (FactionEvent e) : base (e) {
-
-		OriginalPolityId = e.OriginalPolityId;
-	}
+    public FactionEventData(FactionEvent e) : base(e)
+    {
+        OriginalPolityId = e.OriginalPolityId;
+    }
 }

@@ -62,33 +62,28 @@ public abstract class CellCulturalSkill : CulturalSkill
         throw new System.Exception("Unhandled CulturalSkill type: " + id);
     }
 
+    /// <summary>
+    /// Unmerge the skill value from a different culture by a proportion
+    /// TODO: Instead of modifying the previous 'new' value, this should use deltas
+    /// like prominences do.
+    /// </summary>
+    /// <param name="skill">the skill from the source culture</param>
+    /// <param name="percentage">percentage amount to merge</param>
+    public void Unmerge(CulturalSkill skill, float percentage)
+    {
+        _newValue = MathUtility.UnLerp(_newValue, skill.Value, percentage);
+    }
+
+    /// <summary>
+    /// Merge the skill value from a different culture by a proportion
+    /// TODO: Instead of modifying the previous 'new' value, this should use deltas
+    /// like prominences do.
+    /// </summary>
+    /// <param name="skill">the skill from the source culture</param>
+    /// <param name="percentage">percentage amount to merge</param>
     public void Merge(CulturalSkill skill, float percentage)
     {
-        // _newvalue should have been set correctly either by the constructor or by the Update function
-        float value = _newValue * (1f - percentage) + skill.Value * percentage;
-
-        //		#if DEBUG
-        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
-        //			if (Group.Id == Manager.TracingData.GroupId) {
-        //
-        //				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-        //
-        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //					"Merge - Group:" + groupId,
-        //					"CurrentDate: " + Group.World.CurrentDate + 
-        //					", Name: " + Name + 
-        //					", Value: " + Value + 
-        //					", source Value: " + skill.Value + 
-        //					", percentage: " + percentage + 
-        //					", new value: " + value + 
-        //					"");
-        //
-        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-        //			}
-        //		}
-        //		#endif
-
-        _newValue = value;
+        _newValue = Mathf.Lerp(_newValue, skill.Value, percentage);
     }
 
     // This method should be called only once after a Skill is copied from another source group
@@ -182,7 +177,9 @@ public abstract class CellCulturalSkill : CulturalSkill
 
         TerrainCell groupCell = Group.Cell;
 
-        float randomEffect = groupCell.GetNextLocalRandomFloat(RngOffsets.SKILL_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId));
+        int randomOffset = RngOffsets.SKILL_POLITY_PROMINENCE + RngOffset + unchecked(polityProminence.Polity.GetHashCode());
+
+        float randomEffect = groupCell.GetNextLocalRandomFloat(randomOffset);
 
         float timeEffect = timeSpan / (timeSpan + timeEffectFactor);
 
@@ -234,7 +231,8 @@ public abstract class CellCulturalSkill : CulturalSkill
 
     protected void RecalculateAdaptation(float targetValue)
     {
-        AdaptationLevel = MathUtility.RoundToSixDecimals(1 - Mathf.Abs(Value - targetValue));
+        float adaptation = (Value + 0.001f) / (targetValue + 0.001f);
+        AdaptationLevel = MathUtility.RoundToSixDecimals(Mathf.Clamp01(adaptation));
     }
 
     public void PostUpdate()

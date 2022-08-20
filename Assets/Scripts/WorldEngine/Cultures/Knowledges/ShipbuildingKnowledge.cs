@@ -12,27 +12,19 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     public const int KnowledgeRngOffset = 0;
 
-    public const int InitialValue = 100;
-
-    public const int BaseLimit = MinLimitValue;
+    public const float BaseLimit = KnowledgeLimit.MinLimitValue;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
     public const float NeighborhoodSeaPresenceModifier = 1.5f;
-
-    public static int HighestLimit = 0;
 
     private float _neighborhoodSeaPresence;
 
     public ShipbuildingKnowledge()
     {
-        if (Limit > HighestLimit)
-        {
-            HighestLimit = Limit;
-        }
     }
 
-    public ShipbuildingKnowledge(CellGroup group, int initialValue, int initialLimit) 
-        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, initialLimit)
+    public ShipbuildingKnowledge(CellGroup group, float initialValue, KnowledgeLimit limit) 
+        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, limit)
     {
         CalculateNeighborhoodSeaPresence();
     }
@@ -65,7 +57,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
         float totalPresence = groupCell.WaterBiomePresence * groupCellBonus;
 
-        foreach (TerrainCell c in groupCell.Neighbors.Values)
+        foreach (TerrainCell c in groupCell.NeighborList)
         {
             totalPresence += c.WaterBiomePresence;
             cellCount++;

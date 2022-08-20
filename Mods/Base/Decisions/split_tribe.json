@@ -1,0 +1,65 @@
+{
+  "decisions": [
+    {
+      "id": "clan_decide_form_new_tribe",
+      "name": "clan decide form new tribe",
+      "target": "faction",
+      "parameters": [
+        { "id": "chance_of_making_attempt", "type": "number", "defaultValue": "1" }
+      ],
+      "description": [
+        {
+          "id": "description_intro",
+          "text": "Should <<target.leader>>, leader of clan <<target>>, make the clan split from <<target.polity>> and form a new tribe?"
+        }
+      ],
+      "options": [
+        {
+          "id": "make_attempt",
+          "text": "Split from <<target.polity>> and form a new tribe...",
+          "weight": "max(0, chance_of_making_attempt)",
+          "effects": [
+            {
+              "id": "split_tribe",
+              "text": "Clan <<target>> leaves <<target.polity>> and forms a new tribe...",
+              "result": "target.polity.split(target)"
+            },
+            {
+              "id": "notify",
+              "text": "The current leader of the <<target.polity>> tribe will be notified of our decision...",
+              "result": "target.polity.dominant_faction.trigger_decision(tribe_split_occurs, target)"
+            }
+          ]
+        },
+        {
+          "id": "dont_split",
+          "text": "Do not split from <<target.polity>>...",
+          "weight": "clamp(1 - chance_of_making_attempt, 0, 1)"
+        }
+      ]
+    },
+    {
+      "id": "tribe_split_occurs",
+      "name": "tribe split occurs",
+      "target": "faction",
+      "parameters": [
+        { "id": "splitting_clan", "type": "faction" }
+      ],
+      "properties": [
+        { "id": "new_tribe", "value": "splitting_clan.polity" }
+      ],
+      "description": [
+        {
+          "id": "description",
+          "text": "Clan <<splitting_clan>> has decided to split from our tribe <<target.polity>> to form a new tribe, <<new_tribe>>."
+        }
+      ],
+      "options": [
+        {
+          "id": "acknowledge",
+          "text": "It couldn't be helped..."
+        }
+      ]
+    }
+  ]
+}

@@ -8,18 +8,6 @@ public class CellCulturalActivity : CulturalActivity
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 
-    public const string ForagingActivityId = "foraging";
-    public const string FarmingActivityId = "farming";
-    public const string FishingActivityId = "fishing";
-
-    public const string ForagingActivityName = "foraging";
-    public const string FarmingActivityName = "farming";
-    public const string FishingActivityName = "fishing";
-
-    public const int ForagingActivityRngOffset = 0;
-    public const int FarmingActivityRngOffset = 100;
-    public const int FishingActivityRngOffset = 200;
-
     [XmlIgnore]
     public CellGroup Group;
 
@@ -65,10 +53,28 @@ public class CellCulturalActivity : CulturalActivity
         throw new System.ArgumentException("CellCulturalActivity: Unrecognized activity Id: " + id);
     }
 
+    /// <summary>
+    /// Unmerge the activity value from a different culture by a proportion
+    /// TODO: Instead of modifying the previous 'new' value, this should use deltas
+    /// like prominences do.
+    /// </summary>
+    /// <param name="activity">the activity from the source culture</param>
+    /// <param name="percentage">percentage amount to merge</param>
+    public void Unmerge(CulturalActivity activity, float percentage)
+    {
+        _newValue = MathUtility.UnLerp(_newValue, activity.Value, percentage);
+    }
+
+    /// <summary>
+    /// Merge the activity value from a different culture by a proportion
+    /// TODO: Instead of modifying the previous 'new' value, this should use deltas
+    /// like prominences do.
+    /// </summary>
+    /// <param name="activity">the activity from the source culture</param>
+    /// <param name="percentage">percentage amount to merge</param>
     public void Merge(CulturalActivity activity, float percentage)
     {
-        // _newvalue should have been set correctly either by the constructor or by the Update function
-        _newValue = _newValue * (1f - percentage) + activity.Value * percentage;
+        _newValue = Mathf.Lerp(_newValue, activity.Value, percentage);
     }
 
     // This method should be called only once after a Activity is copied from another source group
@@ -110,14 +116,17 @@ public class CellCulturalActivity : CulturalActivity
 
         TerrainCell groupCell = Group.Cell;
 
-        float randomEffect = groupCell.GetNextLocalRandomFloat(RngOffsets.ACTIVITY_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId));
+        int rngOffset = RngOffsets.ACTIVITY_POLITY_PROMINENCE + RngOffset +
+            unchecked(polityProminence.Polity.GetHashCode());
+
+        float randomEffect = groupCell.GetNextLocalRandomFloat(rngOffset);
 
         float timeEffect = timeSpan / (timeSpan + TimeEffectConstant);
 
         // _newvalue should have been set correctly either by the constructor or by the Update function
         float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;
 
-        _newValue = _newValue + change;
+        _newValue += change;
     }
 
     public void PostUpdate()

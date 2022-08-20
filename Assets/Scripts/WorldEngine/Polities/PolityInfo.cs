@@ -1,48 +1,35 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
+﻿using System.Xml;
 using System.Xml.Serialization;
-using UnityEngine.Profiling;
-using System.Linq;
-using System.Xml.Schema;
 
 public enum PolityType
 {
-    None,
+    Any,
     Tribe
 }
 
-public class PolityInfo : ISynchronizable, IKeyedValue<long>
+public class PolityInfo : Identifiable, ISynchronizable
 {
-    [XmlAttribute("D")]
-    public long FormationDate = -1;
-
     [XmlAttribute("T")]
-	public string Type;
+	public string TypeStr;
 
-	[XmlAttribute]
-	public long Id;
-    
     public Name Name;
     
     public Polity Polity;
 
+    public long FormationDate => InitDate;
+
     private string _nameFormat;
 
-    private PolityType _type;
+    public PolityType Type;
 
     public PolityInfo()
     {
 	
 	}
 
-	public PolityInfo(string type, long id, Polity polity)
+	public PolityInfo(Polity polity, string type, long initDate, long initId) :
+        base(initDate, initId)
     {
-        Id = id;
-
-        FormationDate = polity.World.CurrentDate;
-
         Polity = polity;
 
         SetType(type);
@@ -61,18 +48,18 @@ public class PolityInfo : ISynchronizable, IKeyedValue<long>
 
     private void SetType(string typeStr)
     {
-        Type = typeStr;
+        TypeStr = typeStr;
 
-        _type = GetPolityType(typeStr);
+        Type = GetPolityType(typeStr);
 
-        switch (_type)
+        switch (Type)
         {
             case PolityType.Tribe:
-                _type = PolityType.Tribe;
+                Type = PolityType.Tribe;
                 _nameFormat = Tribe.PolityNameFormat;
                 break;
             default:
-                throw new System.Exception("PolityInfo: Unhandled polity type: " + _type);
+                throw new System.Exception("PolityInfo: Unhandled polity type: " + Type);
         }
     }
 
@@ -86,17 +73,12 @@ public class PolityInfo : ISynchronizable, IKeyedValue<long>
         return string.Format(_nameFormat, Name.BoldText);
     }
 
-    public long GetKey()
-    {
-        return Id;
-    }
-
     public void FinalizeLoad()
     {
         if (Polity != null)
             Polity.FinalizeLoad();
         
-        SetType(Type);
+        SetType(TypeStr);
     }
 
     public void Synchronize()

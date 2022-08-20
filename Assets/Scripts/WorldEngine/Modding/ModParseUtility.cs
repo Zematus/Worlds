@@ -1,0 +1,355 @@
+﻿using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Linq;
+
+/// <summary>
+/// Utility class containing all regular expressions used to parse mod expressions
+/// </summary>
+public static class ModParseUtility
+{
+    public const string IdentifierRegexPart = @"[a-zA-Z_][a-zA-Z0-9_]*";
+    public const string NumberRegexPart = @"-?\d+(?:\.\d+)?";
+    public const string BooleanRegexPart = @"(true|True|TRUE|false|False|FALSE)";
+
+    public const string OperatorRegexPart = @"\|\||&&|([\!\+\-\*\/\<\>\=]=?)";
+    public const string AccessorRegexPart = @"\.";
+
+    /// <summary>
+    /// Regex used to capture base values like numbers, booleans and identifiers
+    /// </summary>
+    public const string ValueRegexPart =
+        @"(?:" + NumberRegexPart +
+        @")|(?:" + BooleanRegexPart +
+        @")|(?:" + IdentifierRegexPart +
+        @")";
+
+    /// <summary>
+    /// Regex used to capture base elements like numbers, booleans and identifiers
+    /// </summary>
+    public const string BaseStatementRegexPart =
+        @"(?<number>" + NumberRegexPart +
+        @")|(?<boolean>" + BooleanRegexPart +
+        @")|(?<identifierStatement>" + IdentifierStatementRegexPart +
+        @")|(?<modText>" + ModTextDefExpRegexPart +
+        @")";
+
+    /// <summary>
+    /// Regex used to indentify statements enclosed within parenthesis
+    /// </summary>
+    public const string InnerStatementRegexPart =
+        @"(?:" +
+            @"(?:" +
+                @"(?<open>\()" +
+            @"|" +
+                @"(?<innerStatement-open>\))" +
+            @")" +
+        @"[^\(\)]*?)+" +
+        @"(?(open)(?!))";
+
+    /// <summary>
+    /// Regex used to indentify statements enclosed within parenthesis, nonlabeled
+    /// </summary>
+    public const string NonlabInnerStatementRegexPart =
+        @"(?:" +
+            @"(?:" +
+                @"(?<open>\()" +
+            @"|" +
+                @"(?<ignore-open>\))" +
+            @")" +
+        @"[^\(\)]*?)+" +
+        @"(?(open)(?!))";
+
+    public const string ModTextStringRegexPart =
+        @"(?<string>(?:(?!\<\<|\>\>).|\n)+)";
+
+    public const string ModTextExpressionRegexPart =
+        @"\<\<" +
+            @"(?<expression>" +
+                @"(?:" +
+                    @"(?:" +
+                        @"(?!\<\<|\>\>)." +
+                        @"|(?<open>\<\<).+?)" +
+                        @"|(?:(?<-open>\>\>).*?" +
+                    @")" +
+                @")+" +
+            @")" +
+            @"(?(open)(?!))" +
+        @"\>\>";
+
+    /// <summary>
+    /// Regex used to indentify composite texts used within mods
+    /// </summary>
+    public const string ModTextRegexPart =
+        ModTextStringRegexPart +
+        @"|" +
+        ModTextExpressionRegexPart;
+
+    public const string ModTextDefExpRegexPart =
+        @"''" +
+            @"(?<text>" +
+                @"(?:" +
+                    @"(?:" +
+                        @"(?!\<\<|\>\>)." +
+                        @"|(?<open>\<\<).+?)" +
+                        @"|(?:(?<-open>\>\>).*?" +
+                    @")" +
+                @")+" +
+            @")" +
+            @"(?(open)(?!))" +
+        @"''";
+
+    /// <summary>
+    /// Regex used to indentify a set of argument statements given to a function
+    /// </summary>
+    public const string ArgumentsRegexPart =
+        @"(?:" +
+            @"(?:" +
+                @"(?<open>\()" +
+            @"|" +
+                @"(?<arguments-open>\))" +
+            @")" +
+        @"[^\(\)]*?)+" +
+        @"(?(open)(?!))";
+
+    /// <summary>
+    /// Regex used to indentify a set of argument statements given to a function, nonlabeled
+    /// </summary>
+    public const string NonlabArgumentsRegexPart =
+        @"(?:" +
+            @"(?:" +
+                @"(?<open>\()" +
+            @"|" +
+                @"(?<ignore-open>\))" +
+            @")" +
+        @"[^\(\)]*?)+" +
+        @"(?(open)(?!))";
+
+    /// <summary>
+    /// Regex used to select the first argument within a set of arguments (used recursively)
+    /// </summary>
+    public const string ArgumentListRegex =
+        @"^\s*" +
+        @"(?<argument>" + ArgumentRegexPart + @")\s*" +
+        @"(?:," +
+            @"(?<otherArgs>" +
+                @".*" +
+            @")" +
+        @")?$";
+
+    /// <summary>
+    /// Regex used to indentify a set of parameter identifiers given to a function
+    /// </summary>
+    public const string ParamIdsRegexPart =
+        @"(?:\[" +
+            @"(?<paramIds>" + IdentifierRegexPart + @"\s*" + 
+                @"(?:,\s*" + IdentifierRegexPart  + @"\s*)*" + 
+            @")" + 
+        @"\])";
+
+    /// <summary>
+    /// Regex used to indentify a set of parameter identifiers given to a function, nonlabeled
+    /// </summary>
+    public const string NonlabParamIdsRegexPart =
+        @"(?:\[" +
+            @"(?:" + IdentifierRegexPart + @"\s*" +
+                @"(?:,\s*" + IdentifierRegexPart + @"\s*)*" +
+            @")" +
+        @"\])";
+
+    /// <summary>
+    /// Regex used to select the first identifier within a set of identifiers (used recursively)
+    /// </summary>
+    public const string IdentifierListRegex =
+        @"^\s*" +
+        @"(?<identifier>" + IdentifierRegexPart + @")\s*" +
+        @"(?:," +
+            @"(?<otherIds>" +
+                @".*" +
+            @")" +
+        @")?$";
+
+    /// <summary>
+    /// Regex used to indetify a single valid argument statement
+    /// </summary>
+    public const string ArgumentRegexPart =
+        @"(?<binaryOpStatement>" +
+            BinaryOpStatementRegexPart +
+        @")|" +
+        BinaryOperandStatementRegexPart;
+
+    /// <summary>
+    /// Regex used to identify an unary operation's operand statements
+    /// </summary>
+    public const string UnaryOperandStatementRegexPart =
+        @"(?<accessorOpStatement>" +
+            AccessorOpStatementRegexPart +
+        @")|(?<baseStatement>" +
+            BaseStatementRegexPart +
+        @")|(?<innerStatement>" +
+            InnerStatementRegexPart +
+        @")";
+
+    /// <summary>
+    /// Regex used to identify an binary operation's operand statements
+    /// </summary>
+    public const string BinaryOperandStatementRegexPart =
+        @"(?<unaryOpStatement>" +
+            UnaryOpStatementRegexPart +
+        @")|" +
+        UnaryOperandStatementRegexPart;
+
+    /// <summary>
+    /// Regex used to indetify an accessible statement or entity
+    /// </summary>
+    public const string AccessibleStatementRegexPart =
+        @"(?<identifierStatement>" +
+            IdentifierStatementRegexPart +
+        @")|(?<innerStatement>" +
+            InnerStatementRegexPart +
+        @")";
+
+    /// <summary>
+    /// Regex used to indetify an accessible statement or entity, nonlabeled
+    /// </summary>
+    public const string NonlabAccessibleStatementRegexPart =
+        @"(?:" +
+            NonlabIdentifierStatementRegexPart +
+        @")|(?:" +
+            NonlabInnerStatementRegexPart +
+        @")";
+
+    /// <summary>
+    /// Regex used to indentify an identifier (and it's possible arguments)
+    /// </summary>
+    public const string IdentifierStatementRegexPart =
+        @"(?<identifier>" + IdentifierRegexPart + @")\s*" +
+        @"(?:" + ParamIdsRegexPart + @")?\s*" +
+        @"(?:" + ArgumentsRegexPart + @")?";
+
+    /// <summary>
+    /// Regex used to indentify an identifier (and it's possible arguments), nonlabeled
+    /// </summary>
+    public const string NonlabIdentifierStatementRegexPart =
+        @"(?:" + IdentifierRegexPart + @")\s*" +
+        @"(?:" + NonlabParamIdsRegexPart + @")?\s*" +
+        @"(?:" + NonlabArgumentsRegexPart + @")?";
+
+    /// <summary>
+    /// Regex used to indentify a identifier (bounded)
+    /// </summary>
+    public const string IdentifierStatementRegex =
+        @"^\s*" + IdentifierStatementRegexPart + @"\s*$";
+
+    /// <summary>
+    /// Regex used to indentify an unary operation
+    /// </summary>
+    public const string UnaryOpStatementRegexPart =
+        @"(?<unaryOp>" + OperatorRegexPart + @")" +
+        @"(?<statement>" + UnaryOperandStatementRegexPart + @")";
+
+    /// <summary>
+    /// Regex used to indentify an unary operation (bounded)
+    /// </summary>
+    public const string UnaryOpStatementRegex =
+        @"^\s*" + UnaryOpStatementRegexPart + @"\s*$";
+
+    /// <summary>
+    /// Regex used to indentify a binary operation
+    /// </summary>
+    public const string BinaryOpStatementRegexPart =
+        @"(?<statement1>" + BinaryOperandStatementRegexPart + @")\s*" +
+        @"(?<binaryOp>" + OperatorRegexPart + @")\s*" +
+        @"(?<statement2>" +
+            @"(?<operand2>" + BinaryOperandStatementRegexPart + @")\s*" +
+            @"(?<restOp>" +
+                @"(?<binaryOp2>" + OperatorRegexPart + @")\s*" +
+                @"(?:" + BinaryOperandStatementRegexPart + @")" +
+            @")*" +
+        @")";
+
+    /// <summary>
+    /// Regex used to indentify a binary operation (bounded)
+    /// </summary>
+    public const string BinaryOpStatementRegex =
+        @"^\s*" + BinaryOpStatementRegexPart + @"\s*$";
+
+    /// <summary>
+    /// Regex used to indentify an access operation
+    /// </summary>
+    public const string AccessorOpStatementRegexPart =
+        @"(?<statement>" +
+            @"(?:" + NonlabAccessibleStatementRegexPart + @")" +
+            @"(?:" +
+                AccessorRegexPart +
+                NonlabIdentifierStatementRegexPart +
+            @")*" +
+        @")" +
+        AccessorRegexPart +
+        @"(?<attribute>" + IdentifierStatementRegexPart + @")";
+
+    /// <summary>
+    /// Regex used to capture assign on statement
+    /// </summary>
+    public const string AssignOnRegex =
+        @"^\s*(?<identifier>" + IdentifierRegexPart +
+        @")(?:\s*:\s*" + LabeledValuesRegexPart +
+        @")?\s*$";
+
+    /// <summary>
+    /// Regex used to indentify a set of values given to a statement
+    /// </summary>
+    public const string LabeledValuesRegexPart =
+        @"(?<values>" + LabeledValueRegexPart + @"\s*" +
+            @"(?:,\s*" + ValueRegexPart + @"\s*)*" +
+        @")";
+
+    /// <summary>
+    /// Regex used to indentify a a labeled value
+    /// </summary>
+    public const string LabeledValueRegexPart =
+        @"(?<value>" + ValueRegexPart + @")";
+
+    /// <summary>
+    /// Regex used to indentify an access operation (bounded)
+    /// </summary>
+    public const string AccessorOpStatementRegex =
+        @"^\s*" + AccessorOpStatementRegexPart + @"\s*$";
+
+    /// <summary>
+    /// Regex used to capture base elements (bounded)
+    /// </summary>
+    public const string BaseStatementRegex =
+        @"^\s*(?<statement>" + BaseStatementRegexPart + @")\s*$";
+    /// <summary>
+    /// Regex used to capture an operation operands (bounded)
+    /// </summary>
+    public const string BinaryOperandStatementRegex =
+        @"^\s*(?<statement>" + BinaryOperandStatementRegexPart + @")\s*$";
+    /// <summary>
+    /// Regex used to capture an statement enclosed within parenthesis (bounded)
+    /// </summary>
+    public const string InnerStatementRegex =
+        @"^\s*(?<statement>" + InnerStatementRegexPart + @")\s*$";
+    /// <summary>
+    /// Regex used to indetify an accessible statement or entity (bounded)
+    /// </summary>
+    public const string AccessibleStatementRegex =
+        @"^\s*(?<statement>" + AccessibleStatementRegexPart + @")\s*$";
+
+#if DEBUG
+    /// <summary>
+    /// Print a regex group for debugging purposes
+    /// </summary>
+    /// <param name="group">group to print</param>
+    /// <returns></returns>
+    public static string Debug_CapturesToString(Group group)
+    {
+        Capture[] captures = new Capture[group.Captures.Count];
+        group.Captures.CopyTo(captures, 0);
+
+        return string.Join("; ", captures.Select(c => c.Value));
+    }
+#endif
+}

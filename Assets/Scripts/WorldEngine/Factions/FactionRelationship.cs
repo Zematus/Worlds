@@ -5,26 +5,22 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class FactionRelationship {
+public class FactionRelationship : Identifiable
+{
+    [XmlAttribute("Val")]
+    public float Value;
 
-	[XmlAttribute("Id")]
-	public long Id;
+    [XmlIgnore]
+    public Faction Faction;
 
-	[XmlAttribute("Val")]
-	public float Value;
+    public FactionRelationship()
+    {
+    }
 
-	[XmlIgnore]
-	public Faction Faction;
+    public FactionRelationship(Faction faction, float value) : base(faction.Info)
+    {
+        Faction = faction;
 
-	public FactionRelationship () {
-	}
-
-	public FactionRelationship (Faction faction, float value) {
-
-		Faction = faction;
-
-		Id = faction.Id;
-
-		Value = value;
-	}
+        Value = value;
+    }
 }

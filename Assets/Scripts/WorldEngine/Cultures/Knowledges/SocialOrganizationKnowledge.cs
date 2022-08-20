@@ -12,27 +12,19 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
 
     public const int KnowledgeRngOffset = 2;
 
-    public const int InitialValue = 100;
-    
-    public const int MinValueForTribeFormation = 200;
+    public const float InitialValue = 1;
 
-    public const int BaseLimit = 1000;
+    public const float BaseLimit = 15;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
-    public const float PopulationDensityModifier = 10000f * MathUtility.IntToFloatScalingFactor;
-
-    public static int HighestLimit = 0;
+    public const float PopulationDensityModifier = 100000f;
 
     public SocialOrganizationKnowledge()
     {
-        if (Limit > HighestLimit)
-        {
-            HighestLimit = Limit;
-        }
     }
 
-    public SocialOrganizationKnowledge(CellGroup group, int initialValue, int initialLimit) 
-        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, initialLimit)
+    public SocialOrganizationKnowledge(CellGroup group, float initialValue, KnowledgeLimit limit) 
+        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, limit)
     {
 
     }
@@ -46,20 +38,12 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
     {
         float popFactor = Group.Population;
 
-        float densityFactor = PopulationDensityModifier * Limit * Group.Cell.MaxAreaPercent;
+        float densityFactor = PopulationDensityModifier * Group.Cell.MaxAreaPercent;
 
         float finalPopFactor = popFactor / (popFactor + densityFactor);
         finalPopFactor = 0.1f + finalPopFactor * 0.9f;
 
         return finalPopFactor;
-    }
-
-    private float CalculatePolityProminenceFactor()
-    {
-        // This should actually depend on the type of polity, tribes should have little effect
-        float totalProminence = Group.TotalPolityProminenceValue * 0.5f;
-
-        return totalProminence;
     }
 
     protected override void UpdateInternal(long timeSpan)
@@ -78,16 +62,18 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         AddPolityProminenceEffectInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
 
 #if DEBUG
-        if (_newValue < MinValueForTribeFormation)
+        if (_newValue < TribeFormationEvent.MinSocialOrganizationKnowledgeValue)
         {
             if (Group.GetFactionCores().Count > 0)
             {
-                Debug.LogWarning("Group with low social organization has faction cores - Id: " + Group.Id + ", _newValue:" + _newValue);
+                Debug.LogWarning(
+                    $"Group with low social organization has faction cores - Id: {Group}, _newValue: {_newValue}");
             }
 
-            if (Group.WillBecomeFactionCore)
+            if (Group.WillBecomeCoreOfFaction != null)
             {
-                Debug.LogWarning("Group with low social organization will become a faction core - Id: " + Group.Id + ", _newValue:" + _newValue);
+                Debug.LogWarning(
+                    $"Group with low social organization will become a faction core - Id: {Group}, _newValue: {_newValue}");
             }
         }
 #endif

@@ -99,8 +99,16 @@ public static class NameTools
 
 public class Name : ISynchronizable
 {
-    [XmlAttribute("Lid")]
-    public long LanguageId;
+    #region LanguageId
+    [XmlAttribute("LId")]
+    public string LanguageIdStr
+    {
+        get { return LanguageId; }
+        set { LanguageId = value; }
+    }
+    [XmlIgnore]
+    public Identifier LanguageId;
+    #endregion
 
     [XmlAttribute("Tm")]
     public string TaggedMeaning;
@@ -141,20 +149,11 @@ public class Name : ISynchronizable
         TaggedMeaning = taggedMeaning;
     }
 
-    public string BoldText
-    {
-        get { return Value.Text.ToBoldFormat(); }
-    }
+    public string BoldText => Value.Text.ToBoldString();
 
-    public string Text
-    {
-        get { return Value.Text; }
-    }
+    public string Text => Value.Text;
 
-    public string Meaning
-    {
-        get { return Value.Meaning; }
-    }
+    public string Meaning => Value.Meaning;
 
 
     public void Synchronize()
