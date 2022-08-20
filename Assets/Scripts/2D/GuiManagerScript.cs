@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine.Profiling;
+using System;
 
 public delegate void PostProgressOperation();
 public delegate void PointerOperation(Vector2 position);
@@ -323,6 +324,8 @@ public class GuiManagerScript : MonoBehaviour
     private System.Action _closeErrorActionToPerform = null;
 
     private int _lastExLogHash = 0;
+
+    private PointerEventData _keyboardDragTracker;
 
     void OnEnable()
     {
@@ -1076,6 +1079,38 @@ public class GuiManagerScript : MonoBehaviour
         Manager.HandleKeyUp(KeyCode.M, false, false, ActivateMiscOverlay);
     }
 
+    private void ReadKeyboardInput_Navigation()
+    {
+        Manager.HandleKeyDown(KeyCode.LeftArrow, false, false, StartDraggingWithKeyboard);
+        Manager.HandleKeyDown(KeyCode.W, false, false, StartDraggingWithKeyboard);
+        Manager.HandleKey(KeyCode.LeftArrow, false, false, DragWithKeyboard);
+        Manager.HandleKey(KeyCode.W, false, false, DragWithKeyboard);
+        Manager.HandleKeyUp(KeyCode.LeftArrow, false, false, EndDragWithKeyboard);
+        Manager.HandleKeyUp(KeyCode.W, false, false, EndDragWithKeyboard);
+    }
+
+    private void StartDraggingWithKeyboard()
+    {
+        Debug.Log("Start dragging with keyboard");
+        _keyboardDragTracker = new PointerEventData(EventSystem.current);
+        _keyboardDragTracker.position = new Vector2(0, 0);
+        BeginDrag(_keyboardDragTracker);
+
+    }
+
+    private void DragWithKeyboard()
+    {
+        Debug.Log("Dragging with keyboard");
+        _keyboardDragTracker.position += new Vector2(-1, 0);
+        Drag(_keyboardDragTracker);
+    }
+
+    private void EndDragWithKeyboard()
+    {
+        Debug.Log("End dragging with keyboard");
+        EndDrag(_keyboardDragTracker);
+    }
+
     public static bool IsModalPanelActive()
     {
         return IsMenuPanelActive() || IsInteractionPanelActive();
@@ -1215,6 +1250,7 @@ public class GuiManagerScript : MonoBehaviour
         ReadKeyboardInput_Globe();
         ReadKeyboardInput_MapViews();
         ReadKeyboardInput_MapOverlays();
+        ReadKeyboardInput_Navigation();
     }
 
     private bool IsPolityOverlay(PlanetOverlay overlay)
@@ -1546,14 +1582,14 @@ public class GuiManagerScript : MonoBehaviour
     public void RegenerateWorldTemperatureOffsetChange(float value)
     {
         Manager.TemperatureOffset = value;
-        
+
         RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
     public void RegenerateWorldRainfallOffsetChange(float value)
     {
         Manager.RainfallOffset = value;
-        
+
         RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
@@ -1562,7 +1598,7 @@ public class GuiManagerScript : MonoBehaviour
         LayerSettings settings = Manager.GetLayerSettings(layerId);
 
         settings.Frequency = value;
-        
+
         RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
@@ -1571,7 +1607,7 @@ public class GuiManagerScript : MonoBehaviour
         LayerSettings settings = Manager.GetLayerSettings(layerId);
 
         settings.SecondaryNoiseInfluence = value;
-        
+
         RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
@@ -1640,7 +1676,7 @@ public class GuiManagerScript : MonoBehaviour
 
         // It's safer to return to map mode after loading or generating a new world
         SetGlobeView(false);
-        
+
         _hasToSetInitialPopulation = true;
 
         ValidateLayersPresent();
@@ -2755,8 +2791,8 @@ public class GuiManagerScript : MonoBehaviour
         else if (request is GroupSelectionRequest gsRequest)
         {
             ChangePlanetOverlay(
-                PlanetOverlay.CellSelection, 
-                Manager.GroupProminenceOverlaySubtype, 
+                PlanetOverlay.CellSelection,
+                Manager.GroupProminenceOverlaySubtype,
                 temporary: true);
             return;
         }
@@ -4016,6 +4052,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public void Drag(BaseEventData data)
     {
+        Debug.Log((data as PointerEventData).position.ToString());
         if (Manager.ViewingGlobe)
         {
             PlanetScript.Drag(data);
@@ -4036,6 +4073,7 @@ public class GuiManagerScript : MonoBehaviour
         {
             MapScript.EndDrag(data);
         }
+        Debug.Log("Drag Ended BOIIIIII");
     }
 
     public void Scroll(BaseEventData data)

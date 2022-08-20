@@ -76,5 +76,13 @@ $RECYCLE.BIN/
 *.suo
 bug_output.txt
 *.log
+
+# Unity Editor
+ProjectSettings/EditorSettings.asset
+
+# Visual Studio
 .vscode/launch.json
+.vsconfig
 mono_crash.*
+
+
