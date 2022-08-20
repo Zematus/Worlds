@@ -89,10 +89,6 @@
         {
           "condition": "contacts.count > 0",
           "info": "Number of neighbor tribes must be greater than 0. Currently, <<contacts.count>>"
-        },
-        {
-          "condition": "neighbor_clans.count > 0",
-          "info": "Number of neighbor clans must be greater than 0. Currently, <<neighbor_clans.count>>"
         }
       ],
       "effects": [
@@ -120,10 +116,6 @@
         {
           "condition": "contacts.count > 0",
           "info": "Number of neighbor tribes must be greater than 0. Currently, <<contacts.count>>"
-        },
-        {
-          "condition": "neighbor_clans.count > 0",
-          "info": "Number of neighbor clans must be greater than 0. Currently, <<neighbor_clans.count>>"
         }
       ],
       "effects": [
