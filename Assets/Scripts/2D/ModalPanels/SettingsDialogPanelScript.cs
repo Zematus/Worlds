@@ -2,6 +2,7 @@
 using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
+using System;
 
 public class SettingsDialogPanelScript : MenuPanelScript
 {
@@ -10,6 +11,11 @@ public class SettingsDialogPanelScript : MenuPanelScript
     public Toggle AnimationShadersToggle;
 
     public Text DevModeButtonText;
+
+    public Slider XAxisSensitivity;
+    public Slider YAxisSensitivity;
+    public Toggle InvertXAxis;
+    public Toggle InvertYAxis;
 
     public void RefreshDevButtonText()
     {

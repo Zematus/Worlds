@@ -5,7 +5,6 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine.Profiling;
-using System;
 
 public delegate void PostProgressOperation();
 public delegate void PointerOperation(Vector2 position);
@@ -1082,32 +1081,48 @@ public class GuiManagerScript : MonoBehaviour
     private void ReadKeyboardInput_Navigation()
     {
         Manager.HandleKeyDown(KeyCode.LeftArrow, false, false, StartDraggingWithKeyboard);
-        Manager.HandleKeyDown(KeyCode.W, false, false, StartDraggingWithKeyboard);
-        Manager.HandleKey(KeyCode.LeftArrow, false, false, DragWithKeyboard);
-        Manager.HandleKey(KeyCode.W, false, false, DragWithKeyboard);
+        Manager.HandleKey(KeyCode.LeftArrow, false, false, DragLeftWithKeyboard);
         Manager.HandleKeyUp(KeyCode.LeftArrow, false, false, EndDragWithKeyboard);
-        Manager.HandleKeyUp(KeyCode.W, false, false, EndDragWithKeyboard);
+        Manager.HandleKeyDown(KeyCode.A, false, false, StartDraggingWithKeyboard);
+        Manager.HandleKey(KeyCode.A, false, false, DragLeftWithKeyboard);
+        Manager.HandleKeyUp(KeyCode.A, false, false, EndDragWithKeyboard);
+
+        Manager.HandleKeyDown(KeyCode.RightArrow, false, false, StartDraggingWithKeyboard);
+        Manager.HandleKey(KeyCode.RightArrow, false, false, DragRightWithKeyboard);
+        Manager.HandleKeyUp(KeyCode.RightArrow, false, false, EndDragWithKeyboard);
+        Manager.HandleKey(KeyCode.D, false, false, DragRightWithKeyboard);
+        Manager.HandleKeyDown(KeyCode.D, false, false, StartDraggingWithKeyboard);
+        Manager.HandleKeyUp(KeyCode.D, false, false, EndDragWithKeyboard);
+
     }
 
     private void StartDraggingWithKeyboard()
     {
-        Debug.Log("Start dragging with keyboard");
-        _keyboardDragTracker = new PointerEventData(EventSystem.current);
-        _keyboardDragTracker.position = new Vector2(0, 0);
+        _keyboardDragTracker = new PointerEventData(EventSystem.current)
+        {
+            position = new Vector2(0, 0),
+            button = PointerEventData.InputButton.Right
+        };
         BeginDrag(_keyboardDragTracker);
 
     }
 
-    private void DragWithKeyboard()
+    private void DragLeftWithKeyboard()
     {
-        Debug.Log("Dragging with keyboard");
-        _keyboardDragTracker.position += new Vector2(-1, 0);
+        _keyboardDragTracker.position += new Vector2(-2, 0);
         Drag(_keyboardDragTracker);
     }
 
+
+    private void DragRightWithKeyboard()
+    {
+        _keyboardDragTracker.position += new Vector2(2, 0);
+        Drag(_keyboardDragTracker);
+    }
+
+
     private void EndDragWithKeyboard()
     {
-        Debug.Log("End dragging with keyboard");
         EndDrag(_keyboardDragTracker);
     }
 
@@ -4052,7 +4067,6 @@ public class GuiManagerScript : MonoBehaviour
 
     public void Drag(BaseEventData data)
     {
-        Debug.Log((data as PointerEventData).position.ToString());
         if (Manager.ViewingGlobe)
         {
             PlanetScript.Drag(data);
