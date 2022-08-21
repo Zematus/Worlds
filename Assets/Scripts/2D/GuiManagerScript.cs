@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine.Profiling;
+using UnityEngine.Assertions;
 
 public delegate void PostProgressOperation();
 public delegate void PointerOperation(Vector2 position);
@@ -1080,23 +1081,36 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_Navigation()
     {
-        Manager.HandleKeyDown(KeyCode.LeftArrow, false, false, StartDraggingWithKeyboard);
-        Manager.HandleKey(KeyCode.LeftArrow, false, false, DragLeftWithKeyboard);
-        Manager.HandleKeyUp(KeyCode.LeftArrow, false, false, EndDragWithKeyboard);
-        Manager.HandleKeyDown(KeyCode.A, false, false, StartDraggingWithKeyboard);
-        Manager.HandleKey(KeyCode.A, false, false, DragLeftWithKeyboard);
-        Manager.HandleKeyUp(KeyCode.A, false, false, EndDragWithKeyboard);
+        Manager.HandleKeyDown(KeyCode.LeftArrow, false, false, StartDraggingWithKeyboard, Direction.West);
+        Manager.HandleKeyDown(KeyCode.A, false, false, StartDraggingWithKeyboard, Direction.West);
+        Manager.HandleKey(KeyCode.LeftArrow, false, false, DragWithKeyboard, Direction.West);
+        Manager.HandleKey(KeyCode.A, false, false, DragWithKeyboard, Direction.West);
+        Manager.HandleKeyUp(KeyCode.LeftArrow, false, false, EndDragWithKeyboard, Direction.West);
+        Manager.HandleKeyUp(KeyCode.A, false, false, EndDragWithKeyboard, Direction.West);
 
-        Manager.HandleKeyDown(KeyCode.RightArrow, false, false, StartDraggingWithKeyboard);
-        Manager.HandleKey(KeyCode.RightArrow, false, false, DragRightWithKeyboard);
-        Manager.HandleKeyUp(KeyCode.RightArrow, false, false, EndDragWithKeyboard);
-        Manager.HandleKey(KeyCode.D, false, false, DragRightWithKeyboard);
-        Manager.HandleKeyDown(KeyCode.D, false, false, StartDraggingWithKeyboard);
-        Manager.HandleKeyUp(KeyCode.D, false, false, EndDragWithKeyboard);
+        Manager.HandleKeyDown(KeyCode.RightArrow, false, false, StartDraggingWithKeyboard, Direction.East);
+        Manager.HandleKeyDown(KeyCode.D, false, false, StartDraggingWithKeyboard, Direction.East);
+        Manager.HandleKey(KeyCode.RightArrow, false, false, DragWithKeyboard, Direction.East);
+        Manager.HandleKey(KeyCode.D, false, false, DragWithKeyboard, Direction.East);
+        Manager.HandleKeyUp(KeyCode.RightArrow, false, false, EndDragWithKeyboard, Direction.East);
+        Manager.HandleKeyUp(KeyCode.D, false, false, EndDragWithKeyboard, Direction.East);
 
+        Manager.HandleKeyDown(KeyCode.DownArrow, false, false, StartDraggingWithKeyboard, Direction.South);
+        Manager.HandleKeyDown(KeyCode.S, false, false, StartDraggingWithKeyboard, Direction.South);
+        Manager.HandleKey(KeyCode.DownArrow, false, false, DragWithKeyboard, Direction.South);
+        Manager.HandleKey(KeyCode.S, false, false, DragWithKeyboard, Direction.South);
+        Manager.HandleKeyUp(KeyCode.DownArrow, false, false, EndDragWithKeyboard, Direction.South);
+        Manager.HandleKeyUp(KeyCode.S, false, false, EndDragWithKeyboard, Direction.South);
+
+        Manager.HandleKeyDown(KeyCode.UpArrow, false, false, StartDraggingWithKeyboard, Direction.North);
+        Manager.HandleKeyDown(KeyCode.W, false, false, StartDraggingWithKeyboard, Direction.North);
+        Manager.HandleKey(KeyCode.UpArrow, false, false, DragWithKeyboard, Direction.North);
+        Manager.HandleKey(KeyCode.W, false, false, DragWithKeyboard, Direction.North);
+        Manager.HandleKeyUp(KeyCode.UpArrow, false, false, EndDragWithKeyboard, Direction.North);
+        Manager.HandleKeyUp(KeyCode.W, false, false, EndDragWithKeyboard, Direction.North);
     }
 
-    private void StartDraggingWithKeyboard()
+    private void StartDraggingWithKeyboard(Direction direction)
     {
         _keyboardDragTracker = new PointerEventData(EventSystem.current)
         {
@@ -1104,26 +1118,16 @@ public class GuiManagerScript : MonoBehaviour
             button = PointerEventData.InputButton.Right
         };
         BeginDrag(_keyboardDragTracker);
+    }
+
+    private void DragWithKeyboard(Direction direction)
+    {
 
     }
 
-    private void DragLeftWithKeyboard()
+    private void EndDragWithKeyboard(Direction direction)
     {
-        _keyboardDragTracker.position += new Vector2(-2, 0);
-        Drag(_keyboardDragTracker);
-    }
 
-
-    private void DragRightWithKeyboard()
-    {
-        _keyboardDragTracker.position += new Vector2(2, 0);
-        Drag(_keyboardDragTracker);
-    }
-
-
-    private void EndDragWithKeyboard()
-    {
-        EndDrag(_keyboardDragTracker);
     }
 
     public static bool IsModalPanelActive()
