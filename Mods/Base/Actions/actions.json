@@ -74,7 +74,7 @@
       "target": "faction",
       "category": "diplomacy",
       "properties": [
-        { "id": "contacts", "value": "target.polity.contacts" },
+        { "id": "contacts", "value": "target.polity.contacts.select_subset[contact](contact.polity.factions.select_subset[faction](faction.has_contact_with(target.polity)).count > 0)" },
         { "id": "rs_description_tribe", "value": "''Select a neighboring tribe...''" },
         { "id": "selected_tribe", "value": "contacts.request_selection(rs_description_tribe).polity" },
         { "id": "neighbor_clans", "value": "selected_tribe.factions.select_subset[faction](faction.has_contact_with(target.polity))" },
@@ -101,7 +101,7 @@
       "target": "faction",
       "category": "diplomacy",
       "properties": [
-        { "id": "contacts", "value": "target.polity.contacts" },
+        { "id": "contacts", "value": "target.polity.contacts.select_subset[contact](contact.polity.factions.select_subset[faction](faction.has_contact_with(target.polity)).count > 0)" },
         { "id": "rs_description_tribe", "value": "''Select a neighboring tribe...''" },
         { "id": "selected_tribe", "value": "contacts.request_selection(rs_description_tribe).polity" },
         { "id": "neighbor_clans", "value": "selected_tribe.factions.select_subset[faction](faction.has_contact_with(target.polity))" },
