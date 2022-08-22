@@ -15,6 +15,10 @@ public class AppSettings
     public string AutoSaveMode = "Deactivate";
     public float RealWorldAutoSaveInterval = 600f;
     public long AutoSaveInterval = 365000000;
+    public float KeyboardXAxisSensitivity = 50.0f;
+    public float KeyboardYAxisSensitivity = 50.0f;
+    public bool KeyboardInvertXAxis = false;
+    public bool KeyboardInvertYAxis = false;
 
     public List<string> ActiveModPaths = new List<string>();
 
@@ -35,6 +39,10 @@ public class AppSettings
         Fullscreen = Manager.FullScreenEnabled;
         UIScaling = Manager.UIScalingEnabled;
         AnimationShaders = Manager.AnimationShadersEnabled;
+        KeyboardXAxisSensitivity = Manager.KeyboardXAxisSensitivity;
+        KeyboardYAxisSensitivity = Manager.KeyboardYAxisSensitivity;
+        KeyboardInvertXAxis = Manager.KeyboardInvertXAxis;
+        KeyboardInvertYAxis = Manager.KeyboardInvertYAxis;
 
         switch (Manager.CurrentDevMode)
         {
@@ -93,6 +101,10 @@ public class AppSettings
         Manager.FullScreenEnabled = Fullscreen;
         Manager.UIScalingEnabled = UIScaling;
         Manager.AnimationShadersEnabled = AnimationShaders;
+        Manager.KeyboardXAxisSensitivity = KeyboardXAxisSensitivity;
+        Manager.KeyboardYAxisSensitivity = KeyboardYAxisSensitivity;
+        Manager.KeyboardInvertXAxis = KeyboardInvertXAxis;
+        Manager.KeyboardInvertYAxis = KeyboardInvertYAxis;
 
         switch (DeveloperMode)
         {

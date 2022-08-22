@@ -135,6 +135,15 @@ public class GuiManagerScript : MonoBehaviour
 
     public EventPanelScript EventPanelScript;
 
+    [Range(0f, 2f)]
+    public float XAxisMagic_Offset = 0.51f;
+    [Range(0f, 2f)]
+    public float XAxisMagic_Mult = 0.86f;
+    [Range(0f, 2f)]
+    public float YAxisMagic_Offset = 0.51f;
+    [Range(0f, 2f)]
+    public float YAxisMagic_Mult = 0.86f;
+
     public ToggleEvent OnSimulationInterrupted;
     public ToggleEvent OnSimulationPaused;
 
@@ -1122,12 +1131,45 @@ public class GuiManagerScript : MonoBehaviour
 
     private void DragWithKeyboard(Direction direction)
     {
+        float xAxisDelta = 0;
+        float yAxisDelta = 0;
 
+        switch (direction)
+        {
+            case Direction.North:
+                yAxisDelta = -YAxisMagic_Offset;
+                break;
+            case Direction.South:
+                yAxisDelta = YAxisMagic_Offset;
+                break;
+            case Direction.West:
+                xAxisDelta = -XAxisMagic_Offset;
+                break;
+            case Direction.East:
+                xAxisDelta = XAxisMagic_Offset;
+                break;
+            default:
+                Debug.Log(string.Format("Unrecognized direction [%s] received, setting deltas to [%d, %d]", direction, xAxisDelta, yAxisDelta));
+                break;
+        }
+
+        xAxisDelta = Manager.KeyboardXAxisSensitivity * xAxisDelta * XAxisMagic_Mult;
+        if (Manager.KeyboardInvertXAxis)
+        {
+            xAxisDelta *= -1;
+        }
+        yAxisDelta = Manager.KeyboardYAxisSensitivity * yAxisDelta * YAxisMagic_Mult;
+        if (Manager.KeyboardInvertYAxis)
+        {
+            yAxisDelta *= -1;
+        }
+        _keyboardDragTracker.position += new Vector2(xAxisDelta, yAxisDelta);
+        Drag(_keyboardDragTracker);
     }
 
     private void EndDragWithKeyboard(Direction direction)
     {
-
+        EndDrag(_keyboardDragTracker);
     }
 
     public static bool IsModalPanelActive()
@@ -4091,7 +4133,6 @@ public class GuiManagerScript : MonoBehaviour
         {
             MapScript.EndDrag(data);
         }
-        Debug.Log("Drag Ended BOIIIIII");
     }
 
     public void Scroll(BaseEventData data)

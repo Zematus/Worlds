@@ -237,6 +237,11 @@ public class Manager
     public static bool UIScalingEnabled = false;
     public static bool AnimationShadersEnabled = true;
 
+    public static float KeyboardXAxisSensitivity = 50.0f;
+    public static float KeyboardYAxisSensitivity = 50.0f;
+    public static bool KeyboardInvertXAxis = false;
+    public static bool KeyboardInvertYAxis = false;
+
     public static DevMode CurrentDevMode = DevMode.None;
 
     public static List<string> ActiveModPaths = new List<string>() { Path.Combine(@"Mods", "Base") };
@@ -1055,7 +1060,7 @@ public class Manager
 
         EnqueueTaskAndWait(() =>
         {
-            Object.Destroy(exportTexture);
+            UnityEngine.Object.Destroy(exportTexture);
             return true;
         });
     }
