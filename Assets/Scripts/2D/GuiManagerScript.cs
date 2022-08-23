@@ -1090,6 +1090,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_Navigation()
     {
+        //NOTE: simultaneously pressing both keys for the same direction, e.g., A + <-, will double the
+        //      speed on that direction
         Manager.HandleKeyDown(KeyCode.LeftArrow, false, false, StartDraggingWithKeyboard, Direction.West);
         Manager.HandleKeyDown(KeyCode.A, false, false, StartDraggingWithKeyboard, Direction.West);
         Manager.HandleKey(KeyCode.LeftArrow, false, false, DragWithKeyboard, Direction.West);
@@ -1143,10 +1145,10 @@ public class GuiManagerScript : MonoBehaviour
                 yAxisDelta = YAxisMagic_Offset;
                 break;
             case Direction.West:
-                xAxisDelta = -XAxisMagic_Offset;
+                xAxisDelta = XAxisMagic_Offset;
                 break;
             case Direction.East:
-                xAxisDelta = XAxisMagic_Offset;
+                xAxisDelta = -XAxisMagic_Offset;
                 break;
             default:
                 Debug.Log(string.Format("Unrecognized direction [%s] received, setting deltas to [%d, %d]", direction, xAxisDelta, yAxisDelta));
