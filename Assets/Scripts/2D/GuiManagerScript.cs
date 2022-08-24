@@ -334,7 +334,11 @@ public class GuiManagerScript : MonoBehaviour
 
     private int _lastExLogHash = 0;
 
-    private PointerEventData _keyboardDragTracker;
+    private PointerEventData _keyboardDragTracker = new PointerEventData(EventSystem.current)
+    {
+        position = new Vector2(0, 0),
+        button = PointerEventData.InputButton.Right
+    };
 
     void OnEnable()
     {
@@ -1123,11 +1127,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void StartDraggingWithKeyboard(Direction direction)
     {
-        _keyboardDragTracker = new PointerEventData(EventSystem.current)
-        {
-            position = new Vector2(0, 0),
-            button = PointerEventData.InputButton.Right
-        };
+        _keyboardDragTracker.position = new Vector2(0, 0);
         BeginDrag(_keyboardDragTracker);
     }
 
