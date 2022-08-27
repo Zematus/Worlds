@@ -16,8 +16,7 @@ public class CellCulturalPreference : CulturalPreference
     private float _newValue;
 
 #if DEBUG
-    // Null ref when loading from file
-    // private long _lastUpdateDate = Manager.CurrentWorld.CurrentDate;
+    private long _lastUpdateDate = Manager.CurrentWorld.CurrentDate;
 #endif
 
     [XmlIgnore]

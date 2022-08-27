@@ -75,14 +75,14 @@ public class SettingsDialogPanelScript : MenuPanelScript
     {
         if (source == null || (source != KeyboardXAxisSensitivity && source != KeyboardYAxisSensitivity))
         {
-            Debug.Log(string.Format("Handling input for an unknown InputField or Object {0}, exiting method", source));
+            Debug.LogWarning(string.Format("Handling input for an unknown InputField or Object {0}, exiting method", source));
             return;
         }
 
         var inputField = source as InputField;
         if (!IsKeyboardAxisSensitivityValid(inputField.text))
         {
-            Debug.Log(String.Format("Invalid axis sensitivity entered for field {0}, value: {1}", inputField.name, inputField.text));
+            Debug.LogWarning(String.Format("Invalid axis sensitivity entered for field {0}, value: {1}", inputField.name, inputField.text));
             ShowInvalidSettingsModalDialog();
         }
 
@@ -133,13 +133,13 @@ public class SettingsDialogPanelScript : MenuPanelScript
         }
         catch (FormatException e)
         {
-            Debug.Log(String.Format("Invalid axis sensitivity entered {0}", text));
-            Debug.Log(e);
+            Debug.LogWarning(String.Format("Invalid axis sensitivity entered {0}", text));
+            Debug.LogWarning(e);
             return false;
         }
         if (parsedValue < min || parsedValue > max)
         {
-            Debug.Log(String.Format("Axis sensitivity out-of-range entered {0}", text));
+            Debug.LogWarning(String.Format("Axis sensitivity out-of-range entered {0}", text));
             return false;
         }
         return true;

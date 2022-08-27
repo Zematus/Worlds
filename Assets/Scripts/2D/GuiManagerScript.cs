@@ -336,7 +336,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private PointerEventData _keyboardDragTracker = new PointerEventData(EventSystem.current)
     {
-        position = new Vector2(0, 0),
+        position = Vector2.zero,
         button = PointerEventData.InputButton.Right
     };
 
