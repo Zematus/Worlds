@@ -4,6 +4,8 @@ using System.Xml.Serialization;
 using System.IO;
 using System.Threading;
 using UnityEngine.Profiling;
+using System;
+using UnityEngine.UIElements;
 
 public enum EditorBrushType
 {
@@ -235,6 +237,11 @@ public class Manager
     public static bool UIScalingEnabled = false;
     public static bool AnimationShadersEnabled = true;
 
+    public static float KeyboardXAxisSensitivity = 50.0f;
+    public static float KeyboardYAxisSensitivity = 50.0f;
+    public static bool KeyboardInvertXAxis = false;
+    public static bool KeyboardInvertYAxis = false;
+
     public static DevMode CurrentDevMode = DevMode.None;
 
     public static List<string> ActiveModPaths = new List<string>() { Path.Combine(@"Mods", "Base") };
@@ -365,6 +372,13 @@ public class Manager
 
     private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 
+    private enum KeyEvent
+    {
+        KeyUp,
+        KeyDown,
+        Key
+    }
+
     public XmlAttributeOverrides AttributeOverrides { get; private set; }
 
     public static bool SimulationCanRun
@@ -431,40 +445,91 @@ public class Manager
         _simulationStep = state;
     }
 
+    private static bool _ShouldHandleKey(KeyEvent keyEvent, KeyCode keyCode, bool requireCtrl, bool requireShift, bool canDisable = true)
+    {
+        bool handleKeyEvent;
+        switch (keyEvent)
+        {
+            case KeyEvent.Key:
+                handleKeyEvent = Input.GetKey(keyCode);
+                break;
+            case KeyEvent.KeyUp:
+                handleKeyEvent = Input.GetKeyUp(keyCode);
+                break;
+            case KeyEvent.KeyDown:
+                handleKeyEvent = Input.GetKeyDown(keyCode);
+                break;
+            default:
+                // throw an exception?
+                Debug.LogAssertion(String.Format("Invalid keyEvent passed [{0}], setting keyPressed to false", keyEvent));
+                handleKeyEvent = false;
+                break;
+
+        }
+        if (!handleKeyEvent)
+        {
+            return false;
+        }
+
+        if (!CanHandleKeyInput(requireCtrl, requireShift, canDisable))
+            return false;
+
+        return true;
+    }
+
     public static void HandleKeyUp(
         KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action, bool canDisable = true)
     {
-        if (!Input.GetKeyUp(keyCode))
-            return;
+        if (_ShouldHandleKey(KeyEvent.KeyUp, keyCode, requireCtrl, requireShift, canDisable))
+        {
+            action.Invoke();
+        }
+    }
 
-        if (!CanHandleKeyInput(requireCtrl, requireShift, canDisable))
-            return;
-
-        action.Invoke();
+    public static void HandleKeyUp<T>(
+        KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action<T> action, T actionParams, bool canDisable = true)
+    {
+        if (_ShouldHandleKey(KeyEvent.KeyUp, keyCode, requireCtrl, requireShift, canDisable))
+        {
+            action.Invoke(actionParams);
+        }
     }
 
     public static void HandleKey(
         KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action, bool canDisable = true)
     {
-        if (!Input.GetKey(keyCode))
-            return;
-
-        if (!CanHandleKeyInput(requireCtrl, requireShift, canDisable))
-            return;
-
-        action.Invoke();
+        if (_ShouldHandleKey(KeyEvent.Key, keyCode, requireCtrl, requireShift, canDisable))
+        {
+            action.Invoke();
+        }
     }
+
+    public static void HandleKey<T>(
+        KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action<T> action, T actionParams, bool canDisable = true)
+    {
+        if (_ShouldHandleKey(KeyEvent.Key, keyCode, requireCtrl, requireShift, canDisable))
+        {
+            action.Invoke(actionParams);
+        }
+    }
+
 
     public static void HandleKeyDown(
         KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action, bool canDisable = true)
     {
-        if (!Input.GetKeyDown(keyCode))
-            return;
+        if (_ShouldHandleKey(KeyEvent.Key, keyCode, requireCtrl, requireShift, canDisable))
+        {
+            action.Invoke();
+        }
+    }
 
-        if (!CanHandleKeyInput(requireCtrl, requireShift, canDisable))
-            return;
-
-        action.Invoke();
+    public static void HandleKeyDown<T>(
+        KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action<T> action, T actionParams, bool canDisable = true)
+    {
+        if (_ShouldHandleKey(KeyEvent.Key, keyCode, requireCtrl, requireShift, canDisable))
+        {
+            action.Invoke(actionParams);
+        }
     }
 
     public static void ResetLayerSettings()
@@ -995,7 +1060,7 @@ public class Manager
 
         EnqueueTaskAndWait(() =>
         {
-            Object.Destroy(exportTexture);
+            UnityEngine.Object.Destroy(exportTexture);
             return true;
         });
     }
@@ -2725,7 +2790,7 @@ public class Manager
                 return true;
             }
 
-            if (((_highlightMode & HighlightMode.OnHoveredCollection) == 
+            if (((_highlightMode & HighlightMode.OnHoveredCollection) ==
                 HighlightMode.OnHoveredCollection) && cell.EncompassingTerritory.IsHovered &&
                 (_filterHighlightCollection?.Invoke(cell.EncompassingTerritory) ?? true))
             {
@@ -3692,7 +3757,7 @@ public class Manager
 
             bool isSelectableFaction = false;
 
-            if ((faction != null) && 
+            if ((faction != null) &&
                 ((faction.SelectionFilterType == Faction.FilterType.Selectable) ||
                 (faction.SelectionFilterType == Faction.FilterType.Related)))
             {

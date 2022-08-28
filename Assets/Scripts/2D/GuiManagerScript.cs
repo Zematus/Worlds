@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine.Profiling;
+using UnityEngine.Assertions;
 
 public delegate void PostProgressOperation();
 public delegate void PointerOperation(Vector2 position);
@@ -133,6 +134,15 @@ public class GuiManagerScript : MonoBehaviour
     public QuickTipPanelScript QuickTipPanelScript;
 
     public EventPanelScript EventPanelScript;
+
+    [Range(0f, 2f)]
+    public float XAxisMagic_Offset = 0.51f;
+    [Range(0f, 2f)]
+    public float XAxisMagic_Mult = 0.86f;
+    [Range(0f, 2f)]
+    public float YAxisMagic_Offset = 0.51f;
+    [Range(0f, 2f)]
+    public float YAxisMagic_Mult = 0.86f;
 
     public ToggleEvent OnSimulationInterrupted;
     public ToggleEvent OnSimulationPaused;
@@ -323,6 +333,12 @@ public class GuiManagerScript : MonoBehaviour
     private System.Action _closeErrorActionToPerform = null;
 
     private int _lastExLogHash = 0;
+
+    private PointerEventData _keyboardDragTracker = new PointerEventData(EventSystem.current)
+    {
+        position = Vector2.zero,
+        button = PointerEventData.InputButton.Right
+    };
 
     void OnEnable()
     {
@@ -1076,6 +1092,88 @@ public class GuiManagerScript : MonoBehaviour
         Manager.HandleKeyUp(KeyCode.M, false, false, ActivateMiscOverlay);
     }
 
+    private void ReadKeyboardInput_Navigation()
+    {
+        //NOTE: simultaneously pressing both keys for the same direction, e.g., A + <-, will double the
+        //      speed on that direction
+        Manager.HandleKeyDown(KeyCode.LeftArrow, false, false, StartDraggingWithKeyboard, Direction.West);
+        Manager.HandleKeyDown(KeyCode.A, false, false, StartDraggingWithKeyboard, Direction.West);
+        Manager.HandleKey(KeyCode.LeftArrow, false, false, DragWithKeyboard, Direction.West);
+        Manager.HandleKey(KeyCode.A, false, false, DragWithKeyboard, Direction.West);
+        Manager.HandleKeyUp(KeyCode.LeftArrow, false, false, EndDragWithKeyboard, Direction.West);
+        Manager.HandleKeyUp(KeyCode.A, false, false, EndDragWithKeyboard, Direction.West);
+
+        Manager.HandleKeyDown(KeyCode.RightArrow, false, false, StartDraggingWithKeyboard, Direction.East);
+        Manager.HandleKeyDown(KeyCode.D, false, false, StartDraggingWithKeyboard, Direction.East);
+        Manager.HandleKey(KeyCode.RightArrow, false, false, DragWithKeyboard, Direction.East);
+        Manager.HandleKey(KeyCode.D, false, false, DragWithKeyboard, Direction.East);
+        Manager.HandleKeyUp(KeyCode.RightArrow, false, false, EndDragWithKeyboard, Direction.East);
+        Manager.HandleKeyUp(KeyCode.D, false, false, EndDragWithKeyboard, Direction.East);
+
+        Manager.HandleKeyDown(KeyCode.DownArrow, false, false, StartDraggingWithKeyboard, Direction.South);
+        Manager.HandleKeyDown(KeyCode.S, false, false, StartDraggingWithKeyboard, Direction.South);
+        Manager.HandleKey(KeyCode.DownArrow, false, false, DragWithKeyboard, Direction.South);
+        Manager.HandleKey(KeyCode.S, false, false, DragWithKeyboard, Direction.South);
+        Manager.HandleKeyUp(KeyCode.DownArrow, false, false, EndDragWithKeyboard, Direction.South);
+        Manager.HandleKeyUp(KeyCode.S, false, false, EndDragWithKeyboard, Direction.South);
+
+        Manager.HandleKeyDown(KeyCode.UpArrow, false, false, StartDraggingWithKeyboard, Direction.North);
+        Manager.HandleKeyDown(KeyCode.W, false, false, StartDraggingWithKeyboard, Direction.North);
+        Manager.HandleKey(KeyCode.UpArrow, false, false, DragWithKeyboard, Direction.North);
+        Manager.HandleKey(KeyCode.W, false, false, DragWithKeyboard, Direction.North);
+        Manager.HandleKeyUp(KeyCode.UpArrow, false, false, EndDragWithKeyboard, Direction.North);
+        Manager.HandleKeyUp(KeyCode.W, false, false, EndDragWithKeyboard, Direction.North);
+    }
+
+    private void StartDraggingWithKeyboard(Direction direction)
+    {
+        _keyboardDragTracker.position = new Vector2(0, 0);
+        BeginDrag(_keyboardDragTracker);
+    }
+
+    private void DragWithKeyboard(Direction direction)
+    {
+        float xAxisDelta = 0;
+        float yAxisDelta = 0;
+
+        switch (direction)
+        {
+            case Direction.North:
+                yAxisDelta = -YAxisMagic_Offset;
+                break;
+            case Direction.South:
+                yAxisDelta = YAxisMagic_Offset;
+                break;
+            case Direction.West:
+                xAxisDelta = XAxisMagic_Offset;
+                break;
+            case Direction.East:
+                xAxisDelta = -XAxisMagic_Offset;
+                break;
+            default:
+                Debug.Log(string.Format("Unrecognized direction [%s] received, setting deltas to [%d, %d]", direction, xAxisDelta, yAxisDelta));
+                break;
+        }
+
+        xAxisDelta = Manager.KeyboardXAxisSensitivity * xAxisDelta * XAxisMagic_Mult;
+        if (Manager.KeyboardInvertXAxis)
+        {
+            xAxisDelta *= -1;
+        }
+        yAxisDelta = Manager.KeyboardYAxisSensitivity * yAxisDelta * YAxisMagic_Mult;
+        if (Manager.KeyboardInvertYAxis)
+        {
+            yAxisDelta *= -1;
+        }
+        _keyboardDragTracker.position += new Vector2(xAxisDelta, yAxisDelta);
+        Drag(_keyboardDragTracker);
+    }
+
+    private void EndDragWithKeyboard(Direction direction)
+    {
+        EndDrag(_keyboardDragTracker);
+    }
+
     public static bool IsModalPanelActive()
     {
         return IsMenuPanelActive() || IsInteractionPanelActive();
@@ -1215,6 +1313,7 @@ public class GuiManagerScript : MonoBehaviour
         ReadKeyboardInput_Globe();
         ReadKeyboardInput_MapViews();
         ReadKeyboardInput_MapOverlays();
+        ReadKeyboardInput_Navigation();
     }
 
     private bool IsPolityOverlay(PlanetOverlay overlay)
@@ -1546,14 +1645,14 @@ public class GuiManagerScript : MonoBehaviour
     public void RegenerateWorldTemperatureOffsetChange(float value)
     {
         Manager.TemperatureOffset = value;
-        
+
         RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
     public void RegenerateWorldRainfallOffsetChange(float value)
     {
         Manager.RainfallOffset = value;
-        
+
         RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
@@ -1562,7 +1661,7 @@ public class GuiManagerScript : MonoBehaviour
         LayerSettings settings = Manager.GetLayerSettings(layerId);
 
         settings.Frequency = value;
-        
+
         RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
@@ -1571,7 +1670,7 @@ public class GuiManagerScript : MonoBehaviour
         LayerSettings settings = Manager.GetLayerSettings(layerId);
 
         settings.SecondaryNoiseInfluence = value;
-        
+
         RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
@@ -1640,7 +1739,7 @@ public class GuiManagerScript : MonoBehaviour
 
         // It's safer to return to map mode after loading or generating a new world
         SetGlobeView(false);
-        
+
         _hasToSetInitialPopulation = true;
 
         ValidateLayersPresent();
@@ -2755,8 +2854,8 @@ public class GuiManagerScript : MonoBehaviour
         else if (request is GroupSelectionRequest gsRequest)
         {
             ChangePlanetOverlay(
-                PlanetOverlay.CellSelection, 
-                Manager.GroupProminenceOverlaySubtype, 
+                PlanetOverlay.CellSelection,
+                Manager.GroupProminenceOverlaySubtype,
                 temporary: true);
             return;
         }
