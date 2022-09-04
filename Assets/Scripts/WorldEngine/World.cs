@@ -66,6 +66,7 @@ public class World : ISynchronizable, IWorldDateGetter
     public const int MaxStartingPopulation = 100000;
 
     public const float MinSurvivabilityForRandomGroupPlacement = 0.15f;
+    public const float MinSurvivabilityForUserGroupPlacement = 0.15f;
 
     public const float TerrainGenerationSteps = 9;
 

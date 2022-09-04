@@ -1985,15 +1985,22 @@ public class GuiManagerScript : MonoBehaviour
     private void ClickOp_SelectPopulationPlacement(Vector2 mapPosition)
     {
         int population = AddPopulationDialogScript.Population;
+        int longitude = (int)mapPosition.x;
+        int latitude = (int)mapPosition.y;
 
-        if (AddPopulationGroupAtPosition(mapPosition, population))
+        if (Manager.CanAddPopulationGroupAtPosition(longitude, latitude))
         {
+            Manager.GenerateHumanGroup(longitude, latitude, population);
             UninterruptSimAndShowHiddenInterPanels();
-
             DisplayTip_MapScroll();
-
             _mapLeftClickOp -= ClickOp_SelectPopulationPlacement;
         }
+        // else {
+        //TODO: have some sort of visual feedback:
+        //        1. use the tooltip panel to display "Invalid cell for initial population."
+        //        2. highlight the cell with red (go back to normal color once pointer is not over the cell)
+        // }
+        
     }
 
     public void SelectPopulationPlacement()
@@ -2004,37 +2011,17 @@ public class GuiManagerScript : MonoBehaviour
 
         SetStartingSpeed(AddPopulationDialogScript.StartSpeedLevelIndex);
 
-        Debug.Log(string.Format("Player chose to select cell for population placement of {0}...", population));
+        Debug.LogFormat("Player chose to select cell for population placement of {0}...", population);
 
         if (population <= 0)
+        {
+            Debug.LogWarningFormat("Obtained a negative population value from AddPopulationDialogScript: {0}", population);
             return;
+        }
 
         DisplayTip_InitialPopulationPlacement();
 
         _mapLeftClickOp += ClickOp_SelectPopulationPlacement;
-    }
-
-    private bool AddPopulationGroupAtPosition(Vector2 mapPosition, int population)
-    {
-        World world = Manager.CurrentWorld;
-
-        int longitude = (int)mapPosition.x;
-        int latitude = (int)mapPosition.y;
-
-        if ((longitude < 0) || (longitude >= world.Width))
-            return false;
-
-        if ((latitude < 0) || (latitude >= world.Height))
-            return false;
-
-        TerrainCell cell = world.GetCell(longitude, latitude);
-
-        if (cell.IsLiquidSea)
-            return false;
-
-        Manager.GenerateHumanGroup(longitude, latitude, population);
-
-        return true;
     }
 
     private void DisplayTip_InitialPopulationPlacement()
