@@ -16,7 +16,7 @@ public class CellCulturalPreference : CulturalPreference
     private float _newValue;
 
 #if DEBUG
-    private long _lastUpdateDate = Manager.CurrentWorld == null ? 0 : Manager.CurrentWorld.CurrentDate;
+    private long _lastUpdateDate = Manager.CurrentWorld?.CurrentDate ?? 0;
 #endif
 
     [XmlIgnore]
