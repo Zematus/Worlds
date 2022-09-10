@@ -1,10 +1,11 @@
----- Decision Modding Guide ----
+# Decision Modding Guide
 
-Decision modding files are located within the 'Decisions' folder. To be valid, mod
-files must have the .json extension and have the following file structure:
+Decision mod files are located within the **Decisions** folder. To be valid, mod
+files must have the **.json** extension and have the following file structure:
 
--- File Structure --
+### File Structure
 
+```
 {
   "decisions": [                    -- list of decisions --
     {
@@ -60,10 +61,11 @@ files must have the .json extension and have the following file structure:
     ...                             -- additional decisions --
   ]
 }
+```
 
--- Notes --
-1. List of values must be enclosed within square brackets and separated by commas.
+## Notes
+1. Remove any trailing commas or the file won't be parsed
+2. List of values must be enclosed within square brackets and separated by commas.
    Remove any trailing commas on any list enclosed by square brackets, or you'll
    get a JSON parsing error.
-2. Do not duplicate decision ids unless you want to specifically replace another decision
-   already loaded.
+3. Do not duplicate decision *id* values unless you want to specifically replace another decision
