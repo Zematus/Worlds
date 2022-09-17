@@ -46,7 +46,7 @@ files must have the **.json** extension and have the following file structure:
                                        loaded to generate the body text within the
                                        dialog. The texts extracted will be presented
                                        in the same order as they appear on this list.
-                                       Please read descriptions_modding_guide.txt for
+                                       Please read descriptions_modding_guide.md for
                                        more details on how to define decision description
                                        objects.
 
@@ -55,7 +55,7 @@ files must have the **.json** extension and have the following file structure:
                                        to generate the list of options to present to
                                        the player. The options will appear in the
                                        order they are defined on this list. Please
-                                       read options_modding_guide.txt for more details
+                                       read options_modding_guide.md for more details
                                        on how to define decision option objects.
     },
     ...                             -- additional decisions --

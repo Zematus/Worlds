@@ -23,4 +23,4 @@
 
 ## Notes
 1. Remove any trailing commas or the file won't be parsed.
-2. These are used to decide whether or not to associate the element with a particular **region**. If any of the constraints fails then the adjective won't be used when generating names of phrases within the region. Refer to *region_constraints_guide.txt* for more details on how to define and use region constraints.
+2. These are used to decide whether or not to associate the element with a particular **region**. If any of the constraints fails then the adjective won't be used when generating names of phrases within the region. Refer to *region_constraints_guide.md* for more details on how to define and use region constraints.

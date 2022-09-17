@@ -31,7 +31,7 @@ Function expressions are a special type of expression that are composed of a fun
 id and a list of 0 or more parameters enclosed within parentheses. For example,
 "max(2,3)" is a function expression that returns the greater value within the list
 of inputs ('3' in this case). There's only a limited set of valid function expressions.
-A list of all currently available functions can be found in function_expressions_guide.txt.
+A list of all currently available functions can be found in function_expressions_guide.md.
 
 -- VALUE TYPES --
 
@@ -42,14 +42,14 @@ list of each value type and its properties.
   Numeric value expressions are expressions that return a number as a result. This
   number can be an integer or a decimal value, and the range of values can go from
   -3.40282347E+38 to 3.40282347E+38. Though the expression system does not support
-  fixed number representations larger than 10 digits. See expression_operators_guide.txt
+  fixed number representations larger than 10 digits. See expression_operators_guide.md
   for a list of operators to work with and/or return numeric values.
 
 - Boolean Values:
   Boolean value expressions are expressions that return a boolean value as a result.
   The result of the expression has to resolve to either "true" or "false", uppercase
   representations of boolean values will automatically be converted to lowercase
-  for parsing purposes. See expression_operators_guide.txt for a list of operators to work
+  for parsing purposes. See expression_operators_guide.md for a list of operators to work
   with and/or return boolean values.
 
 - String Values:
@@ -57,7 +57,7 @@ list of each value type and its properties.
   do not match any id assigned to an existing entity or property within a context.
   strings composed of multiple words must be enclosed within single quotes when
   used as sub-expressions. String values can embed expressions within them by enclosing
-  those expressions within '<<' '>>' blocks. Please read string_values_guide.txt for more
+  those expressions within '<<' '>>' blocks. Please read string_values_guide.md for more
   details
 
 - Entity Values:
@@ -74,4 +74,4 @@ Effect expressions are a special kind of expression that do not resolve into a v
 Instead, they produce an in-game effect which depends on the type of expression.
 Most effects are associated with with entity attributes. Some others are associated
 with function expressions. More details about specific effect expressions can be
-found in either entities_guide.md, function_expressions_guide.txt, or expression_operators_guide.txt
+found in either entities_guide.md, function_expressions_guide.md, or expression_operators_guide.md

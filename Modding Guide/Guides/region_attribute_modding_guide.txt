@@ -31,9 +31,9 @@ Region attribute modding files are located within the 'RegionAttributes' folder.
     "grass:land{:s}" - which decomposes into variants "grass:land" and "grass:land:s"
     "forest{<relation>:s}" - which decomposes into variants "forest" and "forest:s"
     "waste{:land}{:s}" - which decomposes into variants "waste", "waste:s", "waste:land", and "waste:land:s"
-  Refer to language_modding_guide.txt for more details on how to define translatable nouns.
+  Refer to language_modding_guide.md for more details on how to define translatable nouns.
 
-3. Each region constraint is used to decide whether or not to associate the element with a particular region. If any of the constraints fails then the attribute won't be associated with the region. Refer to region_constraints_guide.txt for more details on how to define and use region constraints
-4. Each phrase association is used to form nouns or noun phrases for procedurally generated proper names and other types of texts. Refer to phrase_association_guide.txt for more details on how to define phrase associations
+3. Each region constraint is used to decide whether or not to associate the element with a particular region. If any of the constraints fails then the attribute won't be associated with the region. Refer to region_constraints_guide.md for more details on how to define and use region constraints
+4. Each phrase association is used to form nouns or noun phrases for procedurally generated proper names and other types of texts. Refer to phrase_association_guide.md for more details on how to define phrase associations
 
 --

@@ -30,7 +30,7 @@ To be valid, mod files must have the .json extension and have the following file
                                        to decide if action will be present on the list a available actions within the assigned category.
                                        If any of the expressions evaluate to 'false', then
                                        the action will not be present within the category
-                                       menu. Please read expressions_guide.txt for more
+                                       menu. Please read expressions_guide.md for more
                                        details on how to define valid boolean
                                        expressions.
 
@@ -46,7 +46,7 @@ To be valid, mod files must have the .json extension and have the following file
       "effects":                    -- (required) List of EFFECT EXPRESSIONS to
                                        evaluate after an action has been executed.
                                        These can introduce changes to the target or any
-                                       related entity. Please read expressions_guide.txt
+                                       related entity. Please read expressions_guide.md
                                        for more details on how to define valid effect
                                        expressions.
     },
@@ -66,12 +66,12 @@ if an action is available for execution, They also define the tooltips to be dis
     {
       "condition":                  -- (required) BOOLEAN EXPRESSION to be evaluated
                                        to decide if action can be executed at a particular
-                                       time. Please read expressions_guide.txt for more
+                                       time. Please read expressions_guide.md for more
                                        details on how to define valid boolean
                                        expressions.
 
       "info":                       -- (required) Text to generate when a tooltip needs
-                                       to be displayed. See string_values_guide.txt
+                                       to be displayed. See string_values_guide.md
                                        to find more about how to define valid dynamic
                                        text values.
     }

@@ -20,7 +20,7 @@ that can generate texts to display within the game. They have the following stru
                                        on how to define valid properties.
 
       "text":                       -- (required) Text to generate when this description
-                                       object is evaluated. See string_values_guide.txt
+                                       object is evaluated. See string_values_guide.md
                                        to find more about how to define valid dynamic
                                        text values.
 

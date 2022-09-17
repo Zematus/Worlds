@@ -17,13 +17,13 @@ Discovery mod files are located within the **Discoveries** folder. To be valid, 
       "gainEffects":                -- (optional) List of EFFECT EXPRESSIONS to
                                        evaluate after the target group 'gains' the discovery.
                                        These can introduce changes to the target entity.
-                                       Please read expressions_guide.txt for more details on
+                                       Please read expressions_guide.md for more details on
                                        how to define valid effect expressions.
 
       "lossEffects":                -- (optional) List of EFFECT EXPRESSIONS to
                                        evaluate after the target group 'losses' the discovery.
                                        These can introduce changes to the target entity.
-                                       Please read expressions_guide.txt for more details on
+                                       Please read expressions_guide.md for more details on
                                        how to define valid effect expressions.
     },
     ... -- additional discoveries --

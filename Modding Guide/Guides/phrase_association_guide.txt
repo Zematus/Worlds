@@ -5,7 +5,7 @@ Phrase associations are used along with the element and one or more adjectives t
 -- An association can be used to form a noun phrase. I which case it must be defined as follows: '<association word>,<relations>,<form>'
 
   Here's a description of each part:
-    - <association word>: an action noun or attributive verb. Refer to language_modding_guide.txt for more details on how to define translatable nouns and verbs
+    - <association word>: an action noun or attributive verb. Refer to language_modding_guide.md for more details on how to define translatable nouns and verbs
     - <relations>: one or more prepositions (separated by pipes, '|') that can be used to link the association word with the element
     - <forms>: one or more grammatical forms (separated by pipes, '|') the element can take as part of the noun phrase. They can be one of the following:
       -- 'ns': proper name singular. Examples: "The Stone", "Mount"

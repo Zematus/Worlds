@@ -1,7 +1,7 @@
 ---- Expression Operators Guide ----
 
 Expression operators are a set of reserved symbols that can be used to perform logical
-or mathematical operations over one or more expressions (see expressions_guide.txt
+or mathematical operations over one or more expressions (see expressions_guide.md
 for general details on expressions)
 
 There are two types of operators, unary, and binary. Unary operators are prefixed
