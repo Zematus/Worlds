@@ -107,19 +107,19 @@ An access operation is handled as an expression and as such, can either ver reso
 
   - **skills**
     Attribute that returns a modifiable **container** entity of all the group's cultural skills, whose **numeric** values can later be read from.
-    *Example:* `"target.skills.seafaring <= 0.5"`
+    *Example:* `"target.skills.seafaring <= 0.5"`, `"target.skills.add(seafaring)"`
 
   - **activities**
     Attribute that returns a modifiable **container** entity of all the group's cultural activities, whose **numeric** values can later be read from.
-    *Example:* `"target.activities.foraging <= 0.4"`
+    *Example:* `"target.activities.foraging <= 0.4"`, `"target.activities.remove(farming)"`
 
   - **knowledges**
     Attribute that returns a modifiable **container** entity of all the group's cultural knowledges, whose **numeric** values can later be read from.
-    *Example:* `"target.knowledges.social_organization <= 0.6"`
+    *Example:* `"target.knowledges.social_organization <= 0.6"`, `"target.knowledges.add(shipbuilding)"`
 
   - **discoveries**
     Attribute that returns a modifiable **container** entity of all the group's cultural discoveries.
-    *Example:* `"target.discoveries.contains(sailing)"`
+    *Example:* `"target.discoveries.contains(sailing)"`, `"target.discoveries.add(keels)"`
 
 
 ### POLITY
@@ -196,13 +196,9 @@ An access operation is handled as an expression and as such, can either ver reso
 
 ### FACTION
 
-  This type of entity encapsulates any faction that can be part of a polity. most decisions have a faction as target entity.
+  This type of entity encapsulates any faction that can be part of a polity. Most decisions have a faction as target entity.
 
   ***Attributes:***
-
-  - **type**
-    Attribute that returns the type of faction. Current available type: **clan**
-    *Example:* `"target.type == clan"`
 
   - **administrative_load**
     Attribute that returns the faction's current administrative load as a **numeric** value.
@@ -211,10 +207,6 @@ An access operation is handled as an expression and as such, can either ver reso
   - **influence**
     Attribute that returns the faction's influence on its containing polity as a **numeric** value.
     *Example:* `"faction.influence <= 0.6"`
-
-  - **preferences**
-    Attribute that returns an entity containing all the groups's cultural preferences, whose **numeric** values can later be read from or written to.
-    *Example:* `"target.preferences.authority <= 0.5"`
 
   - **leader**
     Attribute that returns the leader of the polity's current dominant faction as an **agent entity**.
@@ -232,6 +224,26 @@ An access operation is handled as an expression and as such, can either ver reso
     Attribute function that will trigger a faction to split a new faction from itself. The function expects two parameters: a group to become the new faction's core, *core_group*, and a percentage of influence, *influence_to_transfer*, (as a value between 0 and 1) to transfer from the parent faction.
     *Example:* `"target.split(new_core_group, 0.5)"`
 
+  - **remove()**
+    Attribute function that will make this faction dissapear completely. NOTE: If this faction is the only member faction of a polity, then the polity will also be removed.
+    *Example:* `"faction.remove()"`
+
+  - **migrate_core_to_group(*group*)**
+    Attribute function that will make a faction replace its core group with a different one.
+    *Example:* `"target.migrate_core_to_group(new_core_group)"`
+
+  - **core_group**
+    Attribute that returns the core of this faction as a **group** entity.
+    *Example:* `"target.core_group != new_core_group"`
+
+  - **type**
+    Attribute that returns the type of faction. Currently the only option is **clan**.
+    *Example:* `"target.type == clan"`
+
+  - **guide**
+    Attribute that returns who is currently guiding the faction. The possible values are *simulation* (as in the computer running the game simulation) or *player* (as in the person playing the game).
+    *Example:* `"faction.guide == player"`
+
   - **get_relationship(*faction*)**
     Attribute function that will return a **numeric** value corresponding to the current relationship value between this faction and the faction given as parameter, *faction*.
     *Example:* `"target.get_relationship(dominant_faction)"`
@@ -240,12 +252,42 @@ An access operation is handled as an expression and as such, can either ver reso
     Attribute function that will update the relationship value between this faction and the faction given as the first parameter *faction*, using the **numeric** value given in the second parameter, *value*.
     *Example:* `"dominant_faction.set_relationship(target, input_value / 2)"`
 
-  - **core_group**
-    Attribute that returns the core of this faction as a **group entity**.
-    *Example:* `"target.core_group != new_core_group"`
+  - **groups**
+    Attribute that returns a **collection** entity containing all **group** entities that are under the direct control of this faction.
+    *Examples:* `"faction.groups.count > 1"`, `"target.groups.select_subset[group](group.get_core_distance(target) < 5000)"`
+
+  - **has_contact_with(*polity*)**
+    Attribute function that returns *true* if any of the faction's groups overlaps with the territory of the *polity* entity, or is neighbor with any group that overlaps that same territory. Otherwise returns *false*.
+    *Example:* `"dominant_faction.has_contact_with(other_polity)"`
+
+  - **change_polity(*polity*)**
+    Attribute function that changes the polity this faction belongs to.
+    *Example:* `"faction.change_polity(other_polity)"`
+
+  - **preferences**
+    Attribute that returns a non-modifiable **container** entity of all the faction's cultural preferences, whose **numeric** values can later be read from or written to.
+    *Example:* `"target.preferences.authority <= 0.5"`, `"target.preferences.agression = 0.3"`
+
+  - **skills**
+    Attribute that returns a non-modifiable **container** entity of all the faction's cultural skills, whose **numeric** values can later be read from.
+    *Example:* `"target.skills.seafaring <= 0.5"`
+
+  - **activities**
+    Attribute that returns a non-modifiable **container** entity of all the faction's cultural activities, whose **numeric** values can later be read from.
+    *Example:* `"target.activities.foraging <= 0.4"`
+
+  - **knowledges**
+    Attribute that returns a non-modifiable **container** entity of all the faction's cultural knowledges, whose **numeric** values can later be read from.
+    *Example:* `"target.knowledges.social_organization <= 0.6"`
+
+  - **discoveries**
+    Attribute that returns a non-modifiable **container** entity of all the faction's cultural discoveries.
+    *Example:* `"target.discoveries.contains(sailing)"`
 
 
 ### REGION
+
+  This type of entity encapsulates a world region. Currently it has no public attributes.
 
 
 ### CONTACT
@@ -269,16 +311,75 @@ An access operation is handled as an expression and as such, can either ver reso
 
   ***Attributes:***
 
-  - **charisma**
-    Attribute that returns an agent's *charisma* level as a value between 0 and 1.
-    *Example:* `"leader.charisma < 0.5"`
-
   - **wisdom**
     Attribute that returns an agent's *wisdom* level as a value between 0 and 1.
     *Example:* `"0.3 >= current_leader.wisdom"`
 
+  - **charisma**
+    Attribute that returns an agent's *charisma* level as a value between 0 and 1.
+    *Example:* `"leader.charisma < 0.5"`
+
+
+### KNOWLEDGE
+
+  This type of entity encapsulates a cultural knowledge.
+
+  ***Attributes:***
+
+  - **limit**
+    Attribute that gets or sets a knowledge limit level. The limit defines the maximum level a knowledge can reach. NOTE: Limits can only be set for knowledges at the **group** entity's level.
+    *Example:* `"group.knowledges.shipbuilding.limit += 5"`
+
 
 ### COLLECTION
 
+  This type of entity encapsulates a collection of items, which could be other entities.
+
+  ***Attributes:***
+
+  - **count**
+    Attribute that returns the number of items currently within the collection.
+    *Example:* `"polity.contacts.count > 0"`
+
+  - **request_selection(*description*)**
+    Attribute function that will ask the player to select an item within the collection. The *description* parameter should be a *text* string that will be presented to the player to instruct them on the action they must perform. NOTE: Some collections might not support this attribute.
+    *Example:* `"neighbor_regions.request_selection(''Select the region the <<target.polity>> tribe should expand to...'')"`
+
+  - **select_random()**
+    Attribute function that will return a randomly picked item within the collection.
+    *Example:* `"near_factions.select_random()"`
+
+  - **select\[ *item* \](*selection_expression*)**
+    Attribute function that will return the first item in the collection that satisfies the **boolean** expression defined in *selection_expression*. The expression might use the string value given in *item* as a placeholder keyword for each one of the items in the collection. The function will replace the *item* keyword with an actual item each time the expression is evaluated.
+    *Example:* `"target.polity.contacts.select[contact](contact.polity == attempting_polity).strength"`
+
+  - **select_subset\[ *item* \](*selection_expression*)**
+    Attribute function that will return a **collection** entity with all the items within the original collection that satisfy the **boolean** expression defined in *selection_expression*. The expression might use the string value given in *item* as a placeholder keyword for each one of the items in the collection. The function will replace the *item* keyword with an actual item each time the expression is evaluated.
+    *Example:* `"target.present_polities.select_subset[polity](polity.type == tribe)"`
+
+  - **select_best\[ *item_a*, *item_b* \](*comparison_expression*)**
+    Attribute function that will return the best item in the collection according to the criteria defined by the **boolean** expression defined in *comparison_expression*. The expression might use the string values given in *item_a* and *item_b* as a placeholder keywords for pairs of items in the collection. The function will replace the *item_\** keywords with actual items each time the expression is evaluated. The expression must return *true* if *item_a* is better than *item_b*, or return *false* otherwise.
+    *Example:* `"polity.contacts.select_best[contact_a,contact_b](contact_a.strength >= contact_b.strength)"`
+
+  - **sum\[ *item* \](*numeric_expression*)**
+    Attribute function that will return a **numeric** value that is the sum of the results given by *numeric_expression* as evaluated for each item in the collection. The expression might use the string value given in *item* as a placeholder keyword for each one of the items in the collection. The function will replace the *item* keyword with an actual item each time the expression is evaluated.
+    *Example:* `"target.cell.neighbors.sum[cell](cell.biome_type_presence(water))"`
+
 
 ### CONTAINER
+
+  This type of entity encapsulates a simple container of items. Some containers can be modified (add or remove items) while others are stricly read-only. NOTE: Although similar in concept, a **container** entity is functionaly very different from a **collection** entity and shouldn't be confused with it.
+
+  ***Attributes:***
+
+  - **contains(*item_identifier*)**
+    Attribute function that returns *true* if the container contains the item idenfied by *item_identifier*, otherwise returns *false*.
+    *Example:* `"target.discoveries.contains(boat_making)"`
+
+  - **add(*item_identifier*,*...*)**
+    Attribute function that adds the item idenfied by *item_identifier* to the container entity. The function can receive additional parameters in *...* to set the initial value for the given item. NOTE: This function is only available in modifiable container entities.
+    *Example:* `"target.knowledges.add(shipbuilding, 1)"`
+
+  - **remove(*item_identifier*)**
+    Attribute function that removes the item idenfied by *item_identifier* from the container entity. NOTE: This function is only available in modifiable container entities.
+    *Example:* `"target.knowledges.remove(shipbuilding)"`
