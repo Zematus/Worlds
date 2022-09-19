@@ -57,6 +57,23 @@ files must have the **.json** extension and have the following file structure:
                                        order they are defined on this list. Please
                                        read options_modding_guide.md for more details
                                        on how to define decision option objects.
+
+      "enableDebugLog":             -- (optional) Can only have 'true' or 'false'
+                                       as value (default: 'false'). This an option
+                                       to assist in mod development. If this is
+                                       'true', and 'Debug Mode' is enabled within
+                                       the game, then debug information specific
+                                       to this decision will be logged during the
+                                       game execution.
+
+      "debugPlayerGuidance":        -- (optional) Can only have 'true' or 'false'
+                                       as value (default: 'false'). This an option
+                                       to assist in mod development. If this is 'true',
+                                       the game will pause whenever this decision is
+                                       invoked and will request the player to choose
+                                       an option instead of letting the simulation do
+                                       it.
+
     },
     ...                             -- additional decisions --
   ]

@@ -6,7 +6,7 @@ Element modding files are located within the **Elements** folder. To be valid, m
 
 ```
 {
-  "elements": [ -- list of elements --
+  "elements": [              -- list of elements --
     {
       "id":                  -- (required) Unique element identifier, if more than one definition
                                 share ids, only the last one loaded will be used
@@ -16,12 +16,12 @@ Element modding files are located within the **Elements** folder. To be valid, m
       "adjectives":          -- (optional) List of applicable adjective words or ids, separated by commas.
                                 If the if the word/id is present on a adjective mod file then the element
                                 will use the adjective word described in the mod entry (if applicable).
-                                
+
       "regionConstraints":   -- (optional) List of region constraints, separated by commas (see note #3)
 
       "phraseAssociations":  -- (required) List of phrase association strings, separated by commas (see note #4)
     },
-    ... -- additional elements --
+    ...                      -- additional elements --
   ]
 }
 ```

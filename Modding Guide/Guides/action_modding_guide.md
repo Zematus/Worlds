@@ -49,6 +49,14 @@ To be valid, mod files must have the .json extension and have the following file
                                        related entity. Please read expressions_guide.md
                                        for more details on how to define valid effect
                                        expressions.
+
+      "enableDebugLog":             -- (optional) Can only have 'true' or 'false'
+                                       as value (default: 'false'). This an option
+                                       to assist in mod development. If this is
+                                       'true', and 'Debug Mode' is enabled within
+                                       the game, then debug information specific
+                                       to this action will be logged during the
+                                       game execution.
     },
     ...                             -- additional actions --
   ]

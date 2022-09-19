@@ -1,10 +1,11 @@
----- Event Modding Guide ----
+# Event Modding Guide
 
-Event modding files are located within the 'Events' folder. To be valid, mod files
-must have the .json extension and have the following file structure:
+Event mod files are located within the **Events** folder. To be valid, mod files
+must have the **.json** extension and have the following file structure:
 
--- File Structure --
+### File Structure
 
+```
 {
   "events": [                       -- list of events --
     {
@@ -62,7 +63,7 @@ must have the .json extension and have the following file structure:
                                        to the same target after every successful
                                        or unsuccessful trigger attempt.
 
-      "debug":                      -- (optional) Can only have 'true' or 'false'
+      "enableDebugLog":             -- (optional) Can only have 'true' or 'false'
                                        as value (default: 'false'). This an option
                                        to assist in mod development. If this is
                                        'true', and 'Debug Mode' is enabled within
@@ -73,8 +74,9 @@ must have the .json extension and have the following file structure:
     ...                             -- additional events --
   ]
 }
+```
 
--- Notes --
+## Notes
 1. List of values must be enclosed within square brackets and separated by commas.
    Remove any trailing commas on any list enclosed by square brackets, or you'll
    get a JSON parsing error.
