@@ -1,9 +1,10 @@
 # Action Modding Guide
 
-**Action** mod files are located within the *Actions* folder.
+**Action** scripting mod files are located within the *Actions* folder.
 To be valid, mod files must have the .json extension and have the following file structure:
 
 #### File Structure
+Note: *.json* files do not support comments. Remove texts enclosed within double dashes `--`
 
 ```
 {

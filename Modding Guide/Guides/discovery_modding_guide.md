@@ -1,6 +1,6 @@
 # Discovery Modding Guide
 
-Discovery mod files are located within the **Discoveries** folder. To be valid, mod files must have the **.json** extension and have the following file structure:
+Discovery mod files are located within the *Discoveries* folder. To be valid, mod files must have the **.json** extension and have the following file structure:
 
 ### File Structure
 
