@@ -32,7 +32,7 @@ Following is a list of current supported operators enclosed in single quotes.
   Examples: `"!false"`. `"!(target.preferences.cohesion > 0.7)"`
   in single quotes.
 
-## BINARY OPERATORS
+### BINARY OPERATORS
 
 - Addition: `+`
   This operator will add the value of two **numeric** expressions and return the result.
