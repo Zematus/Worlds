@@ -1,10 +1,11 @@
----- Event Modding Guide ----
+# Event Modding Guide
 
-Event modding files are located within the 'Events' folder. To be valid, mod files
-must have the .json extension and have the following file structure:
+Event mod files are located within the **Events** folder. To be valid, mod files
+must have the **.json** extension and have the following file structure:
 
--- File Structure --
+### File Structure
 
+```
 {
   "events": [                       -- list of events --
     {
@@ -31,7 +32,7 @@ must have the .json extension and have the following file structure:
                                        evaluate before assigning the event to the
                                        target. If any of the expressions evaluate
                                        to 'false', then the event is not assigned.
-                                       Please read expressions_guide.txt for more
+                                       Please read expressions_guide.md for more
                                        details on how to define valid boolean
                                        expressions. NOTE: assignment conditions are
                                        also evaluated before triggering an event.
@@ -40,7 +41,7 @@ must have the .json extension and have the following file structure:
                                        evaluate before triggering the event already
                                        assigned to the target. If any of the expressions
                                        evaluate to 'false', then the event is not
-                                       triggered. Please read expressions_guide.txt
+                                       triggered. Please read expressions_guide.md
                                        for more details on how to define valid boolean
                                        expressions.
 
@@ -53,7 +54,7 @@ must have the .json extension and have the following file structure:
                                        evaluate after an event has successfully
                                        triggered. These can introduce changes to
                                        the target or any related entity. Please
-                                       read expressions_guide.txt for more details
+                                       read expressions_guide.md for more details
                                        on how to define valid effect expressions.
 
       "repeatable":                 -- (optional) Can only have 'true' or 'false'
@@ -62,7 +63,7 @@ must have the .json extension and have the following file structure:
                                        to the same target after every successful
                                        or unsuccessful trigger attempt.
 
-      "debug":                      -- (optional) Can only have 'true' or 'false'
+      "enableDebugLog":             -- (optional) Can only have 'true' or 'false'
                                        as value (default: 'false'). This an option
                                        to assist in mod development. If this is
                                        'true', and 'Debug Mode' is enabled within
@@ -73,8 +74,9 @@ must have the .json extension and have the following file structure:
     ...                             -- additional events --
   ]
 }
+```
 
--- Notes --
+## Notes
 1. List of values must be enclosed within square brackets and separated by commas.
    Remove any trailing commas on any list enclosed by square brackets, or you'll
    get a JSON parsing error.

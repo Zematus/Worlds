@@ -321,6 +321,8 @@ public static class ExpressionBuilder
                 return new ClampFunctionExpression(context, argExpressions);
             case GetProbabilityAdjectiveFunctionExpression.FunctionId:
                 return new GetProbabilityAdjectiveFunctionExpression(context, argExpressions);
+            case NumberFunctionExpression.FunctionId:
+                return new NumberFunctionExpression(context, argExpressions);
         }
 
         if (string.IsNullOrWhiteSpace(arguments))

@@ -1,10 +1,11 @@
----- Descriptions Modding Guide ----
+# Descriptions Modding Guide
 
 Descriptions are JSON sub-objects that are added to decisions or other mod objects
 that can generate texts to display within the game. They have the following structure:
 
--- Object Structure --
+### Object Structure
 
+```
     {
       "id":                         -- (required) Unique description identifier.
                                        Each description must have a unique id within
@@ -19,7 +20,7 @@ that can generate texts to display within the game. They have the following stru
                                        on how to define valid properties.
 
       "text":                       -- (required) Text to generate when this description
-                                       object is evaluated. See string_values_guide.txt
+                                       object is evaluated. See string_values_guide.md
                                        to find more about how to define valid dynamic
                                        text values.
 
@@ -30,8 +31,9 @@ that can generate texts to display within the game. They have the following stru
                                        not generated. If no conditions are given, then
                                        the the text will always be presented.
     }
+```
 
--- Notes --
+## Notes
 1. List of values must be enclosed within square brackets and separated by commas.
    Remove any trailing commas on any list enclosed by square brackets, or you'll
    get a JSON parsing error.

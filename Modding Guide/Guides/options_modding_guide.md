@@ -1,10 +1,11 @@
----- Options Modding Guide ----
+# Options Modding Guide
 
 Options are JSON sub-objects that are added to decisions or other mod objects that
 can generate buttons to display within a dialog. They have the following structure:
 
--- Object Structure --
+### Object Structure
 
+```
     {
       "id":                         -- (required) Unique option identifier. Each option
                                        must have a unique id within the list of options
@@ -18,7 +19,7 @@ can generate buttons to display within a dialog. They have the following structu
                                        on how to define valid properties.
 
       "text":                       -- (required) Text to generate when this option
-                                       object is evaluated. See string_values_guide.txt
+                                       object is evaluated. See string_values_guide.md
                                        to find more about how to define valid dynamic
                                        text values.
 
@@ -39,11 +40,12 @@ can generate buttons to display within a dialog. They have the following structu
 
       "effects":                    -- (required) List of EFFECTS that will trigger
                                        when this option is selected either by a human
-                                       player or the AI. Please read effects_guide.txt
+                                       player or the AI. Please read effects_guide.md
                                        for more details on how to define valid effects.
     }
+```
 
--- Notes --
+## Notes
 1. List of values must be enclosed within square brackets and separated by commas.
    Remove any trailing commas on any list enclosed by square brackets, or you'll
    get a JSON parsing error.

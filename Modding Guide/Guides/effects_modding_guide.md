@@ -1,11 +1,12 @@
----- Effects Modding Guide ----
+# Effects Modding Guide
 
-Effects are JSON sub-objects that are added to decisions or other mod objects that
+Effects are JSON sub-objects that are added to decision options or other mod objects that
 define a set of effects to occur within the simulation when triggered. They have the
 following structure:
 
--- Object Structure --
+### Object Structure
 
+```
     {
       "id":                         -- (required) Unique effect identifier. Each effect
                                        must have a unique id within the list of effects
@@ -22,17 +23,18 @@ following structure:
                                        object is evaluated. This text will be displayed
                                        when needed by the object this effect is associated
                                        with (for example, as an option tooltip) See
-                                       string_values_guide.txt to find more about how
+                                       string_values_guide.md to find more about how
                                        to define valid dynamic text values.
 
       "result":                     -- (required) EFFECT EXPRESSION to evaluate after
                                        this effect has been triggered. This can introduce
                                        changes to the target or any related entity.
-                                       Please read expressions_guide.txt for more
+                                       Please read expressions_guide.md for more
                                        details on how to define valid effect expressions.
     }
+```
 
--- Notes --
+## Notes
 1. List of values must be enclosed within square brackets and separated by commas.
    Remove any trailing commas on any list enclosed by square brackets, or you'll
    get a JSON parsing error.

@@ -1,10 +1,11 @@
----- Decision Modding Guide ----
+# Decision Modding Guide
 
-Decision modding files are located within the 'Decisions' folder. To be valid, mod
-files must have the .json extension and have the following file structure:
+Decision mod files are located within the **Decisions** folder. To be valid, mod
+files must have the **.json** extension and have the following file structure:
 
--- File Structure --
+### File Structure
 
+```
 {
   "decisions": [                    -- list of decisions --
     {
@@ -45,7 +46,7 @@ files must have the .json extension and have the following file structure:
                                        loaded to generate the body text within the
                                        dialog. The texts extracted will be presented
                                        in the same order as they appear on this list.
-                                       Please read descriptions_modding_guide.txt for
+                                       Please read descriptions_modding_guide.md for
                                        more details on how to define decision description
                                        objects.
 
@@ -54,16 +55,34 @@ files must have the .json extension and have the following file structure:
                                        to generate the list of options to present to
                                        the player. The options will appear in the
                                        order they are defined on this list. Please
-                                       read options_modding_guide.txt for more details
+                                       read options_modding_guide.md for more details
                                        on how to define decision option objects.
+
+      "enableDebugLog":             -- (optional) Can only have 'true' or 'false'
+                                       as value (default: 'false'). This an option
+                                       to assist in mod development. If this is
+                                       'true', and 'Debug Mode' is enabled within
+                                       the game, then debug information specific
+                                       to this decision will be logged during the
+                                       game execution.
+
+      "debugPlayerGuidance":        -- (optional) Can only have 'true' or 'false'
+                                       as value (default: 'false'). This an option
+                                       to assist in mod development. If this is 'true',
+                                       the game will pause whenever this decision is
+                                       invoked and will request the player to choose
+                                       an option instead of letting the simulation do
+                                       it.
+
     },
     ...                             -- additional decisions --
   ]
 }
+```
 
--- Notes --
-1. List of values must be enclosed within square brackets and separated by commas.
+## Notes
+1. Remove any trailing commas or the file won't be parsed
+2. List of values must be enclosed within square brackets and separated by commas.
    Remove any trailing commas on any list enclosed by square brackets, or you'll
    get a JSON parsing error.
-2. Do not duplicate decision ids unless you want to specifically replace another decision
-   already loaded.
+3. Do not duplicate decision *id* values unless you want to specifically replace another decision

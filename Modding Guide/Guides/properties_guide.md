@@ -34,7 +34,7 @@ A property's value can be accesses by its id. For example, a property with id `"
 and value `"2 + 3"` can be used within an expression like this `"two_plus_three + 4"`
 which evaluates to **9**. A property value can also be accessed by it's attribute `"value"`
 like in this example expression `"1 + two_plus_three.value"` which evaluates to **6**.
-See *expressions_guide.txt* for more details on how to define expressions.
+See *expressions_guide.md* for more details on how to define expressions.
 
 A property can reference properties that were defined previously within that same
 context like in the following example:
@@ -49,4 +49,4 @@ to itself in the previous example.
 1. Remove any trailing commas or the file won't be parsed
 2. A value expression is any expression that returns a value like a **boolean**, **numeric**,
    **entity**, or **string** expression. But not an **effect** expression. Refer to
-   *expressions_guide.txt* for more details
+   *expressions_guide.md* for more details

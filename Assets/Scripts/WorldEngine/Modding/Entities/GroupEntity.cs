@@ -16,6 +16,7 @@ public class GroupEntity : CulturalEntity<CellGroup>
     public const string AccessibilityModifierAttributeId = "accessibility_modifier";
     public const string PropertiesAttributeId = "properties";
     public const string PopulationAttributeId = "population";
+    public const string NeighborsAttributeId = "neighbors";
 
     public virtual CellGroup Group
     {
@@ -33,6 +34,7 @@ public class GroupEntity : CulturalEntity<CellGroup>
     private PolityCollectionEntity _presentPolitiesEntity = null;
     private FactionCollectionEntity _closestFactionsEntity = null;
     private ModifiableGroupPropertyContainerEntity _propertiesEntity = null;
+    private GroupCollectionEntity _neighborsEntity = null;
 
     protected override object _reference => Group;
 
@@ -162,10 +164,27 @@ public class GroupEntity : CulturalEntity<CellGroup>
         Group.SetToUpdate(warnIfUnexpected: false);
     }
 
+    public ICollection<CellGroup> GetNeighbors() => Group.Neighbors.Values;
+
+    public EntityAttribute GetNeighborsAttribute()
+    {
+        _neighborsEntity =
+            _neighborsEntity ?? new GroupCollectionEntity(
+            GetNeighbors,
+            Context,
+            BuildAttributeId(NeighborsAttributeId),
+            this);
+
+        return _neighborsEntity.GetThisEntityAttribute();
+    }
+
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)
         {
+            case NeighborsAttributeId:
+                return GetNeighborsAttribute();
+
             case CellAttributeId:
                 return GetCellAttribute();
 
@@ -242,6 +261,7 @@ public class GroupEntity : CulturalEntity<CellGroup>
         _presentPolitiesEntity?.Reset();
         _closestFactionsEntity?.Reset();
         _propertiesEntity?.Reset();
+        _neighborsEntity?.Reset();
 
         base.ResetInternal();
     }

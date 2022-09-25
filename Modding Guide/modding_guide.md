@@ -27,39 +27,39 @@ Here's a quick preview of each supported mod component:
 
 ### Adjective Mods
 
-Adjective definitions are used to define the possible adjectives used in language generation. You can find more information on how to write an adjective mod within the *adjective_modding_guide.txt* file located in the *Guides* folder.
+Adjective definitions are used to define the possible adjectives used in language generation. You can find more information on how to write an adjective mod within the *adjective_modding_guide.md* file located in the *Guides* folder.
 
 ### Biome Mods
 
-Biome definitions are used to define the biomes assigned to each cell on a newly generated planet. You can find more information on how to write a biome mod within the *biome_modding_guide.txt* file located in the *Guides* folder.
+Biome definitions are used to define the biomes assigned to each cell on a newly generated planet. You can find more information on how to write a biome mod within the *biome_modding_guide.md* file located in the *Guides* folder.
 
 ### Action Mods
 
-Action definitions are used to define the possible action that player led factions can use during a game. You can find more information on how to write a discovery mod within the *action_modding_guide.txt* file located in the *Guides* folder.
+Action definitions are used to define the possible action that player led factions can use during a game. You can find more information on how to write a discovery mod within the *action_modding_guide.md* file located in the *Guides* folder.
 
 ### Decision Mods
 
-Decision definitions are used to define the possible decisions that player and non-player led factions can be confronted with during a game. You can find more information on how to write a discovery mod within the *decision_modding_guide.txt* file located in the *Guides* folder.
+Decision definitions are used to define the possible decisions that player and non-player led factions can be confronted with during a game. You can find more information on how to write a discovery mod within the *decision_modding_guide.md* file located in the *Guides* folder.
 
 ### Discovery Mods
 
-Discovery definitions are used to define the possible discoveries that can be made by humans across a world's history. You can find more information on how to write a discovery mod within the *discovery_modding_guide.txt* file located in the *Guides* folder.
+Discovery definitions are used to define the possible discoveries that can be made by humans across a world's history. You can find more information on how to write a discovery mod within the *discovery_modding_guide.md* file located in the *Guides* folder.
 
 ### Element Mods
 
-Element definitions are used to define the types of associations between elements and regions. You can find more information on how to write a element mod within the *element_modding_guide.txt* file located in the *Guides* folder.
+Element definitions are used to define the types of associations between elements and regions. You can find more information on how to write a element mod within the *element_modding_guide.md* file located in the *Guides* folder.
 
 ### Event Mods
 
-Event definitions are used to define group and faction events that can occur during the game. You can find more information on how to write a element mod within the *element_modding_guide.txt* file located in the *Guides* folder.
+Event definitions are used to define group and faction events that can occur during the game. You can find more information on how to write a element mod within the *element_modding_guide.md* file located in the *Guides* folder.
 
 ### Layer Mods
 
-Layer definitions are used to define the layers assigned to each cell on a newly generated planet. You can find more information on how to write a layer mod within the *layer_modding_guide.txt* file located in the *Guides* folder.
+Layer definitions are used to define the layers assigned to each cell on a newly generated planet. You can find more information on how to write a layer mod within the *layer_modding_guide.md* file located in the *Guides* folder.
 
 ### Region Attribute Mods
 
-Region Attribute definitions are used to define the attributes of a region. You can find more information on how to write a region attribute mod within the *region_attribute_modding_guide.txt* file located in the *Guides* folder.
+Region Attribute definitions are used to define the attributes of a region. You can find more information on how to write a region attribute mod within the *region_attribute_modding_guide.md* file located in the *Guides* folder.
 
 ### Cultural Preference Mods
 

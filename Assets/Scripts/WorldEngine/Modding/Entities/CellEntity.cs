@@ -8,6 +8,7 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
     public const string BiomeTraitPresenceAttributeId = "biome_trait_presence";
     public const string BiomeTypePresenceAttributeId = "biome_type_presence";
     public const string NeighborsAttributeId = "neighbors";
+    public const string GroupAttributeId = "group";
     public const string ArabilityAttributeId = "arability";
     public const string AccessibilityAttributeId = "accessibility";
     public const string HillinessAttributeId = "hilliness";
@@ -26,6 +27,7 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
     private ValueGetterEntityAttribute<float> _hillinessAttribute;
     private ValueGetterEntityAttribute<float> _flowingWaterAttribute;
 
+    private GroupEntity _groupEntity = null;
     private CellCollectionEntity _neighborsEntity = null;
 
     private class BiomeTraitPresenceAttribute : ValueEntityAttribute<float>
@@ -115,10 +117,25 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
         return _neighborsEntity.GetThisEntityAttribute();
     }
 
+    public EntityAttribute GetGroupAttribute()
+    {
+        _groupEntity =
+            _groupEntity ?? new GroupEntity(
+                GetGroup,
+                Context,
+                BuildAttributeId(GroupAttributeId),
+                this);
+
+        return _groupEntity.GetThisEntityAttribute();
+    }
+
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)
         {
+            case GroupAttributeId:
+                return GetGroupAttribute();
+
             case BiomeTraitPresenceAttributeId:
                 return new BiomeTraitPresenceAttribute(this, arguments);
 
@@ -180,6 +197,9 @@ public class CellEntity : DelayedSetEntity<TerrainCell>
 
         if (_isReset) return;
 
+        _groupEntity?.Reset();
         _neighborsEntity?.Reset();
     }
+
+    private CellGroup GetGroup() => Cell.Group;
 }

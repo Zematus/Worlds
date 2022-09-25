@@ -1,9 +1,9 @@
 # Cultural Preferences Modding Guide
 
-Cultural Preferences modding files are located within the **Preferences** folder. To be valid, mod files must have the **.json** extension and have the following file structure:
+Cultural Preferences scripting mod files are located within the **Preferences** folder. To be valid, mod files must have the **.json** extension and have the following file structure:
 
 #### File Structure
-Note: .json files do not support comments. Remove texts enclosed within double dashes '--'
+Note: *.json* files do not support comments. Remove texts enclosed within double dashes `--`
 
 ```
 {
