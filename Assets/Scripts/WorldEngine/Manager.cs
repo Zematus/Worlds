@@ -1315,6 +1315,22 @@ public class Manager
         UpdatedCells.UnionWith(cells);
     }
 
+    public static bool CanAddPopulationGroupAtPosition(int longitude, int latitude)
+    {
+        if ((longitude < 0) || (longitude >= CurrentWorld.Width))
+            return false;
+
+        if ((latitude < 0) || (latitude >= CurrentWorld.Height))
+            return false;
+
+        TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        if (cell.IsLiquidSea || cell.Survivability < World.MinSurvivabilityForUserGroupPlacement)
+            return false;
+
+        return true;
+    }
+
     public static void GenerateRandomHumanGroup(int initialPopulation)
     {
         World world = _manager._currentWorld;
