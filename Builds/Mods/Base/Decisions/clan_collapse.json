@@ -1,0 +1,28 @@
+{
+  "decisions": [
+    {
+      "id": "clan_collapse",
+      "name": "clan collapse",
+      "target": "faction",
+      "description": [
+        {
+          "id": "description",
+          "text": "The clan <<target>> of the <<target.polity>> tribe has weakened due to lack of prominence to the point it can no longer mantain its integrity. The few members that remain are abandoning it or dying out of old age...\n\nFrom now on, clan <<target>> will cease to exist."
+        }
+      ],
+      "options": [
+        {
+          "id": "acknowledge",
+          "text": "It was a good run...",
+          "effects": [
+            {
+              "id": "collapse_clan",
+              "text": "the clan <<target>> disappears...",
+              "result": "target.remove()"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

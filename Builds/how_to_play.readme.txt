@@ -1,0 +1,11 @@
+How To Play the Game on macOS (Catalina 10.15.2)
+
+1. Uncompress the zip file into the default folder (WorldHistorySim_0331_mac)
+2. While pressing 'Ctrl', click on 'Worlds.app' and select 'Open' from the context menu
+3. One the 'macOS cannot verify the developer of “Worlds”...' warning dialog, press the 'Open' button again
+-- NOTE: You will have to do this twice as the 'Open' option will not show the first time you try to open the application
+4. Close the game as the game won't work when tryin to execute the .app directly
+5. Ctrl-click again on the game and select 'Show Package Contents'
+6. On the new Finder window, browse through /Contents/MacOS and click on 'Worlds - History Simulator' to start the game
+
+If you still have issues running the game, please contact the developer and explain with details what problems you have encountered: drtardigrade2020@gmail.com

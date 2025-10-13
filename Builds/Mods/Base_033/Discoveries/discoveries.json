@@ -1,0 +1,87 @@
+{
+  "discoveries": [
+    {
+      "id": "boat_making",
+      "name": "boat making",
+      "gainConditions": [
+        "[NOT]group_has_knowledge:shipbuilding",
+        "[ANY_N_CELL]cell_biome_type_presence:water",
+        "cell_biome_trait_presence:wood,0.3"
+      ],
+      "holdConditions": ["group_has_knowledge:shipbuilding,0.1"],
+      "gainEffects": ["add_group_knowledge:shipbuilding,10", "add_group_skill:seafaring"],
+      "lossEffects": ["remove_group_knowledge:shipbuilding", "remove_group_skill:seafaring"],
+      "eventTimeToTrigger": 456250000,
+      "eventTimeToTriggerFactors": ["[INV]neighborhood_biome_type_presence:water", "[INV]cell_biome_trait_presence:wood"]
+    },
+    {
+      "id": "rudders",
+      "name": "rudders",
+      "gainConditions": ["group_has_knowledge:shipbuilding,5", "[ANY_N_CELL]cell_biome_type_presence:water"],
+      "holdConditions": ["group_has_knowledge:shipbuilding,3"],
+      "gainEffects": ["modify_group_knowledge_limit:shipbuilding,5"],
+      "lossEffects": ["modify_group_knowledge_limit:shipbuilding,-5"],
+      "eventTimeToTrigger": 91250000,
+      "eventTimeToTriggerFactors": ["[INV]neighborhood_biome_type_presence:water"]
+    },
+    {
+      "id": "sailing",
+      "name": "sailing",
+      "gainConditions": ["group_has_knowledge:shipbuilding,10", "[AT_LEAST_N_CELLS:3]cell_biome_type_presence:water"],
+      "holdConditions": ["group_has_knowledge:shipbuilding,7"],
+      "gainEffects": ["modify_group_knowledge_limit:shipbuilding,15"],
+      "lossEffects": ["modify_group_knowledge_limit:shipbuilding,-15"],
+      "eventTimeToTrigger": 273750000,
+      "eventTimeToTriggerFactors": ["[INV]neighborhood_biome_type_presence:water"]
+    },
+    {
+      "id": "keels",
+      "name": "keels",
+      "gainConditions": ["group_has_knowledge:shipbuilding,15", "[ANY_N_CELL]cell_biome_type_presence:water"],
+      "holdConditions": ["group_has_knowledge:shipbuilding,12"],
+      "gainEffects": ["apply_group_navigation_range_modifier:0.5"],
+      "lossEffects": ["apply_group_navigation_range_modifier:-0.5"],
+      "eventTimeToTrigger": 91250000,
+      "eventTimeToTriggerFactors": ["[INV]neighborhood_biome_type_presence:water"]
+    },
+    {
+      "id": "plant_cultivation",
+      "name": "plant cultivation",
+      "gainConditions": ["[NOT]group_has_knowledge:agriculture", "cell_arability:0.3", "cell_accessibility:0.3"],
+      "holdConditions": ["group_has_knowledge:agriculture,0.1"],
+      "gainEffects": ["add_group_knowledge:agriculture,10", "add_group_activity:farming"],
+      "lossEffects": ["remove_group_knowledge:agriculture", "remove_group_activity:farming"],
+      "eventTimeToTrigger": 5475000000,
+      "eventTimeToTriggerFactors": ["[INV]cell_accessibility", "[INV]cell_arability"]
+    },
+    {
+      "id": "terraced_irrigation",
+      "name": "terraced irrigation",
+      "gainConditions": ["group_has_knowledge:agriculture,3", "cell_arability:0.2", "cell_accessibility:0.2", "cell_hilliness:0.20", "cell_flowing_water:50"],
+      "holdConditions": ["group_has_knowledge:agriculture,1", "cell_arability:0.1", "cell_accessibility:0.1", "cell_hilliness:0.10", "cell_flowing_water:20"],
+      "gainEffects": ["apply_cell_arability_modifier:0.5", "apply_cell_accessibility_modifier:0.4"],
+      "lossEffects": ["apply_cell_arability_modifier:-0.5", "apply_cell_accessibility_modifier:-0.4"],
+      "eventTimeToTrigger": 91250000,
+      "eventTimeToTriggerFactors": ["[INV]cell_hilliness", "[INV]cell_flowing_water:100"]
+    },
+    {
+      "id": "slash_and_burn",
+      "name": "slash-and-burn",
+      "gainConditions": ["group_has_knowledge:agriculture,4", "cell_arability:0.2", "cell_accessibility:0.2", "cell_biome_trait_presence:wood,0.5"],
+      "holdConditions": ["group_has_knowledge:agriculture,2", "cell_arability:0.1", "cell_accessibility:0.1", "cell_biome_trait_presence:wood,0.15"],
+      "gainEffects": ["apply_cell_arability_modifier:0.3", "apply_cell_accessibility_modifier:0.4"],
+      "lossEffects": ["apply_cell_arability_modifier:-0.3", "apply_cell_accessibility_modifier:-0.4"],
+      "eventTimeToTrigger": 91250000,
+      "eventTimeToTriggerFactors": ["[INV]cell_biome_trait_presence:wood"]
+    },
+    {
+      "id": "tribalism",
+      "name": "tribalism",
+      "gainConditions": ["group_has_knowledge:social_organization,6", "group_population:500"],
+      "holdConditions": ["group_has_knowledge:social_organization,2"],
+      "gainEffects": ["add_group_property:CAN_FORM_POLITY:tribe"],
+      "lossEffects": ["remove_group_property:CAN_FORM_POLITY:tribe"],
+      "eventTimeToTrigger": 912500
+    }
+  ]
+}

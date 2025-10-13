@@ -1,0 +1,96 @@
+{
+  "discoveries": [
+    {
+      "id": "boat_making",
+      "name": "boat making",
+      "gainEffects": [
+        "target.knowledges.add(shipbuilding, 1)",
+        "target.knowledges.shipbuilding.limit += 10",
+        "target.skills.add(seafaring)"
+      ],
+      "lossEffects": [
+        "target.knowledges.shipbuilding.limit -= 10",
+        "target.knowledges.remove(shipbuilding)",
+        "target.skills.remove(seafaring)"
+      ]
+    },
+    {
+      "id": "rudders",
+      "name": "rudders",
+      "gainEffects": [
+        "target.knowledges.shipbuilding.limit += 5"
+      ],
+      "lossEffects": [
+        "target.knowledges.shipbuilding.limit -= 5"
+      ]
+    },
+    {
+      "id": "sailing",
+      "name": "sailing",
+      "gainEffects": [
+        "target.knowledges.shipbuilding.limit += 15"
+      ],
+      "lossEffects": [
+        "target.knowledges.shipbuilding.limit -= 15"
+      ]
+    },
+    {
+      "id": "keels",
+      "name": "keels",
+      "gainEffects": [
+        "target.navigation_range += 0.5"
+      ],
+      "lossEffects": [
+        "target.navigation_range -= 0.5"
+      ]
+    },
+    {
+      "id": "plant_cultivation",
+      "name": "plant cultivation",
+      "gainEffects": [
+        "target.knowledges.add(agriculture, 1)",
+        "target.knowledges.agriculture.limit += 10",
+        "target.activities.add(farming)"
+      ],
+      "lossEffects": [
+        "target.knowledges.agriculture.limit -= 10",
+        "target.knowledges.remove(agriculture)",
+        "target.activities.remove(farming)"
+      ]
+    },
+    {
+      "id": "terraced_irrigation",
+      "name": "terraced irrigation",
+      "gainEffects": [
+        "target.arability_modifier += 0.5",
+        "target.accessibility_modifier += 0.4"
+      ],
+      "lossEffects": [
+        "target.arability_modifier -= 0.5",
+        "target.accessibility_modifier -= 0.4"
+      ]
+    },
+    {
+      "id": "slash_and_burn",
+      "name": "slash and burn",
+      "gainEffects": [
+        "target.arability_modifier += 0.3",
+        "target.accessibility_modifier += 0.4"
+      ],
+      "lossEffects": [
+        "target.arability_modifier -= 0.3",
+        "target.accessibility_modifier -= 0.4"
+      ]
+    },
+    {
+      "id": "tribalism",
+      "name": "tribalism",
+      "gainEffects": [
+        "target.properties.add(can_form_tribe)"
+      ],
+      "lossEffects": [
+        "target.properties.remove(can_form_tribe)"
+      ]
+    }
+]
+}

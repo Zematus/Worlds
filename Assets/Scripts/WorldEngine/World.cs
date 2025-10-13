@@ -253,7 +253,6 @@ public class World : ISynchronizable, IWorldDateGetter
     [XmlIgnore]
     public bool PolitiesHaveBeenUpdated = false;
 
-#if DEBUG
     private bool _needsDrainageRegeneration = true;
 
     [XmlIgnore]
@@ -263,18 +262,15 @@ public class World : ISynchronizable, IWorldDateGetter
             return _needsDrainageRegeneration;
         }
         set {
+#if DEBUG
             if (value == true)
             {
                 Debug.Log("NeedsDrainageRegeneration set to true");
             }
-
+#endif
             _needsDrainageRegeneration = value;
         }
     }
-#else
-    [XmlIgnore]
-    public bool NeedsDrainageRegeneration = true;
-#endif
 
 #if DEBUG
     [XmlIgnore]

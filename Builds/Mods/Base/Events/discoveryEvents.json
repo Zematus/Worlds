@@ -1,0 +1,291 @@
+{
+  "events": [
+    {
+      "id": "gain_boat_making_discovery",
+      "name": "gain boat making discovery",
+      "target": "group",
+      "assignOn": ["spawn"],
+      "properties": [
+        { "id": "cell_water_presence", "value": "target.cell.biome_type_presence(water)" },
+        { "id": "neighborhood_water_presence", "value": "target.cell.neighbors.sum[cell](cell.biome_type_presence(water))" },
+        { "id": "area_water_presence", "value": "(cell_water_presence + neighborhood_water_presence) / 9" },
+        { "id": "cell_wood_presence", "value": "target.cell.biome_trait_presence(wood)" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(boat_making)",
+        "!target.knowledges.contains(shipbuilding)",
+        "cell_wood_presence > 0",
+        "cell_water_presence > 0",
+        "area_water_presence > 0"
+      ],
+      "timeToTrigger": "9125 + random(456250000 * (1 - area_water_presence) * (1 - (cell_wood_presence * 0.5)))",
+      "effects": [
+        "target.discoveries.add(boat_making)"
+      ]
+    },
+    {
+      "id": "lose_boat_making_discovery",
+      "name": "lose boat making discovery",
+      "target": "group",
+      "assignOn": ["spawn", "gained_discovery:boat_making", "knowledge_level_falls_below:shipbuilding,0.1"],
+      "assignmentConditions": [
+        "target.discoveries.contains(boat_making)",
+        "!target.knowledges.contains(shipbuilding) || (target.knowledges.shipbuilding < 0.1)"
+      ],
+      "timeToTrigger": "365 + random(36500)",
+      "effects": [
+        "target.discoveries.remove(boat_making)"
+      ]
+    },
+    {
+      "id": "gain_rudders_discovery",
+      "name": "gain rudders discovery",
+      "target": "group",
+      "assignOn": ["spawn", "knowledge_level_raises_above:shipbuilding,5"],
+      "properties": [
+        { "id": "cell_water_presence", "value": "target.cell.biome_type_presence(water)" },
+        { "id": "neighborhood_water_presence", "value": "target.cell.neighbors.sum[cell](cell.biome_type_presence(water))" },
+        { "id": "area_water_presence", "value": "(cell_water_presence + neighborhood_water_presence) / 9" },
+        { "id": "cell_wood_presence", "value": "target.cell.biome_trait_presence(wood)" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(rudders)",
+        "target.knowledges.contains(shipbuilding)",
+        "target.knowledges.shipbuilding > 5",
+        "cell_wood_presence > 0",
+        "area_water_presence > 0"
+      ],
+      "timeToTrigger": "9125 + random(456250000 * (1 - area_water_presence) * (1 - (cell_wood_presence * 0.25)))",
+      "effects": [
+        "target.discoveries.add(rudders)"
+      ]
+    },
+    {
+      "id": "lose_rudders_discovery",
+      "name": "lose rudders discovery",
+      "target": "group",
+      "assignOn": ["spawn", "gained_discovery:rudders", "knowledge_level_falls_below:shipbuilding,3"],
+      "assignmentConditions": [
+        "target.discoveries.contains(rudders)",
+        "!target.knowledges.contains(shipbuilding) || (target.knowledges.shipbuilding < 3)"
+      ],
+      "timeToTrigger": "365 + random(36500)",
+      "effects": [
+        "target.discoveries.remove(rudders)"
+      ]
+    },
+    {
+      "id": "gain_sailing_discovery",
+      "name": "gain sailing discovery",
+      "target": "group",
+      "assignOn": ["spawn", "knowledge_level_raises_above:shipbuilding,9"],
+      "properties": [
+        { "id": "neighborhood_water_presence", "value": "target.cell.neighbors.sum[cell](cell.biome_type_presence(water))" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(sailing)",
+        "target.knowledges.contains(shipbuilding)",
+        "target.knowledges.shipbuilding > 9",
+        "neighborhood_water_presence > 3"
+      ],
+      "timeToTrigger": "9125 + random(456250000 * (8 - neighborhood_water_presence))",
+      "effects": [
+        "target.discoveries.add(sailing)"
+      ]
+    },
+    {
+      "id": "lose_sailing_discovery",
+      "name": "lose sailing discovery",
+      "target": "group",
+      "assignOn": ["spawn", "gained_discovery:sailing", "knowledge_level_falls_below:shipbuilding,6"],
+      "assignmentConditions": [
+        "target.discoveries.contains(sailing)",
+        "!target.knowledges.contains(shipbuilding) || (target.knowledges.shipbuilding < 6)"
+      ],
+      "timeToTrigger": "365 + random(36500)",
+      "effects": [
+        "target.discoveries.remove(sailing)"
+      ]
+    },
+    {
+      "id": "gain_keels_discovery",
+      "name": "gain keels discovery",
+      "target": "group",
+      "assignOn": ["spawn", "knowledge_level_raises_above:shipbuilding,15"],
+      "properties": [
+        { "id": "cell_water_presence", "value": "target.cell.biome_type_presence(water)" },
+        { "id": "neighborhood_water_presence", "value": "target.cell.neighbors.sum[cell](cell.biome_type_presence(water))" },
+        { "id": "area_water_presence", "value": "(cell_water_presence + neighborhood_water_presence) / 9" },
+        { "id": "cell_wood_presence", "value": "target.cell.biome_trait_presence(wood)" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(keels)",
+        "target.knowledges.contains(shipbuilding)",
+        "target.knowledges.shipbuilding > 15",
+        "cell_wood_presence > 0",
+        "area_water_presence > 0"
+      ],
+      "timeToTrigger": "9125 + random(456250000 * (1 - area_water_presence) * (1 - (cell_wood_presence * 0.25)))",
+      "effects": [
+        "target.discoveries.add(keels)"
+      ]
+    },
+    {
+      "id": "lose_keels_discovery",
+      "name": "lose keels discovery",
+      "target": "group",
+      "assignOn": ["spawn", "gained_discovery:keels", "knowledge_level_falls_below:shipbuilding,12"],
+      "assignmentConditions": [
+        "target.discoveries.contains(keels)",
+        "!target.knowledges.contains(shipbuilding) || (target.knowledges.shipbuilding < 12)"
+      ],
+      "timeToTrigger": "365 + random(36500)",
+      "effects": [
+        "target.discoveries.remove(keels)"
+      ]
+    },
+    {
+      "id": "gain_plant_cultivation_discovery",
+      "name": "gain plant cultivation discovery",
+      "target": "group",
+      "assignOn": ["spawn"],
+      "properties": [
+        { "id": "cell_arability_factor", "value": "1.2 - target.cell.arability" },
+        { "id": "cell_accessibility_factor", "value": "1.4 - target.cell.accessibility" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(plant_cultivation)",
+        "!target.knowledges.contains(agriculture)",
+        "cell_arability_factor < 1",
+        "cell_accessibility_factor < 1"
+      ],
+      "timeToTrigger": "9125 + random(456250000 * (cell_arability_factor + cell_accessibility_factor))",
+      "effects": [
+        "target.discoveries.add(plant_cultivation)"
+      ]
+    },
+    {
+      "id": "lose_plant_cultivation_discovery",
+      "name": "lose plant cultivation discovery",
+      "target": "group",
+      "assignOn": ["spawn", "gained_discovery:plant_cultivation", "knowledge_level_falls_below:agriculture,0.1"],
+      "assignmentConditions": [
+        "target.discoveries.contains(plant_cultivation)",
+        "!target.knowledges.contains(agriculture) || (target.knowledges.agriculture < 0.1)"
+      ],
+      "timeToTrigger": "365 + random(36500)",
+      "effects": [
+        "target.discoveries.remove(plant_cultivation)"
+      ]
+    },
+    {
+      "id": "gain_terraced_irrigation_discovery",
+      "name": "gain terraced irrigation discovery",
+      "target": "group",
+      "assignOn": ["spawn"],
+      "properties": [
+        { "id": "cell_arability_factor", "value": "1.05 - target.cell.arability" },
+        { "id": "cell_accessibility_factor", "value": "1.1 - target.cell.accessibility" },
+        { "id": "cell_hilliness_factor", "value": "1.15 - target.cell.hilliness" },
+        { "id": "cell_flowing_water", "value": "target.cell.flowing_water" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(terraced_irrigation)",
+        "target.knowledges.contains(agriculture)",
+        "target.knowledges.agriculture > 3",
+        "cell_arability_factor < 1",
+        "cell_accessibility_factor < 1",
+        "cell_hilliness_factor < 1",
+        "cell_flowing_water > 50"
+      ],
+      "timeToTrigger": "9125 + random(45625000 * (cell_arability_factor + cell_accessibility_factor + cell_hilliness_factor))",
+      "effects": [
+        "target.discoveries.add(terraced_irrigation)"
+      ]
+    },
+    {
+      "id": "lose_terraced_irrigation_discovery",
+      "name": "lose terraced irrigation discovery",
+      "target": "group",
+      "assignOn": ["spawn", "gained_discovery:terraced_irrigation", "knowledge_level_falls_below:agriculture,2"],
+      "assignmentConditions": [
+        "target.discoveries.contains(terraced_irrigation)",
+        "!target.knowledges.contains(agriculture) || (target.knowledges.agriculture < 1)"
+      ],
+      "timeToTrigger": "365 + random(36500)",
+      "effects": [
+        "target.discoveries.remove(terraced_irrigation)"
+      ]
+    },
+    {
+      "id": "gain_slash_and_burn_discovery",
+      "name": "gain slash and burn discovery",
+      "target": "group",
+      "assignOn": ["spawn"],
+      "properties": [
+        { "id": "cell_arability_factor", "value": "1.1 - target.cell.arability" },
+        { "id": "cell_accessibility_factor", "value": "1.2 - target.cell.accessibility" },
+        { "id": "cell_wood_presence_factor", "value": "1.5 - target.cell.biome_trait_presence(wood)" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(slash_and_burn)",
+        "target.knowledges.contains(agriculture)",
+        "target.knowledges.agriculture > 4",
+        "cell_arability_factor < 1",
+        "cell_accessibility_factor < 1",
+        "cell_wood_presence_factor < 1"
+      ],
+      "timeToTrigger": "9125 + random(45625000 * (cell_arability_factor + cell_accessibility_factor + cell_wood_presence_factor))",
+      "effects": [
+        "target.discoveries.add(slash_and_burn)"
+      ]
+    },
+    {
+      "id": "lose_slash_and_burn_discovery",
+      "name": "lose slash and burn discovery",
+      "target": "group",
+      "assignOn": ["spawn", "gained_discovery:slash_and_burn", "knowledge_level_falls_below:agriculture,2"],
+      "assignmentConditions": [
+        "target.discoveries.contains(slash_and_burn)",
+        "!target.knowledges.contains(agriculture) || (target.knowledges.agriculture < 2)"
+      ],
+      "timeToTrigger": "365 + random(36500)",
+      "effects": [
+        "target.discoveries.remove(slash_and_burn)"
+      ]
+    },
+    {
+      "id": "gain_tribalism_discovery",
+      "name": "gain tribalism discovery",
+      "target": "group",
+      "assignOn": ["spawn"],
+      "properties": [
+        { "id": "population_factor", "value": "clamp(1 - normalize(target.population, 500, 1000000), 0, 1)" }
+      ],
+      "assignmentConditions": [
+        "!target.discoveries.contains(tribalism)",
+        "target.knowledges.contains(social_organization)",
+        "target.knowledges.social_organization > 6",
+        "target.population > 500"
+      ],
+      "timeToTrigger": "9125 + random(45625000 * population_factor)",
+      "effects": [
+        "target.discoveries.add(tribalism)"
+      ]
+    },
+    {
+      "id": "lose_tribalism_discovery",
+      "name": "lose tribalism discovery",
+      "target": "group",
+      "assignOn": ["spawn", "gained_discovery:tribalism", "knowledge_level_falls_below:social_organization,2"],
+      "assignmentConditions": [
+        "target.discoveries.contains(tribalism)",
+        "!target.knowledges.contains(social_organization) || (target.knowledges.social_organization < 2)"
+      ],
+      "timeToTrigger": "365 + random(36500)",
+      "effects": [
+        "target.discoveries.remove(tribalism)"
+      ]
+    }
+  ]
+}

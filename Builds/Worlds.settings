@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<AppSettings xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <StartSpeedIndex>7</StartSpeedIndex>
+  <AltitudeScale>0.75</AltitudeScale>
+  <SeaLevelOffset>0</SeaLevelOffset>
+  <RiverStrength>0.5</RiverStrength>
+  <TemperatureOffset>13.7</TemperatureOffset>
+  <RainfallOffset>990</RainfallOffset>
+  <Fullscreen>false</Fullscreen>
+  <UIScaling>true</UIScaling>
+  <DeveloperMode>Advanced</DeveloperMode>
+  <AnimationShaders>true</AnimationShaders>
+  <AutoSaveMode>Deactivate</AutoSaveMode>
+  <RealWorldAutoSaveInterval>300</RealWorldAutoSaveInterval>
+  <AutoSaveInterval>365000000</AutoSaveInterval>
+  <KeyboardXAxisSensitivity>50</KeyboardXAxisSensitivity>
+  <KeyboardYAxisSensitivity>50</KeyboardYAxisSensitivity>
+  <KeyboardInvertXAxis>false</KeyboardInvertXAxis>
+  <KeyboardInvertYAxis>false</KeyboardInvertYAxis>
+  <ActiveModPaths>
+    <string>Mods/Base</string>
+  </ActiveModPaths>
+  <LayerSettings />
+</AppSettings>
